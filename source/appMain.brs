@@ -225,10 +225,7 @@ end function
 
 function SpringboardScreen(item as object) As Boolean
     port = CreateObject("roMessagePort")
-    screen = CreateObject("roSpringboardScreen")
-
-    print "SpringboardScreen"
-    
+    screen = CreateObject("roSpringboardScreen")    
     screen.SetMessagePort(port)
 
     screen.SetDescriptionStyle("video") 'audio, movie, video, generic
@@ -461,7 +458,7 @@ function Search(app_screen, app_port, history)
         if type(msg) = "roSearchScreenEvent"
             if msg.isScreenClosed()
                 print "screen closed"
-                done = true
+                RunLandingScreen(app_screen, app_port)
             else if msg.isCleared()
                 print "search terms cleared"
                 history.Clear()
