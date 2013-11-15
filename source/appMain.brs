@@ -1,13 +1,14 @@
 function Main()
-  screen = CreateObject("roListScreen")
-  port = CreateObject("roMessagePort")
   InitTheme()
-  screen.SetMessagePort(port)
-  RunLandingScreen(screen, port)
+  RunLandingScreen()
 end function
 
 
-function RunLandingScreen(screen, port)
+function RunLandingScreen() as void
+  screen = CreateObject("roListScreen")
+  port = CreateObject("roMessagePort")
+  screen.SetMessagePort(port)
+
   screen.SetHeader("Welcome to put.io Channel")
   landing_items = CreateObject("roArray", 3, true)
   landing_items[0] = {Title: "Your Files"}
@@ -22,9 +23,10 @@ function RunLandingScreen(screen, port)
         if (msg.isListItemSelected()) then
           if (msg.GetIndex() = 0) then
             list_root_url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN"
-            FileBrowser(screen, port, list_root_url)
+            print "burda"
+            FileBrowser(list_root_url)
           else if (msg.GetIndex() = 2) then
-            Search(screen, port, false)
+            Search(false)
           end if
         end if
       end if
@@ -48,10 +50,10 @@ function InitTheme() as void
         OverhangSliceSD: "pkg:/images/roku-app-overhang.png"
         OverhangLogoHD: "pkg:/images/roku-app-logo.png"
         OverhangLogoSD: "pkg:/images/roku-app-logo.png"
-        OverhangOffsetSD_X: "25"
-        OverhangOffsetSD_Y: "15"
-        OverhangOffsetHD_X: "25"
-        OverhangOffsetHD_Y: "15"
+        OverhangOffsetSD_X: "60"
+        OverhangOffsetSD_Y: "40"
+        OverhangOffsetHD_X: "60"
+        OverhangOffsetHD_Y: "40"
         BreadcrumbTextLeft: "#37491D"
         BreadcrumbTextRight: "#E1DFE0"
         BreadcrumbDelimiter: "#37491D"
@@ -66,7 +68,11 @@ function InitTheme() as void
 end function
 
 
-function FileBrowser(screen, port, url, search_history=false)
+function FileBrowser(url as string, search_history=invalid) as Integer
+  screen = CreateObject("roListScreen")
+  port = CreateObject("roMessagePort")
+  screen.SetMessagePort(port)
+
   dialog = CreateObject("roOneLineDialog")
   dialog.SetTitle("Retrieving...")
   dialog.ShowBusyAnimation()
@@ -87,20 +93,22 @@ function FileBrowser(screen, port, url, search_history=false)
 
   while (true)
     msg = wait(0, port)
-    'sol ok tusuyla bir ust dizine donmek icin'
-    if (msg.isRemoteKeyPressed()) then
-        if (msg.GetIndex() = 4) then
-          if (result.DoesExist("parent")) then
-            if (result.parent.parent_id = invalid) then
-              RunLandingScreen(screen, port)
-            end if
-            url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+result.parent.parent_id.tostr()
-            FileBrowser(screen, port, url)
-          else
-            Search(screen, port, search_history)
-          endif
-        end if
+    if (msg.isScreenClosed()) Then
+        print "browser screen closed"
+        return -1
     end if
+    'sol ok tusuyla bir ust dizine donmek icin'
+    'if (msg.isScreenClosed()) then
+    ''  if (result.DoesExist("parent")) then
+    ''    if (result.parent.parent_id = invalid) then
+    ''      RunLandingScreen()
+    ''    end if
+    ''    url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+result.parent.parent_id.tostr()
+    ''    FileBrowser(url)
+    ''  else
+    ''    Search(search_history)
+    ''  endif
+    'end if
 
     if (type(msg) = "roListScreenEvent") then
       if (msg.isListItemSelected()) then
@@ -121,7 +129,7 @@ function FileBrowser(screen, port, url, search_history=false)
           else
             id = files[msg.GetIndex()].ID.tostr()
             url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+id
-            FileBrowser(screen, port, url)
+            FileBrowser(url)
           end if
         else if (c_root = "video") then
           id = files[msg.GetIndex()].ID.tostr()
@@ -151,6 +159,8 @@ function FileBrowser(screen, port, url, search_history=false)
                }
               SpringboardScreen(item)
             else
+              putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=039TXRBN"
+              location = ResolveRedirect(putio_api)
               item = { 
                 ContentType:"episode"
                 SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
@@ -158,6 +168,7 @@ function FileBrowser(screen, port, url, search_history=false)
                 ID: id
                 title: files[msg.GetIndex()].Title
                 convert_mp4: true
+                url: location
               }
               SpringboardScreen(item)
             end if
@@ -175,7 +186,7 @@ function FileBrowser(screen, port, url, search_history=false)
 end function
 
 
-function GetFileList(url) as object
+function GetFileList(url as string) as object
   request = CreateObject("roUrlTransfer")
   request.SetCertificatesFile("common:/certs/ca-bundle.crt")
   request.AddHeader("X-Roku-Reserved-Dev-Id", "")
@@ -277,7 +288,6 @@ function SpringboardScreen(item as object) As Boolean
         screen.SetContent(item)
     endif
 
-    screen.AddButton(2,"Go Back")
     screen.SetStaticRatingEnabled(false)
     screen.AllowUpdates(true)
     screen.Show()
@@ -296,8 +306,6 @@ function SpringboardScreen(item as object) As Boolean
               DisplayVideo(item)
           else if msg.GetIndex() = 3
               ConvertToMp4(item)
-          else if msg.GetIndex() = 2
-              return true
           endif
         else
           print "Unknown event: "; msg.GetType(); " msg: "; msg.GetMessage()
@@ -334,11 +342,6 @@ function DisplayVideo(args As object)
     if type(args["StreamFormat"]) = "roString" and args["StreamFormat"] <> "" then
         StreamFormat = args["StreamFormat"]
     end if
-    if type(args["srt"]) = "roString" and args["srt"] <> "" then
-        srt = args["StreamFormat"]
-    else 
-        srt = ""
-    end if
     
     videoclip = CreateObject("roAssociativeArray")
     videoclip.StreamBitrates = bitrates
@@ -346,11 +349,6 @@ function DisplayVideo(args As object)
     videoclip.StreamQualities = qualities
     videoclip.StreamFormat = StreamFormat
     videoclip.Title = title
-    print "srt = ";srt
-    if srt <> invalid and srt <> "" then
-        videoclip.SubtitleUrl = srt
-    end if
-    
     videoclip.SubtitleUrl = "https://api.put.io/v2/subtitles/get/"+args["ID"]+"?oauth_token=039TXRBN"
     video.SetContent(videoclip)
     video.show()
@@ -403,7 +401,7 @@ function ResolveRedirect(str As String) As String
 end function
 
 
-function ConvertToMp4(item as Object)
+function ConvertToMp4(item as Object) as void
   request = CreateObject("roUrlTransfer")
   request.SetCertificatesFile("common:/certs/ca-bundle.crt")
   request.AddHeader("X-Roku-Reserved-Dev-Id", "")
@@ -432,14 +430,13 @@ function ConvertToMp4(item as Object)
 end function
 
 
-function Search(app_screen, app_port, history)
+function Search(history) as Integer
     displayHistory = true
     if (type(history) <> "roArray") then
       history = CreateObject("roArray", 1, true)
     end if
-
-    port = CreateObject("roMessagePort")
     screen = CreateObject("roSearchScreen")
+    port = CreateObject("roMessagePort")
     screen.SetBreadcrumbText("", "Search in your files")
     screen.SetMessagePort(port) 
     if displayHistory
@@ -452,27 +449,24 @@ function Search(app_screen, app_port, history)
     screen.Show() 
     while true
         msg = wait(0, screen.GetMessagePort())
-        if (msg.isRemoteKeyPressed()) then
-          RunLandingScreen(app_screen, app_port)
-        end if
         if type(msg) = "roSearchScreenEvent"
-            if msg.isScreenClosed()
-                print "screen closed"
-                RunLandingScreen(app_screen, app_port)
-            else if msg.isCleared()
-                print "search terms cleared"
-                history.Clear()
-            else if msg.isFullResult()
-                print "full search: "; msg.GetMessage()
-                history.Push(msg.GetMessage())
-                if displayHistory
-                    screen.AddSearchTerm(msg.GetMessage())
-                end if
-                url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token=039TXRBN"
-                FileBrowser(app_screen, app_port, url, history)
-                exit while
-            endif
+          if (msg.isScreenClosed()) then
+              print "search screen closed"
+              return -1
+          else if msg.isCleared()
+              print "search terms cleared"
+              history.Clear()
+          else if msg.isFullResult()
+              print "full search: "; msg.GetMessage()
+              history.Push(msg.GetMessage())
+              if displayHistory
+                  screen.AddSearchTerm(msg.GetMessage())
+              end if
+              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token=039TXRBN"
+              FileBrowser(url, history)
+              exit while
+          endif
         endif
     end while 
-End function
+end function
  
