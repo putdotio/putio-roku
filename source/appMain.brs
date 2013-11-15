@@ -24,13 +24,14 @@ function RunLandingScreen(screen, port)
             list_root_url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN"
             FileBrowser(screen, port, list_root_url)
           else if (msg.GetIndex() = 2) then
-            Search()
+            Search(screen, port, false)
           end if
         end if
       end if
   end while
 
 end function
+
 
 function InitTheme() as void
     app = CreateObject("roAppManager")
@@ -65,19 +66,20 @@ function InitTheme() as void
 end function
 
 
-function FileBrowser(screen, port, url)
+function FileBrowser(screen, port, url, search_history=false)
   dialog = CreateObject("roOneLineDialog")
   dialog.SetTitle("Retrieving...")
   dialog.ShowBusyAnimation()
   dialog.Show()
   result = GetFileList(url)
   dialog.Close()
-
   if (result.DoesExist("parent")) then
     screen.SetHeader(result.parent.name)
   else
-    screen.SetHeader("Search Results")
-  endif
+    if (type(screen) = "roListScreen") then
+      screen.SetHeader("Search Results")
+    end if
+  end if
 
   files = result.files
   screen.SetContent(files)
@@ -85,7 +87,7 @@ function FileBrowser(screen, port, url)
 
   while (true)
     msg = wait(0, port)
-    'Bu kisin sol ok tusuyla bir ust dizine donmek icin'
+    'sol ok tusuyla bir ust dizine donmek icin'
     if (msg.isRemoteKeyPressed()) then
         if (msg.GetIndex() = 4) then
           if (result.DoesExist("parent")) then
@@ -95,7 +97,7 @@ function FileBrowser(screen, port, url)
             url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+result.parent.parent_id.tostr()
             FileBrowser(screen, port, url)
           else
-            RunLandingScreen(screen, port)
+            Search(screen, port, search_history)
           endif
         end if
     end if
@@ -110,9 +112,17 @@ function FileBrowser(screen, port, url)
 
         'bir item uzerinde OK butonuna basilirsa yapiacak isler burada tanimlaniyor'
         if (content_type = "application/x-directory") then
-          id = files[msg.GetIndex()].ID.tostr()
-          url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+id
-          FileBrowser(screen, port, url)
+          if (files[msg.GetIndex()].size = 0) then
+            dlg= CreateObject("roOneLineDialog")
+            dlg.SetTitle("Empty folder")
+            dlg.Show()
+            Sleep(1000)
+            dlg.Close()
+          else
+            id = files[msg.GetIndex()].ID.tostr()
+            url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+id
+            FileBrowser(screen, port, url)
+          end if
         else if (c_root = "video") then
           id = files[msg.GetIndex()].ID.tostr()
           if (c_format = "mp4") then
@@ -197,6 +207,7 @@ function GetFileList(url) as object
               HDSmallIconUrl: "pkg:/images/about_small.png",
               SDBackgroundImageUrl: kind.screenshot,            
               ShortDescriptionLine1: kind.name,
+              size: kind.size,
             }
             files.push(topic)
           end for
@@ -424,9 +435,12 @@ function ConvertToMp4(item as Object)
 end function
 
 
-function Search()
-    displayHistory = false
-    history = CreateObject("roArray", 1, true)
+function Search(app_screen, app_port, history)
+    displayHistory = true
+    if (type(history) <> "roArray") then
+      history = CreateObject("roArray", 1, true)
+    end if
+
     port = CreateObject("roMessagePort")
     screen = CreateObject("roSearchScreen")
     screen.SetBreadcrumbText("", "Search in your files")
@@ -439,9 +453,11 @@ function Search()
         screen.SetSearchTerms(history)
     endif 
     screen.Show() 
-    done = false
-    while done = false
-        msg = wait(0, screen.GetMessagePort()) 
+    while true
+        msg = wait(0, screen.GetMessagePort())
+        if (msg.isRemoteKeyPressed()) then
+          RunLandingScreen(app_screen, app_port)
+        end if
         if type(msg) = "roSearchScreenEvent"
             if msg.isScreenClosed()
                 print "screen closed"
@@ -455,13 +471,9 @@ function Search()
                 if displayHistory
                     screen.AddSearchTerm(msg.GetMessage())
                 end if
-                fbscreen = CreateObject("roListScreen")
-                fbport = CreateObject("roMessagePort")
                 url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token=039TXRBN"
-                done = true
-                FileBrowser(fbscreen, fbport, url)
-            else
-                print "Unknown event: "; msg.GetType(); " msg: ";msg.GetMessage()
+                FileBrowser(app_screen, app_port, url, history)
+                exit while
             endif
         endif
     end while 
