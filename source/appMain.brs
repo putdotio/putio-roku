@@ -9,7 +9,6 @@ function RunLandingScreen() as void
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
 
-  screen.SetHeader("Welcome to put.io Channel")
   landing_items = CreateObject("roArray", 3, true)
   landing_items[0] = {Title: "Your Files"}
   landing_items[1] = {Title: "Settings"}
@@ -23,7 +22,6 @@ function RunLandingScreen() as void
         if (msg.isListItemSelected()) then
           if (msg.GetIndex() = 0) then
             list_root_url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN"
-            print "burda"
             FileBrowser(list_root_url)
           else if (msg.GetIndex() = 2) then
             Search(false)
@@ -31,18 +29,17 @@ function RunLandingScreen() as void
         end if
       end if
   end while
-
 end function
 
 
 function InitTheme() as void
     app = CreateObject("roAppManager")
 
-    primaryText                 = "#FFFFFF"
-    secondaryText               = "#707070"
-    'buttonText                  = "#C0C0C0"
-    'buttonHighlight             = "#ffffff"
-    backgroundColor             = "#e0e0e0"
+    secondaryText    = "#FFED6D"
+    primaryText      = "#4D4D4D"
+    buttonText       = "#C0C0C0"
+    buttonHighlight  = "#ffffff"
+    backgroundColor  = "#4D4D4D"
     
     theme = {
         BackgroundColor: backgroundColor
@@ -50,19 +47,25 @@ function InitTheme() as void
         OverhangSliceSD: "pkg:/images/roku-app-overhang.png"
         OverhangLogoHD: "pkg:/images/roku-app-logo.png"
         OverhangLogoSD: "pkg:/images/roku-app-logo.png"
-        OverhangOffsetSD_X: "60"
-        OverhangOffsetSD_Y: "40"
-        OverhangOffsetHD_X: "60"
-        OverhangOffsetHD_Y: "40"
-        BreadcrumbTextLeft: "#37491D"
-        BreadcrumbTextRight: "#E1DFE0"
-        BreadcrumbDelimiter: "#37491D"
+        OverhangOffsetSD_X: "230"
+        OverhangOffsetSD_Y: "72"
+        OverhangOffsetHD_X: "230"
+        OverhangOffsetHD_Y: "72"
+        BreadcrumbTextLeft: "#FFED6D"
+        BreadcrumbTextRight: "#FFED6D"
+        BreadcrumbDelimiter: "#FFED6D"
         ThemeType: "generic-dark"
         ListItemText: secondaryText
         ListItemHighlightText: primaryText
         ListScreenDescriptionText: secondaryText
         ListItemHighlightHD: "pkg:/images/select_bkgnd.png"
-        ListItemHighlightSD: "pkg:/images/select_bkgnd.png"        
+        ListItemHighlightSD: "pkg:/images/select_bkgnd.png"
+        SpringboardTitleText: "#FFED6D"
+        DialogTitleText: "#FFED6D"
+        DialogBodyText: "#FFED6D"
+        ButtonHighlightHD: "pkg:/images/select_bkgnd.png"
+        ButtonHighlightSD: "pkg:/images/select_bkgnd.png"
+        ButtonNormalColor: "#FFED6D"
     }
     app.SetTheme( theme )
 end function
@@ -80,7 +83,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
   result = GetFileList(url)
   dialog.Close()
   if (result.DoesExist("parent")) then
-    screen.SetHeader(result.parent.name)
+    screen.SetBreadcrumbText("", result.parent.name)
   else
     if (type(screen) = "roListScreen") then
       screen.SetHeader("Search Results")
@@ -91,26 +94,29 @@ function FileBrowser(url as string, search_history=invalid) as Integer
   screen.SetContent(files)
   screen.Show()
 
+  focusedItem = invalid
+
   while (true)
     msg = wait(0, port)
     if (msg.isScreenClosed()) Then
         print "browser screen closed"
         return -1
     end if
-    'sol ok tusuyla bir ust dizine donmek icin'
-    'if (msg.isScreenClosed()) then
-    ''  if (result.DoesExist("parent")) then
-    ''    if (result.parent.parent_id = invalid) then
-    ''      RunLandingScreen()
-    ''    end if
-    ''    url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+result.parent.parent_id.tostr()
-    ''    FileBrowser(url)
-    ''  else
-    ''    Search(search_history)
-    ''  endif
-    'end if
-
     if (type(msg) = "roListScreenEvent") then
+      if msg.isListItemFocused()
+          focusedItem = msg.GetIndex()
+      end if
+      if (msg.isRemoteKeyPressed()) then
+        if (msg.GetIndex() = 10) then
+          res = DeleteItem(files[focusedItem])
+          if (res = 1) then
+            if (files.delete(focusedItem)) then
+              screen.SetContent(files)
+            end if
+          end if
+        end if
+      end if
+
       if (msg.isListItemSelected()) then
         content_type = files[msg.GetIndex()].ContentType
         r = CreateObject("roRegex", "/", "")
@@ -139,7 +145,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
             item = { 
               ContentType: "episode"
               SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
-              HDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
+              HDPosterUrl: files[msg.GetIndex()].HDBackgroundImageUrl
               ID: id
               title: files[msg.GetIndex()].Title
               url: location
@@ -152,7 +158,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
               item = { 
                 ContentType:"episode"
                 SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
-                HDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
+                HDPosterUrl: files[msg.GetIndex()].HDBackgroundImageUrl
                 ID: id
                 title: files[msg.GetIndex()].Title
                 url: location
@@ -209,6 +215,14 @@ function GetFileList(url as string) as object
             result.parent = {name: json["parent"].name, parent_id: json["parent"].parent_id}
           end if
           for each kind in json["files"]
+            if (kind.content_type = "application/x-directory") then
+              hd_screenshot = "pkg:/images/folder.png"
+              sd_screenshot = ""
+            else
+              sd_screenshot = kind.screenshot
+              hd_screenshot = kind.screenshot
+            endif 
+
             topic = {
               Title: kind.name,
               ID: kind.id,
@@ -216,7 +230,10 @@ function GetFileList(url as string) as object
               ContentType: kind.content_type,
               SDSmallIconUrl: "pkg:/images/about_small.png",
               HDSmallIconUrl: "pkg:/images/about_small.png",
-              SDBackgroundImageUrl: kind.screenshot,            
+              SDBackgroundImageUrl: hd_screenshot, 
+              'HDBackgroundImageUrl: "pkg:/images/bkg.png"
+              HDPosterUrl: hd_screenshot,
+              SDPosterUrl: hd_screenshot,
               ShortDescriptionLine1: kind.name,
               size: kind.size,
             }
@@ -379,7 +396,8 @@ function DisplayVideo(args As object)
             endif
         end if
     end while
-End Function
+end function
+
 
 function ResolveRedirect(str As String) As String
     http = CreateObject("roUrlTransfer")
@@ -470,3 +488,36 @@ function Search(history) as Integer
     end while 
 end function
  
+
+function DeleteItem(item as object) as Integer
+    port = CreateObject("roMessagePort")
+    screen = CreateObject("roSpringboardScreen")    
+    screen.SetMessagePort(port)
+
+    screen.SetDescriptionStyle("generic") 'audio, movie, video, generic
+                                        ' generic+episode=4x3,
+    screen.ClearButtons()
+    screen.AddButton(1, "Delete")
+
+    screen.AllowUpdates(false)
+    if item <> invalid and type(item) = "roAssociativeArray"
+        screen.SetContent(item)
+    endif
+
+    screen.SetStaticRatingEnabled(false)
+    screen.AllowUpdates(true)
+    screen.Show()
+
+    while true
+      msg = wait(0, screen.GetMessagePort())
+      if type(msg) = "roSpringboardScreenEvent"
+        if msg.isScreenClosed()
+          print "Screen closed"
+          return -1            
+        else if msg.isButtonPressed()
+          print "siliyorum"
+          return -1
+        endif
+      end if
+    end while
+end function
