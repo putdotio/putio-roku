@@ -230,7 +230,7 @@ function GetFileList(url as string) as object
   request.setUrl(url)
   result = CreateObject("roAssociativeArray")
 
-  if (request.AsyncGetToString())
+  if (request.GetToString())
     while (true)
       msg = wait(0, port)
       if (type(msg) = "roUrlEvent")
@@ -311,7 +311,7 @@ function SpringboardScreen(item as object) As Integer
       port = CreateObject("roMessagePort")
       request.SetMessagePort(port)
       request.SetUrl(url)
-      if (request.AsyncGetToString())
+      if (request.GetToString())
         msg = wait(0, port)
         if (type(msg) = "roUrlEvent") then
           code = msg.GetResponseCode()
@@ -532,7 +532,7 @@ function DeleteItem(item as object) as Boolean
   request.SetMessagePort(port)
   request.SetUrl(url)
   request.AddHeader("Content-Type","application/x-www-form-urlencoded")
-  if (request.PostFromString("file_ids="+item["ID"]))
+  if (request.AsyncPostFromString("file_ids="+item["ID"]))
     msg = wait(0, port)
     if (type(msg) = "roUrlEvent")
       code = msg.GetResponseCode()
