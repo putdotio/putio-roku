@@ -10,9 +10,9 @@ function RunLandingScreen() as void
   screen.SetMessagePort(port)
 
   landing_items = CreateObject("roArray", 3, true)
-  landing_items[0] = {Title: "Your Files"}
-  landing_items[1] = {Title: "Settings"}
-  landing_items[2] = {Title: "Search"}
+  landing_items[0] = {Title: "Your Files", SDSmallIconUrl: "pkg:/images/your-files.png", HDSmallIconUrl: "pkg:/images/your-files.png"}
+  landing_items[1] = {Title: "Settings", SDSmallIconUrl: "pkg:/images/search.png", HDSmallIconUrl: "pkg:/images/search.png"}
+  landing_items[2] = {Title: "Search", SDSmallIconUrl: "pkg:/images/settings.png", HDSmallIconUrl: "pkg:/images/settings.png"}
   screen.SetContent(landing_items)
   screen.Show()
 
@@ -36,7 +36,7 @@ function InitTheme() as void
     app = CreateObject("roAppManager")
 
     secondaryText    = "#FFED6D"
-    primaryText      = "#4D4D4D"
+    primaryText      = "#FFED6D"
     buttonText       = "#C0C0C0"
     buttonHighlight  = "#ffffff"
     backgroundColor  = "#4D4D4D"
@@ -58,14 +58,14 @@ function InitTheme() as void
         ListItemText: secondaryText
         ListItemHighlightText: primaryText
         ListScreenDescriptionText: secondaryText
-        ListItemHighlightHD: "pkg:/images/select_bkgnd.png"
-        ListItemHighlightSD: "pkg:/images/select_bkgnd.png"
+        ListItemHighlightHD: "pkg:/images/selected-bg.png"
+        ListItemHighlightSD: "pkg:/images/selected-bg.png"
         SpringboardTitleText: "#FFED6D"
-        DialogTitleText: "#FFED6D"
-        DialogBodyText: "#FFED6D"
-        ButtonHighlightHD: "pkg:/images/select_bkgnd.png"
-        ButtonHighlightSD: "pkg:/images/select_bkgnd.png"
         ButtonNormalColor: "#FFED6D"
+        ButtonHighlightColor: "#FFED6D"
+        ButtonMenuHighlightText: "#FFED6D"
+        ButtonMenuNormalOverlayText: "#FFED6D"
+        ButtonMenuNormalText: "#FFED6D"
     }
     app.SetTheme( theme )
 end function
@@ -75,13 +75,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
   screen = CreateObject("roListScreen")
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
-
-  dialog = CreateObject("roOneLineDialog")
-  dialog.SetTitle("Retrieving...")
-  dialog.ShowBusyAnimation()
-  dialog.Show()
   result = GetFileList(url)
-  dialog.Close()
   if (result.DoesExist("parent")) then
     screen.SetBreadcrumbText("", result.parent.name)
   else
@@ -99,23 +93,22 @@ function FileBrowser(url as string, search_history=invalid) as Integer
   while (true)
     msg = wait(0, port)
     if (msg.isScreenClosed()) Then
-        print "browser screen closed"
         return -1
     end if
     if (type(msg) = "roListScreenEvent") then
       if msg.isListItemFocused()
           focusedItem = msg.GetIndex()
       end if
-      if (msg.isRemoteKeyPressed()) then
-        if (msg.GetIndex() = 10) then
-          res = DeleteItem(files[focusedItem])
-          if (res = 1) then
-            if (files.delete(focusedItem)) then
-              screen.SetContent(files)
-            end if
-          end if
-        end if
-      end if
+      'if (msg.isRemoteKeyPressed()) then
+      '  if (msg.GetIndex() = 10) then
+      '    res = DeleteItem(files[focusedItem])
+      '    if (res = 1) then
+      '      if (files.delete(focusedItem)) then
+      '        screen.SetContent(files)
+      '      end if
+      '    end if
+      '  end if
+      'end if
 
       if (msg.isListItemSelected()) then
         content_type = files[msg.GetIndex()].ContentType
@@ -123,22 +116,28 @@ function FileBrowser(url as string, search_history=invalid) as Integer
         parsed_ct = r.Split(content_type)
         c_root = parsed_ct[0]
         c_format = parsed_ct[1]
-
+        id = files[msg.GetIndex()].ID.tostr()
         'bir item uzerinde OK butonuna basilirsa yapiacak isler burada tanimlaniyor'
         if (content_type = "application/x-directory") then
           if (files[msg.GetIndex()].size = 0) then
-            dlg= CreateObject("roOneLineDialog")
-            dlg.SetTitle("Empty folder")
-            dlg.Show()
-            Sleep(1000)
-            dlg.Close()
+            item = { 
+              ContentType: "episode"
+              SDPosterUrl: "pkg:/images/mid-folder.png"
+              ID: id
+              title: files[msg.GetIndex()].Title
+              NonVideo: true
+            }
+            res = SpringboardScreen(item)
+            if (res = -1) then
+              files.delete(msg.GetIndex())
+              screen.SetContent(files)
+            end if
           else
             id = files[msg.GetIndex()].ID.tostr()
             url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+id
             FileBrowser(url)
           end if
         else if (c_root = "video") then
-          id = files[msg.GetIndex()].ID.tostr()
           if (c_format = "mp4") then
             putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=039TXRBN"
             location = ResolveRedirect(putio_api)
@@ -150,7 +149,11 @@ function FileBrowser(url as string, search_history=invalid) as Integer
               title: files[msg.GetIndex()].Title
               url: location
              }
-            SpringboardScreen(item)
+            res = SpringboardScreen(item)
+            if (res = -1) then
+              files.delete(msg.GetIndex())
+              screen.SetContent(files)
+            end if
           else
             if (files[msg.GetIndex()].Mp4Available = true) then
               putio_api = "https://api.put.io/v2/files/"+id+"/mp4/stream?oauth_token=039TXRBN"
@@ -163,7 +166,11 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 title: files[msg.GetIndex()].Title
                 url: location
                }
-              SpringboardScreen(item)
+              res = SpringboardScreen(item)
+              if (res = -1) then
+                files.delete(msg.GetIndex())
+                screen.SetContent(files)
+              end if
             else
               putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=039TXRBN"
               location = ResolveRedirect(putio_api)
@@ -176,15 +183,26 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 convert_mp4: true
                 url: location
               }
-              SpringboardScreen(item)
+              res = SpringboardScreen(item)
+              if (res = -1) then
+                files.delete(msg.GetIndex())
+                screen.SetContent(files)
+              end if
             end if
           end if
         else
-          nv_dialog = CreateObject("roOneLineDialog")
-          nv_dialog.SetTitle("Hello World!")
-          nv_dialog.Show()
-          Sleep(1000)
-          nv_dialog.Close()
+          item = { 
+            ContentType: "episode"
+            SDPosterUrl: "pkg:/images/mid-file.png"
+            ID: id
+            title: files[msg.GetIndex()].Title
+            NonVideo: true
+          }
+          res = SpringboardScreen(item)
+          if (res = -1) then
+            files.delete(msg.GetIndex())
+            screen.SetContent(files)
+          end if
         end if 
       end if
     end if
@@ -214,13 +232,28 @@ function GetFileList(url as string) as object
           if (json.DoesExist("parent")) then
             result.parent = {name: json["parent"].name, parent_id: json["parent"].parent_id}
           end if
+
           for each kind in json["files"]
             if (kind.content_type = "application/x-directory") then
               hd_screenshot = "pkg:/images/folder.png"
-              sd_screenshot = ""
+              sd_screenshot = "pkg:/images/mid-folder.png"
+              sd_small = "pkg:/images/small-folder.png"
+              hd_small = "pkg:/images/small-folder.png"
             else
-              sd_screenshot = kind.screenshot
-              hd_screenshot = kind.screenshot
+              r = CreateObject("roRegex", "/", "")
+              parsed_ct = r.Split(kind.content_type)
+              c_root = parsed_ct[0]
+              if (c_root <> "video") then
+                sd_screenshot = "pkg:/images/mid-file.png"
+                hd_screenshot = "pkg:/images/file.png"
+                sd_small = "pkg:/images/nothing.png"
+                hd_small = "pkg:/images/nothing.png"
+              else
+                sd_screenshot = kind.screenshot
+                hd_screenshot = kind.screenshot
+                sd_small = "pkg:/images/nothing.png"
+                hd_small = "pkg:/images/nothing.png"
+              end if
             endif 
 
             topic = {
@@ -228,13 +261,12 @@ function GetFileList(url as string) as object
               ID: kind.id,
               Mp4Available: kind.is_mp4_available,
               ContentType: kind.content_type,
-              SDSmallIconUrl: "pkg:/images/about_small.png",
-              HDSmallIconUrl: "pkg:/images/about_small.png",
               SDBackgroundImageUrl: hd_screenshot, 
-              'HDBackgroundImageUrl: "pkg:/images/bkg.png"
               HDPosterUrl: hd_screenshot,
               SDPosterUrl: hd_screenshot,
               ShortDescriptionLine1: kind.name,
+              SDSmallIconUrl: sd_small, 
+              HDSmallIconUrl: hd_small, 
               size: kind.size,
             }
             files.push(topic)
@@ -251,7 +283,7 @@ function GetFileList(url as string) as object
 end function
 
 
-function SpringboardScreen(item as object) As Boolean
+function SpringboardScreen(item as object) As Integer
     port = CreateObject("roMessagePort")
     screen = CreateObject("roSpringboardScreen")    
     screen.SetMessagePort(port)
@@ -278,7 +310,7 @@ function SpringboardScreen(item as object) As Boolean
             result = ParseJSON(msg.GetString())
             if (result["mp4"]["status"] = "NOT_AVAILABLE") then
               screen.AddButton(1, "Try to play")
-              screen.AddButton(3, "Convert to MP4")
+              screen.AddButton(2, "Convert to MP4")
             else if (result["mp4"]["status"] = "COMPLETED") then
               screen.AddButton(1, "Play")
             else if (result["mp4"]["status"] = "CONVERTING")
@@ -293,12 +325,16 @@ function SpringboardScreen(item as object) As Boolean
         else if (event = invalid)
           request.AsyncCancel()
           screen.AddButton(1, "Try to play")
-          screen.AddButton(3, "Convert to MP4")
+          screen.AddButton(2, "Convert to MP4")
         end if
       end if
     else
-      screen.AddButton(1, "Play")
+      if (item.DoesExist("nonVideo") = false) then
+        screen.AddButton(1, "Play")
+      end if
     end if
+
+    screen.AddButton(3, "Delete")
     
     screen.AllowUpdates(false)
     if item <> invalid and type(item) = "roAssociativeArray"
@@ -315,23 +351,21 @@ function SpringboardScreen(item as object) As Boolean
       msg = wait(0, screen.GetMessagePort())
       if type(msg) = "roSpringboardScreenEvent"
         if msg.isScreenClosed()
-          print "Screen closed"
           exit while                
         else if msg.isButtonPressed()
-          print "Button pressed: "; msg.GetIndex(); " " msg.GetData()
           if msg.GetIndex() = 1
               DisplayVideo(item)
-          else if msg.GetIndex() = 3
+          else if msg.GetIndex() = 2
               ConvertToMp4(item)
+          else if msg.GetIndex() = 3
+              res = DeleteItem(item)
+              if (res = true) then
+                return -1
+              end if
           endif
-        else
-          print "Unknown event: "; msg.GetType(); " msg: "; msg.GetMessage()
         endif
-      else 
-        print "wrong type.... type=";msg.GetType(); " msg: "; msg.GetMessage()
       endif
     end while
-    return true
 end function
 
 
@@ -340,14 +374,7 @@ function DisplayVideo(args As object)
     p = CreateObject("roMessagePort")
     video = CreateObject("roVideoScreen")
     video.setMessagePort(p)
-
-    'bitrates  = [0]          ' 0 = no dots, adaptive bitrate
-    'bitrates  = [348]    ' <500 Kbps = 1 dot
-    'bitrates  = [664]    ' <800 Kbps = 2 dots
-    'bitrates  = [996]    ' <1.1Mbps  = 3 dots
-    'bitrates  = [2048]    ' >=1.1Mbps = 4 dots
-    bitrates  = [0]    
-
+    bitrates  = [0]
     qualities = ["HD"]
     StreamFormat = "mp4"
     title = args["title"]
@@ -391,8 +418,6 @@ function DisplayVideo(args As object)
                 end if
             else if msg.isRequestFailed()
                 print "play failed: "; msg.GetMessage()
-            else
-                print "Unknown event: "; msg.GetType(); " msg: "; msg.GetMessage()
             endif
         end if
     end while
@@ -409,8 +434,6 @@ function ResolveRedirect(str As String) As String
     headers = event.GetResponseHeaders()
     redirect = headers.location
     if ( redirect <> invalid AND redirect <> str )
-      print "Old url: " str
-      print "Redirect url: " redirect
       str = redirect                
     endif
     r = CreateObject("roRegex", "https://", "")
@@ -489,35 +512,28 @@ function Search(history) as Integer
 end function
  
 
-function DeleteItem(item as object) as Integer
-    port = CreateObject("roMessagePort")
-    screen = CreateObject("roSpringboardScreen")    
-    screen.SetMessagePort(port)
-
-    screen.SetDescriptionStyle("generic") 'audio, movie, video, generic
-                                        ' generic+episode=4x3,
-    screen.ClearButtons()
-    screen.AddButton(1, "Delete")
-
-    screen.AllowUpdates(false)
-    if item <> invalid and type(item) = "roAssociativeArray"
-        screen.SetContent(item)
+function DeleteItem(item as object) as Boolean
+  request = CreateObject("roUrlTransfer")
+  request.SetCertificatesFile("common:/certs/ca-bundle.crt")
+  request.AddHeader("X-Roku-Reserved-Dev-Id", "")
+  request.InitClientCertificates()
+  request.EnableEncodings(true)
+  url = "https://api.put.io/v2/files/delete?oauth_token=039TXRBN"
+  port = CreateObject("roMessagePort")
+  request.SetMessagePort(port)
+  request.SetUrl(url)
+  request.AddHeader("Content-Type","application/x-www-form-urlencoded")
+  if (request.AsyncPostFromString("file_ids="+item["ID"]))
+    msg = wait(0, port)
+    if (type(msg) = "roUrlEvent")
+      code = msg.GetResponseCode()
+      if (code = 200)
+        return true
+      endif
+    else if (event = invalid)
+      request.AsyncCancel()
+      return false
     endif
+  endif
 
-    screen.SetStaticRatingEnabled(false)
-    screen.AllowUpdates(true)
-    screen.Show()
-
-    while true
-      msg = wait(0, screen.GetMessagePort())
-      if type(msg) = "roSpringboardScreenEvent"
-        if msg.isScreenClosed()
-          print "Screen closed"
-          return -1            
-        else if msg.isButtonPressed()
-          print "siliyorum"
-          return -1
-        endif
-      end if
-    end while
 end function
