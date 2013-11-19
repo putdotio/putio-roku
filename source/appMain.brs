@@ -10,9 +10,18 @@ function RunLandingScreen() as void
   screen.SetMessagePort(port)
 
   landing_items = CreateObject("roArray", 3, true)
-  landing_items[0] = {Title: "Your Files", SDSmallIconUrl: "pkg:/images/your-files.png", HDSmallIconUrl: "pkg:/images/your-files.png"}
-  landing_items[1] = {Title: "Settings", SDSmallIconUrl: "pkg:/images/search.png", HDSmallIconUrl: "pkg:/images/search.png"}
-  landing_items[2] = {Title: "Search", SDSmallIconUrl: "pkg:/images/settings.png", HDSmallIconUrl: "pkg:/images/settings.png"}
+  landing_items[0] = {
+                      Title: "Your Files", 
+                      HDSmallIconUrl: "pkg:/images/your-files.png", 
+                    }
+  landing_items[1] = {
+                      Title: "Search", 
+                      HDSmallIconUrl: "pkg:/images/search.png", 
+                    }
+  landing_items[2] = {
+                      Title: "Settings", 
+                      HDSmallIconUrl: "pkg:/images/settings.png", 
+                    }
   screen.SetContent(landing_items)
   screen.Show()
 
@@ -23,7 +32,7 @@ function RunLandingScreen() as void
           if (msg.GetIndex() = 0) then
             list_root_url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN"
             FileBrowser(list_root_url)
-          else if (msg.GetIndex() = 2) then
+          else if (msg.GetIndex() = 1) then
             Search(false)
           end if
         end if
