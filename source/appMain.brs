@@ -465,7 +465,7 @@ function ConvertToMp4(item as Object) as void
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
-  if (request.AsyncPostFromString(""))
+  if (request.PostFromString(""))
     msg = wait(0, port)
     dialog1.Close()
     if (type(msg) = "roUrlEvent")
@@ -532,7 +532,7 @@ function DeleteItem(item as object) as Boolean
   request.SetMessagePort(port)
   request.SetUrl(url)
   request.AddHeader("Content-Type","application/x-www-form-urlencoded")
-  if (request.AsyncPostFromString("file_ids="+item["ID"]))
+  if (request.PostFromString("file_ids="+item["ID"]))
     msg = wait(0, port)
     if (type(msg) = "roUrlEvent")
       code = msg.GetResponseCode()
@@ -544,5 +544,4 @@ function DeleteItem(item as object) as Boolean
       return false
     endif
   endif
-
 end function
