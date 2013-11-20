@@ -30,7 +30,7 @@ function RunLandingScreen() as void
       if (type(msg) = "roListScreenEvent") then
         if (msg.isListItemSelected()) then
           if (msg.GetIndex() = 0) then
-            list_root_url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN"
+            list_root_url = "https://api.put.io/v2/files/list?oauth_token=4HV3M2BO"
             FileBrowser(list_root_url)
           else if (msg.GetIndex() = 1) then
             Search(false)
@@ -84,6 +84,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
   screen = CreateObject("roListScreen")
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
+  l = Loading()
   result = GetFileList(url)
   if (result.DoesExist("parent")) then
     screen.SetBreadcrumbText("", result.parent.name)
@@ -96,6 +97,8 @@ function FileBrowser(url as string, search_history=invalid) as Integer
   files = result.files
   screen.SetContent(files)
   screen.Show()
+  l.close()
+
 
   focusedItem = invalid
 
@@ -143,20 +146,19 @@ function FileBrowser(url as string, search_history=invalid) as Integer
             end if
           else
             id = files[msg.GetIndex()].ID.tostr()
-            url = "https://api.put.io/v2/files/list?oauth_token=039TXRBN&parent_id="+id
+            url = "https://api.put.io/v2/files/list?oauth_token=4HV3M2BO&parent_id="+id
             FileBrowser(url)
           end if
         else if (c_root = "video") then
           if (c_format = "mp4") then
-            putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=039TXRBN"
-            location = ResolveRedirect(putio_api)
+            putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=4HV3M2BO"
             item = { 
               ContentType: "episode"
               SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
               HDPosterUrl: files[msg.GetIndex()].HDBackgroundImageUrl
               ID: id
               title: files[msg.GetIndex()].Title
-              url: location
+              url: putio_api
              }
             res = SpringboardScreen(item)
             if (res = -1) then
@@ -165,15 +167,14 @@ function FileBrowser(url as string, search_history=invalid) as Integer
             end if
           else
             if (files[msg.GetIndex()].Mp4Available = true) then
-              putio_api = "https://api.put.io/v2/files/"+id+"/mp4/stream?oauth_token=039TXRBN"
-              location = ResolveRedirect(putio_api)
+              putio_api = "https://api.put.io/v2/files/"+id+"/mp4/stream?oauth_token=4HV3M2BO"
               item = { 
                 ContentType:"episode"
                 SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
                 HDPosterUrl: files[msg.GetIndex()].HDBackgroundImageUrl
                 ID: id
                 title: files[msg.GetIndex()].Title
-                url: location
+                url: putio_api
                }
               res = SpringboardScreen(item)
               if (res = -1) then
@@ -181,8 +182,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 screen.SetContent(files)
               end if
             else
-              putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=039TXRBN"
-              location = ResolveRedirect(putio_api)
+              putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=4HV3M2BO"
               item = { 
                 ContentType:"episode"
                 SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
@@ -190,7 +190,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 ID: id
                 title: files[msg.GetIndex()].Title
                 convert_mp4: true
-                url: location
+                url: putio_api
               }
               res = SpringboardScreen(item)
               if (res = -1) then
@@ -230,7 +230,7 @@ function GetFileList(url as string) as object
   request.setUrl(url)
   result = CreateObject("roAssociativeArray")
 
-  if (request.GetToString())
+  if (request.AsyncGetToString())
     while (true)
       msg = wait(0, port)
       if (type(msg) = "roUrlEvent")
@@ -293,6 +293,12 @@ end function
 
 
 function SpringboardScreen(item as object) As Integer
+    if (item.DoesExist("NonVideo") = false) then
+      l = Loading()
+      redirected = ResolveRedirect(item["url"])
+      item["url"] = redirected
+    end if
+
     port = CreateObject("roMessagePort")
     screen = CreateObject("roSpringboardScreen")    
     screen.SetMessagePort(port)
@@ -307,11 +313,11 @@ function SpringboardScreen(item as object) As Integer
       request.AddHeader("X-Roku-Reserved-Dev-Id", "")
       request.InitClientCertificates()
 
-      url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token=039TXRBN"
+      url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token=4HV3M2BO"
       port = CreateObject("roMessagePort")
       request.SetMessagePort(port)
       request.SetUrl(url)
-      if (request.GetToString())
+      if (request.AsyncGetToString())
         msg = wait(0, port)
         if (type(msg) = "roUrlEvent") then
           code = msg.GetResponseCode()
@@ -353,6 +359,9 @@ function SpringboardScreen(item as object) As Integer
     screen.SetStaticRatingEnabled(false)
     screen.AllowUpdates(true)
     screen.Show()
+    if (item.DoesExist("NonVideo") = false) then
+      l.close()
+    end if
 
     downKey=3
     selectKey=6
@@ -402,7 +411,7 @@ function DisplayVideo(args As object)
     videoclip.StreamQualities = qualities
     videoclip.StreamFormat = StreamFormat
     videoclip.Title = title
-    videoclip.SubtitleUrl = "https://api.put.io/v2/subtitles/get/"+args["ID"]+"?oauth_token=039TXRBN"
+    videoclip.SubtitleUrl = "https://api.put.io/v2/subtitles/get/"+args["ID"]+"?oauth_token=4HV3M2BO"
     video.SetContent(videoclip)
     video.show()
 
@@ -456,25 +465,19 @@ function ConvertToMp4(item as Object) as void
   request.SetCertificatesFile("common:/certs/ca-bundle.crt")
   request.AddHeader("X-Roku-Reserved-Dev-Id", "")
   request.InitClientCertificates()
-  
-  dialog1 = CreateObject("roOneLineDialog")
-  dialog1.SetTitle("Sending to MP4 queue")
-  dialog1.Show()
-
-  url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token=039TXRBN"
+  lc = Loading()
+  url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token=4HV3M2BO"
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
-  if (request.PostFromString(""))
+  if (request.AsyncPostFromString(""))
     msg = wait(0, port)
     dialog1.Close()
     if (type(msg) = "roUrlEvent")
-      code = msg.GetResponseCode()
-      if (code = 200)
-        print msg.GetString()
-      endif
+      lc.close()
     else if (event = invalid)
       request.AsyncCancel()
+      lc.close()
     endif
   endif
 end function
@@ -512,7 +515,7 @@ function Search(history) as Integer
               if displayHistory
                   screen.AddSearchTerm(msg.GetMessage())
               end if
-              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token=039TXRBN"
+              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token=4HV3M2BO"
               FileBrowser(url, history)
               exit while
           endif
@@ -522,12 +525,13 @@ end function
  
 
 function DeleteItem(item as object) as Boolean
+  l = Loading()
   request = CreateObject("roUrlTransfer")
   request.SetCertificatesFile("common:/certs/ca-bundle.crt")
   request.AddHeader("X-Roku-Reserved-Dev-Id", "")
   request.InitClientCertificates()
   request.EnableEncodings(true)
-  url = "https://api.put.io/v2/files/delete?oauth_token=039TXRBN"
+  url = "https://api.put.io/v2/files/delete?oauth_token=4HV3M2BO"
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
@@ -535,13 +539,41 @@ function DeleteItem(item as object) as Boolean
   if (request.AsyncPostFromString("file_ids="+item["ID"]))
     msg = wait(0, port)
     if (type(msg) = "roUrlEvent")
+      l.close()
       code = msg.GetResponseCode()
       if (code = 200)
         return true
       endif
     else if (event = invalid)
-      request.AsyncCancel()
+      request.AsyncCancel() 
+      l.close()
       return false
     endif
   endif
 end function
+
+Sub Loading() as Object
+  canvasItems = [
+        { 
+            url:"pkg:/images/app-icon.png"
+            TargetRect:{x:500,y:100,w:290,h:218}
+        },
+        { 
+            Text:"Please wait..."
+            TextAttrs:{Color:"#FFED6D", Font:"Medium",
+            HAlign:"HCenter", VAlign:"VCenter",
+            Direction:"LeftToRight"}
+            TargetRect:{x:390,y:357,w:500,h:60}
+        }
+  ] 
+ 
+  canvas = CreateObject("roImageCanvas")
+  port = CreateObject("roMessagePort")
+  canvas.SetMessagePort(port)
+  'Set opaque background
+  canvas.SetLayer(0, {Color:"#4D4D4D", CompositionMode:"Source"}) 
+  canvas.SetRequireAllImagesToDraw(true)
+  canvas.SetLayer(1, canvasItems)
+  canvas.Show()
+  return canvas
+end Sub
