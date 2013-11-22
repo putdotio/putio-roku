@@ -1,13 +1,168 @@
 function Main()
   InitTheme()
-  RunLandingScreen()
+  facade = CreateObject("roParagraphScreen")
+  facade.Show()
+  token = RegRead("token")
+  if (token = invalid) then
+    ShowLinkScreen(facade)
+  else
+    m.token = token
+  end if
+  m.subtitle_on = RegRead("subtitle_on")
+  RunLandingScreen(facade)
 end function
 
 
-function RunLandingScreen() as void
+function GetLinkingCode() as Dynamic
+  request = MakeRequest()
+
+  url = "https://put.io/roku/key"
+  port = CreateObject("roMessagePort")
+  request.SetMessagePort(port)
+  request.SetUrl(url)
+  if (request.AsyncGetToString())
+    msg = wait(0, port)
+    if (type(msg) = "roUrlEvent")
+      code = msg.GetResponseCode()
+      if (code = 200)
+        json = ParseJSON(msg.GetString())
+        if (json.DoesExist("key")) then
+          return json["key"]
+        end if
+      endif
+    else if (event = invalid)
+      request.AsyncCancel()
+    endif
+  endif
+  return invalid
+end function
+
+
+function ValidateLinkingCode() as Integer
+  request = MakeRequest()
+
+  url = "https://put.io/roku/check"
+  port = CreateObject("roMessagePort")
+  request.SetMessagePort(port)
+  request.SetUrl(url)
+  if (request.AsyncGetToString())
+    msg = wait(0, port)
+    if (type(msg) = "roUrlEvent")
+      code = msg.GetResponseCode()
+      if (code = 200)
+        json = ParseJSON(msg.GetString())
+        if (json.DoesExist("oauth_token")) then
+          token = json["oauth_token"]
+          RegWrite("token", token)
+          RegWrite("subtitle_on", "on")
+          m.token = token
+          return 1
+        end if
+      end if
+    end if
+  end if
+end function
+
+
+sub ShowLinkScreen(facade) as Integer
+  dt = CreateObject("roDateTime")
+
+  ' create a roCodeRegistrationScreen and assign it a roMessagePort
+  port = CreateObject("roMessagePort")
+  screen = CreateObject("roCodeRegistrationScreen")
+  screen.SetMessagePort(port)
+
+  ' add some header text
+  screen.AddHeaderText("  Link Your Account")
+  ' add some buttons
+  screen.AddButton(1, "Get new code")
+  screen.AddButton(2, "Back")
+  ' Focal text should give specific instructions to the user
+  screen.AddFocalText("Go to put.io/roku, log into your account, and enter the following code.", "spacing-normal")
+
+  ' display a retrieving message until we get a linking code
+  screen.SetRegistrationCode("Retrieving...")
+  screen.Show()
+
+  ' get a new code
+  linkingCode = GetLinkingCode()
+  if linkingCode <> invalid
+    screen.SetRegistrationCode(linkingCode)
+  else
+    screen.SetRegistrationCode("Failed to get code...")
+  end if
+ 
+  screen.Show()
+  current = dt.AsSeconds()+300
+
+  while true
+    ' we want to poll the API every 5 seconds for validation,
+    msg = Wait(5000, screen.GetMessagePort())
+   
+    if msg = invalid
+      ' poll the API for validation
+      if (ValidateLinkingCode() = 1)
+        ' if validation succeeded, close the screen
+        exit while
+      end if
+
+      dt.Mark()
+      if dt.AsSeconds() > current
+        ' the code expired. display a message, then get a new one
+        d = CreateObject("roMessageDialog")
+        dPort = CreateObject("roMessagePort")
+        d.SetMessagePort(dPort)
+        d.SetTitle("Code Expired")
+        d.SetText("This code has expired. Press OK to get a new one")
+        d.AddButton(1, "OK")
+        d.Show()
+
+        Wait(0, dPort)
+        d.Close()
+        screen.SetRegistrationCode("Retrieving...")
+        screen.Show()
+
+        linkingCode = GetLinkingCode()
+        if linkingCode <> invalid
+          screen.SetRegistrationCode(linkingCode)
+        else
+          screen.SetRegistrationCode("Failed to get code...")
+        end if
+        screen.Show()
+      end if
+    else if type(msg) = "roCodeRegistrationScreenEvent"
+      if msg.isScreenClosed()
+        exit while
+      else if msg.isButtonPressed()
+        if msg.GetIndex() = 1
+          ' the user wants a new code
+          code = GetLinkingCode()
+          linkingCode = GetLinkingCode()
+          current = dt.AsSeconds()+300
+          if linkingCode <> invalid
+            screen.SetRegistrationCode(linkingCode)
+          else
+            screen.SetRegistrationCode("Failed to get code...")
+          end if
+          screen.Show()
+        else if msg.GetIndex() = 2
+          ' the user wants to close the screen
+          screen.Close()
+          facade.Close()
+          return -1
+        end if
+      end if
+    end if
+  end while
+  screen.Close()
+end sub
+
+
+function RunLandingScreen(facade) as Integer
   screen = CreateObject("roListScreen")
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
+
 
   landing_items = CreateObject("roArray", 3, true)
   landing_items[0] = {
@@ -27,13 +182,23 @@ function RunLandingScreen() as void
 
   while (true)
       msg = wait(0, port)
+      if (msg.isScreenClosed()) Then
+          facade.Close()
+          return -1
+      end if
       if (type(msg) = "roListScreenEvent") then
         if (msg.isListItemSelected()) then
           if (msg.GetIndex() = 0) then
-            list_root_url = "https://api.put.io/v2/files/list?oauth_token=4HV3M2BO"
+            list_root_url = "https://api.put.io/v2/files/list?oauth_token="+m.token
             FileBrowser(list_root_url)
           else if (msg.GetIndex() = 1) then
             Search(false)
+          else if (msg.GetIndex() = 2) then
+            res = Settings()
+            if (res = 1) then
+              screen.close()
+              facade.close()
+            end if
           end if
         end if
       end if
@@ -41,7 +206,55 @@ function RunLandingScreen() as void
 end function
 
 
-function InitTheme() as void
+function Settings() as Integer
+  screen = CreateObject("roListScreen")
+  port = CreateObject("roMessagePort")
+  screen.SetMessagePort(port)
+
+  items = CreateObject("roArray", 3, true)
+  items[0] = {
+      Title: "Unlink this device", 
+      HDSmallIconUrl: "pkg:/images/your-files.png", 
+  }
+  if (m.subtitle_on = "on")
+    s_title = "Disable Subtitle"
+  else 
+    s_title = "Enable Subtitle"
+  end if
+
+  items[1] = {
+      Title: s_title,
+      HDSmallIconUrl: "pkg:/images/your-files.png", 
+  }
+  screen.SetContent(items)
+  screen.Show()
+
+  while (true)
+      msg = wait(0, port)
+      if (msg.isScreenClosed()) then
+        return -1
+      end if
+      if (type(msg) = "roListScreenEvent") then
+        if (msg.isListItemSelected()) then
+          if (msg.GetIndex() = 0) then
+            RegDelete("token")
+            RegDelete("subtitle_on")
+            screen.close()
+            return 1
+          else if (msg.GetIndex() = 1) then
+            if (m.subtitle_on = "on")
+              m.subtitle_on = "off"
+            else
+              m.subtitle_on = "on"
+            end if
+            return -1
+          end if
+        end if
+      end if
+  end while
+end function
+
+function InitTheme()
     app = CreateObject("roAppManager")
 
     secondaryText    = "#FFED6D"
@@ -75,6 +288,16 @@ function InitTheme() as void
         ButtonMenuHighlightText: "#FFED6D"
         ButtonMenuNormalOverlayText: "#FFED6D"
         ButtonMenuNormalText: "#FFED6D"
+        ParagraphBodyText: "#FFED6D"
+        ParagraphHeaderText: "#FFED6D"
+        RegistrationFocalColor: "FFFFFF"
+        DialogBodyText: "#FFED6D"
+        DialogTitleText: "#FFED6D"
+        RegistrationCodeColor: "#FFED6D"
+        RegistrationFocalColor: "#FFED6D"
+        RegistrationFocalRectColor: "#FFED6D"
+        RegistrationFocalRectHD: "#FFED6D"
+        RegistrationFocalRectSD: "#FFED6D"
     }
     app.SetTheme( theme )
 end function
@@ -104,23 +327,13 @@ function FileBrowser(url as string, search_history=invalid) as Integer
 
   while (true)
     msg = wait(0, port)
-    if (msg.isScreenClosed()) Then
+    if (msg.isScreenClosed()) then
         return -1
     end if
     if (type(msg) = "roListScreenEvent") then
       if msg.isListItemFocused()
           focusedItem = msg.GetIndex()
       end if
-      'if (msg.isRemoteKeyPressed()) then
-      '  if (msg.GetIndex() = 10) then
-      '    res = DeleteItem(files[focusedItem])
-      '    if (res = 1) then
-      '      if (files.delete(focusedItem)) then
-      '        screen.SetContent(files)
-      '      end if
-      '    end if
-      '  end if
-      'end if
 
       if (msg.isListItemSelected()) then
         content_type = files[msg.GetIndex()].ContentType
@@ -146,12 +359,12 @@ function FileBrowser(url as string, search_history=invalid) as Integer
             end if
           else
             id = files[msg.GetIndex()].ID.tostr()
-            url = "https://api.put.io/v2/files/list?oauth_token=4HV3M2BO&parent_id="+id
+            url = "https://api.put.io/v2/files/list?oauth_token="+m.token+"&parent_id="+id
             FileBrowser(url)
           end if
         else if (c_root = "video") then
           if (c_format = "mp4") then
-            putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=4HV3M2BO"
+            putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token="+m.token
             item = { 
               ContentType: "episode"
               SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
@@ -167,7 +380,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
             end if
           else
             if (files[msg.GetIndex()].Mp4Available = true) then
-              putio_api = "https://api.put.io/v2/files/"+id+"/mp4/stream?oauth_token=4HV3M2BO"
+              putio_api = "https://api.put.io/v2/files/"+id+"/mp4/stream?oauth_token="+m.token
               item = { 
                 ContentType:"episode"
                 SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
@@ -182,7 +395,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 screen.SetContent(files)
               end if
             else
-              putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token=4HV3M2BO"
+              putio_api = "https://api.put.io/v2/files/"+id+"/stream?oauth_token="+m.token
               item = { 
                 ContentType:"episode"
                 SDPosterUrl: files[msg.GetIndex()].SDBackgroundImageUrl
@@ -220,10 +433,7 @@ end function
 
 
 function GetFileList(url as string) as object
-  request = CreateObject("roUrlTransfer")
-  request.SetCertificatesFile("common:/certs/ca-bundle.crt")
-  request.AddHeader("X-Roku-Reserved-Dev-Id", "")
-  request.InitClientCertificates()
+  request = MakeRequest()
 
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
@@ -308,12 +518,9 @@ function SpringboardScreen(item as object) As Integer
     screen.ClearButtons()
 
     if (item.DoesExist("convert_mp4") = true) then
-      request = CreateObject("roUrlTransfer")
-      request.SetCertificatesFile("common:/certs/ca-bundle.crt")
-      request.AddHeader("X-Roku-Reserved-Dev-Id", "")
-      request.InitClientCertificates()
+      request = MakeRequest()
 
-      url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token=4HV3M2BO"
+      url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token="+m.token
       port = CreateObject("roMessagePort")
       request.SetMessagePort(port)
       request.SetUrl(url)
@@ -372,15 +579,15 @@ function SpringboardScreen(item as object) As Integer
           exit while                
         else if msg.isButtonPressed()
           if msg.GetIndex() = 1
-              DisplayVideo(item)
+            DisplayVideo(item)
           else if msg.GetIndex() = 2
-              ConvertToMp4(item)
+            ConvertToMp4(item)
           else if msg.GetIndex() = 3
-              res = DeleteItem(item)
-              if (res = true) then
-                return -1
-              end if
-          endif
+            res = DeleteItem(item)  
+            if (res = true) then
+              return -1
+            end if
+          end if
         endif
       endif
     end while
@@ -411,7 +618,9 @@ function DisplayVideo(args As object)
     videoclip.StreamQualities = qualities
     videoclip.StreamFormat = StreamFormat
     videoclip.Title = title
-    videoclip.SubtitleUrl = "https://api.put.io/v2/subtitles/get/"+args["ID"]+"?oauth_token=4HV3M2BO"
+    if (m.subtitle_on = "on")
+      videoclip.SubtitleUrl = "https://api.put.io/v2/subtitles/get/"+args["ID"]+"?oauth_token="+m.token
+    end if
     video.SetContent(videoclip)
     video.show()
 
@@ -419,34 +628,30 @@ function DisplayVideo(args As object)
     statusInterval = 10 'position must change by more than this number of seconds before saving
 
     while true
-        msg = wait(0, video.GetMessagePort())
-        if type(msg) = "roVideoScreenEvent"
-            if msg.isScreenClosed() then 'ScreenClosed event
-                print "Closing video screen"
-                exit while
-            else if msg.isPlaybackPosition() then
-                nowpos = msg.GetIndex()
-                if nowpos > 10000
-                    
-                end if
-                if nowpos > 0
-                    if abs(nowpos - lastSavedPos) > statusInterval
-                        lastSavedPos = nowpos
-                    end if
-                end if
-            else if msg.isRequestFailed()
-                print "play failed: "; msg.GetMessage()
-            endif
-        end if
+      msg = wait(0, video.GetMessagePort())
+      if type(msg) = "roVideoScreenEvent"
+          if msg.isScreenClosed() then 'ScreenClosed event
+              print "Closing video screen"
+              exit while
+          else if msg.isPlaybackPosition() then
+              nowpos = msg.GetIndex()
+              'if nowpos > 10000   
+              'end if
+              if nowpos > 0
+                  if abs(nowpos - lastSavedPos) > statusInterval
+                      lastSavedPos = nowpos
+                  end if
+              end if
+          else if msg.isRequestFailed()
+              print "play failed: "; msg.GetMessage()
+          endif
+      end if
     end while
 end function
 
 
 function ResolveRedirect(str As String) As String
-    http = CreateObject("roUrlTransfer")
-    http.SetCertificatesFile("common:/certs/ca-bundle.crt")
-    http.AddHeader("X-Roku-Reserved-Dev-Id", "")
-    http.InitClientCertificates()
+    http = MakeRequest()
     http.SetUrl( str )
     event = http.Head()
     headers = event.GetResponseHeaders()
@@ -461,18 +666,14 @@ end function
 
 
 function ConvertToMp4(item as Object) as void
-  request = CreateObject("roUrlTransfer")
-  request.SetCertificatesFile("common:/certs/ca-bundle.crt")
-  request.AddHeader("X-Roku-Reserved-Dev-Id", "")
-  request.InitClientCertificates()
+  request = MakeRequest()
   lc = Loading()
-  url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token=4HV3M2BO"
+  url = "https://api.put.io/v2/files/"+item["ID"]+"/mp4?oauth_token="+m.token
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
   if (request.AsyncPostFromString(""))
     msg = wait(0, port)
-    dialog1.Close()
     if (type(msg) = "roUrlEvent")
       lc.close()
     else if (event = invalid)
@@ -515,9 +716,8 @@ function Search(history) as Integer
               if displayHistory
                   screen.AddSearchTerm(msg.GetMessage())
               end if
-              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token=4HV3M2BO"
+              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token="+m.token
               FileBrowser(url, history)
-              exit while
           endif
         endif
     end while 
@@ -526,12 +726,9 @@ end function
 
 function DeleteItem(item as object) as Boolean
   l = Loading()
-  request = CreateObject("roUrlTransfer")
-  request.SetCertificatesFile("common:/certs/ca-bundle.crt")
-  request.AddHeader("X-Roku-Reserved-Dev-Id", "")
-  request.InitClientCertificates()
+  request = MakeRequest()
   request.EnableEncodings(true)
-  url = "https://api.put.io/v2/files/delete?oauth_token=4HV3M2BO"
+  url = "https://api.put.io/v2/files/delete?oauth_token="+m.token
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
@@ -551,6 +748,7 @@ function DeleteItem(item as object) as Boolean
     endif
   endif
 end function
+
 
 Sub Loading() as Object
   canvasItems = [
@@ -577,3 +775,69 @@ Sub Loading() as Object
   canvas.Show()
   return canvas
 end Sub
+
+ 
+function CheckSubtitle()
+  l = Loading()
+  request = MakeRequest()
+  
+  url = "https://api.put.io/v2/account/settings?oauth_token="+m.token
+  port = CreateObject("roMessagePort")
+  request.SetMessagePort(port)
+  request.setUrl(url)
+
+  if (request.AsyncGetToString())
+    while (true)
+      msg = wait(0, port)
+      l.close()
+      if (type(msg) = "roUrlEvent")
+        code = msg.GetResponseCode()
+        if (code = 200)
+          json = ParseJSON(msg.GetString())
+          lang = json["settings"]["default_subtitle_language"]
+          if (Len(lang) = 0)
+            return invalid
+          end if
+          return lang
+        end if
+      end if
+    end while
+  end if
+  l.close()
+  return invalid
+end function
+
+
+
+function RegRead(key, section=invalid)
+    if section = invalid then section = "Default"
+    sec = CreateObject("roRegistrySection", section)
+    if sec.Exists(key) then return sec.Read(key)
+    return invalid
+end function
+
+
+function RegWrite(key, val, section=invalid)
+    if section = invalid then section = "Default"
+    sec = CreateObject("roRegistrySection", section)
+    sec.Write(key, val)
+    sec.Flush() 'commit it
+end function
+
+
+function RegDelete(key, section=invalid)
+    if section = invalid then section = "Default"
+    sec = CreateObject("roRegistrySection", section)
+    sec.Delete(key)
+    sec.Flush()
+end function
+
+
+function MakeRequest() as Object
+  request = CreateObject("roUrlTransfer")
+  request.SetCertificatesFile("common:/certs/ca-bundle.crt")
+  request.AddHeader("X-Roku-Reserved-Dev-Id", "")
+  request.InitClientCertificates()
+  return request
+end function
+
