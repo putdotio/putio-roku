@@ -73,12 +73,12 @@ sub ShowLinkScreen(facade) as Integer
   screen.SetMessagePort(port)
 
   ' add some header text
-  screen.AddHeaderText("  Link Your Account")
+  screen.AddHeaderText("  Link this Roku to your put.io account")
   ' add some buttons
   screen.AddButton(1, "Get new code")
   screen.AddButton(2, "Back")
   ' Focal text should give specific instructions to the user
-  screen.AddFocalText("Go to put.io/roku, log into your account, and enter the following code.", "spacing-normal")
+  screen.AddFocalText("Go to put.io/roku, log into your account, and enter the following:", "spacing-normal")
 
   ' display a retrieving message until we get a linking code
   screen.SetRegistrationCode("Retrieving...")
@@ -217,9 +217,9 @@ function Settings() as Integer
       HDSmallIconUrl: "pkg:/images/your-files.png", 
   }
   if (m.subtitle_on = "on")
-    s_title = "Disable Subtitle"
+    s_title = "Disable subtitles"
   else 
-    s_title = "Enable Subtitle"
+    s_title = "Enable subtitles"
   end if
 
   items[1] = {
@@ -454,7 +454,7 @@ function GetFileList(url as string) as object
 
           for each kind in json["files"]
             if (kind.content_type = "application/x-directory") then
-              hd_screenshot = "pkg:/images/folder.png"
+              hd_screenshot = "pkg:/images/mid-folder.png"
               sd_screenshot = "pkg:/images/mid-folder.png"
               sd_small = "pkg:/images/small-folder.png"
               hd_small = "pkg:/images/small-folder.png"
@@ -464,7 +464,7 @@ function GetFileList(url as string) as object
               c_root = parsed_ct[0]
               if (c_root <> "video") then
                 sd_screenshot = "pkg:/images/mid-file.png"
-                hd_screenshot = "pkg:/images/file.png"
+                hd_screenshot = "pkg:/images/mid-file.png"
                 sd_small = "pkg:/images/nothing.png"
                 hd_small = "pkg:/images/nothing.png"
               else
@@ -697,7 +697,7 @@ function Search(history) as Integer
         screen.SetSearchTermHeaderText("Recent Searches:")
         screen.SetSearchButtonText("Search")
         screen.SetClearButtonText("Clear history")
-        screen.SetClearButtonEnabled(true) 'defaults to true
+        screen.SetClearButtonEnabled(true) 'defaults to true'
         screen.SetSearchTerms(history)
     endif 
     screen.Show() 
@@ -754,21 +754,21 @@ Sub Loading() as Object
   canvasItems = [
         { 
             url:"pkg:/images/app-icon.png"
-            TargetRect:{x:500,y:100,w:290,h:218}
+            TargetRect:{x:500,y:240,w:290,h:218}
         },
         { 
-            Text:"Please wait..."
+            Text:"Thinking..."
             TextAttrs:{Color:"#FFED6D", Font:"Medium",
             HAlign:"HCenter", VAlign:"VCenter",
             Direction:"LeftToRight"}
-            TargetRect:{x:390,y:357,w:500,h:60}
+            TargetRect:{x:390,y:467,w:500,h:60}
         }
   ] 
  
   canvas = CreateObject("roImageCanvas")
   port = CreateObject("roMessagePort")
   canvas.SetMessagePort(port)
-  'Set opaque background
+  'Set opaque background'
   canvas.SetLayer(0, {Color:"#4D4D4D", CompositionMode:"Source"}) 
   canvas.SetRequireAllImagesToDraw(true)
   canvas.SetLayer(1, canvasItems)
@@ -821,7 +821,7 @@ function RegWrite(key, val, section=invalid)
     if section = invalid then section = "Default"
     sec = CreateObject("roRegistrySection", section)
     sec.Write(key, val)
-    sec.Flush() 'commit it
+    sec.Flush() 'commit it'
 end function
 
 
