@@ -24,3 +24,4 @@ activate_env
 /uploads
 /web_uploads
 .vagrant
+build/
