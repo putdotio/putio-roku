@@ -1,11 +1,12 @@
 .PHONY: clean
 
-all: build
+all: build/putioroku.zip
 
 build: clean
-	zip -r -9 /tmp/putioroku.zip .
-	mkdir build
-	mv /tmp/putioroku.zip build/
+	mkdir -p build
+
+build/putioroku.zip: build
+	zip -r -9 build/putioroku.zip . --exclude build
 
 clean:
 	rm -rf build
