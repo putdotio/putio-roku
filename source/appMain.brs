@@ -219,7 +219,7 @@ function Settings() as Integer
   items = CreateObject("roArray", 3, true)
   items[0] = {
       Title: "Unlink this device", 
-      HDSmallIconUrl: "pkg:/images/your-files.png", 
+      HDSmallIconUrl: "pkg:/images/unlink.png", 
   }
   if (m.subtitle_on = "on")
     s_title = "Disable subtitles"
@@ -229,7 +229,7 @@ function Settings() as Integer
 
   items[1] = {
       Title: s_title,
-      HDSmallIconUrl: "pkg:/images/your-files.png", 
+      HDSmallIconUrl: "pkg:/images/subtitles.png", 
   }
   screen.SetContent(items)
   screen.Show()
@@ -472,13 +472,13 @@ function GetFileList(url as string) as object
               if (c_root <> "video") then
                 sd_screenshot = "pkg:/images/mid-file.png"
                 hd_screenshot = "pkg:/images/mid-file.png"
-                sd_small = "pkg:/images/nothing.png"
-                hd_small = "pkg:/images/nothing.png"
+                sd_small = "pkg:/images/file-icon.png"
+                hd_small = "pkg:/images/file-icon.png"
               else
                 sd_screenshot = kind.screenshot
                 hd_screenshot = kind.screenshot
-                sd_small = "pkg:/images/nothing.png"
-                hd_small = "pkg:/images/nothing.png"
+                sd_small = "pkg:/images/playable-icon.png"
+                hd_small = "pkg:/images/playable-icon.png"
               end if
             endif 
 
