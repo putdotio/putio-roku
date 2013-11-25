@@ -4,7 +4,10 @@ function Main()
   facade.Show()
   token = RegRead("token")
   if (token = invalid) then
-    ShowLinkScreen(facade)
+    res = ShowLinkScreen(facade)
+    if (res = -1) then
+      return -1
+    end if
   else
     m.token = token
   end if
@@ -15,8 +18,8 @@ end function
 
 function GetLinkingCode() as Dynamic
   request = MakeRequest()
-
-  url = "https://put.io/roku/key"
+  device_id = GetDeviceESN()
+  url = "https://put.io/roku/key/"+device_id
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
@@ -45,7 +48,8 @@ function ValidateLinkingCode() as Integer
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
-  if (request.AsyncGetToString())
+  device_id = GetDeviceESN()
+  if (request.AsyncPostFromString("device_id="+device_id))
     msg = wait(0, port)
     if (type(msg) = "roUrlEvent")
       code = msg.GetResponseCode()
@@ -98,7 +102,7 @@ sub ShowLinkScreen(facade) as Integer
   while true
     ' we want to poll the API every 5 seconds for validation,
     msg = Wait(5000, screen.GetMessagePort())
-   
+
     if msg = invalid
       ' poll the API for validation
       if (ValidateLinkingCode() = 1)
@@ -119,9 +123,9 @@ sub ShowLinkScreen(facade) as Integer
 
         Wait(0, dPort)
         d.Close()
+        current = dt.AsSeconds()+300
         screen.SetRegistrationCode("Retrieving...")
         screen.Show()
-
         linkingCode = GetLinkingCode()
         if linkingCode <> invalid
           screen.SetRegistrationCode(linkingCode)
@@ -132,7 +136,9 @@ sub ShowLinkScreen(facade) as Integer
       end if
     else if type(msg) = "roCodeRegistrationScreenEvent"
       if msg.isScreenClosed()
-        exit while
+          screen.Close()
+          facade.Close()
+          return -1
       else if msg.isButtonPressed()
         if msg.GetIndex() = 1
           ' the user wants a new code
@@ -162,7 +168,6 @@ function RunLandingScreen(facade) as Integer
   screen = CreateObject("roListScreen")
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
-
 
   landing_items = CreateObject("roArray", 3, true)
   landing_items[0] = {
@@ -304,6 +309,8 @@ end function
 
 
 function FileBrowser(url as string, search_history=invalid) as Integer
+
+
   screen = CreateObject("roListScreen")
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
@@ -837,7 +844,12 @@ function MakeRequest() as Object
   request = CreateObject("roUrlTransfer")
   request.SetCertificatesFile("common:/certs/ca-bundle.crt")
   request.AddHeader("X-Roku-Reserved-Dev-Id", "")
+  request.AddHeader("User-Agent", "PutioRoku Client 1.0")
   request.InitClientCertificates()
   return request
 end function
 
+
+function GetDeviceESN()
+    return CreateObject("roDeviceInfo").GetDeviceUniqueId()
+end function
