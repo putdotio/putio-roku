@@ -458,7 +458,6 @@ function GetFileList(url as string) as object
           if (json.DoesExist("parent")) then
             result.parent = {name: json["parent"].name, parent_id: json["parent"].parent_id}
           end if
-
           for each kind in json["files"]
             if (kind.content_type = "application/x-directory") then
               hd_screenshot = "pkg:/images/mid-folder.png"
@@ -475,8 +474,10 @@ function GetFileList(url as string) as object
                 sd_small = "pkg:/images/file-icon.png"
                 hd_small = "pkg:/images/file-icon.png"
               else
-                sd_screenshot = kind.screenshot
-                hd_screenshot = kind.screenshot
+                r = CreateObject("roRegex", "https://", "")
+                ss = r.ReplaceAll(kind.screenshot, "http://")
+                sd_screenshot = ss
+                hd_screenshot = ss
                 sd_small = "pkg:/images/playable-icon.png"
                 hd_small = "pkg:/images/playable-icon.png"
               end if
@@ -489,7 +490,7 @@ function GetFileList(url as string) as object
               ContentType: kind.content_type,
               SDBackgroundImageUrl: hd_screenshot, 
               HDPosterUrl: hd_screenshot,
-              SDPosterUrl: hd_screenshot,
+              SDPosterUrl: sd_screenshot,
               ShortDescriptionLine1: kind.name,
               SDSmallIconUrl: sd_small, 
               HDSmallIconUrl: hd_small, 
@@ -618,7 +619,10 @@ function DisplayVideo(args As object)
     if type(args["StreamFormat"]) = "roString" and args["StreamFormat"] <> "" then
         StreamFormat = args["StreamFormat"]
     end if
-    
+
+    video.ShowSubtitle(true)
+    video.ShowSubtitleOnReplay(false)
+
     videoclip = CreateObject("roAssociativeArray")
     videoclip.StreamBitrates = bitrates
     videoclip.StreamUrls = urls
