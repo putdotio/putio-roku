@@ -309,8 +309,6 @@ end function
 
 
 function FileBrowser(url as string, search_history=invalid) as Integer
-
-
   screen = CreateObject("roListScreen")
   port = CreateObject("roMessagePort")
   screen.SetMessagePort(port)
@@ -337,10 +335,62 @@ function FileBrowser(url as string, search_history=invalid) as Integer
     if (msg.isScreenClosed()) then
         return -1
     end if
+
     if (type(msg) = "roListScreenEvent") then
       if msg.isListItemFocused()
           focusedItem = msg.GetIndex()
       end if
+
+      if (msg.isRemoteKeyPressed()) then
+        if (msg.GetIndex() = 10) then
+          content_type = files[focusedItem].ContentType
+          r = CreateObject("roRegex", "/", "")
+          parsed_ct = r.Split(content_type)
+          c_root = parsed_ct[0]
+          c_format = parsed_ct[1]
+          id = files[focusedItem].ID.tostr()
+
+          if (content_type = "application/x-directory") then
+            item = {
+              ContentType: "episode"
+              SDPosterUrl: "pkg:/images/mid-folder.png"
+              ID: id
+              title: files[focusedItem].Title
+            }
+            res = DeleteScreen(item)
+            if (res = -1) then
+              files.delete(focusedItem)
+              screen.SetContent(files)
+            end if
+          else if (c_root = "video") then
+            item = { 
+              ContentType: "episode"
+              SDPosterUrl: files[focusedItem].SDBackgroundImageUrl
+              HDPosterUrl: files[focusedItem].HDBackgroundImageUrl
+              ID: id
+              title: files[focusedItem].Title
+              }
+            res = DeleteScreen(item)
+            if (res = -1) then
+              files.delete(focusedItem)
+              screen.SetContent(files)
+            end if
+          else
+            item = { 
+              ContentType: "episode"
+              SDPosterUrl: "pkg:/images/mid-file.png"
+              ID: id
+              title: files[focusedItem].Title
+            }
+            res = DeleteScreen(item)
+            if (res = -1) then
+              files.delete(focusedItem)
+              screen.SetContent(files)
+            end if
+          end if
+        end if
+      end if
+
 
       if (msg.isListItemSelected()) then
         content_type = files[msg.GetIndex()].ContentType
@@ -619,10 +669,6 @@ function DisplayVideo(args As object)
     if type(args["StreamFormat"]) = "roString" and args["StreamFormat"] <> "" then
         StreamFormat = args["StreamFormat"]
     end if
-
-    video.ShowSubtitle(true)
-    video.ShowSubtitleOnReplay(false)
-
     videoclip = CreateObject("roAssociativeArray")
     videoclip.StreamBitrates = bitrates
     videoclip.StreamUrls = urls
@@ -630,10 +676,17 @@ function DisplayVideo(args As object)
     videoclip.StreamFormat = StreamFormat
     videoclip.Title = title
     if (m.subtitle_on = "on")
-      videoclip.SubtitleUrl = "https://api.put.io/v2/subtitles/get/"+args["ID"]+"?oauth_token="+m.token
+      videoclip.SubtitleUrl = "https://api.put.io/v2/files/"+args["ID"]+"/subtitles/default?oauth_token="+m.token
     end if
+
+    video.SetCertificatesFile("common:/certs/ca-bundle.crt")
+    video.AddHeader("X-Roku-Reserved-Dev-Id", "")
+    video.AddHeader("User-Agent", "PutioRoku Client 1.0")
+    video.InitClientCertificates()
+
     video.SetContent(videoclip)
     video.show()
+    video.ShowSubtitle(true)
 
     lastSavedPos   = 0
     statusInterval = 10 'position must change by more than this number of seconds before saving
@@ -856,4 +909,36 @@ end function
 
 function GetDeviceESN()
     return CreateObject("roDeviceInfo").GetDeviceUniqueId()
+end function
+
+
+function DeleteScreen(item as object) As Integer
+    port = CreateObject("roMessagePort")
+    screen = CreateObject("roSpringboardScreen")    
+    screen.SetMessagePort(port)
+    screen.SetDescriptionStyle("video") 
+    screen.ClearButtons()
+    screen.AddButton(1, "Delete")
+    screen.SetStaticRatingEnabled(false)
+    screen.AllowUpdates(true)
+    if item <> invalid and type(item) = "roAssociativeArray"
+        screen.SetContent(item)
+    endif
+    screen.Show()
+
+    while true
+      msg = wait(0, screen.GetMessagePort())
+      if type(msg) = "roSpringboardScreenEvent"
+        if msg.isScreenClosed()
+          exit while                
+        else if msg.isButtonPressed()
+          if msg.GetIndex() = 1
+            res = DeleteItem(item)  
+            if (res = true) then
+              return -1
+            end if
+          end if
+        endif
+      endif
+    end while
 end function
