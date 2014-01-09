@@ -614,8 +614,31 @@ function SpringboardScreen(item as object) As Integer
       end if
     end if
 
-    screen.AddButton(3, "Delete")
-    
+    if (item.DoesExist("NonVideo") = false) then
+        subtitles = invalid
+        request = MakeRequest()
+        url = "https://api.put.io/v2/files/"+item["ID"]+"/subtitles?oauth_token="+m.token
+        port = CreateObject("roMessagePort")
+        request.SetMessagePort(port)
+        request.SetUrl(url)
+        if (request.AsyncGetToString())
+          msg = wait(0, port)
+          if (type(msg) = "roUrlEvent") then
+            code = msg.GetResponseCode()
+            if (code = 200) then
+                subtitles = ParseJSON(msg.GetString())
+                for each subtitle in subtitles["subtitles"]
+                  if (subtitles.default = subtitle.key) 
+                    screen.AddButton(3, "Subtitles")
+                  endif
+                end for
+            end if
+          end if
+        end if
+    end if
+
+    screen.AddButton(4, "Delete")
+
     screen.AllowUpdates(false)
     if item <> invalid and type(item) = "roAssociativeArray"
         screen.SetContent(item)
@@ -623,6 +646,7 @@ function SpringboardScreen(item as object) As Integer
 
     screen.SetStaticRatingEnabled(false)
     screen.AllowUpdates(true)
+
     screen.Show()
     if (item.DoesExist("NonVideo") = false) then
       l.close()
@@ -630,6 +654,7 @@ function SpringboardScreen(item as object) As Integer
 
     downKey=3
     selectKey=6
+    subtitle_index = invalid
     while true
       msg = wait(0, screen.GetMessagePort())
       if type(msg) = "roSpringboardScreenEvent"
@@ -637,10 +662,26 @@ function SpringboardScreen(item as object) As Integer
           exit while                
         else if msg.isButtonPressed()
           if msg.GetIndex() = 1
-            DisplayVideo(item)
+            if subtitle_index = invalid
+              subtitle = subtitles.default
+            else if subtitle_index = 0
+              'Ayni scopeda degismis olabilir bu degisken. o yuzden tekrar ediyoruz' 
+              subtitle = invalid
+            else
+              subtitle = subtitles["subtitles"][subtitle_index-1]["key"]
+            end if
+            DisplayVideo(item, subtitle)
           else if msg.GetIndex() = 2
             ConvertToMp4(item)
           else if msg.GetIndex() = 3
+            tmp = SelectSubtitle(subtitles, item.SDPosterUrl)
+            if tmp <> invalid
+              'selectsubtitle invalid ya da 0, 1, 2... seklinde bir sonuc donuyor'
+              'default subtitle secimi yapilan durumla karismamasi icin burdaki invalidi dikkate almiyoruz'
+              'geri ok tusuyla hicbir sey yapmadan geri donulurse invalid donuyor'
+              subtitle_index = tmp
+            end if
+          else if msg.GetIndex() = 4
             res = DeleteItem(item)  
             if (res = true) then
               return -1
@@ -652,7 +693,7 @@ function SpringboardScreen(item as object) As Integer
 end function
 
 
-function DisplayVideo(args As object)
+function DisplayVideo(args As object, subtitle)
     print "Displaying video: "
     p = CreateObject("roMessagePort")
     video = CreateObject("roVideoScreen")
@@ -676,7 +717,9 @@ function DisplayVideo(args As object)
     videoclip.StreamFormat = StreamFormat
     videoclip.Title = title
     if (m.subtitle_on = "on")
-      videoclip.SubtitleUrl = "https://api.put.io/v2/files/"+args["ID"]+"/subtitles/default?oauth_token="+m.token
+      if subtitle <> invalid
+        videoclip.SubtitleUrl = "https://api.put.io/v2/files/"+args["ID"]+"/subtitles/"+subtitle+"?oauth_token="+m.token
+      end if
     end if
 
     video.SetCertificatesFile("common:/certs/ca-bundle.crt")
@@ -942,3 +985,41 @@ function DeleteScreen(item as object) As Integer
       endif
     end while
 end function
+
+
+function SelectSubtitle(subtitles as object, screenshot)
+    port = CreateObject("roMessagePort")
+    screen = CreateObject("roSpringboardScreen")    
+    screen.SetMessagePort(port)
+    screen.SetDescriptionStyle("video") 
+    screen.ClearButtons()
+    screen.AddButton(0, "Don't load any subtitles")
+    counter = 1
+    for each subtitle in subtitles["subtitles"]
+      screen.AddButton(counter, "Option "+counter.tostr())
+      counter = counter + 1
+    end for
+
+    screen.SetStaticRatingEnabled(false)
+    screen.AllowUpdates(true)
+    item = {
+      title: "Available "+subtitles["subtitles"][0].language+" Subtitles"
+      ContentType: "episode"
+      SDPosterUrl: screenshot
+    }
+    screen.SetContent(item)
+    screen.Show()
+    while true
+      msg = wait(0, screen.GetMessagePort())
+      if type(msg) = "roSpringboardScreenEvent"
+        if msg.isScreenClosed()
+          exit while                
+        else if msg.isButtonPressed()
+          subtitle_index = msg.GetIndex()
+          return subtitle_index
+        endif
+      endif
+    end while
+
+end function
+
