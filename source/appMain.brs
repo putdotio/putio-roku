@@ -563,6 +563,8 @@ end function
 function SpringboardScreen(item as object) As Integer
     if (item.DoesExist("NonVideo") = false) then
       l = Loading()
+      redirected = ResolveRedirect(item["url"])
+      item["url"] = redirected
     end if
 
     port = CreateObject("roMessagePort")
@@ -753,6 +755,22 @@ function DisplayVideo(args As object, subtitle)
       end if
     end while
 end function
+
+
+function ResolveRedirect(str As String) As String
+    http = MakeRequest()
+    http.SetUrl( str )
+    event = http.Head()
+    headers = event.GetResponseHeaders()
+    redirect = headers.location
+    if ( redirect <> invalid AND redirect <> str )
+      str = redirect                
+    endif
+    'r = CreateObject("roRegex", "https://", "")'
+    'str = r.ReplaceAll(str, "http://")'
+    return str
+end function
+
 
 function ConvertToMp4(item as Object) as void
   request = MakeRequest()
