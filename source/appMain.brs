@@ -735,14 +735,13 @@ function DisplayVideo(args As object, subtitle)
     video.AddHeader("User-Agent", "PutioRoku Client 1.0")
     video.InitClientCertificates()
 
-    if args["StartFrom"] <> "0"
+    if type(args["StartFrom"]) = "String" and args["StartFrom"] <> "0"
       videoclip.PlayStart = args["StartFrom"].toint()
     end if
     video.show()
     video.SetContent(videoclip)
     video.ShowSubtitle(true)
     video.SetPositionNotificationPeriod(30)
-
     while true
       msg = wait(0, video.GetMessagePort())
       if type(msg) = "roVideoScreenEvent"
@@ -750,18 +749,20 @@ function DisplayVideo(args As object, subtitle)
               print "Closing video screen"
               exit while
           else if msg.isPlaybackPosition() then
-              request = MakeRequest()
-              url = "https://api.put.io/v2/files/"+args["ID"]+"/start-from/set?oauth_token="+m.token
-              port = CreateObject("roMessagePort")
-              request.SetMessagePort(port)
-              request.SetUrl(url)
               currentpos = msg.GetIndex()
-              if (request.AsyncPostFromString("time="+currentpos.tostr()))
-                event = wait(0, port)
-                if (event = invalid)
-                  request.AsyncCancel()
+              if currentpos <> 0
+                request = MakeRequest()
+                url = "https://api.put.io/v2/files/"+args["ID"]+"/start-from/set?oauth_token="+m.token
+                port = CreateObject("roMessagePort")
+                request.SetMessagePort(port)
+                request.SetUrl(url)
+                if (request.AsyncPostFromString("time="+currentpos.tostr()))
+                  event = wait(0, port)
+                  if (event = invalid)
+                    request.AsyncCancel()
+                  endif
                 endif
-              endif
+              end if
           else if msg.isRequestFailed()
               print "play failed: "; msg.GetMessage()
           endif
