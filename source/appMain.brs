@@ -194,7 +194,7 @@ function RunLandingScreen(facade) as Integer
       if (type(msg) = "roListScreenEvent") then
         if (msg.isListItemSelected()) then
           if (msg.GetIndex() = 0) then
-            list_root_url = "https://api.put.io/v2/files/list?oauth_token="+m.token
+            list_root_url = "https://api.put.io/v2/files/list?start_from=1&oauth_token="+m.token
             FileBrowser(list_root_url)
           else if (msg.GetIndex() = 1) then
             Search(false)
@@ -344,6 +344,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
       if (msg.isRemoteKeyPressed()) then
         if (msg.GetIndex() = 10) then
           content_type = files[focusedItem].ContentType
+
           r = CreateObject("roRegex", "/", "")
           parsed_ct = r.Split(content_type)
           c_root = parsed_ct[0]
@@ -369,6 +370,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
               HDPosterUrl: files[focusedItem].HDBackgroundImageUrl
               ID: id
               title: files[focusedItem].Title
+              StartFrom: files[focusedItem].StartFrom
               }
             res = DeleteScreen(item)
             if (res = -1) then
@@ -416,7 +418,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
             end if
           else
             id = files[msg.GetIndex()].ID.tostr()
-            url = "https://api.put.io/v2/files/list?oauth_token="+m.token+"&parent_id="+id
+            url = "https://api.put.io/v2/files/list?oauth_token="+m.token+"&start_from=1&parent_id="+id
             FileBrowser(url)
           end if
         else if (c_root = "video") then
@@ -429,6 +431,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
               ID: id
               title: files[msg.GetIndex()].Title
               url: putio_api
+              StartFrom: files[focusedItem].StartFrom
              }
             res = SpringboardScreen(item)
             if (res = -1) then
@@ -445,6 +448,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 ID: id
                 title: files[msg.GetIndex()].Title
                 url: putio_api
+                StartFrom: files[focusedItem].StartFrom
                }
               res = SpringboardScreen(item)
               if (res = -1) then
@@ -461,6 +465,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
                 title: files[msg.GetIndex()].Title
                 convert_mp4: true
                 url: putio_api
+                StartFrom: files[focusedItem].StartFrom
               }
               res = SpringboardScreen(item)
               if (res = -1) then
@@ -508,6 +513,7 @@ function GetFileList(url as string) as object
           if (json.DoesExist("parent")) then
             result.parent = {name: json["parent"].name, parent_id: json["parent"].parent_id}
           end if
+          start_from = invalid
           for each kind in json["files"]
             if (kind.content_type = "application/x-directory") then
               hd_screenshot = "pkg:/images/mid-folder.png"
@@ -530,6 +536,7 @@ function GetFileList(url as string) as object
                 hd_screenshot = ss
                 sd_small = "pkg:/images/playable-icon.png"
                 hd_small = "pkg:/images/playable-icon.png"
+                start_from = kind.start_from
               end if
             endif 
 
@@ -545,6 +552,7 @@ function GetFileList(url as string) as object
               SDSmallIconUrl: sd_small, 
               HDSmallIconUrl: hd_small, 
               size: kind.size,
+              StartFrom: start_from,
             }
             files.push(topic)
           end for
@@ -727,12 +735,13 @@ function DisplayVideo(args As object, subtitle)
     video.AddHeader("User-Agent", "PutioRoku Client 1.0")
     video.InitClientCertificates()
 
-    video.SetContent(videoclip)
+    if args["StartFrom"] <> "0"
+      videoclip.PlayStart = args["StartFrom"].toint()
+    end if
     video.show()
+    video.SetContent(videoclip)
     video.ShowSubtitle(true)
-
-    lastSavedPos   = 0
-    statusInterval = 10 'position must change by more than this number of seconds before saving
+    video.SetPositionNotificationPeriod(30)
 
     while true
       msg = wait(0, video.GetMessagePort())
@@ -741,14 +750,18 @@ function DisplayVideo(args As object, subtitle)
               print "Closing video screen"
               exit while
           else if msg.isPlaybackPosition() then
-              nowpos = msg.GetIndex()
-              'if nowpos > 10000   
-              'end if
-              if nowpos > 0
-                  if abs(nowpos - lastSavedPos) > statusInterval
-                      lastSavedPos = nowpos
-                  end if
-              end if
+              request = MakeRequest()
+              url = "https://api.put.io/v2/files/"+args["ID"]+"/start-from/set?oauth_token="+m.token
+              port = CreateObject("roMessagePort")
+              request.SetMessagePort(port)
+              request.SetUrl(url)
+              currentpos = msg.GetIndex()
+              if (request.AsyncPostFromString("time="+currentpos.tostr()))
+                event = wait(0, port)
+                if (event = invalid)
+                  request.AsyncCancel()
+                endif
+              endif
           else if msg.isRequestFailed()
               print "play failed: "; msg.GetMessage()
           endif
@@ -783,7 +796,7 @@ function ConvertToMp4(item as Object) as void
     msg = wait(0, port)
     if (type(msg) = "roUrlEvent")
       lc.close()
-    else if (event = invalid)
+    else if (msg = invalid)
       request.AsyncCancel()
       lc.close()
     endif
@@ -823,7 +836,7 @@ function Search(history) as Integer
               if displayHistory
                   screen.AddSearchTerm(msg.GetMessage())
               end if
-              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?oauth_token="+m.token
+              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?start_from=1&oauth_token="+m.token
               FileBrowser(url, history)
           endif
         endif
