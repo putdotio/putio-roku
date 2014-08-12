@@ -371,7 +371,7 @@ function FileBrowser(url as string, search_history=invalid) as Integer
               ID: id
               title: files[focusedItem].Title
               StartFrom: files[focusedItem].StartFrom
-              }
+            }
             res = DeleteScreen(item)
             if (res = -1) then
               files.delete(focusedItem)
@@ -735,9 +735,18 @@ function DisplayVideo(args As object, subtitle)
     video.AddHeader("User-Agent", "PutioRoku Client 1.0")
     video.InitClientCertificates()
 
-    if type(args["StartFrom"]) = "String" and args["StartFrom"] <> "0"
-      videoclip.PlayStart = args["StartFrom"].toint()
+    if m.current_id <> invalid and args["ID"].toint() <> m.current_id
+      m.start_from = invalid
     end if
+
+    if type(args["StartFrom"]) = "String" and args["StartFrom"] <> "0"
+      if m.start_from = invalid
+        videoclip.PlayStart = args["StartFrom"].toint()
+      else
+        videoclip.PlayStart = m.start_from
+      end if
+    end if
+
     video.show()
     video.SetContent(videoclip)
     video.ShowSubtitle(true)
@@ -751,6 +760,8 @@ function DisplayVideo(args As object, subtitle)
           else if msg.isPlaybackPosition() then
               currentpos = msg.GetIndex()
               if currentpos <> 0
+                m.start_from = currentpos
+                m.current_id = args["ID"].toint()
                 request = MakeRequest()
                 url = "https://api.put.io/v2/files/"+args["ID"]+"/start-from/set?oauth_token="+m.token
                 port = CreateObject("roMessagePort")
