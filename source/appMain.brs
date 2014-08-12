@@ -536,7 +536,11 @@ function GetFileList(url as string) as object
                 hd_screenshot = ss
                 sd_small = "pkg:/images/playable-icon.png"
                 hd_small = "pkg:/images/playable-icon.png"
-                start_from = kind.start_from
+                if type(kind.start_from) = "String"
+                  start_from = kind.start_from.toint()
+                else 
+                  start_from = kind.start_from
+                end if
               end if
             endif 
 
@@ -739,12 +743,14 @@ function DisplayVideo(args As object, subtitle)
       m.start_from = invalid
     end if
 
-    if type(args["StartFrom"]) = "String" and args["StartFrom"] <> "0"
+    if type(args["StartFrom"]) = "roInteger" and args["StartFrom"] <> 0
       if m.start_from = invalid
         videoclip.PlayStart = args["StartFrom"].toint()
       else
         videoclip.PlayStart = m.start_from
       end if
+    else if type(args["StartFrom"]) = "roInteger" and args["StartFrom"] = 0 and m.start_from <> invalid
+        videoclip.PlayStart = m.start_from
     end if
 
     video.show()
