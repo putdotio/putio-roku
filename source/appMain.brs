@@ -745,7 +745,7 @@ function DisplayVideo(args As object, subtitle)
 
     if type(args["StartFrom"]) = "roInteger" and args["StartFrom"] <> 0
       if m.start_from = invalid
-        videoclip.PlayStart = args["StartFrom"].toint()
+        videoclip.PlayStart = args["StartFrom"]
       else
         videoclip.PlayStart = m.start_from
       end if
