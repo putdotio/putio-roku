@@ -1020,19 +1020,26 @@ function SelectSubtitle(subtitles as object, screenshot)
     screen.ClearButtons()
     screen.AddButton(0, "Don't load any subtitles")
     counter = 1
+    language = ""
     for each subtitle in subtitles["subtitles"]
       screen.AddButton(counter, "Option "+counter.tostr())
       counter = counter + 1
+      if subtitle.language <> invalid
+        language = subtitle.language
+      end if
     end for
 
     screen.SetStaticRatingEnabled(false)
     screen.AllowUpdates(true)
-    item = {
-      title: "Available "+subtitles["subtitles"][0].language+" Subtitles"
-      ContentType: "episode"
-      SDPosterUrl: screenshot
-    }
-    screen.SetContent(item)
+
+    if counter <> 1
+      item = {
+        title: "Available "+language+" Subtitles"
+        ContentType: "episode"
+        SDPosterUrl: screenshot
+      }
+      screen.SetContent(item)
+    end if
     screen.Show()
     while true
       msg = wait(0, screen.GetMessagePort())
