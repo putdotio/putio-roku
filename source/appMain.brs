@@ -536,11 +536,7 @@ function GetFileList(url as string) as object
                 hd_screenshot = ss
                 sd_small = "pkg:/images/playable-icon.png"
                 hd_small = "pkg:/images/playable-icon.png"
-                if type(kind.start_from) = "String"
-                  start_from = kind.start_from.toint()
-                else 
-                  start_from = kind.start_from
-                end if
+                start_from = kind.start_from
               end if
             endif 
 
@@ -573,6 +569,7 @@ end function
 
 
 function SpringboardScreen(item as object) As Integer
+    print "SpringboardScreen"
     if (item.DoesExist("NonVideo") = false) then
       l = Loading()
       redirected = ResolveRedirect(item["url"])
@@ -704,8 +701,7 @@ function SpringboardScreen(item as object) As Integer
     end while
 end function
 
-
-function DisplayVideo(args As object, subtitle)
+function DisplayVideo(args as object, subtitle)
     print "Displaying video: "
     p = CreateObject("roMessagePort")
     video = CreateObject("roVideoScreen")
@@ -734,24 +730,12 @@ function DisplayVideo(args As object, subtitle)
       end if
     end if
 
+    videoclip.PlayStart = GetStartFrom(args)
+
     video.SetCertificatesFile("common:/certs/ca-bundle.crt")
     video.AddHeader("X-Roku-Reserved-Dev-Id", "")
     video.AddHeader("User-Agent", "PutioRoku Client 1.0")
     video.InitClientCertificates()
-
-    if m.current_id <> invalid and args["ID"].toint() <> m.current_id
-      m.start_from = invalid
-    end if
-
-    if type(args["StartFrom"]) = "roInteger" and args["StartFrom"] <> 0
-      if m.start_from = invalid
-        videoclip.PlayStart = args["StartFrom"]
-      else
-        videoclip.PlayStart = m.start_from
-      end if
-    else if type(args["StartFrom"]) = "roInteger" and args["StartFrom"] = 0 and m.start_from <> invalid
-        videoclip.PlayStart = m.start_from
-    end if
 
     video.show()
     video.SetContent(videoclip)
@@ -765,9 +749,9 @@ function DisplayVideo(args As object, subtitle)
               exit while
           else if msg.isPlaybackPosition() then
               currentpos = msg.GetIndex()
+              m.start_from = currentpos
+              m.current_id = args["ID"].toint()
               if currentpos <> 0
-                m.start_from = currentpos
-                m.current_id = args["ID"].toint()
                 request = MakeRequest()
                 url = "https://api.put.io/v2/files/"+args["ID"]+"/start-from/set?oauth_token="+m.token
                 port = CreateObject("roMessagePort")
@@ -1061,3 +1045,23 @@ function SelectSubtitle(subtitles as object, screenshot)
 
 end function
 
+function GetStartFrom(args as object)
+    if m.current_id <> invalid and args["ID"].toint() <> m.current_id
+      m.start_from = invalid
+    end if
+    if args.DoesExist("StartFrom") = false
+      return 0
+    end if
+    
+    if args["StartFrom"] <> 0
+      if m.start_from = invalid
+        return args["StartFrom"]
+      else
+        return m.start_from
+      end if
+    else if args["StartFrom"] = 0 and m.start_from <> invalid
+        return m.start_from
+    else 
+        return 0
+    end if
+end function
