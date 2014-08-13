@@ -838,7 +838,9 @@ function Search(history) as Integer
               if displayHistory
                   screen.AddSearchTerm(msg.GetMessage())
               end if
-              url ="https://api.put.io/v2/files/search/"+msg.GetMessage()+"?start_from=1&oauth_token="+m.token
+              ut = CreateObject("roUrlTransfer")
+              query = ut.Escape(msg.GetMessage())
+              url ="https://api.put.io/v2/files/search/"+query+"?start_from=1&oauth_token="+m.token
               FileBrowser(url, history)
           endif
         endif
@@ -1052,7 +1054,7 @@ function GetStartFrom(args as object)
     if args.DoesExist("StartFrom") = false
       return 0
     end if
-    
+
     if args["StartFrom"] <> 0
       if m.start_from = invalid
         return args["StartFrom"]
