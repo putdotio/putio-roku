@@ -741,13 +741,14 @@ function DisplayVideo(args as object, subtitle)
     video.SetContent(videoclip)
     video.ShowSubtitle(true)
     video.SetPositionNotificationPeriod(30)
+    startFromDisabled = false
     while true
       msg = wait(0, video.GetMessagePort())
       if type(msg) = "roVideoScreenEvent"
           if msg.isScreenClosed() then 'ScreenClosed event
               print "Closing video screen"
               exit while
-          else if msg.isPlaybackPosition() then
+          else if (msg.isPlaybackPosition() and startFromDisabled = false) then
               currentpos = msg.GetIndex()
               m.start_from = currentpos
               m.current_id = args["ID"].toint()
@@ -759,10 +760,14 @@ function DisplayVideo(args as object, subtitle)
                 request.SetUrl(url)
                 if (request.AsyncPostFromString("time="+currentpos.tostr()))
                   event = wait(0, port)
+                  code = event.GetResponseCode()
+                  if (code = 412)
+                    startFromDisabled = true
+                  end if
                   if (event = invalid)
                     request.AsyncCancel()
-                  endif
-                endif
+                  end if
+                end if
               end if
           else if msg.isRequestFailed()
               print "play failed: "; msg.GetMessage()
@@ -1012,13 +1017,20 @@ function SelectSubtitle(subtitles as object, screenshot)
     screen.ClearButtons()
     screen.AddButton(0, "Don't load any subtitles")
     counter = 1
+    lang_num = 1
     language = ""
     for each subtitle in subtitles["subtitles"]
-      screen.AddButton(counter, "Option "+counter.tostr())
-      counter = counter + 1
       if subtitle.language <> invalid
+        if subtitle.language <> language and lang_num <> 1
+          lang_num = 1
+	end if
         language = subtitle.language
+      	screen.AddButton(counter, language + " "+lang_num.tostr())
+      else 
+	screen.AddButton(counter, "Unknown language")
       end if
+      counter = counter + 1
+      lang_num = lang_num + 1
     end for
 
     screen.SetStaticRatingEnabled(false)
@@ -1026,7 +1038,7 @@ function SelectSubtitle(subtitles as object, screenshot)
 
     if counter <> 1
       item = {
-        title: "Available "+language+" Subtitles"
+        title: "Available Subtitles"
         ContentType: "episode"
         SDPosterUrl: screenshot
       }
