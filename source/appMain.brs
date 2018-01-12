@@ -19,7 +19,7 @@ end function
 function GetLinkingCode() as Dynamic
   request = MakeRequest()
   device_id = GetDeviceESN()
-  url = "https://put.io/roku/key/"+device_id
+  url = "https://api.put.io/roku/key/"+device_id
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
@@ -44,7 +44,7 @@ end function
 function ValidateLinkingCode() as Integer
   request = MakeRequest()
 
-  url = "https://put.io/roku/check"
+  url = "https://api.put.io/roku/check"
   port = CreateObject("roMessagePort")
   request.SetMessagePort(port)
   request.SetUrl(url)
