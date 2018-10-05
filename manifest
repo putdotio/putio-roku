@@ -1,10 +1,15 @@
 title=Put.io for Roku
-subtitle=This is a Roku channel for browsing your personal files on put.io
+major_version=1
+minor_version=10
+build_version=1
 mm_icon_focus_hd=pkg:/images/app-icon.png
+mm_icon_focus_sd=pkg:/images/app-icon.png
+subtitle=This is a Roku channel for browsing your personal files on put.io
 mm_icon_side_hd=pkg:/images/app-icon.png
-mm_icon_focus_sd=pkg:/images/icon.png
-mm_icon_side_sd=pkg:/images/icon.png
+mm_icon_side_sd=pkg:/images/app-icon.png
+splash_screen_fhd=pkg:/images/splash.png
 splash_screen_hd=pkg:/images/splash.png
 splash_screen_sd=pkg:/images/splash.png
-
-
+splash_color=#ffed64
+splash_min_time=0
+ui_resolutions=fhd
