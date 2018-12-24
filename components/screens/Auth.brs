@@ -15,7 +15,7 @@ end sub
 
 sub getAuthCode()
   m.httpTask = createObject("roSGNode", "HttpTask")
-  m.httpTask .observeField("response", "onAuthCodeResponse")
+  m.httpTask.observeField("response", "onAuthCodeResponse")
   m.httpTask.url = "/oauth2/oob/code?app_id=961" ' @TODO: app id
   m.httpTask.control = "RUN"
 end sub

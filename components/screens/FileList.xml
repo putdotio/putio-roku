@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="FileListScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/FileList.brs" />
+
+	<children>
+		<Label
+			id="myLabel"
+			text="Files"
+			horizAlign="center"
+			vertAlign="center"
+			width="1920"
+			height="1080"
+		/>
+	</children>
+</component>

@@ -10,13 +10,23 @@ function request()
   http.RetainBodyOnError(true)
   http.setPort(port)
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
-  http.InitClientCertificates()
   http.enablehostverification(false)
   http.enablepeerverification(false)
 
-  ' set url
+  ' Token
+  storage = CreateObject("roRegistrySection", "user")
+  if storage.Exists("token")
+    http.AddHeader("Authorization", "token " + storage.Read("token"))
+  end if
+
+  http.InitClientCertificates()
+
+  ' URL
   url = "https://api.put.io/v2" + m.top.url
-  http.setUrl(url)
+  http.SetUrl(url)
+
+  ' Request Method
+  http.SetRequest(m.top.method)
 
   ' request
   if http.AsyncGetToString() Then
