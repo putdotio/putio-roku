@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="LoadingScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Loading.brs" />
+
+  <children>
+    <ProgressDialog
+      id="dialog"
+      title="Welcome!"
+    />
+  </children>
+</component>

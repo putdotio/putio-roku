@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="App" extends="Scene" initialFocus="loadingScreen">
+  <script type="text/brightscript" uri="pkg:/components/App.brs" />
+
+  <children>
+    <LoadingScreen
+      id="loadingScreen"
+      visible="true"
+      translation="[0, 0]"
+    />
+
+    <AuthScreen
+      id="authScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
+    <HomeScreen
+      id="homeScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+  </children>
+</component>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="AuthScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Auth.brs" />
+
+  <interface>
+    <field id="token" type="string" />
+  </interface>
+
+	<children>
+		<Label
+			id="myLabel"
+			text="Auth"
+			horizAlign="center"
+			vertAlign="center"
+			width="1920"
+			height="1080"
+		/>
+	</children>
+</component>
