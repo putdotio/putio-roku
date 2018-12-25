@@ -6,7 +6,11 @@ sub Main()
     ' Globals
     m.global = screen.getGlobalNode()
     m.global.addFields({
-      user: {}
+      user: {},
+      route: {
+        id: "loadingScreen",
+        params: {},
+      }
     })
 
     scene = screen.CreateScene("App")

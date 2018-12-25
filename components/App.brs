@@ -1,19 +1,35 @@
 function init()
   m.storage = CreateObject("roRegistrySection", "user")
-
-  m.loadingScreen = m.top.findNode("loadingScreen")
-  m.authScreen = m.top.findNode("authScreen")
-  m.homeScreen = m.top.findNode("homeScreen")
-
-  m.loadingScreen.setFocus(true)
+  configureRouter()
   checkToken()
 end function
 
+sub configureRouter()
+  m.activeRoute = m.global.route
+  m.global.observeField("route", "onRouteChanged")
+end sub
+
+sub onRouteChanged(obj)
+  ? "onRouteChanged "; obj.getData()
+  nextRoute = obj.getData()
+
+  currentRouteScreen = m.top.findNode(m.activeRoute.id)
+  currentRouteScreen.visible = false
+
+  nextRouteScreen = m.top.findNode(nextRoute.id)
+  nextRouteScreen.visible = true
+  nextRouteScreen.setFocus(true)
+
+  m.activeRoute = nextRoute
+end sub
+
 sub goToAuthScreen()
-  m.loadingScreen.visible = false
-  m.authScreen.visible = true
-  m.authScreen.setFocus(true)
-  m.authScreen.observeField("token", "onTokenRetrieved")
+  m.global.route = {
+    id: "authScreen",
+    params: {},
+  }
+  authScreen = m.top.findNode("authScreen")
+  authScreen.observeField("token", "onTokenRetrieved")
 end sub
 
 sub checkToken()
@@ -51,10 +67,10 @@ sub onUserInfoResponse(obj)
 
 	if data <> invalid and data.info <> invalid
     m.global.user = data.info
-    m.loadingScreen.visible = false
-    m.authScreen.visible = false
-    m.homeScreen.visible = true
-    m.homeScreen.setFocus(true)
+    m.global.route = {
+      id: "homeScreen",
+      params: {}
+    }
   else
     goToAuthScreen()
   end if

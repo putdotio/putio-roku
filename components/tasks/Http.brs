@@ -35,12 +35,12 @@ function request()
       if (msg.getresponsecode() > 0 and msg.getresponsecode() < 400)
         m.top.response = msg.getstring()
       else
-        ? "feed load failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
-        m.top.response = ""
+        ? "Http Task Failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
+        m.top.response = msg.getstring()
       end if
       http.asynccancel()
     else if (msg = invalid)
-      ? "feed load failed."
+      ? "Http Task Failed"
       m.top.response = ""
       http.asynccancel()
     end if
