@@ -9,12 +9,18 @@
 
 	<children>
 		<Label
-			id="myLabel"
-			text="Files"
-			horizAlign="center"
-			vertAlign="center"
-			width="1920"
-			height="1080"
+      id="header"
+			text="Your Files"
+			translation="[150, 75]"
+      color="0xFFFFFF"
+      font="font:LargeBoldSystemFont"
+		/>
+
+		<LabelList
+			id="fileList"
+			itemSize="[1400, 100]"
+			itemSpacing="[20, 20]"
+			translation="[150, 250]"
 		/>
 	</children>
 </component>
