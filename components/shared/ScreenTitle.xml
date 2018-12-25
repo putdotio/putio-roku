@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ScreenTitle" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/ScreenTitle.brs" />
+
+	<interface>
+    <field id="text" type="string" />
+  </interface>
+
+	<children>
+		<Label
+      id="label"
+			text=""
+			translation="[150, 75]"
+      color="0xFFFFFF"
+      font="font:LargeBoldSystemFont"
+		/>
+	</children>
+</component>

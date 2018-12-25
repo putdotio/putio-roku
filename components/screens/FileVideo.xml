@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="FileVideoScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/FileVideo.brs" />
+
+	<interface>
+    <field id="params" type="assocarray" />
+		<field id="navigate" type="assocarray" />
+  </interface>
+
+	<children>
+		<ScreenTitle
+      id="screenTitle"
+			text=""
+		/>
+
+    <Label
+			id="myLabel"
+			text="Video"
+			horizAlign="center"
+			vertAlign="center"
+			width="500"
+			height="500"
+		/>
+	</children>
+</component>

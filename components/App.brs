@@ -10,7 +10,7 @@ sub configureRouter()
 end sub
 
 sub onRouteChanged(obj)
-  ? "onRouteChanged "; m.activeRoute; obj.getData()
+  ' ? "onRouteChanged "; m.activeRoute; obj.getData()
   nextRoute = obj.getData()
 
   currentRouteScreen = m.top.findNode(m.activeRoute.id)
@@ -70,8 +70,10 @@ sub onUserInfoResponse(obj)
 	if data <> invalid and data.info <> invalid
     m.global.user = data.info
     m.global.route = {
-      id: "homeScreen",
-      params: {}
+      id: "fileListScreen",
+      params: {
+        fileId: 0,
+      }
     }
   else
     goToAuthScreen()

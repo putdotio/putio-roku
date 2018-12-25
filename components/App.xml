@@ -27,5 +27,11 @@
       visible="false"
       translation="[0, 0]"
     />
+
+    <FileVideoScreen
+      id="fileVideoScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
   </children>
 </component>
