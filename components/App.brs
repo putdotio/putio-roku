@@ -10,17 +10,19 @@ sub configureRouter()
 end sub
 
 sub onRouteChanged(obj)
-  ? "onRouteChanged "; obj.getData()
+  ? "onRouteChanged "; m.activeRoute; obj.getData()
   nextRoute = obj.getData()
 
   currentRouteScreen = m.top.findNode(m.activeRoute.id)
   currentRouteScreen.visible = false
 
+  m.activeRoute = nextRoute
+
   nextRouteScreen = m.top.findNode(nextRoute.id)
+  nextRouteScreen.params = nextRoute.params
+  nextRouteScreen.observeField("navigate", "onRouteChanged")
   nextRouteScreen.visible = true
   nextRouteScreen.setFocus(true)
-
-  m.activeRoute = nextRoute
 end sub
 
 sub goToAuthScreen()

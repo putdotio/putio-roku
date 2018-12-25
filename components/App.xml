@@ -21,5 +21,11 @@
       visible="false"
       translation="[0, 0]"
     />
+
+    <FileListScreen
+      id="fileListScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
   </children>
 </component>

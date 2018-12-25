@@ -2,6 +2,11 @@
 <component name="FileListScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/screens/FileList.brs" />
 
+	<interface>
+    <field id="params" type="assocarray" />
+		<field id="navigate" type="assocarray" />
+  </interface>
+
 	<children>
 		<Label
 			id="myLabel"

@@ -2,6 +2,10 @@
 <component name="HomeScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/screens/Home.brs" />
 
+	<interface>
+    <field id="navigate" type="assocarray" />
+  </interface>
+
 	<children>
 		<Label
 			id="myLabel"
