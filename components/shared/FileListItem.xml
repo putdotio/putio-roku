@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<component name="FileListItem" extends="ContentNode">
+<component name="FileListItem" extends="Group">
 	<interface>
-		<field id="file" type="assocarray" />
+ 		<field id="itemContent" type="node" onChange="itemContentChanged" />
 	</interface>
+
+	<script type="text/brightscript">
+		<![CDATA[
+			function init()
+				m.spinner = m.top.findNode("spinner")
+			end function
+
+			function itemContentChanged()
+				file = m.top.itemContent.file
+				m.top.findNode("name").text = file.name
+			end function
+		]]>
+	</script>
+
+	<children>
+		<LayoutGroup
+			layoutDirection="horiz"
+			vertAlignment="center"
+			translation="[0, 60]"
+			itemSpacings="32"
+		>
+			<Poster
+				id="icon"
+				width="48"
+				height="48"
+				uri="pkg:/images/loader.png"
+			/>
+
+			<LayoutGroup
+				layoutDirection="vert"
+				horizAlignment="left"
+				itemSpacings="16"
+			>
+				<Label
+					id="name"
+					font="font:MediumBoldSystemFont"
+					color="0xFFFFFFFF"
+					text="Name"
+					width="1200"
+				/>
+				<Label
+					id="description"
+					font="font:SmallestSystemFont"
+					color="0xFFFFFFFF"
+					text="Description"
+				/>
+    	</LayoutGroup>
+		</LayoutGroup>
+	</children>
 </component>

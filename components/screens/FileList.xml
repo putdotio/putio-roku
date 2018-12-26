@@ -14,11 +14,13 @@
       title="Your Files"
 		/>
 
-		<LabelList
+		<MarkupList
 			id="fileList"
-			itemSize="[1500, 120]"
-			itemSpacing="[20, 20]"
+			itemComponentName="FileListItem"
 			translation="[210, 190]"
+			itemSize="[1500, 120]"
+			itemSpacing="[0, 40]"
+			focusBitmapBlendColor="0x00000FF"
 		/>
 	</children>
 </component>

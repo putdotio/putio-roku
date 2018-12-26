@@ -40,15 +40,13 @@ sub renderFileList(parent, files)
   forIndex = 0
   focusIndex = 0
   for each file in files
-    node = createObject("roSGNode", "FileListItem")
-    node.title = file.name
-    node.file = file
+    listItemData = content.createChild("FileListItemData")
+    listItemData.file = file
 
     if file.id = m.top.params.focusFileId or file.id = m.focusFileId
       focusIndex = forIndex
     end if
 
-    content.appendChild(node)
     forIndex = forIndex + 1
   end for
 
