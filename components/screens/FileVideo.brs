@@ -1,13 +1,24 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
+  m.buttonPlay = m.top.findNode("buttonPlay")
+  m.buttonPlay.observeField("buttonSelected", "onPlay")
 end function
 
 sub onVisibleChange()
   if m.top.visible
     file = m.top.params.file
+
     screenTitle = m.top.findNode("screenTitle")
     screenTitle.text = file.name
+
+    poster = m.top.findNode("poster")
+    poster.uri = file.screenshot
+
+    m.buttonPlay.setFocus(true)
   end if
+end sub
+
+sub onPlay()
 end sub
 
 function onKeyEvent(key, press)
@@ -19,7 +30,6 @@ function onKeyEvent(key, press)
         focusFileId: m.top.params.file.id,
       }
     }
-
     return true
   end if
 

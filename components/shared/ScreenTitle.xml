@@ -10,7 +10,7 @@
 		<Label
       id="label"
 			text=""
-			translation="[150, 75]"
+			translation="[120, 80]"
       color="0xFFFFFF"
       font="font:LargeBoldSystemFont"
 		/>

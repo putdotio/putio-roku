@@ -13,13 +13,18 @@
 			text=""
 		/>
 
-    <Label
-			id="myLabel"
-			text="Video"
-			horizAlign="center"
-			vertAlign="center"
-			width="500"
-			height="500"
+		<Poster
+			id="poster"
+			width="960"
+			height="540"
+			translation="[120, 160]"
+		/>
+
+		<Button
+      id="buttonPlay"
+      translation="[120, 720]"
+			text="PLAY"
+			maxWidth="240"
 		/>
 	</children>
 </component>
