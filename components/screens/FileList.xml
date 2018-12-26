@@ -8,16 +8,17 @@
   </interface>
 
 	<children>
-		<ScreenTitle
-      id="screenTitle"
-			text="Your Files"
+		<Overhang
+			id="overhang"
+			showClock="false"
+      title="Your Files"
 		/>
 
 		<LabelList
 			id="fileList"
-			itemSize="[1400, 100]"
+			itemSize="[1500, 120]"
 			itemSpacing="[20, 20]"
-			translation="[150, 250]"
+			translation="[210, 190]"
 		/>
 	</children>
 </component>

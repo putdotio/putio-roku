@@ -14,6 +14,8 @@ sub Main()
     })
 
     scene = screen.CreateScene("App")
+    scene.backgroundColor="0x333333FF"
+    scene.backgroundUri = ""
     screen.show()
 
     while(true)

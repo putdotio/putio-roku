@@ -32,8 +32,8 @@ end sub
 sub renderFileList(parent, files)
   m.file = parent
 
-  screenTitle = m.top.findNode("screenTitle")
-  screenTitle.text = parent.name
+  overhang = m.top.findNode("overhang")
+  overhang.title = parent.name
 
   content = createObject("roSGNode", "ContentNode")
 
@@ -67,7 +67,7 @@ sub onFileSelected(obj)
     fetchFiles(file.id)
   else if fileType = "VIDEO"
     m.top.navigate = {
-      id: "playerVideoScreen",
+      id: "videoPlayerScreen",
       params: {
         file: file
       }

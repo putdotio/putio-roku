@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SettingsScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Settings.brs" />
+
+	<interface>
+		<field id="navigate" type="assocarray" />
+  </interface>
+
+	<children>
+ 		<Label
+			id="myLabel"
+			text="Settings"
+			horizAlign="center"
+			vertAlign="center"
+			width="1920"
+			height="1080"
+		/>
+	</children>
+</component>
