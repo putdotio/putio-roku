@@ -33,5 +33,11 @@
       visible="false"
       translation="[0, 0]"
     />
+
+    <PlayerVideoScreen
+      id="playerVideoScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
   </children>
 </component>

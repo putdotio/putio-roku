@@ -19,6 +19,12 @@ sub onVisibleChange()
 end sub
 
 sub onPlay()
+  m.top.navigate = {
+    id: "playerVideoScreen",
+    params: {
+      file: m.top.params.file,
+    }
+  }
 end sub
 
 function onKeyEvent(key, press)

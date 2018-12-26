@@ -49,7 +49,7 @@ sub checkToken()
 end sub
 
 sub onTokenRetrieved(obj)
-  ? "onTokenRetrieved "; obj.getData()
+  ' ? "onTokenRetrieved "; obj.getData()
   m.token = obj.getData()
   m.storage.Write("token", m.token)
   m.storage.Flush()
@@ -59,12 +59,12 @@ end sub
 sub getUserInfo()
   m.httpTask = createObject("roSGNode", "HttpTask")
   m.httpTask.observeField("response", "onUserInfoResponse")
-  m.httpTask.url = "/account/info"
+  m.httpTask.url = "/account/info?download_token=1"
   m.httpTask.control = "RUN"
 end sub
 
 sub onUserInfoResponse(obj)
-  ? "onUserInfoResponse"; obj.getData()
+  ' ? "onUserInfoResponse"; obj.getData()
   data = parseJSON(obj.getData())
 
 	if data <> invalid and data.info <> invalid

@@ -67,7 +67,7 @@ sub onFileSelected(obj)
     fetchFiles(file.id)
   else if fileType = "VIDEO"
     m.top.navigate = {
-      id: "fileVideoScreen",
+      id: "playerVideoScreen",
       params: {
         file: file
       }
