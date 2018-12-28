@@ -1,21 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="FileListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/FileListItem.brs" />
+
 	<interface>
  		<field id="itemContent" type="node" onChange="itemContentChanged" />
 	</interface>
-
-	<script type="text/brightscript">
-		<![CDATA[
-			function init()
-				m.spinner = m.top.findNode("spinner")
-			end function
-
-			function itemContentChanged()
-				file = m.top.itemContent.file
-				m.top.findNode("name").text = file.name
-			end function
-		]]>
-	</script>
 
 	<children>
 		<LayoutGroup
@@ -26,8 +15,9 @@
 		>
 			<Poster
 				id="icon"
-				width="48"
-				height="48"
+				width="50"
+				height="50"
+				loadDisplayMode="scaleToFit"
 				uri="pkg:/images/loader.png"
 			/>
 
@@ -43,6 +33,7 @@
 					text="Name"
 					width="1200"
 				/>
+
 				<Label
 					id="description"
 					font="font:SmallestSystemFont"

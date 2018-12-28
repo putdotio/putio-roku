@@ -12,6 +12,11 @@
 			id="overhang"
 			showClock="false"
       title="Your Files"
+			logoUri="pkg:/images/overhangLogo.png"
+			logoBaselineOffset="8"
+			showOptions="true"
+			optionsAvailable="true"
+			optionsText="Settings"
 		/>
 
 		<MarkupList

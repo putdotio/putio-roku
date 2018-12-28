@@ -25,6 +25,7 @@ end sub
 
 function onKeyEvent(key, press)
   if m.top.visible and key = "back" and press
+    m.video.control = "stop"
     m.top.navigate = {
       id: "fileListScreen",
       params: {
