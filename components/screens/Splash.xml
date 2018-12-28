@@ -3,7 +3,7 @@
   <children>
     <Poster
       id="splash"
-      uri="pkg:/images/Splash-$$RES$$.png"
+      uri="pkg:/images/Splash-$$RES$$.jpg"
     />
   </children>
 </component>

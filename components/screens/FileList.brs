@@ -8,7 +8,9 @@ end function
 sub onVisibleChange()
   if m.top.visible
     m.fileList.setFocus(true)
-    fetchFiles(m.top.params.fileId)
+    if m.top.params.fileId <> invalid
+      fetchFiles(m.top.params.fileId)
+    end if
   end if
 end sub
 
@@ -74,10 +76,22 @@ sub onFileSelected(obj)
 end sub
 
 function onKeyEvent(key, press)
-  if m.top.visible and key = "back" and press
-    if m.file.parent_id <> invalid
-      m.focusFileId = m.file.id
-      fetchFiles(m.file.parent_id)
+  if m.top.visible and press
+    if key = "back"
+      if m.file.parent_id <> invalid
+        m.focusFileId = m.file.id
+        fetchFiles(m.file.parent_id)
+        return true
+      else
+        return false
+      end if
+    else if key="options"
+      m.top.navigate = {
+        id: "settingsScreen",
+        params: {
+          file: m.file
+        }
+      }
       return true
     end if
 

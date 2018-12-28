@@ -3,17 +3,31 @@
   <script type="text/brightscript" uri="pkg:/components/screens/Settings.brs" />
 
 	<interface>
+    <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
   </interface>
 
 	<children>
+		<Overhang
+			id="overhang"
+			showClock="false"
+      title="Settings"
+			logoUri="pkg:/images/overhangLogo.png"
+			logoBaselineOffset="9"
+			showOptions="true"
+			optionsAvailable="false"
+			optionsDimColor="0x00000000"
+			optionsIconDimColor="0x00000000"
+		/>
+
  		<Label
 			id="myLabel"
 			text="Settings"
 			horizAlign="center"
 			vertAlign="center"
-			width="1920"
-			height="1080"
+			width="500"
+			height="500"
+			translation="[210, 190]"
 		/>
 	</children>
 </component>

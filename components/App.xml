@@ -16,12 +16,6 @@
       translation="[0, 0]"
     />
 
-    <HomeScreen
-      id="homeScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
     <FileListScreen
       id="fileListScreen"
       visible="false"
@@ -30,6 +24,12 @@
 
     <VideoPlayerScreen
       id="videoPlayerScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
+    <SettingsScreen
+      id="settingsScreen"
       visible="false"
       translation="[0, 0]"
     />
