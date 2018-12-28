@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<component name="App" extends="Scene" initialFocus="loadingScreen">
+<component name="App" extends="Scene" initialFocus="splashScreen">
   <script type="text/brightscript" uri="pkg:/components/App.brs" />
 
   <children>
-    <LoadingScreen
-      id="loadingScreen"
+    <SplashScreen
+      id="splashScreen"
       visible="true"
       translation="[0, 0]"
     />

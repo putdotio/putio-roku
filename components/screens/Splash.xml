@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SplashScreen" extends="Group">
+  <children>
+    <Poster
+      id="splash"
+      uri="pkg:/images/Splash-$$RES$$.png"
+    />
+  </children>
+</component>

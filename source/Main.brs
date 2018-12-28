@@ -8,7 +8,7 @@ sub Main()
     m.global.addFields({
       user: {},
       route: {
-        id: "loadingScreen",
+        id: "splashScreen",
         params: {},
       }
     })
