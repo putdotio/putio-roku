@@ -60,12 +60,13 @@ sub renderFileList(parent, files)
  end sub
 
 sub onFileSelected(obj)
-  file = m.fileList.content.getChild(obj.getData()).file
-  fileType = file.file_type
+  fileListItem = m.fileList.content.getChild(obj.getData())
+  file = fileListItem.file
 
-  if fileType = "FOLDER"
+  if file.file_type = "FOLDER"
+    fileListItem.isLoading = true
     fetchFiles(file.id)
-  else if fileType = "VIDEO"
+  else if file.file_type = "VIDEO"
     m.top.navigate = {
       id: "videoPlayerScreen",
       params: {

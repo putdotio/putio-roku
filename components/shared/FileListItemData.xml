@@ -2,5 +2,6 @@
 <component name="FileListItemData" extends="ContentNode">
   <interface>
     <field id="file" type="assocarray" />
+    <field id="isLoading" type="boolean" value="false" />
   </interface>
 </component>

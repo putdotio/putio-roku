@@ -12,7 +12,7 @@
 			id="overhang"
 			showClock="false"
       title="Your Files"
-			logoUri="pkg:/images/overhangLogo.png"
+			logoUri="pkg:/images/OverhangLogo.png"
 			logoBaselineOffset="9"
 			showOptions="true"
 			optionsAvailable="true"
