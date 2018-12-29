@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="StaticListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/StaticListItem.brs" />
+
+	<interface>
+ 		<field id="itemContent" type="node" onChange="itemContentChanged" />
+	</interface>
+
+	<children>
+		<LayoutGroup
+			layoutDirection="horiz"
+			vertAlignment="center"
+			translation="[0, 60]"
+			itemSpacings="32"
+		>
+			<Poster
+				id="icon"
+				width="0"
+				height="0"
+				loadDisplayMode="scaleToFit"
+				uri="pkg:/images/Spinner.png"
+        visible="false"
+			/>
+
+      <Label
+        id="title"
+        font="font:MediumBoldSystemFont"
+        color="0xFFFFFFFF"
+      />
+
+      <Label
+        id="description"
+        font="font:SmallestSystemFont"
+        color="0xFFFFFFFF"
+      />
+		</LayoutGroup>
+	</children>
+</component>

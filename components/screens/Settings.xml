@@ -20,14 +20,13 @@
 			optionsIconDimColor="0x00000000"
 		/>
 
- 		<Label
-			id="myLabel"
-			text="Settings"
-			horizAlign="center"
-			vertAlign="center"
-			width="500"
-			height="500"
+		<MarkupList
+			id="settingsList"
+			itemComponentName="StaticListItem"
 			translation="[210, 190]"
+			itemSize="[1500, 120]"
+			itemSpacing="[0, 40]"
+			focusBitmapBlendColor="0x00000FF"
 		/>
 	</children>
 </component>
