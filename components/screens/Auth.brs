@@ -5,8 +5,7 @@ end function
 
 sub onVisibleChange()
   m.code = ""
-  m.label = m.top.findNode("myLabel")
-  m.label.text = "Hello"
+  m.label = m.top.findNode("code")
 
   if m.top.visible
     getAuthCode()
@@ -21,7 +20,7 @@ sub getAuthCode()
 end sub
 
 sub onAuthCodeResponse(obj)
-  ? "onAuthCodeResponse "; obj.getData()
+  ' ? "onAuthCodeResponse "; obj.getData()
   data = parseJSON(obj.getData())
   m.code = data.code
   m.label.text = m.code
@@ -37,7 +36,7 @@ sub checkCodeMatch()
 end sub
 
 sub onCheckCodeMatchResponse(obj)
-  ? "onCheckCodeMatchResponse "; obj.getData()
+  ' ? "onCheckCodeMatchResponse "; obj.getData()
   data = parseJSON(obj.getData())
   token = data.oauth_token
 

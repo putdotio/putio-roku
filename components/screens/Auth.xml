@@ -7,13 +7,44 @@
   </interface>
 
 	<children>
-		<Label
-			id="myLabel"
-			text="Auth"
-			horizAlign="center"
-			vertAlign="center"
-			width="1920"
-			height="1080"
-		/>
+		<LayoutGroup
+			layoutDirection="vert"
+			horizAlignment="center"
+			translation="[960, 140]"
+			itemSpacings="120"
+		>
+			<Poster
+				id="welcome"
+				width="960"
+				height="240"
+				loadDisplayMode="scaleToFit"
+				uri="pkg:/images/AuthWelcome.png"
+			/>
+
+      <Label
+        id="description"
+        font="font:MediumSystemFont"
+        color="0xFFFFFFFF"
+				text="Please go to put.io/link and activate your device by using the code below"
+      />
+
+			<Group>
+				<Rectangle
+					color="0x000000FF"
+					width="360"
+					height="120"
+				/>
+
+				<Label
+					id="code"
+					text="Loading..."
+					font="font:LargeBoldSystemFont"
+					width="360"
+					height="120"
+					horizAlign="center"
+					vertAlign="center"
+				/>
+			</Group>
+		</LayoutGroup>
 	</children>
 </component>
