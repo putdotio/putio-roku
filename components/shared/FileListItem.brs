@@ -1,6 +1,6 @@
 function init()
   m.icon = m.top.findNode("icon")
-  m.name = m.top.findNode("name")
+  m.title = m.top.findNode("title")
   m.description = m.top.findNode("description")
   m.watchedEye = m.top.findNode("watchedEye")
   m.spinner = m.top.findNode("spinner")
@@ -10,15 +10,15 @@ end function
 sub itemContentChanged()
   file = m.top.itemContent.file
   isLoading = m.top.itemContent.isLoading
-  setName(file)
-  setDescription(file)
   setIcon(file)
+  setTitle(file)
+  setDescription(file)
   setLoading(isLoading)
   setWatchedEye(file)
 end sub
 
-sub setName(file)
-  m.name.text = file.name
+sub setTitle(file)
+  m.title.text = file.name
 end sub
 
 sub setDescription(file)

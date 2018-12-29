@@ -27,10 +27,10 @@
 				itemSpacings="16"
 			>
 				<Label
-					id="name"
+					id="title"
 					font="font:MediumBoldSystemFont"
 					color="0xFFFFFFFF"
-					text="Name"
+					text="Title"
 					width="1336"
 				/>
 
