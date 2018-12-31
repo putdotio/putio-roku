@@ -73,7 +73,16 @@ sub onFileSelected(obj)
         file: file
       }
     }
+  else
+    onShowFileNotSupportedDialog()
   end if
+end sub
+
+sub onShowFileNotSupportedDialog()
+  dialog = createObject("roSGNode", "Dialog")
+  dialog.title = "Oops :("
+  dialog.message = "We're unable to show these kind of files on this app (for now)"
+  m.top.showDialog = dialog
 end sub
 
 function onKeyEvent(key, press)
