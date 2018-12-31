@@ -4,6 +4,7 @@
 
   <interface>
     <field id="token" type="string" />
+		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
   </interface>
 
 	<children>

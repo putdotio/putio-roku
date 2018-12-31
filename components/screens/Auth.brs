@@ -1,6 +1,7 @@
 function init()
   m.top.token = ""
   m.top.observeField("visible", "onVisibleChange")
+  m.shouldCheckCodeMatch = false
 end function
 
 sub onVisibleChange()
@@ -24,15 +25,18 @@ sub onAuthCodeResponse(obj)
   data = parseJSON(obj.getData())
   m.code = data.code
   m.label.text = m.code
+  m.shouldCheckCodeMatch = true
   checkCodeMatch()
 end sub
 
 sub checkCodeMatch()
-  sleep(3000)
-  m.httpTask = createObject("roSGNode", "HttpTask")
-  m.httpTask.observeField("response", "onCheckCodeMatchResponse")
-  m.httpTask.url = ("/oauth2/oob/code/" + m.code)
-  m.httpTask.control = "RUN"
+  if m.shouldCheckCodeMatch = true
+    sleep(3000)
+    m.httpTask = createObject("roSGNode", "HttpTask")
+    m.httpTask.observeField("response", "onCheckCodeMatchResponse")
+    m.httpTask.url = ("/oauth2/oob/code/" + m.code)
+    m.httpTask.control = "RUN"
+  end if
 end sub
 
 sub onCheckCodeMatchResponse(obj)
@@ -46,3 +50,17 @@ sub onCheckCodeMatchResponse(obj)
     checkCodeMatch()
   end if
 end sub
+
+function onKeyEvent(key, press)
+  if m.top.visible and press
+    if key = "back"
+      m.shouldCheckCodeMatch = false
+      m.top.showExitAppDialog = true
+      return true
+    end if
+
+    return false
+  end if
+
+  return false
+end function
