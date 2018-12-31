@@ -82,10 +82,10 @@ function onKeyEvent(key, press)
       if m.file.parent_id <> invalid
         m.focusFileId = m.file.id
         fetchFiles(m.file.parent_id)
-        return true
       else
-        return false
+        m.top.showExitAppDialog = true
       end if
+      return true
     else if key="options"
       m.top.navigate = {
         id: "settingsScreen",

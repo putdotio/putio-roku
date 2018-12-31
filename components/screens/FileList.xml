@@ -5,6 +5,7 @@
 	<interface>
     <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
+		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true"/>
   </interface>
 
 	<children>

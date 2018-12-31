@@ -21,6 +21,7 @@ sub onRouteChanged(obj)
   nextRouteScreen = m.top.findNode(nextRoute.id)
   nextRouteScreen.params = nextRoute.params
   nextRouteScreen.observeField("navigate", "onRouteChanged")
+  nextRouteScreen.observeField("showExitAppDialog", "onShowExitAppDialog")
   nextRouteScreen.visible = true
   nextRouteScreen.setFocus(true)
 end sub
@@ -77,5 +78,23 @@ sub onUserInfoResponse(obj)
     }
   else
     goToAuthScreen()
+  end if
+end sub
+
+sub onShowExitAppDialog(obj)
+  if obj.getData() = true
+    m.dialog = createObject("roSGNode", "Dialog")
+    m.dialog.title = "Exit Put.io?"
+    m.dialog.buttons = ["OK", "Cancel"]
+    m.dialog.observeField("buttonSelected", "onExitAppDialogButtonSelected")
+    m.top.dialog = m.dialog
+  end if
+end sub
+
+sub onExitAppDialogButtonSelected(obj)
+  if obj.getData() = 0
+    m.top.exitApp = true
+  else
+    m.dialog.close = true
   end if
 end sub

@@ -3,6 +3,10 @@
 <component name="App" extends="Scene" initialFocus="splashScreen">
   <script type="text/brightscript" uri="pkg:/components/App.brs" />
 
+  <interface>
+    <field id="exitApp" type="boolean" value="false" />
+  </interface>
+
   <children>
     <SplashScreen
       id="splashScreen"
