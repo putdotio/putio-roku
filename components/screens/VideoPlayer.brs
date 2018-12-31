@@ -35,7 +35,7 @@ end sub
 
 sub onError()
   dialog = createObject("roSGNode", "Dialog")
-  dialog.title = "Error!"
+  dialog.title = "Video Error"
   dialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
   m.top.showDialog = dialog
 end sub
