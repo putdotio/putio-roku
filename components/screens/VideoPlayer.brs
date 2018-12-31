@@ -18,21 +18,42 @@ sub setupPlayer()
   videoContent.title = file.name
   videoContent.streamformat = "hls"
 
+  m.video.observeField("state", "onPlayerStateChanged")
   m.video.content = videoContent
   m.video.control = "play"
   m.video.setFocus(true)
 end sub
 
+sub onPlayerStateChanged(obj)
+  state = obj.getData()
+  if state = "error"
+    onError()
+	else if state = "finished"
+    onGoBack()
+	end if
+end sub
+
+sub onError()
+  dialog = createObject("roSGNode", "Dialog")
+  dialog.title = "Error!"
+  dialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
+  m.top.showDialog = dialog
+end sub
+
+sub onGoBack()
+  m.top.navigate = {
+    id: "fileListScreen",
+    params: {
+      fileId: m.top.params.file.parent_id,
+      focusFileId: m.top.params.file.id,
+    }
+  }
+end sub
+
 function onKeyEvent(key, press)
   if m.top.visible and key = "back" and press
     m.video.control = "stop"
-    m.top.navigate = {
-      id: "fileListScreen",
-      params: {
-        fileId: m.top.params.file.parent_id,
-        focusFileId: m.top.params.file.id,
-      }
-    }
+    onGoBack()
     return true
   end if
 

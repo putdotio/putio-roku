@@ -22,6 +22,7 @@ sub onRouteChanged(obj)
   nextRouteScreen.params = nextRoute.params
   nextRouteScreen.observeField("navigate", "onRouteChanged")
   nextRouteScreen.observeField("showExitAppDialog", "onShowExitAppDialog")
+  nextRouteScreen.observeField("showDialog", "onShowDialog")
   nextRouteScreen.visible = true
   nextRouteScreen.setFocus(true)
 end sub
@@ -79,6 +80,10 @@ sub onUserInfoResponse(obj)
   else
     goToAuthScreen()
   end if
+end sub
+
+sub onShowDialog(obj)
+  m.top.dialog = obj.getData()
 end sub
 
 sub onShowExitAppDialog(obj)
