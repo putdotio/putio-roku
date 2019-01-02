@@ -6,6 +6,7 @@ sub Main()
     ' Globals
     m.global = screen.getGlobalNode()
     m.global.addFields({
+      appId: "3776",
       user: {},
       route: {
         id: "splashScreen",

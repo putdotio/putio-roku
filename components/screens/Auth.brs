@@ -14,9 +14,10 @@ sub onVisibleChange()
 end sub
 
 sub getAuthCode()
+	deviceInfo = createObject("roDeviceInfo")
   m.httpTask = createObject("roSGNode", "HttpTask")
   m.httpTask.observeField("response", "onAuthCodeResponse")
-  m.httpTask.url = "/oauth2/oob/code?app_id=961" ' @TODO: app id
+  m.httpTask.url = "/oauth2/oob/code?app_id=" + m.global.appId + "&client_name=" + deviceInfo.getFriendlyName().EncodeUri()
   m.httpTask.control = "RUN"
 end sub
 
