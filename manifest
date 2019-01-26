@@ -16,7 +16,7 @@ mm_icon_focus_sd=pkg:/images/channel-poster_sd.png
 splash_screen_fhd=pkg:/images/Splash-Blank-FHD.jpg
 splash_screen_hd=pkg:/images/Splash-Blank-HD.jpg
 splash_screen_sd=pkg:/images/Splash-Blank-SD.jpg
-splash_color=#000
+splash_color=#000000
 splash_min_time=0
 
 ui_resolutions=fhd
