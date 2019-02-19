@@ -59,6 +59,7 @@
 					height="50"
 					visible="false"
 				/>
+
 				<Animation id="spinnerAnimation"
 					duration="1"
 					repeat="true"

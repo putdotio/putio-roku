@@ -5,18 +5,54 @@ end function
 
 sub onVisibleChange()
   if m.top.visible
-    setupPlayer()
+    fetchSubtitles()
   end if
 end sub
 
-sub setupPlayer()
+sub fetchSubtitles()
+  file = m.top.params.file
+  m.httpTask = createObject("roSGNode", "HttpTask")
+  m.httpTask.observeField("response", "onFetchSubtitlesResponse")
+  m.httpTask.url = ("/files/" + file.id.toStr() + "/subtitles")
+  m.httpTask.method = "GET"
+  m.httpTask.control = "RUN"
+end sub
+
+sub onFetchSubtitlesResponse(obj)
+  data = parseJSON(obj.getData())
+
+  if data <> invalid and data.subtitles <> invalid
+    setupPlayer(data.subtitles)
+  else
+    setupPlayer([])
+  end if
+end sub
+
+sub setupPlayer(subtitles)
   file = m.top.params.file
   user = m.global.user
 
   videoContent = createObject("RoSGNode", "ContentNode")
-  videoContent.url = "https://api.put.io/v2/files/" + file.id.toStr() + "/hls/media.m3u8?subtitle_key=all&oauth_token=" + user.download_token
+
+  if file.is_mp4_available = true
+    videoContent.url = file.mp4_stream_url
+  else
+    videoContent.url = file.stream_url
+  end if
+
+  subtitleTracks = []
+
+  for each subtitle in subtitles
+    subtitleTracks.push({
+      Language: subtitle.language,
+      Trackname: subtitle.url,
+      Description: subtitle.name
+    })
+  end for
+
   videoContent.title = file.name
-  videoContent.streamformat = "hls"
+  videoContent.streamformat = "mp4"
+  videoContent.subtitletracks = subtitleTracks
 
   m.video.observeField("state", "onPlayerStateChanged")
   m.video.content = videoContent

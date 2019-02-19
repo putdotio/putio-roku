@@ -18,7 +18,7 @@ end sub
 sub fetchFiles(parentId)
   m.httpTask = createObject("roSGNode", "HttpTask")
   m.httpTask.observeField("response", "onFetchFilesResponse")
-  m.httpTask.url = ("/files/list?parent_id=" + parentId.toStr() + "&mp4_status=1")
+  m.httpTask.url = ("/files/list?parent_id=" + parentId.toStr() + "&mp4_status=1&stream_url=1&mp4_stream_url=1")
   m.httpTask.method = "GET"
   m.httpTask.control = "RUN"
 end sub
