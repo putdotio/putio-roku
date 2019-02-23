@@ -5,6 +5,7 @@
   <interface>
     <field id="url" type="string" />
     <field id="method" type="string" value="GET" />
+    <field id="body" type="assocarray" />
     <field id="response" type="string" />
   </interface>
 </component>

@@ -6,14 +6,19 @@ end function
 sub onVisibleChange()
   if m.top.visible
     fetchSubtitles()
+    m.video.notificationInterval = 10
+    m.video.observeField("state", "onPlayerStateChanged")
+    m.video.observeField("position", "onPlayerPositionChanged")
+  else
+    m.video.unobserveField("state")
+    m.video.unobserveField("position")
   end if
 end sub
 
 sub fetchSubtitles()
-  file = m.top.params.file
   m.httpTask = createObject("roSGNode", "HttpTask")
   m.httpTask.observeField("response", "onFetchSubtitlesResponse")
-  m.httpTask.url = ("/files/" + file.id.toStr() + "/subtitles")
+  m.httpTask.url = ("/files/" + m.top.params.file.id.toStr() + "/subtitles")
   m.httpTask.method = "GET"
   m.httpTask.control = "RUN"
 end sub
@@ -54,9 +59,13 @@ sub setupPlayer(subtitles)
   videoContent.streamformat = "mp4"
   videoContent.subtitletracks = subtitleTracks
 
-  m.video.observeField("state", "onPlayerStateChanged")
   m.video.content = videoContent
   m.video.control = "play"
+
+  if file.start_from > 0
+    m.video.seek = file.start_from
+  end if
+
   m.video.setFocus(true)
 end sub
 
@@ -84,6 +93,22 @@ sub onGoBack()
       focusFileId: m.top.params.file.id,
     }
   }
+end sub
+
+sub onPlayerPositionChanged(obj)
+  if m.global.user.settings.start_from = true and m.top.params.file.is_shraed = false
+    saveVideoTime(obj.getData())
+  end if
+end sub
+
+sub saveVideoTime(time)
+  if time > 0
+    m.httpTask = createObject("roSGNode", "HttpTask")
+    m.httpTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
+    m.httpTask.method = "POST"
+    m.httpTask.body = { time: time }
+    m.httpTask.control = "RUN"
+  end if
 end sub
 
 function onKeyEvent(key, press)
