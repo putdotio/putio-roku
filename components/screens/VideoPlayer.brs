@@ -96,7 +96,7 @@ sub onGoBack()
 end sub
 
 sub onPlayerPositionChanged(obj)
-  if m.global.user.settings.start_from = true and m.top.params.file.is_shraed = false
+  if m.global.user.settings.start_from = true and m.top.params.file.is_shared = false
     saveVideoTime(obj.getData())
   end if
 end sub
