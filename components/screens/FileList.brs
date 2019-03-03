@@ -3,7 +3,6 @@ function init()
   m.file = {}
   m.convertingFile = {}
   m.fileList = m.top.findNode("fileList")
-  m.fileList.observeField("itemSelected", "onFileSelected")
 end function
 
 sub onVisibleChange()
@@ -24,16 +23,26 @@ sub fetchFiles(parentId)
 end sub
 
 sub onFetchFilesResponse(obj)
+  m.httpTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
   if data <> invalid and data.files <> invalid
     renderFileList(data.parent, data.files)
   else
-    ? "Error"; data
+    onShowFetchFilesErrorDialog(data)
   end if
 end sub
 
+sub onShowFetchFilesErrorDialog(data)
+  dialog = createObject("roSGNode", "Dialog")
+  dialog.title = "Oops :("
+  dialog.message = "An error occurred, please try again."
+  m.top.showDialog = dialog
+end sub
+
 sub renderFileList(parent, files)
+  m.fileList.setFocus(true)
+  m.fileList.observeField("itemSelected", "onFileSelected")
   m.file = parent
 
   overhang = m.top.findNode("overhang")
@@ -62,6 +71,8 @@ sub renderFileList(parent, files)
  end sub
 
 sub onFileSelected(obj)
+  m.fileList.setFocus(false)
+  m.fileList.unobserveField("itemSelected")
   fileListItem = m.fileList.content.getChild(obj.getData())
   file = fileListItem.file
 
@@ -111,6 +122,7 @@ end sub
 
 sub onStartConversionResponse(obj)
   ' ? "onStartConversionResponse: "; obj.getData()
+  m.httpTask.unobserveField("response")
   data = parseJSON(obj.getData())
   if data.status <> invalid and data.status = "OK"
     m.shouldCheckConversionStatus = true
@@ -133,6 +145,7 @@ end sub
 
 sub onCheckConversionStatusResponse(obj)
   ' ? "onCheckConversionStatusResponse: "; obj.getData()
+  m.httpTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
   if data.mp4 <> invalid and data.mp4.status <> invalid
@@ -169,6 +182,7 @@ sub onConversionFinished()
 end sub
 
 sub onConversionDialogClosed()
+  m.conversionDialog.unobserveField("wasClosed")
   m.shouldCheckConversionStatus = false
   m.convertingFile = {}
 end sub
