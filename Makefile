@@ -1,8 +1,8 @@
 clean:
-	rm putio-roku-2019.zip
+	rm putio-roku-v2.zip
 
 build:
-	zip -r putio-roku-2019.zip components images manifest source
+	zip -r putio-roku-v2.zip components images manifest source
 
 move:
-	mv putio-roku-2019.zip ../landing/static/dl/
+	mv putio-roku-v2.zip ../landing/static/dl/
