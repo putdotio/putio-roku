@@ -95,13 +95,21 @@ sub onFileSelected(obj)
   end if
 end sub
 
+''' File Not Supported Dialog
 sub onShowFileNotSupportedDialog()
-  dialog = createObject("roSGNode", "Dialog")
-  dialog.title = "Oops :("
-  dialog.message = "We're unable to show these kind of files on this app (for now)"
-  m.top.showDialog = dialog
+  m.fileNotSupportedDialog = createObject("roSGNode", "Dialog")
+  m.fileNotSupportedDialog.title = "Oops :("
+  m.fileNotSupportedDialog.message = "We're unable to show these kind of files on this app (for now)"
+  m.fileNotSupportedDialog.observeField("wasClosed", "onFileNotSupportedDialogClosed")
+  m.top.showDialog = m.fileNotSupportedDialog
 end sub
 
+sub onFileNotSupportedDialogClosed()
+  m.fileNotSupportedDialog.unobserveField("wasClosed")
+  m.fileList.setFocus(true)
+end sub
+
+''' Video Conversion Dialog
 sub onShowConversionDialog(file)
   m.convertingFile = file
   m.conversionDialog = createObject("roSGNode", "Dialog")
@@ -185,8 +193,10 @@ sub onConversionDialogClosed()
   m.conversionDialog.unobserveField("wasClosed")
   m.shouldCheckConversionStatus = false
   m.convertingFile = {}
+  m.fileList.setFocus(true)
 end sub
 
+''' Key Handler
 function onKeyEvent(key, press)
   if m.top.visible and press
     if key = "back"
