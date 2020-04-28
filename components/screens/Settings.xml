@@ -22,7 +22,7 @@
 
 		<MarkupList
 			id="settingsList"
-			itemComponentName="StaticListItem"
+			itemComponentName="ListItem"
 			translation="[210, 190]"
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 40]"

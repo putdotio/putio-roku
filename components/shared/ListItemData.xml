@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<component name="StaticListItemData" extends="ContentNode">
+<component name="ListItemData" extends="ContentNode">
   <interface>
+    <field id="data" type="assocarray" />
     <field id="key" type="string" />
     <field id="iconUri" type="string" />
     <field id="title" type="string" />

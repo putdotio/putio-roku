@@ -3,6 +3,7 @@
   <script type="text/brightscript" uri="pkg:/components/screens/Auth.brs" />
 
   <interface>
+		<field id="params" type="assocarray" />
     <field id="token" type="string" />
 		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
   </interface>

@@ -67,18 +67,18 @@ end sub
 
 sub setWatchedEye(file)
   if file.start_from <> invalid and file.start_from > 0
-    m.watchedEye.visible = true
+    m.watchedEye.visible = "true"
   else
-    m.watchedEye.visible = false
+    m.watchedEye.visible = "false"
   end if
 end sub
 
 sub setLoading(isLoading)
   if isLoading = true
-    m.spinner.visible = true
+    m.spinner.visible = "true"
     m.spinnerAnimation.control = "start"
   else
-    m.spinner.visible = false
+    m.spinner.visible = "false"
     m.spinnerAnimation.control = "stop"
   end if
 end sub

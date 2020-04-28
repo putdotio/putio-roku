@@ -5,38 +5,21 @@ end function
 
 sub onVisibleChange()
   if m.top.visible
-    fetchSubtitles()
     m.video.notificationInterval = 10
     m.video.observeField("state", "onPlayerStateChanged")
     m.video.observeField("position", "onPlayerPositionChanged")
+    setupPlayer()
   else
+    m.video.control = "stop"
     m.video.unobserveField("state")
     m.video.unobserveField("position")
   end if
 end sub
 
-sub fetchSubtitles()
-  m.httpTask = createObject("roSGNode", "HttpTask")
-  m.httpTask.observeField("response", "onFetchSubtitlesResponse")
-  m.httpTask.url = ("/files/" + m.top.params.file.id.toStr() + "/subtitles")
-  m.httpTask.method = "GET"
-  m.httpTask.control = "RUN"
-end sub
-
-sub onFetchSubtitlesResponse(obj)
-  data = parseJSON(obj.getData())
-
-  if data <> invalid and data.subtitles <> invalid
-    setupPlayer(data.subtitles)
-  else
-    setupPlayer([])
-  end if
-end sub
-
-sub setupPlayer(subtitles)
-  file = m.top.params.file
+sub setupPlayer()
   user = m.global.user
-
+  file = m.top.params.file
+  subtitle = m.top.params.subtitle
   videoContent = createObject("RoSGNode", "ContentNode")
 
   if file.is_mp4_available = true
@@ -45,19 +28,18 @@ sub setupPlayer(subtitles)
     videoContent.url = file.stream_url
   end if
 
-  subtitleTracks = []
-
-  for each subtitle in subtitles
-    subtitleTracks.push({
-      Language: subtitle.language,
-      Trackname: subtitle.url,
-      Description: subtitle.name
-    })
-  end for
-
   videoContent.title = file.name
   videoContent.streamformat = "mp4"
-  videoContent.subtitletracks = subtitleTracks
+
+  if subtitle <> invalid and subtitle.url <> invalid
+    videoContent.subtitletracks = [
+      {
+        Language: subtitle.language,
+        Trackname: subtitle.url,
+        Description: subtitle.name
+      }
+    ]
+  end if
 
   m.video.content = videoContent
   m.video.control = "play"
@@ -87,10 +69,9 @@ end sub
 
 sub onGoBack()
   m.top.navigate = {
-    id: "fileListScreen",
+    id: "videoScreen",
     params: {
-      fileId: m.top.params.file.parent_id,
-      focusFileId: m.top.params.file.id,
+      file: m.top.params.file,
     }
   }
 end sub
@@ -113,7 +94,6 @@ end sub
 
 function onKeyEvent(key, press)
   if m.top.visible and key = "back" and press
-    m.video.control = "stop"
     onGoBack()
     return true
   end if

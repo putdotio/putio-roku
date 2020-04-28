@@ -26,6 +26,12 @@
       translation="[0, 0]"
     />
 
+    <VideoScreen
+      id="videoScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
     <VideoPlayerScreen
       id="videoPlayerScreen"
       visible="false"

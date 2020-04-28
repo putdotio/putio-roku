@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="VideoScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Video.brs" />
+
+	<interface>
+    <field id="params" type="assocarray" />
+		<field id="navigate" type="assocarray" />
+  </interface>
+
+	<children>
+		<Overhang
+			id="overhang"
+			showClock="false"
+      title="Your Files"
+			logoUri="pkg:/images/OverhangLogo.png"
+			logoBaselineOffset="9"
+			showOptions="true"
+			optionsAvailable="false"
+			optionsDimColor="0x00000000"
+			optionsIconDimColor="0x00000000"
+		/>
+
+    <LayoutGroup
+      translation="[200, 200]"
+      layoutDirection="horiz"
+      itemSpacings="64"
+    >
+      <LayoutGroup
+        itemSpacings="32"
+      >
+        <Poster
+          id="poster"
+          loadingBitmapUri="pkg:/images/Splash-Blank-SD.png"
+          width="960"
+          height="540"
+        />
+
+        <Button
+          id="button-play"
+          text="Play"
+        />
+      </LayoutGroup>
+
+      <LayoutGroup>
+        <LayoutGroup
+          layoutDirection="horiz"
+          vertAlignment="center"
+          itemSpacings="16"
+        >
+          <Label
+            text="Subtitles"
+            font="font:LargeBoldSystemFont"
+            color="0xFFFFFFFF"
+          />
+
+          <Poster
+            id="spinner"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/Spinner.png"
+            width="32"
+            height="32"
+          />
+
+          <Animation id="spinnerAnimation"
+            duration="1"
+            repeat="true"
+            easeFunction="linear"
+          >
+            <FloatFieldInterpolator
+              id="spinnerOpacityInterpolator"
+              key="[0.0, 0.25, 0.5, 0.75, 1.0]"
+              keyValue="[1, 0, 1, 0, 1]"
+              fieldToInterp="spinner.opacity"
+            />
+          </Animation>
+        </LayoutGroup>
+
+        <Label
+          id="message"
+          font="font:MediumSystemFont"
+          color="0xFFFFFFFF"
+        />
+
+        <RadioButtonList id="subtitleList" checkedItem="0" />
+      </LayoutGroup>
+    </LayoutGroup>
+	</children>
+</component>

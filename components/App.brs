@@ -10,10 +10,12 @@ sub configureRouter()
 end sub
 
 sub onRouteChanged(obj)
-  ' ? "onRouteChanged "; m.activeRoute; obj.getData()
   nextRoute = obj.getData()
 
   currentRouteScreen = m.top.findNode(m.activeRoute.id)
+  currentRouteScreen.unobserveField("navigate")
+  currentRouteScreen.unobserveField("showExitAppDialog")
+  currentRouteScreen.unobserveField("showDialog")
   currentRouteScreen.visible = false
 
   m.activeRoute = nextRoute

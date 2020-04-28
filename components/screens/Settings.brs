@@ -28,7 +28,7 @@ sub renderList()
 
   for i = 0 to m.items.count() - 1
     item = m.items[i]
-    listItemData = content.createChild("StaticListItemData")
+    listItemData = content.createChild("ListItemData")
     listItemData.key = item.key
     listItemData.title = item.title
     if item.description <> invalid

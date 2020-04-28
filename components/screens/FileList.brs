@@ -1,58 +1,72 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
-  m.file = {}
-  m.convertingFile = {}
+
   m.fileList = m.top.findNode("fileList")
+  m.fileList.observeField("itemSelected", "onFileSelected")
+
+  m.parent = {}
+  m.files = []
+  m.convertingFile = {}
 end function
 
 sub onVisibleChange()
   if m.top.visible
     m.fileList.setFocus(true)
-    if m.top.params.fileId <> invalid
-      fetchFiles(m.top.params.fileId)
+
+    if m.top.params.fileId = 0
+      fetchFiles(0)
     end if
   end if
 end sub
 
 sub fetchFiles(parentId)
-  m.httpTask = createObject("roSGNode", "HttpTask")
-  m.httpTask.observeField("response", "onFetchFilesResponse")
-  m.httpTask.url = ("/files/list?parent_id=" + parentId.toStr() + "&mp4_status=1&stream_url=1&mp4_stream_url=1")
-  m.httpTask.method = "GET"
-  m.httpTask.control = "RUN"
+  if m.fetchFilesTask <> invalid
+    m.fetchFilesTask.unobserveField("response")
+  end if
+
+  m.fetchFilesTask = createObject("roSGNode", "HttpTask")
+  m.fetchFilesTask.observeField("response", "onFetchFilesResponse")
+  m.fetchFilesTask.url = ("/files/list?parent_id=" + parentId.toStr() + "&mp4_status=1&stream_url=1&mp4_stream_url=1")
+  m.fetchFilesTask.method = "GET"
+  m.fetchFilesTask.control = "RUN"
 end sub
 
 sub onFetchFilesResponse(obj)
-  m.httpTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
   if data <> invalid and data.files <> invalid
-    renderFileList(data.parent, data.files)
+    m.parent = data.parent
+    m.files = data.files
+    renderFileList()
   else
-    onShowFetchFilesErrorDialog(data)
+    showFetchFilesErrorDialog(data)
   end if
 end sub
 
-sub onShowFetchFilesErrorDialog(data)
-  dialog = createObject("roSGNode", "Dialog")
-  dialog.title = "Oops :("
-  dialog.message = "An error occurred, please try again."
+''' Error Dialog
+sub showFetchFilesErrorDialog(data)
+  m.fetchFilesErrorDialog = createObject("roSGNode", "Dialog")
+  m.fetchFilesErrorDialog.title = "Oops :("
+  m.fetchFilesErrorDialog.message = "An error occurred, please try again."
+  m.fetchFilesErrorDialog.observeField("wasClosed", "onFetchFilesErrorDialogClosed")
   m.top.showDialog = dialog
 end sub
 
-sub renderFileList(parent, files)
+sub onFetchFilesErrorDialogClosed()
+  m.fetchFilesErrorDialog.unobserveField("wasClosed")
   m.fileList.setFocus(true)
-  m.fileList.observeField("itemSelected", "onFileSelected")
-  m.file = parent
+end sub
 
+''' FileList Render
+sub renderFileList()
   overhang = m.top.findNode("overhang")
-  overhang.title = parent.name
+  overhang.title = m.parent.name
 
   content = createObject("roSGNode", "ContentNode")
 
   forIndex = 0
   focusIndex = 0
-  for each file in files
+  for each file in m.files
     listItemData = content.createChild("FileListItemData")
     listItemData.file = file
 
@@ -71,8 +85,6 @@ sub renderFileList(parent, files)
  end sub
 
 sub onFileSelected(obj)
-  m.fileList.setFocus(false)
-  m.fileList.unobserveField("itemSelected")
   fileListItem = m.fileList.content.getChild(obj.getData())
   file = fileListItem.file
 
@@ -81,22 +93,22 @@ sub onFileSelected(obj)
     fetchFiles(file.id)
   else if file.file_type = "VIDEO"
     if file.need_convert = true
-      onShowConversionDialog(file)
+      showConversionDialog(file)
     else
       m.top.navigate = {
-        id: "videoPlayerScreen",
+        id: "videoScreen",
         params: {
           file: file
         }
       }
     end if
   else
-    onShowFileNotSupportedDialog()
+    showFileNotSupportedDialog()
   end if
 end sub
 
 ''' File Not Supported Dialog
-sub onShowFileNotSupportedDialog()
+sub showFileNotSupportedDialog()
   m.fileNotSupportedDialog = createObject("roSGNode", "Dialog")
   m.fileNotSupportedDialog.title = "Oops :("
   m.fileNotSupportedDialog.message = "We're unable to show these kind of files on this app (for now)"
@@ -109,28 +121,18 @@ sub onFileNotSupportedDialogClosed()
   m.fileList.setFocus(true)
 end sub
 
-''' Video Conversion Dialog
-sub onShowConversionDialog(file)
-  m.convertingFile = file
-  m.conversionDialog = createObject("roSGNode", "Dialog")
-  m.conversionDialog.title = "Converting to MP4"
-  m.conversionDialog.message = "Status: Starting..."
-  m.conversionDialog.observeField("wasClosed", "onConversionDialogClosed")
-  m.top.showDialog = m.conversionDialog
-  startConversion()
-end sub
-
+''' Video Conversion
 sub startConversion()
-  m.httpTask = createObject("roSGNode", "HttpTask")
-  m.httpTask.observeField("response", "onStartConversionResponse")
-  m.httpTask.url = ("/files/" + m.convertingFile.id.toStr() + "/mp4")
-  m.httpTask.method = "POST"
-  m.httpTask.control = "RUN"
+  m.startConversionTask = createObject("roSGNode", "HttpTask")
+  m.startConversionTask.observeField("response", "onStartConversionResponse")
+  m.startConversionTask.url = ("/files/" + m.convertingFile.id.toStr() + "/mp4")
+  m.startConversionTask.method = "POST"
+  m.startConversionTask.control = "RUN"
 end sub
 
 sub onStartConversionResponse(obj)
   ' ? "onStartConversionResponse: "; obj.getData()
-  m.httpTask.unobserveField("response")
+  m.startConversionTask.unobserveField("response")
   data = parseJSON(obj.getData())
   if data.status <> invalid and data.status = "OK"
     m.shouldCheckConversionStatus = true
@@ -143,17 +145,16 @@ end sub
 
 sub checkConversionStatus()
   if m.shouldCheckConversionStatus = true
-    m.httpTask = createObject("roSGNode", "HttpTask")
-    m.httpTask.observeField("response", "onCheckConversionStatusResponse")
-    m.httpTask.url = ("/files/" + m.convertingFile.id.toStr() + "/mp4")
-    m.httpTask.method = "GET"
-    m.httpTask.control = "RUN"
+    m.checkConversionTask = createObject("roSGNode", "HttpTask")
+    m.checkConversionTask.observeField("response", "onCheckConversionStatusResponse")
+    m.checkConversionTask.url = ("/files/" + m.convertingFile.id.toStr() + "/mp4")
+    m.checkConversionTask.method = "GET"
+    m.checkConversionTask.control = "RUN"
   end if
 end sub
 
 sub onCheckConversionStatusResponse(obj)
-  ' ? "onCheckConversionStatusResponse: "; obj.getData()
-  m.httpTask.unobserveField("response")
+  m.checkConversionTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
   if data.mp4 <> invalid and data.mp4.status <> invalid
@@ -181,12 +182,23 @@ sub onConversionFinished()
   m.shouldCheckConversionStatus = false
   m.conversionDialog.close = true
   m.top.navigate = {
-    id: "videoPlayerScreen",
+    id: "videoScreen",
     params: {
       file: m.convertingFile
     }
   }
   m.convertingFile = {}
+end sub
+
+''' Video Conversion Dialog
+sub showConversionDialog(file)
+  m.convertingFile = file
+  m.conversionDialog = createObject("roSGNode", "Dialog")
+  m.conversionDialog.title = "Converting to MP4"
+  m.conversionDialog.message = "Status: Starting..."
+  m.conversionDialog.observeField("wasClosed", "onConversionDialogClosed")
+  m.top.showDialog = m.conversionDialog
+  startConversion()
 end sub
 
 sub onConversionDialogClosed()
@@ -200,9 +212,9 @@ end sub
 function onKeyEvent(key, press)
   if m.top.visible and press
     if key = "back"
-      if m.file.parent_id <> invalid
-        m.focusFileId = m.file.id
-        fetchFiles(m.file.parent_id)
+      if m.parent.parent_id <> invalid
+        m.focusFileId = m.parent.id
+        fetchFiles(m.parent.parent_id)
       else
         m.top.showExitAppDialog = true
       end if
@@ -210,9 +222,7 @@ function onKeyEvent(key, press)
     else if key="options"
       m.top.navigate = {
         id: "settingsScreen",
-        params: {
-          file: m.file
-        }
+        params: {},
       }
       return true
     end if
