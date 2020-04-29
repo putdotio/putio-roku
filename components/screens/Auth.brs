@@ -1,13 +1,12 @@
 function init()
   m.top.token = ""
+  m.code = ""
+  m.label = m.top.findNode("code")
   m.top.observeField("visible", "onVisibleChange")
   m.shouldCheckCodeMatch = false
 end function
 
 sub onVisibleChange()
-  m.code = ""
-  m.label = m.top.findNode("code")
-
   if m.top.visible
     getAuthCode()
   end if
@@ -15,14 +14,14 @@ end sub
 
 sub getAuthCode()
 	deviceInfo = createObject("roDeviceInfo")
-  m.httpTask = createObject("roSGNode", "HttpTask")
-  m.httpTask.observeField("response", "onAuthCodeResponse")
-  m.httpTask.url = "/oauth2/oob/code?app_id=" + m.global.appId + "&client_name=" + deviceInfo.getFriendlyName().EncodeUri()
-  m.httpTask.control = "RUN"
+  m.getCodeTask = createObject("roSGNode", "HttpTask")
+  m.getCodeTask.observeField("response", "onAuthCodeResponse")
+  m.getCodeTask.url = "/oauth2/oob/code?app_id=" + m.global.appId + "&client_name=" + deviceInfo.getFriendlyName().EncodeUri()
+  m.getCodeTask.control = "RUN"
 end sub
 
 sub onAuthCodeResponse(obj)
-  ' ? "onAuthCodeResponse "; obj.getData()
+  m.getCodeTask.unobserveField("response")
   data = parseJSON(obj.getData())
   m.code = data.code
   m.label.text = m.code
@@ -32,21 +31,22 @@ end sub
 
 sub checkCodeMatch()
   if m.shouldCheckCodeMatch = true
-    sleep(3000)
-    m.httpTask = createObject("roSGNode", "HttpTask")
-    m.httpTask.observeField("response", "onCheckCodeMatchResponse")
-    m.httpTask.url = ("/oauth2/oob/code/" + m.code)
-    m.httpTask.control = "RUN"
+    sleep(1500)
+    m.checkCodeTask = createObject("roSGNode", "HttpTask")
+    m.checkCodeTask.observeField("response", "onCheckCodeMatchResponse")
+    m.checkCodeTask.url = ("/oauth2/oob/code/" + m.code)
+    m.checkCodeTask.control = "RUN"
   end if
 end sub
 
 sub onCheckCodeMatchResponse(obj)
-  ' ? "onCheckCodeMatchResponse "; obj.getData()
+  m.checkCodeTask.unobserveField("response")
   data = parseJSON(obj.getData())
   token = data.oauth_token
 
   if token <> invalid
     m.top.token = token
+    m.shouldCheckCodeMatch = false
   else
     checkCodeMatch()
   end if

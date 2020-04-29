@@ -53,7 +53,6 @@ sub checkToken()
 end sub
 
 sub onTokenRetrieved(obj)
-  ' ? "onTokenRetrieved "; obj.getData()
   m.token = obj.getData()
   m.storage.Write("token", m.token)
   m.storage.Flush()
@@ -68,7 +67,6 @@ sub getUserInfo()
 end sub
 
 sub onUserInfoResponse(obj)
-  ' ? "onUserInfoResponse"; obj.getData()
   data = parseJSON(obj.getData())
 
 	if data <> invalid and data.info <> invalid
