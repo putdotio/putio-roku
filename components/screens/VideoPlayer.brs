@@ -10,14 +10,12 @@ sub onVisibleChange()
     m.video.observeField("position", "onPlayerPositionChanged")
     setupPlayer()
   else
-    m.video.control = "stop"
     m.video.unobserveField("state")
     m.video.unobserveField("position")
   end if
 end sub
 
 sub setupPlayer()
-  user = m.global.user
   file = m.top.params.file
   subtitle = m.top.params.subtitle
   videoContent = createObject("RoSGNode", "ContentNode")
@@ -61,19 +59,15 @@ sub onPlayerStateChanged(obj)
 end sub
 
 sub onError()
-  dialog = createObject("roSGNode", "Dialog")
-  dialog.title = "Video Error"
-  dialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
+  m.errorDialog = createObject("roSGNode", "Dialog")
+  m.errorDialog.title = "Video Error"
+  m.errorDialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
+  m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
   m.top.showDialog = dialog
 end sub
 
-sub onGoBack()
-  m.top.navigate = {
-    id: "videoScreen",
-    params: {
-      file: m.top.params.file,
-    }
-  }
+sub onErrorDialogClosed()
+  onGoBack()
 end sub
 
 sub onPlayerPositionChanged(obj)
@@ -84,18 +78,30 @@ end sub
 
 sub saveVideoTime(time)
   if time > 0
-    m.httpTask = createObject("roSGNode", "HttpTask")
-    m.httpTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
-    m.httpTask.method = "POST"
-    m.httpTask.body = { time: time }
-    m.httpTask.control = "RUN"
+    m.setStartFromTask = createObject("roSGNode", "HttpTask")
+    m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
+    m.setStartFromTask.method = "POST"
+    m.setStartFromTask.body = { time: time }
+    m.setStartFromTask.control = "RUN"
   end if
 end sub
 
+sub onGoBack()
+  m.video.control = "stop"
+  m.top.navigate = {
+    id: "videoScreen",
+    params: {
+      file: m.top.params.file,
+    }
+  }
+end sub
+
 function onKeyEvent(key, press)
-  if m.top.visible and key = "back" and press
-    onGoBack()
-    return true
+  if m.top.visible and press
+    if key = "back"
+      onGoBack()
+      return true
+    end if
   end if
 
   return false

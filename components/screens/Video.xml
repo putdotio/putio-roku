@@ -21,68 +21,99 @@
 		/>
 
     <LayoutGroup
-      translation="[200, 200]"
-      layoutDirection="horiz"
-      itemSpacings="64"
+      translation="[190, 190]"
+      itemSpacings="80"
     >
       <LayoutGroup
-        itemSpacings="32"
+        layoutDirection="horiz"
+        vertAlignment="center"
+        itemSpacings="70"
       >
         <Poster
-          id="poster"
-          loadingBitmapUri="pkg:/images/Splash-Blank-SD.png"
-          width="960"
-          height="540"
+          id="button-play"
+          uri="pkg:/images/PlayButtonFocused.png"
+          width="350"
+          height="140"
         />
 
-        <Button
-          id="button-play"
-          text="Play"
-        />
+        <Group id="next-video">
+          <Poster
+            id="next-video-background"
+            uri="pkg:/images/NextVideoUnfocused.png"
+            width="1120"
+            height="140"
+          />
+
+          <Label
+            id="next-video-title"
+            text="UP NEXT"
+            font="font:SmallSystemFont"
+            color="0xFFFFFFFF"
+            translation="[35, 20]"
+          />
+
+          <Label
+            id="next-video-label"
+            text="Loading..."
+            font="font:SmallSystemFont"
+            color="0xFFFFFFFF"
+            translation="[35, 70]"
+            width="960"
+          />
+        </Group>
       </LayoutGroup>
 
-      <LayoutGroup>
-        <LayoutGroup
-          layoutDirection="horiz"
-          vertAlignment="center"
-          itemSpacings="16"
-        >
-          <Label
-            text="Subtitles"
-            font="font:LargeBoldSystemFont"
-            color="0xFFFFFFFF"
-          />
-
-          <Poster
-            id="spinner"
-            loadDisplayMode="scaleToFit"
-            uri="pkg:/images/Spinner.png"
-            width="32"
-            height="32"
-          />
-
-          <Animation id="spinnerAnimation"
-            duration="1"
-            repeat="true"
-            easeFunction="linear"
-          >
-            <FloatFieldInterpolator
-              id="spinnerOpacityInterpolator"
-              key="[0.0, 0.25, 0.5, 0.75, 1.0]"
-              keyValue="[1, 0, 1, 0, 1]"
-              fieldToInterp="spinner.opacity"
-            />
-          </Animation>
-        </LayoutGroup>
-
+      <LayoutGroup
+        layoutDirection="horiz"
+        vertAlignment="center"
+        itemSpacings="20"
+      >
         <Label
-          id="message"
-          font="font:MediumSystemFont"
+          text="SUBTITLES"
+          font="font:SmallSystemFont"
           color="0xFFFFFFFF"
         />
 
-        <RadioButtonList id="subtitleList" checkedItem="0" />
+        <Poster
+          id="spinner"
+          loadDisplayMode="scaleToFit"
+          uri="pkg:/images/Spinner.png"
+          width="32"
+          height="32"
+        />
+
+        <Animation id="spinnerAnimation"
+          duration="1"
+          repeat="true"
+          easeFunction="linear"
+        >
+          <FloatFieldInterpolator
+            id="spinnerOpacityInterpolator"
+            key="[0.0, 0.25, 0.5, 0.75, 1.0]"
+            keyValue="[1, 0, 1, 0, 1]"
+            fieldToInterp="spinner.opacity"
+          />
+        </Animation>
       </LayoutGroup>
     </LayoutGroup>
+
+    <Label
+      id="message"
+      font="font:MediumSystemFont"
+      color="0xFFFFFFFF"
+      translation="[190, 470]"
+    />
+
+    <RadioButtonList
+      id="subtitleList"
+      checkedItem="0"
+      color="0xFFFFFFFF"
+      focusedColor="0xFFFFFFFF"
+      focusBitmapBlendColor="0x00000FF"
+      itemSize="[1550, 80]"
+      translation="[140, 470]"
+      checkedIconUri="pkg:/images/icons/checkmark.png"
+      focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
+    />
 	</children>
 </component>
