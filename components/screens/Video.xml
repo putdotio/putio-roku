@@ -114,6 +114,10 @@
       translation="[140, 470]"
       checkedIconUri="pkg:/images/icons/checkmark.png"
       focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
+      vertFocusAnimationStyle="floatingFocus"
+      numRows="6"
+      font="font:MediumSystemFont"
+      focusedFont="font:MediumSystemFont"
     />
 	</children>
 </component>

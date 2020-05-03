@@ -321,6 +321,14 @@ function onKeyEvent(key, press)
         return true
       end if
     end if
+
+    if m.subtitleList.hasFocus()
+      if key = "up"
+        m.subtitleList.setFocus(false)
+        focusPlayButton()
+        return true
+      end if
+    end if
   end if
 
   return false
