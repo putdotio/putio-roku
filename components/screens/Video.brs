@@ -27,7 +27,7 @@ sub onVisibleChange(obj)
   if m.top.visible
     onMount(m.top.params.file)
   else
-    cancelHttpTasks()
+    ' cancelHttpTasks()
   end if
 end sub
 
@@ -36,11 +36,10 @@ sub onMount(file)
 
   if m.file.id <> file.id
     m.file = file
-    setTitle()
+    setTitle(m.file.name)
     fetchSubtitles()
+    findNextVideo(m.file.id)
   end if
-
-  findNextVideo()
 end sub
 
 sub cancelHttpTasks()
@@ -68,13 +67,13 @@ sub onFetchSubtitlesResponse(obj)
     m.subtitles = data.subtitles
   end if
 
-  setSubtitles()
+  setSubtitles(m.subtitles)
 end sub
 
-sub findNextVideo()
+sub findNextVideo(fileId)
   resetNextVideo()
   m.findNextVideoTask.observeField("response", "onFindNextVideoResponse")
-  m.findNextVideoTask.url = ("/files/" + m.file.id.toStr() + "/next-file?file_type=VIDEO")
+  m.findNextVideoTask.url = ("/files/" + fileId.toStr() + "/next-file?file_type=VIDEO")
   m.findNextVideoTask.method = "GET"
   m.findNextVideoTask.control = "RUN"
 end sub
@@ -91,9 +90,9 @@ sub onFindNextVideoResponse(obj)
   end if
 end sub
 
-sub fetchNextVideo(id)
+sub fetchNextVideo(fileId)
   m.fetchNextVideoTask.observeField("response", "onFetchNextVideoResponse")
-  m.fetchNextVideoTask.url = ("/files/list?parent_id=" + id.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
+  m.fetchNextVideoTask.url = ("/files/list?parent_id=" + fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
   m.fetchNextVideoTask.method = "GET"
   m.fetchNextVideoTask.control = "RUN"
 end sub
@@ -135,8 +134,8 @@ end sub
 
 
 ''' UI
-sub setTitle()
-  m.top.findNode("overhang").title = m.file.name
+sub setTitle(title)
+  m.top.findNode("overhang").title = title
 end sub
 
 sub resetNextVideo()
@@ -157,7 +156,7 @@ sub setNextVideo()
   end if
 end sub
 
-sub setSubtitles()
+sub setSubtitles(subtitles)
   hideSpinner()
   hideMessage()
 
@@ -166,12 +165,12 @@ sub setSubtitles()
   noSelectionItem = content.createChild("ContentNode")
   noSelectionItem.title = "Don’t you dare load any subtitles!"
 
-  for each subtitle in m.subtitles
+  for each subtitle in subtitles
     listItemData = content.createChild("ContentNode")
     listItemData.title = subtitle.language + " — " + subtitle.name
   end for
 
-  if m.subtitles[0] <> invalid
+  if subtitles[0] <> invalid
     m.subtitleList.checkedItem = 1
   else
     m.subtitleList.checkedItem = 0
@@ -262,9 +261,10 @@ sub onNextVideo()
   m.file = m.nextVideo.file
   m.subtitles = m.nextVideo.subtitles
   unfocusNextVideo()
-  setTitle()
-  setSubtitles()
-  onPlay()
+  setTitle(m.file.name)
+  setSubtitles(m.subtitles)
+  findNextVideo(m.file.id)
+  focusPlayButton()
 end sub
 
 sub onGoBack()
