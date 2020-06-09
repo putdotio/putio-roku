@@ -1,26 +1,15 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
 
-  m.content = m.top.findNode("content")
+  m.file = {}
+  m.subtitles = []
+
   m.playButton = m.top.findNode("button-play")
-  m.nextVideoContainer = m.top.findNode("next-video")
-  m.nextVideoLabel = m.top.findNode("next-video-label")
   m.subtitleList = m.top.findNode("subtitleList")
   m.subtitleList.observeField("itemSelected", "onSubtitleSelected")
 
-  m.file = {}
-  m.subtitles = []
-  m.nextVideo = {
-    status: "IDLE", 'IDLE | FOUND | FAILED'
-    file: {},
-    subtitles: []
-  }
-
   m.fetchFileTask = createObject("roSGNode", "HttpTask")
   m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
-  m.findNextVideoTask = createObject("roSGNode", "HttpTask")
-  m.fetchNextVideoTask = createObject("roSGNode", "HttpTask")
-  m.fetchNextVideoSubtitlesTask = createObject("roSGNode", "HttpTask")
 end function
 
 sub onVisibleChange()
@@ -35,10 +24,9 @@ sub onMount()
   setTitle(m.top.params.fileName)
 
   if m.file.id <> m.top.params.fileId
-    m.content.visible = "false"
+    hideContent()
     showLoading()
     fetchFile(m.top.params.fileId)
-    findNextVideo(m.top.params.fileId)
   else
     focusPlayButton()
   end if
@@ -47,9 +35,6 @@ end sub
 sub cancelHttpTasks()
   m.fetchFileTask.unobserveField("response")
   m.fetchSubtitlesTask.unobserveField("response")
-  m.findNextVideoTask.unobserveField("response")
-  m.fetchNextVideoTask.unobserveField("response")
-  m.fetchNextVideoSubtitlesTask.unobserveField("response")
 end sub
 
 
@@ -86,73 +71,16 @@ sub onFetchSubtitlesResponse(obj)
     m.subtitles = data.subtitles
   end if
 
-  render()
+  hideLoading()
+  showContent()
+  focusPlayButton()
 end sub
-
-sub findNextVideo(fileId)
-  resetNextVideo()
-  m.findNextVideoTask.observeField("response", "onFindNextVideoResponse")
-  m.findNextVideoTask.url = ("/files/" + fileId.toStr() + "/next-file?file_type=VIDEO")
-  m.findNextVideoTask.method = "GET"
-  m.findNextVideoTask.control = "RUN"
-end sub
-
-sub onFindNextVideoResponse(obj)
-  m.findNextVideoTask.unobserveField("response")
-  data = parseJSON(obj.getData())
-
-  if data <> invalid and data.next_file.id <> invalid
-    fetchNextVideo(data.next_file.id)
-  else
-    m.nextVideo.status = "FAILED"
-    setNextVideo()
-  end if
-end sub
-
-sub fetchNextVideo(fileId)
-  m.fetchNextVideoTask.observeField("response", "onFetchNextVideoResponse")
-  m.fetchNextVideoTask.url = ("/files/list?parent_id=" + fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
-  m.fetchNextVideoTask.method = "GET"
-  m.fetchNextVideoTask.control = "RUN"
-end sub
-
-sub onFetchNextVideoResponse(obj)
-  m.fetchNextVideoTask.unobserveField("response")
-  data = parseJSON(obj.getData())
-
-  if data <> invalid and data.parent <> invalid
-    fetchNextVideoSubtitles(data.parent.id)
-    m.nextVideo.file = data.parent
-  else
-    m.nextVideo.status = "FAILED"
-    setNextVideo()
-  end if
-
-end sub
-
-sub fetchNextVideoSubtitles(id)
-  m.fetchNextVideoSubtitlesTask.observeField("response", "onFetchNextVideoSubtitlesResponse")
-  m.fetchNextVideoSubtitlesTask.url = ("/files/" + id.toStr() + "/subtitles")
-  m.fetchNextVideoSubtitlesTask.method = "GET"
-  m.fetchNextVideoSubtitlesTask.control = "RUN"
-end sub
-
-sub onFetchNextVideoSubtitlesResponse(obj)
-  m.fetchNextVideoSubtitlesTask.unobserveField("response")
-  data = parseJSON(obj.getData())
-
-  if data <> invalid and data.subtitles <> invalid
-    m.nextVideo.subtitles = data.subtitles
-    m.nextVideo.status = "FOUND"
-  else
-    m.nextVideo.status = "FAILED"
-  end if
-
-  setNextVideo()
-end sub
-
 
 ''' UI
+sub setTitle(title)
+  m.top.findNode("overhang").title = title
+end sub
+
 sub showLoading()
   m.top.findNode("loading").visible = "true"
 end sub
@@ -161,55 +89,34 @@ sub hideLoading()
   m.top.findNode("loading").visible = "false"
 end sub
 
-sub setTitle(title)
-  m.top.findNode("overhang").title = title
+sub showContent()
+  m.top.findNode("content").visible = "true"
+  setPoster()
+  setSubtitles()
 end sub
 
-sub render()
-  hideLoading()
-  m.content.visible = "true"
-  setTitle(m.file.name)
-  renderSubtitles()
-  focusPlayButton()
+sub hideContent()
+  m.top.findNode("content").visible = "false"
 end sub
 
-sub renderSubtitles()
+sub setPoster()
+  m.top.findNode("poster").uri = m.file.screenshot
+end sub
+
+sub setSubtitles()
   content = createObject("roSGNode", "ContentNode")
-
-  noSelectionItem = content.createChild("ContentNode")
-  noSelectionItem.title = "Don’t you dare load any subtitles!"
 
   for each subtitle in m.subtitles
     listItemData = content.createChild("ContentNode")
     listItemData.title = subtitle.language + " — " + subtitle.name
   end for
 
-  if m.subtitles[0] <> invalid
-    m.subtitleList.checkedItem = 1
-  else
-    m.subtitleList.checkedItem = 0
-  end if
+  noSelectionItem = content.createChild("ContentNode")
+  noSelectionItem.title = "Don’t load any subtitles"
 
+  m.subtitleList.checkedItem = 0
   m.subtitleList.visible = "true"
   m.subtitleList.content = content
-end sub
-
-sub resetNextVideo()
-  m.nextVideo = {
-    status: "IDLE",
-    file: {},
-    subtitles: [],
-  }
-
-  m.nextVideoLabel.text = "Loading..."
-end sub
-
-sub setNextVideo()
-  if m.nextVideo.status = "FOUND"
-    m.nextVideoLabel.text = m.nextVideo.file.name
-  else
-    m.nextVideoLabel.text = "Could not find anything to play :("
-  end if
 end sub
 
 sub focusPlayButton()
@@ -221,21 +128,6 @@ sub unfocusPlaybutton()
   m.playButton.setFocus(false)
   m.playButton.uri = "pkg:/images/PlayButtonUnfocused.png"
 end sub
-
-sub focusNextVideo()
-  m.nextVideoContainer.setFocus(true)
-  m.top.findNode("next-video-background").uri = "pkg:/images/NextVideoFocused.png"
-  m.top.findNode("next-video-title").color = "0x000000FF"
-  m.nextVideoLabel.color = "0x000000FF"
-end sub
-
-sub unfocusNextVideo()
-  m.nextVideoContainer.setFocus(false)
-  m.top.findNode("next-video-background").uri = "pkg:/images/NextVideoUnfocused.png"
-  m.top.findNode("next-video-title").color = "0xFFFFFFFF"
-  m.nextVideoLabel.color = "0xFFFFFFFF"
-end sub
-
 
 ''' Events
 sub onSubtitleSelected()
@@ -257,14 +149,6 @@ sub onPlay()
       subtitle: selectedSubtitle,
     }
   }
-end sub
-
-sub onNextVideo()
-  m.file = m.nextVideo.file
-  m.subtitles = m.nextVideo.subtitles
-  unfocusNextVideo()
-  findNextVideo(m.file.id)
-  render()
 end sub
 
 sub onGoBack()
@@ -290,33 +174,8 @@ function onKeyEvent(key, press)
         return true
       end if
 
-      if key = "right"
+      if key = "down"
         unfocusPlaybutton()
-        focusNextVideo()
-        return true
-      end if
-
-      if key = "down" and m.subtitleList.visible
-        unfocusPlaybutton()
-        m.subtitleList.setFocus(true)
-        return true
-      end if
-    end if
-
-    if m.nextVideoContainer.hasFocus()
-      if key = "OK" and m.nextVideo.status = "FOUND"
-        onNextVideo()
-        return true
-      end if
-
-      if key = "left"
-        unfocusNextVideo()
-        focusPlayButton()
-        return true
-      end if
-
-      if key = "down" and m.subtitleList.visible
-        unfocusNextVideo()
         m.subtitleList.setFocus(true)
         return true
       end if

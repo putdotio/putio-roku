@@ -3,7 +3,6 @@ sub Main()
   m.port = CreateObject("roMessagePort")
   screen.setMessagePort(m.port)
 
-  ' Globals
   m.global = screen.getGlobalNode()
   m.global.addFields({
     appId: "3776",
