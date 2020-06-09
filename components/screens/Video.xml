@@ -21,52 +21,54 @@
 		/>
 
     <LayoutGroup
+      id="content"
       translation="[190, 190]"
       itemSpacings="80"
-      id="content"
     >
       <LayoutGroup
-        layoutDirection="horiz"
-        vertAlignment="center"
-        itemSpacings="70"
+        itemSpacings="80"
       >
-        <Poster
-          id="button-play"
-          uri="pkg:/images/PlayButtonFocused.png"
-          width="350"
-          height="140"
-        />
-
-        <Group id="next-video">
+        <LayoutGroup
+          layoutDirection="horiz"
+          vertAlignment="center"
+          itemSpacings="70"
+        >
           <Poster
-            id="next-video-background"
-            uri="pkg:/images/NextVideoUnfocused.png"
-            width="1120"
+            id="button-play"
+            uri="pkg:/images/PlayButtonFocused.png"
+            width="350"
             height="140"
           />
 
-          <Label
-            id="next-video-title"
-            text="UP NEXT"
-            font="font:SmallSystemFont"
-            color="0xFFFFFFFF"
-            translation="[35, 20]"
-          />
+          <Group id="next-video">
+            <Poster
+              id="next-video-background"
+              uri="pkg:/images/NextVideoUnfocused.png"
+              width="1120"
+              height="140"
+            />
 
-          <Label
-            id="next-video-label"
-            text="Loading..."
-            font="font:SmallSystemFont"
-            color="0xFFFFFFFF"
-            translation="[35, 70]"
-            width="960"
-          />
-        </Group>
+            <Label
+              id="next-video-title"
+              text="UP NEXT"
+              font="font:SmallSystemFont"
+              color="0xFFFFFFFF"
+              translation="[35, 20]"
+            />
+
+            <Label
+              id="next-video-label"
+              text="Loading..."
+              font="font:SmallSystemFont"
+              color="0xFFFFFFFF"
+              translation="[35, 70]"
+              width="960"
+            />
+          </Group>
+        </LayoutGroup>
       </LayoutGroup>
 
       <LayoutGroup
-        layoutDirection="horiz"
-        vertAlignment="center"
         itemSpacings="20"
       >
         <Label
@@ -74,23 +76,22 @@
           font="font:SmallSystemFont"
           color="0xFFFFFFFF"
         />
+
+        <RadioButtonList
+          id="subtitleList"
+          checkedItem="0"
+          color="0xFFFFFFFF"
+          focusedColor="0xFFFFFFFF"
+          focusBitmapBlendColor="0x00000FF"
+          itemSize="[1550, 80]"
+          checkedIconUri="pkg:/images/icons/checkmark.png"
+          focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
+          vertFocusAnimationStyle="floatingFocus"
+          numRows="6"
+          font="font:MediumSystemFont"
+          focusedFont="font:MediumSystemFont"
+        />
       </LayoutGroup>
     </LayoutGroup>
-
-    <RadioButtonList
-      id="subtitleList"
-      checkedItem="0"
-      color="0xFFFFFFFF"
-      focusedColor="0xFFFFFFFF"
-      focusBitmapBlendColor="0x00000FF"
-      itemSize="[1550, 80]"
-      translation="[140, 470]"
-      checkedIconUri="pkg:/images/icons/checkmark.png"
-      focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
-      vertFocusAnimationStyle="floatingFocus"
-      numRows="6"
-      font="font:MediumSystemFont"
-      focusedFont="font:MediumSystemFont"
-    />
 	</children>
 </component>

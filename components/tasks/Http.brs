@@ -53,12 +53,12 @@ sub onResponse(msg)
     if (msg.getresponsecode() > 0 and msg.getresponsecode() < 400)
       m.top.response = msg.getstring()
     else
-      ' ? "Http Task Failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
+      ? "Http Task Failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
       m.top.response = msg.getstring()
     end if
     m.http.asynccancel()
   else if (msg = invalid)
-    ' ? "Http Task Failed"
+    ? "Http Task Failed: "; msg
     m.top.response = ""
     m.http.asynccancel()
   end if

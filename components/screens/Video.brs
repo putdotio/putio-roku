@@ -53,7 +53,7 @@ end sub
 ''' API
 sub fetchFile(fileId)
   m.fetchFileTask.observeField("response", "onFetchFileResponse")
-  m.fetchFileTask.url = ("/files/list?parent_id=" + parentId.toStr() + "?mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
+  m.fetchFileTask.url = ("/files/list?parent_id=" + fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
   m.fetchFileTask.method = "GET"
   m.fetchFileTask.control = "RUN"
 end sub
@@ -65,8 +65,6 @@ sub onFetchFileResponse(obj)
   if data <> invalid and data.parent <> invalid
     m.file = data.parent
     fetchSubtitles(m.top.params.fileId)
-  else
-    ' showFetchFilesErrorDialog(data)
   end if
 end sub
 
@@ -157,9 +155,9 @@ sub setTitle(title)
 end sub
 
 sub render()
+  m.content.visible = "true"
   setTitle(m.file.name)
   renderSubtitles()
-  m.content.visible = "true"
   focusPlayButton()
 end sub
 
@@ -261,8 +259,8 @@ sub onGoBack()
   m.top.navigate = {
     id: "fileListScreen",
     params: {
-      fileId: m.top.params.file.parent_id,
-      focusFileId: m.top.params.file.id,
+      fileId: m.top.params.fileId,
+      focusFileId: m.top.params.fileId,
     }
   }
 end sub
