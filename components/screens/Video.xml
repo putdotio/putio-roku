@@ -71,7 +71,7 @@
             checkedIconUri="pkg:/images/icons/checkmark.png"
             focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
             vertFocusAnimationStyle="floatingFocus"
-            numRows="10"
+            numRows="6"
             font="font:MediumSystemFont"
             focusedFont="font:MediumSystemFont"
           />
