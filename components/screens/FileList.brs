@@ -1,11 +1,13 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
 
+  m.parent = {}
+  m.files = []
+
   m.fileList = m.top.findNode("fileList")
   m.fileList.observeField("itemSelected", "onFileSelected")
 
-  m.parent = {}
-  m.files = []
+  m.fetchFilesTask = createObject("roSGNode", "HttpTask")
 end function
 
 sub onVisibleChange()
@@ -15,14 +17,12 @@ sub onVisibleChange()
     if m.top.params.fileId = 0
       fetchFiles(0)
     end if
+  else
+    m.fetchFilesTask.unobserveField("response")
   end if
 end sub
 
 sub fetchFiles(parentId)
-  if m.fetchFilesTask <> invalid
-    m.fetchFilesTask.unobserveField("response")
-  end if
-
   m.fetchFilesTask = createObject("roSGNode", "HttpTask")
   m.fetchFilesTask.observeField("response", "onFetchFilesResponse")
   m.fetchFilesTask.url = ("/files/list?parent_id=" + parentId.toStr())
@@ -31,6 +31,7 @@ sub fetchFiles(parentId)
 end sub
 
 sub onFetchFilesResponse(obj)
+  m.fetchFilesTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
   if data <> invalid and data.files <> invalid
@@ -45,10 +46,16 @@ end sub
 ''' Error Dialog
 sub showFetchFilesErrorDialog(data)
   m.fetchFilesErrorDialog = createObject("roSGNode", "Dialog")
-  m.fetchFilesErrorDialog.title = "Oops :("
-  m.fetchFilesErrorDialog.message = "An error occurred, please try again."
+  m.fetchFilesErrorDialog.title = "Oops, an error occurred :("
+
+  if data.error_type = "NotFound"
+    m.fetchFilesErrorDialog.message =  "File not found."
+  else
+    m.fetchFilesErrorDialog.message =  data.error_message
+  end if
+
   m.fetchFilesErrorDialog.observeField("wasClosed", "onFetchFilesErrorDialogClosed")
-  m.top.showDialog = dialog
+  m.top.showDialog = fetchFilesErrorDialog
 end sub
 
 sub onFetchFilesErrorDialogClosed()

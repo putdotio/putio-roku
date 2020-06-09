@@ -63,7 +63,7 @@ sub onError()
   m.errorDialog.title = "Video Error"
   m.errorDialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
   m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
-  m.top.showDialog = dialog
+  m.top.showDialog = errorDialog
 end sub
 
 sub onErrorDialogClosed()

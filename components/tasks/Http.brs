@@ -49,17 +49,21 @@ function request()
 end function
 
 sub onResponse(msg)
+  ' ? "HttpTask Message: "; msg.getstring()
+  ' ? "HttpTask ResponseCode: "; msg.getresponsecode()
+
   if (type(msg) = "roUrlEvent")
     if (msg.getresponsecode() > 0 and msg.getresponsecode() < 400)
       m.top.response = msg.getstring()
     else
-      ? "Http Task Failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
+      ? "HttpTask Failed (Response Code): "; msg.getstring()
       m.top.response = msg.getstring()
     end if
-    m.http.asynccancel()
   else if (msg = invalid)
-    ? "Http Task Failed: "; msg
+    ? "HttpTask Failed (Response Code): "; msg
     m.top.response = "{ error_type: 'NETWORK_ERROR', error_message: 'Network Error' }"
-    m.http.asynccancel()
   end if
+
+  m.http.asynccancel()
+  m.top.response = ""
 end sub

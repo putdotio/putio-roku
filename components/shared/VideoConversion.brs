@@ -8,7 +8,6 @@ sub startConversion()
 end sub
 
 sub onStartConversionResponse(obj)
-  ' ? "onStartConversionResponse: "; obj.getData()
   m.startConversionTask.unobserveField("response")
   data = parseJSON(obj.getData())
   if data.status <> invalid and data.status = "OK"

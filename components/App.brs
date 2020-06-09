@@ -67,6 +67,7 @@ sub getUserInfo()
 end sub
 
 sub onUserInfoResponse(obj)
+  m.httpTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
 	if data <> invalid and data.info <> invalid

@@ -53,6 +53,8 @@ sub onFetchFileResponse(obj)
   if data <> invalid and data.parent <> invalid
     m.file = data.parent
     fetchSubtitles(m.top.params.fileId)
+  else
+    showFetchFileErrorDialog(data)
   end if
 end sub
 
@@ -128,6 +130,27 @@ sub unfocusPlaybutton()
   m.playButton.setFocus(false)
   m.playButton.uri = "pkg:/images/PlayButtonUnfocused.png"
 end sub
+
+''' Error Dialog
+sub showFetchFileErrorDialog(data)
+  m.fetchFileErrorDialog = createObject("roSGNode", "Dialog")
+  m.fetchFileErrorDialog.title = "Oops, an error occurred :("
+
+  if data.error_type = "NotFound"
+    m.fetchFileErrorDialog.message =  "File not found."
+  else
+    m.fetchFileErrorDialog.message =  data.error_message
+  end if
+
+  m.fetchFileErrorDialog.observeField("wasClosed", "onFetchFileErrorDialogClosed")
+  m.top.showDialog = m.fetchFileErrorDialog
+end sub
+
+sub onFetchFileErrorDialogClosed()
+  m.fetchFileErrorDialog.unobserveField("wasClosed")
+  onGoBack()
+end sub
+
 
 ''' Events
 sub onSubtitleSelected()
