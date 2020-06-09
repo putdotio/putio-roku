@@ -20,6 +20,20 @@
 			optionsIconDimColor="0x00000000"
 		/>
 
+    <LoadingIndicator
+      id="loading"
+      clockwise="false"
+      spinInterval="4"
+      text="Loading"
+      spacing="60"
+      imageWidth="120"
+      imageHeight="120"
+      centered="true"
+      font="font:LargeSystemFont"
+      backgroundOpacity="0"
+      height="240"
+    />
+
     <LayoutGroup
       id="content"
       translation="[190, 190]"

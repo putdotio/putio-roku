@@ -36,8 +36,11 @@ sub onMount()
 
   if m.file.id <> m.top.params.fileId
     m.content.visible = "false"
+    showLoading()
     fetchFile(m.top.params.fileId)
     findNextVideo(m.top.params.fileId)
+  else
+    focusPlayButton()
   end if
 end sub
 
@@ -150,11 +153,20 @@ end sub
 
 
 ''' UI
+sub showLoading()
+  m.top.findNode("loading").visible = "true"
+end sub
+
+sub hideLoading()
+  m.top.findNode("loading").visible = "false"
+end sub
+
 sub setTitle(title)
   m.top.findNode("overhang").title = title
 end sub
 
 sub render()
+  hideLoading()
   m.content.visible = "true"
   setTitle(m.file.name)
   renderSubtitles()
