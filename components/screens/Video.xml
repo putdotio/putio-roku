@@ -38,7 +38,7 @@
     <LayoutGroup
       id="content"
       translation="[190, 190]"
-      itemSpacings="80"
+      itemSpacings="96"
       layoutDirection="horiz"
     >
       <Poster
