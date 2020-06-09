@@ -52,7 +52,6 @@
           uri="pkg:/images/PlayButtonFocused.png"
           width="310"
           height="142"
-          translation="[20, 20]"
         />
 
         <LayoutGroup itemSpacings="16">
@@ -60,7 +59,6 @@
             text="SUBTITLES"
             font="font:SmallSystemFont"
             color="0xFFFFFFFF"
-            translation="[20, 20]"
           />
 
           <RadioButtonList
