@@ -59,7 +59,7 @@ sub onResponse(msg)
     m.http.asynccancel()
   else if (msg = invalid)
     ? "Http Task Failed: "; msg
-    m.top.response = ""
+    m.top.response = "{ error_type: 'NETWORK_ERROR', error_message: 'Network Error' }"
     m.http.asynccancel()
   end if
 end sub
