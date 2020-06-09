@@ -5,6 +5,7 @@
 	<interface>
     <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
+		<field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
 
 	<children>
@@ -44,14 +45,16 @@
         id="poster"
         width="720"
         height="480"
+        loadingBitmapUri="pkg:/images/Splash-Blank-SD.png"
+        failedBitMapUri="pkg:/images/Splash-Blank-SD.png"
       />
 
       <LayoutGroup itemSpacings="84">
         <Poster
           id="button-play"
           uri="pkg:/images/PlayButtonFocused.png"
-          width="310"
-          height="142"
+          width="312"
+          height="140"
         />
 
         <LayoutGroup itemSpacings="16">
