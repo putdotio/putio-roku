@@ -91,7 +91,8 @@ sub onGoBack()
   m.top.navigate = {
     id: "videoScreen",
     params: {
-      file: m.top.params.file,
+      fileId: m.top.params.file.id,
+      fileName: m.top.params.file.name,
     }
   }
 end sub

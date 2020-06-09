@@ -1,13 +1,12 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
 
+  m.content = m.top.findNode("content")
   m.playButton = m.top.findNode("button-play")
   m.nextVideoContainer = m.top.findNode("next-video")
   m.nextVideoLabel = m.top.findNode("next-video-label")
-  m.spinner = m.top.findNode("spinner")
-  m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
-  m.message = m.top.findNode("message")
   m.subtitleList = m.top.findNode("subtitleList")
+  m.subtitleList.observeField("itemSelected", "onSubtitleSelected")
 
   m.file = {}
   m.subtitles = []
@@ -17,32 +16,33 @@ function init()
     subtitles: []
   }
 
+  m.fetchFileTask = createObject("roSGNode", "HttpTask")
   m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
   m.findNextVideoTask = createObject("roSGNode", "HttpTask")
   m.fetchNextVideoTask = createObject("roSGNode", "HttpTask")
   m.fetchNextVideoSubtitlesTask = createObject("roSGNode", "HttpTask")
 end function
 
-sub onVisibleChange(obj)
+sub onVisibleChange()
   if m.top.visible
-    onMount(m.top.params.file)
+    onMount()
   else
-    ' cancelHttpTasks()
+    cancelHttpTasks()
   end if
 end sub
 
-sub onMount(file)
-  focusPlayButton()
+sub onMount()
+  setTitle(m.top.params.fileName)
 
-  if m.file.id <> file.id
-    m.file = file
-    setTitle(m.file.name)
-    fetchSubtitles()
-    findNextVideo(m.file.id)
+  if m.file.id <> m.top.params.fileId
+    m.content.visible = "false"
+    fetchFile(m.top.params.fileId)
+    findNextVideo(m.top.params.fileId)
   end if
 end sub
 
 sub cancelHttpTasks()
+  m.fetchFileTask.unobserveField("response")
   m.fetchSubtitlesTask.unobserveField("response")
   m.findNextVideoTask.unobserveField("response")
   m.fetchNextVideoTask.unobserveField("response")
@@ -51,10 +51,28 @@ end sub
 
 
 ''' API
-sub fetchSubtitles()
-  resetSubtitles()
+sub fetchFile(fileId)
+  m.fetchFileTask.observeField("response", "onFetchFileResponse")
+  m.fetchFileTask.url = ("/files/list?parent_id=" + parentId.toStr() + "?mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
+  m.fetchFileTask.method = "GET"
+  m.fetchFileTask.control = "RUN"
+end sub
+
+sub onFetchFileResponse(obj)
+  m.fetchFileTask.unobserveField("response")
+  data = parseJSON(obj.getData())
+
+  if data <> invalid and data.parent <> invalid
+    m.file = data.parent
+    fetchSubtitles(m.top.params.fileId)
+  else
+    ' showFetchFilesErrorDialog(data)
+  end if
+end sub
+
+sub fetchSubtitles(fileId)
   m.fetchSubtitlesTask.observeField("response", "onFetchSubtitlesResponse")
-  m.fetchSubtitlesTask.url = ("/files/" + m.file.id.toStr() + "/subtitles")
+  m.fetchSubtitlesTask.url = ("/files/" + fileId.toStr() + "/subtitles")
   m.fetchSubtitlesTask.method = "GET"
   m.fetchSubtitlesTask.control = "RUN"
 end sub
@@ -67,7 +85,7 @@ sub onFetchSubtitlesResponse(obj)
     m.subtitles = data.subtitles
   end if
 
-  setSubtitles(m.subtitles)
+  render()
 end sub
 
 sub findNextVideo(fileId)
@@ -138,6 +156,34 @@ sub setTitle(title)
   m.top.findNode("overhang").title = title
 end sub
 
+sub render()
+  setTitle(m.file.name)
+  renderSubtitles()
+  m.content.visible = "true"
+  focusPlayButton()
+end sub
+
+sub renderSubtitles()
+  content = createObject("roSGNode", "ContentNode")
+
+  noSelectionItem = content.createChild("ContentNode")
+  noSelectionItem.title = "Don’t you dare load any subtitles!"
+
+  for each subtitle in m.subtitles
+    listItemData = content.createChild("ContentNode")
+    listItemData.title = subtitle.language + " — " + subtitle.name
+  end for
+
+  if m.subtitles[0] <> invalid
+    m.subtitleList.checkedItem = 1
+  else
+    m.subtitleList.checkedItem = 0
+  end if
+
+  m.subtitleList.visible = "true"
+  m.subtitleList.content = content
+end sub
+
 sub resetNextVideo()
   m.nextVideo = {
     status: "IDLE",
@@ -154,60 +200,6 @@ sub setNextVideo()
   else
     m.nextVideoLabel.text = "Could not find anything to play :("
   end if
-end sub
-
-sub setSubtitles(subtitles)
-  hideSpinner()
-  hideMessage()
-
-  content = createObject("roSGNode", "ContentNode")
-
-  noSelectionItem = content.createChild("ContentNode")
-  noSelectionItem.title = "Don’t you dare load any subtitles!"
-
-  for each subtitle in subtitles
-    listItemData = content.createChild("ContentNode")
-    listItemData.title = subtitle.language + " — " + subtitle.name
-  end for
-
-  if subtitles[0] <> invalid
-    m.subtitleList.checkedItem = 1
-  else
-    m.subtitleList.checkedItem = 0
-  end if
-
-  m.subtitleList.visible = "true"
-  m.subtitleList.content = content
-  m.subtitleList.observeField("itemSelected", "onSubtitleSelected")
-end sub
-
-sub resetSubtitles()
-  showSpinner()
-  showMessage("Loading")
-
-  m.subtitles = []
-  m.subtitleList.checkedItem = 0
-  m.subtitleList.visible = "false"
-  m.subtitleList.unobserveField("itemSelected")
-end sub
-
-sub showSpinner()
-  m.spinner.visible = "true"
-  m.spinnerAnimation.control = "start"
-end sub
-
-sub hideSpinner()
-  m.spinner.visible = "false"
-  m.spinnerAnimation.control = "stop"
-end sub
-
-sub showMessage(text)
-  m.message.visible = "true"
-  m.message.text = text
-end sub
-
-sub hideMessage()
-  m.message.visible = "false"
 end sub
 
 sub focusPlayButton()
@@ -261,10 +253,8 @@ sub onNextVideo()
   m.file = m.nextVideo.file
   m.subtitles = m.nextVideo.subtitles
   unfocusNextVideo()
-  setTitle(m.file.name)
-  setSubtitles(m.subtitles)
   findNextVideo(m.file.id)
-  focusPlayButton()
+  render()
 end sub
 
 sub onGoBack()
