@@ -83,6 +83,26 @@ sub setTitle(title)
   m.top.findNode("overhang").title = title
 end sub
 
+sub configurePlayButtonImage()
+  if m.playButton.hasFocus()
+    if m.file.need_convert
+      m.playButton.uri = "pkg:/images/ConvertButtonFocused.png"
+      m.playButton.width = "714"
+    else
+      m.playButton.uri = "pkg:/images/PlayButtonFocused.png"
+      m.playButton.width = "312"
+    end if
+  else
+    if m.file.need_convert
+      m.playButton.uri = "pkg:/images/ConvertButtonUnfocused.png"
+      m.playButton.width = "714"
+    else
+      m.playButton.uri = "pkg:/images/PlayButtonUnfocused.png"
+      m.playButton.width = "312"
+    end if
+  end if
+end sub
+
 sub showLoading()
   m.top.findNode("loading").visible = "true"
 end sub
@@ -123,12 +143,12 @@ end sub
 
 sub focusPlayButton()
   m.playButton.setFocus(true)
-  m.playButton.uri = "pkg:/images/PlayButtonFocused.png"
+  configurePlayButtonImage()
 end sub
 
 sub unfocusPlaybutton()
   m.playButton.setFocus(false)
-  m.playButton.uri = "pkg:/images/PlayButtonUnfocused.png"
+  configurePlayButtonImage()
 end sub
 
 ''' Error Dialog

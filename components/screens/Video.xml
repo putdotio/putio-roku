@@ -23,16 +23,8 @@
 
     <LoadingIndicator
       id="loading"
-      clockwise="false"
-      spinInterval="4"
-      text="Loading"
-      spacing="60"
       imageWidth="120"
       imageHeight="120"
-      centered="true"
-      font="font:LargeSystemFont"
-      backgroundOpacity="0"
-      height="240"
     />
 
     <LayoutGroup
@@ -60,7 +52,7 @@
         <LayoutGroup itemSpacings="16">
           <Label
             text="SUBTITLES"
-            font="font:SmallSystemFont"
+            font="font:SmallestSystemFont"
             color="0xFFFFFFFF"
           />
 

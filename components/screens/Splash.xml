@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SplashScreen" extends="Group">
   <children>
-    <Poster
-      id="splash"
-      uri="pkg:/images/Splash-$$RES$$.jpg"
+    <LoadingIndicator
+      id="loading"
+      imageWidth="120"
+      imageHeight="120"
     />
   </children>
 </component>

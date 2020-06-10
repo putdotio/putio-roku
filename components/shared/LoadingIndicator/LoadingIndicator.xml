@@ -40,7 +40,7 @@ Sample:
 <!--     If true, animate image in imageUri field clockwise, otherwise counter-clockwise. -->
     <field id="clockwise" type="bool" value="true" onChange="changeRotationDirection"/>
 <!--     If set, time in seconds it take for one complete image rotation.  -->
-    <field id="spinInterval" type="time" alias="rotationAnimation.duration" value="3"/>
+    <field id="spinInterval" type="time" alias="rotationAnimation.duration" value="2"/>
 <!--     If true, component is centered on the parent component. This overrides the translation field settings.
          If false, translation positions the component. Note that you must set desired translation AFTER setting
          this to false, otherwise component might be centered. -->
@@ -50,7 +50,7 @@ Sample:
 <!--     Background image. If set, backgroundColor is ignored. -->
     <field id="backgroundUri" type="string" onChange="onBackgroundImageChange"/>
 <!--     Opacity of the background. To remove background, this should be set to 0. -->
-    <field id="backgroundOpacity" type="float" alias="background.opacity" value="0.4" onChange="onBackgroundOpacityChange"/>
+    <field id="backgroundOpacity" type="float" alias="background.opacity" value="0" onChange="onBackgroundOpacityChange"/>
 <!--     Loading/message text, if used. -->
     <field id="text" type="string" alias="text.text" onChange="onTextChange"/>
 <!--     Color of the text. -->
