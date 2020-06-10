@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="VideoPlayerScreen" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayer.brs" />
 
 	<interface>
     <field id="params" type="assocarray" />
