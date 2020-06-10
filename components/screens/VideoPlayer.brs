@@ -59,6 +59,8 @@ sub onPlayerStateChanged(obj)
 end sub
 
 sub onError()
+  ? "Video Error: " + m.video.errorMsg
+  ? "Video Error Code: " + m.video.errorCode.toStr()
   m.errorDialog = createObject("roSGNode", "Dialog")
   m.errorDialog.title = "Video Error"
   m.errorDialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
@@ -98,11 +100,9 @@ sub onGoBack()
 end sub
 
 function onKeyEvent(key, press)
-  if m.top.visible and press
-    if key = "back"
-      onGoBack()
-      return true
-    end if
+  if m.top.visible and press and key = "back"
+    onGoBack()
+    return true
   end if
 
   return false
