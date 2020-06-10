@@ -71,7 +71,6 @@
             focusedColor="0xFFFFFFFF"
             focusBitmapBlendColor="0x00000FF"
             itemSize="[720, 96]"
-            checkedIconUri="pkg:/images/icons/checkmark.png"
             focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
             vertFocusAnimationStyle="floatingFocus"
             numRows="6"
