@@ -46,8 +46,7 @@
 				<Poster
 					id="watchedEye"
 					width="50"
-					height="50"
-					loadDisplayMode="scaleToFit"
+					height="33"
 					uri="pkg:/images/icons/eye.png"
 					visible="false"
 				/>
