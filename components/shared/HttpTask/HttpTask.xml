@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HttpTask" extends="task">
-  <script type="text/brightscript" uri="pkg:/components/tasks/Http.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/HttpTask/HttpTask.brs" />
 
   <interface>
     <field id="url" type="string" />
