@@ -87,7 +87,7 @@ sub configurePlayButtonImage()
   if m.playButton.hasFocus()
     if m.file.need_convert
       m.playButton.uri = "pkg:/images/ConvertButtonFocused.png"
-      m.playButton.width = "714"
+      m.playButton.width = "430"
     else
       m.playButton.uri = "pkg:/images/PlayButtonFocused.png"
       m.playButton.width = "312"
@@ -95,7 +95,7 @@ sub configurePlayButtonImage()
   else
     if m.file.need_convert
       m.playButton.uri = "pkg:/images/ConvertButtonUnfocused.png"
-      m.playButton.width = "714"
+      m.playButton.width = "430"
     else
       m.playButton.uri = "pkg:/images/PlayButtonUnfocused.png"
       m.playButton.width = "312"
