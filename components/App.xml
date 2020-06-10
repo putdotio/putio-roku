@@ -20,7 +20,7 @@
       translation="[0, 0]"
     />
 
-    <FileListScreen
+    <FilesScreen
       id="filesScreen"
       visible="false"
       translation="[0, 0]"

@@ -201,7 +201,7 @@ end sub
 
 sub onGoBack()
   m.top.navigate = {
-    id: "fileListScreen",
+    id: "filesScreen",
     params: {
       fileId: m.top.params.fileId,
       focusFileId: m.top.params.fileId,
