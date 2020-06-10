@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="ErrorDialog" extends="Dialog">
+  <interface>
+    <field id="error" type="assocarray" onChange="onErrorChange" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/ErrorDialog/ErrorDialog.brs" />
+</component>
