@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="VideoConversionDialog" extends="Dialog">
+  <interface>
+    <field id="fileId" type="integer" />
+    <field id="convertedFile" type="assocarray" value="" />
+    <field id="completed" type="bool" value="false" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/VideoConversionDialog/VideoConversionDialog.brs" />
+</component>

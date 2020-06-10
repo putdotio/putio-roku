@@ -7,6 +7,7 @@ function init()
   m.playButton = m.top.findNode("button-play")
   m.subtitleList = m.top.findNode("subtitleList")
   m.subtitleList.observeField("itemSelected", "onSubtitleSelected")
+  m.videoConversionDialog = m.top.findNode("videoConversionDialog")
 
   m.fetchFileTask = createObject("roSGNode", "HttpTask")
   m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
@@ -36,7 +37,6 @@ sub cancelHttpTasks()
   m.fetchFileTask.unobserveField("response")
   m.fetchSubtitlesTask.unobserveField("response")
 end sub
-
 
 ''' API
 sub fetchFile(fileId)
@@ -158,7 +158,19 @@ sub onSubtitleSelected()
   onPlay()
 end sub
 
+sub onVideoConversionCompleted()
+  m.file = m.videoConversionDialog.convertedFile
+  onPlay()
+end sub
+
 sub onPlay()
+  if m.file.need_convert
+    m.videoConversionDialog.fileId = m.top.params.fileId
+    m.videoConversionDialog.visible = "true"
+    m.videoConversionDialog.observeField("completed", "onVideoConversionCompleted")
+    return
+  end if
+
   if m.subtitles[m.subtitleList.checkedItem] <> invalid
     selectedSubtitle = m.subtitles[m.subtitleList.checkedItem]
   else
@@ -186,6 +198,11 @@ end sub
 
 function onKeyEvent(key, press)
   if m.top.visible and press
+    if m.videoConversionDialog.visible
+      m.videoConversionDialog.visible = "false"
+      return true
+    end if
+
     if key = "back"
       onGoBack()
       return true
