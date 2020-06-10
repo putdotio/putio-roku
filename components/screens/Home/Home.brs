@@ -8,10 +8,12 @@ function init()
     {
       key: "files",
       title: "Your Files",
+      iconName: "file_type_folder"
     },
     {
       key: "settings"
       title: "Settings"
+      iconName: "settings"
     }
   ]
 
@@ -32,6 +34,7 @@ sub renderList()
     listItemData = content.createChild("ListItemData")
     listItemData.key = item.key
     listItemData.title = item.title
+    listItemData.iconName = item.iconName
   end for
 
   m.list.content = content

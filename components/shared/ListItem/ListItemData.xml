@@ -3,7 +3,7 @@
   <interface>
     <field id="data" type="assocarray" />
     <field id="key" type="string" />
-    <field id="iconUri" type="string" />
+    <field id="iconName" type="string" />
     <field id="title" type="string" />
     <field id="description" type="string" />
   </interface>

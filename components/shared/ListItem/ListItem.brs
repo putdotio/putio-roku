@@ -5,22 +5,20 @@ function init()
 end function
 
 sub itemContentChanged()
-  setIcon()
-  setTitle()
-  setDescription()
+  configureIcon()
+  configureTitle()
+  configureDescription()
 end sub
 
-sub setIcon()
-  if m.top.itemContent.iconUri <> invalid
-    m.icon.uri = m.top.itemContent.iconUri
-  end if
+sub configureIcon()
+  m.icon.uri = "pkg:/images/icons/" + m.top.itemContent.iconName + ".png"
 end sub
 
-sub setTitle()
+sub configureTitle()
   m.title.text = m.top.itemContent.title
 end sub
 
-sub setDescription()
+sub configureDescription()
   if m.top.itemContent.description <> invalid
     m.description.text = m.top.itemContent.description
   end if

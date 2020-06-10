@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="ListItem" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/shared/ListItem.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/ListItem/ListItem.brs" />
 
 	<interface>
  		<field id="itemContent" type="node" onChange="itemContentChanged" />
@@ -10,29 +10,28 @@
 		<LayoutGroup
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[0, 60]"
+			translation="[0, 55]"
 			itemSpacings="32"
 		>
 			<Poster
 				id="icon"
-				width="0"
-				height="0"
+				width="50"
+				height="50"
 				loadDisplayMode="scaleToFit"
 				uri="pkg:/images/Spinner.png"
-        visible="false"
 			/>
 
-      <Label
-        id="title"
-        font="font:MediumBoldSystemFont"
-        color="0xFFFFFFFF"
-      />
+			<Label
+				id="title"
+				font="font:MediumBoldSystemFont"
+				color="0xFFFFFFFF"
+			/>
 
-      <Label
-        id="description"
-        font="font:SmallestSystemFont"
-        color="0xFFFFFFFF"
-      />
+			<Label
+				id="description"
+				font="font:SmallSystemFont"
+				color="0xFFFFFFFF"
+			/>
 		</LayoutGroup>
 	</children>
 </component>

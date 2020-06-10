@@ -1,25 +1,29 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
-  m.settingsList = m.top.findNode("settingsList")
-  m.settingsList.observeField("itemSelected", "onListItemSelected")
-  appInfo = createObject("roAppInfo")
+
+  m.list = m.top.findNode("settingsList")
+  m.list.observeField("itemSelected", "onListItemSelected")
+
   m.items = [
     {
       key: "version",
       title: "Version",
-      description: appInfo.GetVersion()
+      description: createObject("roAppInfo").GetVersion(),
+      iconName: "info"
     },
     {
-      key: "logout"
-      title: "Logout"
+      key: "logout",
+      title: "Logout",
+      iconName: "logout"
     }
   ]
+
   renderList()
 end function
 
 sub onVisibleChange()
   if m.top.visible
-    m.settingsList.setFocus(true)
+    m.list.setFocus(true)
   end if
 end sub
 
@@ -31,16 +35,17 @@ sub renderList()
     listItemData = content.createChild("ListItemData")
     listItemData.key = item.key
     listItemData.title = item.title
+    listItemData.iconName = item.iconName
     if item.description <> invalid
       listItemData.description = item.description
     end if
   end for
 
-  m.settingsList.content = content
+  m.list.content = content
 end sub
 
 sub onListItemSelected(obj)
-  key = m.settingsList.content.getChild(obj.getData()).key
+  key = m.list.content.getChild(obj.getData()).key
 
   if key = "logout"
     storage = CreateObject("roRegistrySection", "user")
