@@ -4,7 +4,7 @@
 
   <interface>
 		<field id="params" type="assocarray" />
-    <field id="token" type="string" />
+    <field id="token" type="string" value="" />
 		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
   </interface>
 
@@ -12,8 +12,8 @@
 		<LayoutGroup
 			layoutDirection="vert"
 			horizAlignment="center"
-			translation="[960, 140]"
-			itemSpacings="120"
+			translation="[960, 120]"
+			itemSpacings="96"
 		>
 			<Poster
 				id="welcome"
@@ -27,26 +27,48 @@
         id="description"
         font="font:MediumSystemFont"
         color="0xFFFFFFFF"
-				text="Please go to put.io/link and activate your device by using the code below"
+				width="1280"
+				text="Please go to [put.io/link] in your web browser or navigate to [Settings -> Link your device] section of Putio iOS app and activate this device with the following code"
+				wrap="true"
+				horizAlign="center"
+				vertAlign="center"
+				lineSpacing="20.0"
       />
 
-			<Group>
-				<Rectangle
-					color="0x000000FF"
-					width="360"
-					height="120"
-				/>
+			<LayoutGroup
+				layoutDirection="vert"
+				horizAlignment="center"
+				itemSpacings="20"
+			>
+				<Group>
+					<Rectangle
+						color="0x000000FF"
+						width="360"
+						height="120"
+					/>
+
+					<Label
+						id="code"
+						text="Loading..."
+						font="font:LargeBoldSystemFont"
+						width="360"
+						height="120"
+						horizAlign="center"
+						vertAlign="center"
+					/>
+				</Group>
 
 				<Label
-					id="code"
-					text="Loading..."
-					font="font:LargeBoldSystemFont"
-					width="360"
-					height="120"
+					id="message"
+					text=""
+					width="960"
+					wrap="true"
 					horizAlign="center"
 					vertAlign="center"
+					lineSpacing="10.0"
+					font="font:SmallSystemFont"
 				/>
-			</Group>
+			</LayoutGroup>
 		</LayoutGroup>
 	</children>
 </component>

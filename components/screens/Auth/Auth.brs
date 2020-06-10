@@ -1,9 +1,13 @@
 function init()
-  m.top.token = ""
-  m.code = ""
-  m.label = m.top.findNode("code")
   m.top.observeField("visible", "onVisibleChange")
-  m.shouldCheckCodeMatch = false
+
+  m.codeLabel = m.top.findNode("code")
+  m.messageLabel = m.top.findNode("message")
+  m.code = ""
+
+  m.timer = createObject("roSGNode", "Timer")
+  m.timer.duration = 2
+  m.timer.observeField("fire", "onTimerFired")
 end function
 
 sub onVisibleChange()
@@ -14,6 +18,7 @@ end sub
 
 sub getAuthCode()
 	deviceInfo = createObject("roDeviceInfo")
+  m.code = ""
   m.getCodeTask = createObject("roSGNode", "HttpTask")
   m.getCodeTask.observeField("response", "onAuthCodeResponse")
   m.getCodeTask.url = "/oauth2/oob/code?app_id=" + m.global.appId + "&client_name=" + deviceInfo.getFriendlyName().EncodeUri()
@@ -23,44 +28,43 @@ end sub
 sub onAuthCodeResponse(obj)
   m.getCodeTask.unobserveField("response")
   data = parseJSON(obj.getData())
-  m.code = data.code
-  m.label.text = m.code
-  m.shouldCheckCodeMatch = true
+
+  if data.code <> invalid
+    m.code = data.code
+    m.codeLabel.text = data.code
+    checkCodeMatch()
+  else
+    m.codeLabel.text = "Error!"
+    m.messageLabel.text = "An error occurred while getting the authentication code, please restart the app and try again."
+  end if
+end sub
+
+sub onTimerFired()
   checkCodeMatch()
 end sub
 
 sub checkCodeMatch()
-  if m.shouldCheckCodeMatch = true
-    sleep(1500)
-    m.checkCodeTask = createObject("roSGNode", "HttpTask")
-    m.checkCodeTask.observeField("response", "onCheckCodeMatchResponse")
-    m.checkCodeTask.url = ("/oauth2/oob/code/" + m.code)
-    m.checkCodeTask.control = "RUN"
-  end if
+  m.checkCodeTask = createObject("roSGNode", "HttpTask")
+  m.checkCodeTask.observeField("response", "onCheckCodeMatchResponse")
+  m.checkCodeTask.url = ("/oauth2/oob/code/" + m.code)
+  m.checkCodeTask.control = "RUN"
 end sub
 
 sub onCheckCodeMatchResponse(obj)
   m.checkCodeTask.unobserveField("response")
   data = parseJSON(obj.getData())
-  token = data.oauth_token
 
-  if token <> invalid
-    m.top.token = token
-    m.shouldCheckCodeMatch = false
+  if data.oauth_token <> invalid
+    m.top.token = data.oauth_token
   else
-    checkCodeMatch()
+    m.timer.control = "start"
   end if
 end sub
 
 function onKeyEvent(key, press)
-  if m.top.visible and press
-    if key = "back"
-      m.shouldCheckCodeMatch = false
-      m.top.showExitAppDialog = true
-      return true
-    end if
-
-    return false
+  if m.top.visible and press and key = "back"
+    m.top.showExitAppDialog = true
+    return true
   end if
 
   return false
