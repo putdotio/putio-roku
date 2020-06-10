@@ -45,15 +45,8 @@ end sub
 
 ''' Error Dialog
 sub showFetchFilesErrorDialog(data)
-  m.fetchFilesErrorDialog = createObject("roSGNode", "Dialog")
-  m.fetchFilesErrorDialog.title = "Oops, an error occurred :("
-
-  if data.error_type = "NotFound"
-    m.fetchFilesErrorDialog.message =  "File not found."
-  else
-    m.fetchFilesErrorDialog.message =  data.error_message
-  end if
-
+  m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
+  m.fetchFilesErrorDialog.error = data
   m.fetchFilesErrorDialog.observeField("wasClosed", "onFetchFilesErrorDialogClosed")
   m.top.showDialog = fetchFilesErrorDialog
 end sub
