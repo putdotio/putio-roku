@@ -1,6 +1,8 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
   m.video = m.top.findNode("video")
+  m.startFromMap = {}
+  m.startFrom = 0
 end function
 
 sub onVisibleChange()
@@ -40,12 +42,25 @@ sub setupPlayer()
   end if
 
   m.video.content = videoContent
-  m.video.control = "play"
 
-  if file.start_from > 0
-    m.video.seek = file.start_from
+  if m.startFromMap[file.id.toStr()] <> invalid
+    m.startFrom = m.startFromMap[file.id.toStr()]
+  else if file.start_from > 0
+    m.startFrom = file.start_from
+  else
+    m.startFrom = 0
   end if
 
+  if m.startFrom > 0
+    showChooseStartFromDialog()
+  else
+    startPlayback(0)
+  end if
+end sub
+
+sub startPlayback(time)
+  m.video.control = "play"
+  m.video.seek = time
   m.video.setFocus(true)
 end sub
 
@@ -57,6 +72,39 @@ sub onPlayerStateChanged(obj)
     onGoBack()
 	end if
 end sub
+
+sub showChooseStartFromDialog()
+  m.chooseStartFromDialog = createObject("roSGNode", "Dialog")
+  m.chooseStartFromDialog.title = "Where would you like to start?"
+  m.chooseStartFromDialog.buttons = [
+    "Continue watching from " + getDurationString(m.startFrom) + " of " + getDurationString(m.top.params.file.video_metadata.duration),
+    "Start from the beginning"
+  ]
+
+  m.chooseStartFromDialog.observeField("buttonSelected", "onChooseStartFromDialogButtonSelected")
+  m.chooseStartFromDialog.observeField("wasClosed", "onChooseStartFromDialogClosed")
+  m.top.showDialog = m.chooseStartFromDialog
+end sub
+
+sub onChooseStartFromDialogButtonSelected(obj)
+  m.chooseStartFromDialog.unobserveField("buttonSelected")
+  m.chooseStartFromDialog.close = "true"
+
+  if obj.getData() = 0
+    startPlayback(m.startFrom)
+  else
+    startPlayback(0)
+  end if
+end sub
+
+sub onChooseStartFromDialogClosed()
+  m.chooseStartFromDialog.unobserveField("wasClosed")
+
+  if m.video.control <> "play"
+    startPlayback(0)
+  end if
+end sub
+
 
 sub onError()
   ? "Video Error: " + m.video.errorMsg
@@ -80,6 +128,7 @@ end sub
 
 sub saveVideoTime(time)
   if time > 0
+    m.startFromMap[m.top.params.file.id.toStr()] = time
     m.setStartFromTask = createObject("roSGNode", "HttpTask")
     m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
     m.setStartFromTask.method = "POST"
@@ -107,3 +156,28 @@ function onKeyEvent(key, press)
 
   return false
 end function
+
+sub getDurationString(seconds) as String
+	datetime = CreateObject("roDateTime")
+	datetime.FromSeconds(seconds)
+
+	hours = datetime.GetHours().ToStr()
+	minutes = datetime.GetMinutes().ToStr()
+	seconds = datetime.GetSeconds().ToStr()
+
+	If Len( hours ) = 1 Then
+		hours = "0" + hours
+	End If
+	If Len( minutes ) = 1 Then
+		minutes = "0" + minutes
+	End If
+	If Len( seconds ) = 1 Then
+		seconds = "0" + seconds
+	End If
+
+	if hours <> "00"
+		return hours + ":" + minutes + ":" + seconds
+	else
+		return minutes + ":" + seconds
+	end if
+end sub
