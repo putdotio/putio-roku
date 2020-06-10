@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<component name="SettingsScreen" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/screens/Settings/Settings.brs" />
+<component name="HomeScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Home/Home.brs" />
 
 	<interface>
     <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
+		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
   </interface>
 
 	<children>
 		<Overhang
 			id="overhang"
 			showClock="false"
-      title="Settings"
 			logoUri="pkg:/images/OverhangLogo.png"
 			logoBaselineOffset="9"
 			showOptions="true"
@@ -21,9 +21,9 @@
 		/>
 
 		<MarkupList
-			id="settingsList"
-			itemComponentName="ListItem"
+			id="list"
 			translation="[190, 190]"
+			itemComponentName="ListItem"
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
 			focusBitmapBlendColor="0x00000FF"

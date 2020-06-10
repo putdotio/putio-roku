@@ -73,10 +73,8 @@ sub onUserInfoResponse(obj)
 	if data <> invalid and data.info <> invalid
     m.global.user = data.info
     m.global.route = {
-      id: "filesScreen",
-      params: {
-        fileId: 0,
-      }
+      id: "homeScreen",
+      params: {}
     }
   else
     goToAuthScreen()

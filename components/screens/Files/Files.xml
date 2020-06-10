@@ -6,7 +6,6 @@
     <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
 		<field id="showDialog" type="node" alwaysNotify="true" />
-		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
   </interface>
 
 	<children>
@@ -17,17 +16,19 @@
 			logoUri="pkg:/images/OverhangLogo.png"
 			logoBaselineOffset="9"
 			showOptions="true"
-			optionsAvailable="true"
-			optionsText="Settings"
+			optionsAvailable="false"
+			optionsText=""
 		/>
 
 		<MarkupList
 			id="fileList"
+			translation="[190, 190]"
 			itemComponentName="FileListItem"
-			translation="[210, 190]"
 			itemSize="[1500, 120]"
-			itemSpacing="[0, 40]"
+			itemSpacing="[0, 30]"
 			focusBitmapBlendColor="0x00000FF"
+			vertFocusAnimationStyle="floatingFocus"
+			numRows="6"
 		/>
 	</children>
 </component>

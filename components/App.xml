@@ -20,6 +20,12 @@
       translation="[0, 0]"
     />
 
+    <HomeScreen
+      id="homeScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
     <FilesScreen
       id="filesScreen"
       visible="false"
