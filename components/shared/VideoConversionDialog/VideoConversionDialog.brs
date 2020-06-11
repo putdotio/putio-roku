@@ -16,7 +16,6 @@ sub onFileIdChange()
 end sub
 
 sub startConversion()
-  m.top.completed = "false"
   m.startConversionTask.observeField("response", "onStartConversionResponse")
   m.startConversionTask.url = ("/files/" + m.top.fileId.toStr() + "/mp4")
   m.startConversionTask.method = "POST"
@@ -74,7 +73,7 @@ end sub
 
 sub refetchConvertedFile()
   m.fetchFileTask.observeField("response", "onFetchFileResponse")
-  m.fetchFileTask.url = ("/files/list?parent_id=" + m.top.fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1")
+  m.fetchFileTask.url = ("/files/list?parent_id=" + m.top.fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1&video_metadata_parent=1")
   m.fetchFileTask.method = "GET"
   m.fetchFileTask.control = "RUN"
 end sub
