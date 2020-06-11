@@ -2,7 +2,7 @@
 
 <component name="VideoConversionDialog" extends="Dialog">
   <interface>
-    <field id="fileId" type="integer" />
+    <field id="fileId" type="integer" onChange="onFileIdChange" />
     <field id="convertedFile" type="assocarray" value="" />
     <field id="completed" type="bool" value="false" />
   </interface>

@@ -72,10 +72,5 @@
         </LayoutGroup>
       </LayoutGroup>
     </LayoutGroup>
-
-    <VideoConversionDialog
-      id="videoConversionDialog"
-      visible="false"
-    />
 	</children>
 </component>

@@ -1,5 +1,4 @@
 sub init()
-  m.top.observeField("visible", "onVisibleChange")
   m.startConversionTask = createObject("roSGNode", "HttpTask")
   m.checkConversionTask = createObject("roSGNode", "HttpTask")
   m.fetchFileTask = createObject("roSGNode", "HttpTask")
@@ -9,18 +8,11 @@ sub init()
   m.timer.observeField("fire", "onTimerFired")
 end sub
 
-sub onVisibleChange()
-  if m.top.visible
-    m.top.convertedFile = {}
-    m.top.title = "Converting to MP4"
-    m.top.message = "Status: Starting..."
-    startConversion()
-  else
-    m.timer.control = "stop"
-    m.startConversionTask.unobserveField("response")
-    m.checkConversionTask.unobserveField("response")
-    m.fetchFileTask.unobserveField("response")
-  end if
+sub onFileIdChange()
+  m.top.convertedFile = {}
+  m.top.title = "Converting to MP4"
+  m.top.message = "Status: Starting..."
+  startConversion()
 end sub
 
 sub startConversion()
@@ -94,7 +86,7 @@ sub onFetchFileResponse(obj)
   if data <> invalid and data.parent <> invalid
     m.top.convertedFile = data.parent
     m.top.completed = "true"
-    m.top.visible = "false"
+    m.top.close = "true"
   else
     m.top.message = "Status: ERROR"
   end if
