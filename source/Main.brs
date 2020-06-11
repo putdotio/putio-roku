@@ -16,7 +16,10 @@ sub Main()
   scene = screen.CreateScene("App")
   scene.backgroundColor="0x333333FF"
   scene.backgroundUri = ""
+
   screen.show()
+
+  scene.signalBeacon("AppLaunchComplete")
   scene.observeField("exitApp", m.port)
 
   while(true)

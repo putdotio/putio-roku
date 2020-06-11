@@ -2,11 +2,11 @@
 title=Put.io
 major_version=2
 minor_version=5
-build_version=00010
+build_version=00011
 
 ##   Channel Assets
 ###  Main Menu Icons / Channel Poster Artwork
-#### Image sizes are FHD: 540x405px | HD: 290x218px | SD: 214x144px
+#### Image sizes are FHD: 540x405px | HD: 290x218px | SD: 246x140px
 mm_icon_focus_fhd=pkg:/images/channel-poster_fhd.png
 mm_icon_focus_hd=pkg:/images/channel-poster_hd.png
 mm_icon_focus_sd=pkg:/images/channel-poster_sd.png
@@ -22,3 +22,6 @@ splash_rsg_optimization=1
 
 ui_resolutions=fhd
 uri_resolution_autosub=$$RES$$,SD,HD,FHD
+
+### Extra Properties
+supports_input_launch=1
