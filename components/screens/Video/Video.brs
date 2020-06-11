@@ -160,7 +160,7 @@ end sub
 
 sub onFetchFileErrorDialogClosed()
   m.fetchFileErrorDialog.unobserveField("wasClosed")
-  onGoBack()
+  m.top.navigateBack = "true"
 end sub
 
 ''' Video Conversion Dialog
