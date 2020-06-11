@@ -20,6 +20,12 @@
 			optionsText=""
 		/>
 
+		<LoadingIndicator
+      id="loading"
+      imageWidth="120"
+      imageHeight="120"
+    />
+
 		<MarkupList
 			id="fileList"
 			translation="[190, 190]"

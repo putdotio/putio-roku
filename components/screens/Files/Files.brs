@@ -15,11 +15,17 @@ sub onVisibleChange()
     m.fileList.setFocus(true)
 
     if m.top.params.fileId = 0
-      fetchFiles(0)
+      fetchWithLoader(0)
     end if
   else
     m.fetchFilesTask.unobserveField("response")
   end if
+end sub
+
+sub fetchWithLoader(fileId)
+  hideFileList()
+  showLoading()
+  fetchFiles(fileId)
 end sub
 
 sub fetchFiles(parentId)
@@ -37,27 +43,22 @@ sub onFetchFilesResponse(obj)
   if data <> invalid and data.files <> invalid
     m.parent = data.parent
     m.files = data.files
-    renderFileList()
+    showFileList()
   else
     showFetchFilesErrorDialog(data)
   end if
 end sub
 
-''' Error Dialog
-sub showFetchFilesErrorDialog(data)
-  m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
-  m.fetchFilesErrorDialog.error = data
-  m.fetchFilesErrorDialog.observeField("wasClosed", "onFetchFilesErrorDialogClosed")
-  m.top.showDialog = fetchFilesErrorDialog
+''' UI
+sub showLoading()
+  m.top.findNode("loading").visible = "true"
 end sub
 
-sub onFetchFilesErrorDialogClosed()
-  m.fetchFilesErrorDialog.unobserveField("wasClosed")
-  m.fileList.setFocus(true)
+sub hideLoading()
+  m.top.findNode("loading").visible = "false"
 end sub
 
-''' FileList Render
-sub renderFileList()
+sub showFileList()
   overhang = m.top.findNode("overhang")
   overhang.title = m.parent.name
 
@@ -76,12 +77,19 @@ sub renderFileList()
     forIndex = forIndex + 1
   end for
 
+  m.fileList.visible = "true"
   m.fileList.content = content
 
   if not focusIndex = 0
     m.fileList.jumpToItem = focusIndex
   end if
+
+  hideLoading()
  end sub
+
+sub hideFileList()
+  m.fileList.visible = "false"
+end sub
 
 sub onFileSelected(obj)
   fileListItem = m.fileList.content.getChild(obj.getData())
@@ -101,6 +109,19 @@ sub onFileSelected(obj)
   else
     showFileNotSupportedDialog()
   end if
+end sub
+
+''' Error Dialog
+sub showFetchFilesErrorDialog(data)
+  m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
+  m.fetchFilesErrorDialog.error = data
+  m.fetchFilesErrorDialog.observeField("wasClosed", "onFetchFilesErrorDialogClosed")
+  m.top.showDialog = fetchFilesErrorDialog
+end sub
+
+sub onFetchFilesErrorDialogClosed()
+  m.fetchFilesErrorDialog.unobserveField("wasClosed")
+  m.fileList.setFocus(true)
 end sub
 
 ''' File Not Supported Dialog
