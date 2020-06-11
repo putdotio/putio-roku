@@ -5,6 +5,7 @@
 	<interface>
     <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
+		<field id="navigateBack" type="bool" alwaysNotify="true" />
   </interface>
 
 	<children>

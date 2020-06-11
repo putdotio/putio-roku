@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SearchScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Search/Search.brs" />
+
+	<interface>
+    <field id="params" type="assocarray" />
+		<field id="navigate" type="assocarray" />
+		<field id="navigateBack" type="bool" alwaysNotify="true" />
+		<field id="showDialog" type="node" alwaysNotify="true" />
+  </interface>
+
+	<children>
+		<Overhang
+			id="overhang"
+			showClock="false"
+			logoUri="pkg:/images/OverhangLogo.png"
+			logoBaselineOffset="9"
+      title="Search"
+			showOptions="true"
+			optionsAvailable="false"
+			optionsDimColor="0x00000000"
+			optionsIconDimColor="0x00000000"
+		/>
+
+    <LayoutGroup
+      translation="[180, 180]"
+			layoutDirection="horiz"
+			vertAlignment="top"
+			itemSpacings="20"
+    >
+			<LayoutGroup
+				layoutDirection="vert"
+				horizAlignment="center"
+				itemSpacings="20"
+			>
+				<MiniKeyboard id="keyboard" />
+
+				<LoadingIndicator
+					id="loading"
+					imageWidth="50"
+					imageHeight="50"
+					width="280"
+					height="70"
+					visible="false"
+				/>
+			</LayoutGroup>
+
+			<MarkupList
+				id="list"
+				itemComponentName="FileListItem"
+				itemSize="[960, 120]"
+				itemSpacing="[0, 30]"
+				focusBitmapBlendColor="0x00000FF"
+				vertFocusAnimationStyle="floatingFocus"
+				numRows="6"
+			/>
+    </LayoutGroup>
+	</children>
+</component>

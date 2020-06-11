@@ -1,7 +1,7 @@
 include .env
 
 APPNAME = Put.io
-VERSION = 2.4
+VERSION = 2.5
 
 ZIP_EXCLUDE= -x \*.pkg -x storeassets\* -x keys\* -x \*/.\*
 

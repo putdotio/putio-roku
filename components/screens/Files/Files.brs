@@ -14,8 +14,8 @@ sub onVisibleChange()
   if m.top.visible
     m.fileList.setFocus(true)
 
-    if m.top.params.fileId = 0
-      fetchWithLoader(0)
+    if m.parent.id <> m.top.params.fileId
+      fetchWithLoader(m.top.params.fileId)
     end if
   else
     m.fetchFilesTask.unobserveField("response")
@@ -99,6 +99,11 @@ sub onFileSelected(obj)
     fileListItem.isLoading = true
     fetchFiles(file.id)
   else if file.file_type = "VIDEO"
+    m.top.params = {
+      fileId: m.parent.id,
+      focusFileId: file.id,
+    }
+
     m.top.navigate = {
       id: "videoScreen",
       params: {
@@ -162,10 +167,7 @@ function onKeyEvent(key, press)
         m.focusFileId = m.parent.id
         fetchFiles(m.parent.parent_id)
       else
-        m.top.navigate = {
-          id: "homeScreen",
-          params: {}
-        }
+        m.top.navigateBack = "true"
       end if
 
       return true

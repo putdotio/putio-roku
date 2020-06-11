@@ -6,6 +6,11 @@ function init()
 
   m.items = [
     {
+      key: "search",
+      title: "Search",
+      iconName: "search"
+    },
+    {
       key: "files",
       title: "Your Files",
       iconName: "file_type_folder"
@@ -43,7 +48,13 @@ end sub
 sub onListItemSelected(obj)
   key = m.list.content.getChild(obj.getData()).key
 
-  if key = "files"
+  if key = "search"
+    m.top.navigate = {
+      id: "searchScreen",
+      params: {}
+    }
+
+  else if key = "files"
     m.top.navigate = {
       id: "filesScreen"
       params: {
@@ -56,6 +67,7 @@ sub onListItemSelected(obj)
       id: "settingsScreen",
       params: {},
     }
+
   end if
 end sub
 

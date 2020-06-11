@@ -208,20 +208,10 @@ sub onPlay()
   }
 end sub
 
-sub onGoBack()
-  m.top.navigate = {
-    id: "filesScreen",
-    params: {
-      fileId: m.top.params.fileId,
-      focusFileId: m.top.params.fileId,
-    }
-  }
-end sub
-
 function onKeyEvent(key, press)
   if m.top.visible and press
     if key = "back"
-      onGoBack()
+      m.top.navigateBack = "true"
       return true
     end if
 

@@ -139,13 +139,7 @@ end sub
 
 sub onGoBack()
   m.video.control = "stop"
-  m.top.navigate = {
-    id: "videoScreen",
-    params: {
-      fileId: m.top.params.file.id,
-      fileName: m.top.params.file.name,
-    }
-  }
+  m.top.navigateBack = "true"
 end sub
 
 function onKeyEvent(key, press)

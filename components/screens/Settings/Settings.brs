@@ -60,10 +60,7 @@ end sub
 
 function onKeyEvent(key, press)
   if m.top.visible and key = "back" and press
-    m.top.navigate = {
-      id: "homeScreen"
-      params: {}
-    }
+    m.top.navigateBack = "true"
     return true
   end if
 

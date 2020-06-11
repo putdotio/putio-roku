@@ -26,6 +26,12 @@
       translation="[0, 0]"
     />
 
+    <SearchScreen
+      id="searchScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
     <FilesScreen
       id="filesScreen"
       visible="false"
