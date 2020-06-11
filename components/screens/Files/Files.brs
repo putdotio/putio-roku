@@ -138,6 +138,27 @@ sub onFileNotSupportedDialogClosed()
   m.fileList.setFocus(true)
 end sub
 
+''' Delete File Dialog
+sub showDeleteFileDialog()
+  focusedFile = m.files[m.fileList.itemFocused]
+
+  if focusedFile <> invalid
+    m.deleteFileDialog = createObject("roSGNode", "DeleteFileDialog")
+    m.deleteFileDialog.file = focusedFile
+    m.deleteFileDialog.observeField("completed", "onFileDeleted")
+    m.deleteFileDialog.observeField("wasClosed", "onDeleteFileDialogClosed")
+    m.top.showDialog = m.deleteFileDialog
+  end if
+end sub
+
+sub onDeleteFileDialogClosed()
+  m.fileList.setFocus(true)
+end sub
+
+sub onFileDeleted()
+  fetchWithLoader(m.parent.id)
+end sub
+
 ''' Key Handler
 function onKeyEvent(key, press)
   if m.top.visible and press
@@ -155,6 +176,7 @@ function onKeyEvent(key, press)
       return true
 
     else if key="options"
+      showDeleteFileDialog()
       return true
     end if
 
