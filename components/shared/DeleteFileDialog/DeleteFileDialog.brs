@@ -1,8 +1,6 @@
 sub init()
-  m.top.observeField("visible", "onVisibleChange")
   m.top.buttons = ["Yes, delete file", "Cancel"]
   m.top.observeField("buttonSelected", "onButtonSelected")
-  m.deleteFileTask = createObject("roSGNode", "HttpTask")
 end sub
 
 sub onFileChange()
@@ -10,18 +8,34 @@ sub onFileChange()
   m.top.message = "Are you sure you want to delete " + m.top.file.name + "?"
 end sub
 
-
 sub onButtonSelected(obj)
   if obj.getData() = 0
-    m.top.completed = "true"
+    deleteFile()
   else
+    m.top.close = "true"
   end if
-
-  m.top.close = "true"
 end sub
 
-sub startDeleteFileTask()
+sub deleteFile()
+  m.top.buttons = []
+  m.top.message = "Deleting..."
+
+  m.deleteFileTask = createObject("roSGNode", "HttpTask")
+  m.deleteFileTask.observeField("response", "onDeleteFileResponse")
+  m.deleteFileTask.url = "/files/delete"
+  m.deleteFileTask.method = "POST"
+  m.deleteFileTask.body = { file_ids: [m.top.file.id] }
+  m.deleteFileTask.control = "RUN"
 end sub
 
-sub onDeleteFileTaskCompleted()
+sub onDeleteFileResponse(obj)
+  m.deleteFileTask.unobserveField("response")
+  data = parseJSON(obj.getData())
+
+  if data.status <> invalid and data.status = "OK"
+    m.top.completed = "true"
+    m.top.close = "true"
+  else
+    m.top.message = "An error ocurred, please try again."
+  end if
 end sub

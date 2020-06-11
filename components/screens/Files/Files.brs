@@ -116,7 +116,7 @@ sub showFetchFilesErrorDialog(data)
   m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
   m.fetchFilesErrorDialog.error = data
   m.fetchFilesErrorDialog.observeField("wasClosed", "onFetchFilesErrorDialogClosed")
-  m.top.showDialog = fetchFilesErrorDialog
+  m.top.showDialog = m.fetchFilesErrorDialog
 end sub
 
 sub onFetchFilesErrorDialogClosed()
@@ -146,13 +146,8 @@ sub showDeleteFileDialog()
     m.deleteFileDialog = createObject("roSGNode", "DeleteFileDialog")
     m.deleteFileDialog.file = focusedFile
     m.deleteFileDialog.observeField("completed", "onFileDeleted")
-    m.deleteFileDialog.observeField("wasClosed", "onDeleteFileDialogClosed")
     m.top.showDialog = m.deleteFileDialog
   end if
-end sub
-
-sub onDeleteFileDialogClosed()
-  m.fileList.setFocus(true)
 end sub
 
 sub onFileDeleted()
