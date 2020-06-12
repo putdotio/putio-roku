@@ -3,6 +3,7 @@ function init()
 
   m.parent = {}
   m.files = []
+  m.breadcrumbs = []
 
   m.fileList = m.top.findNode("fileList")
   m.fileList.observeField("itemSelected", "onFileSelected")
@@ -31,7 +32,7 @@ end sub
 sub fetchFiles(parentId)
   m.fetchFilesTask = createObject("roSGNode", "HttpTask")
   m.fetchFilesTask.observeField("response", "onFetchFilesResponse")
-  m.fetchFilesTask.url = ("/files/list?parent_id=" + parentId.toStr())
+  m.fetchFilesTask.url = ("/files/list?parent_id=" + parentId.toStr() + "&breadcrumbs=1")
   m.fetchFilesTask.method = "GET"
   m.fetchFilesTask.control = "RUN"
 end sub
@@ -43,6 +44,7 @@ sub onFetchFilesResponse(obj)
   if data <> invalid and data.files <> invalid
     m.parent = data.parent
     m.files = data.files
+    m.breadcrumbs = data.breadcrumbs
     showFileList()
   else
     showFetchFilesErrorDialog(data)
@@ -163,9 +165,10 @@ end sub
 function onKeyEvent(key, press)
   if m.top.visible and press
     if key = "back"
-      if m.parent.parent_id <> invalid
+      if m.breadcrumbs.count() > 0
         m.focusFileId = m.parent.id
-        fetchFiles(m.parent.parent_id)
+        breadcrumb = m.breadcrumbs.pop()
+        fetchFiles(breadcrumb[0])
       else
         m.top.navigateBack = "true"
       end if
