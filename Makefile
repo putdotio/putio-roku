@@ -3,7 +3,7 @@ include .env
 APPNAME = Put.io
 VERSION = 2.6
 
-ZIP_EXCLUDE= -x \*.pkg -x .gitignore -x storeassets\* -x keys\* -x \*/.\*
+ZIP_EXCLUDE= -x \*.pkg -x .gitignore -x README.md -x .env* -x design\* -x keys\* -x dist\* -x \*/.\*
 
 #########################################################################
 # Makefile common usage:
@@ -205,6 +205,14 @@ $(APPNAME): manifest
 		cp -f --preserve=ownership,timestamps --no-preserve=mode \
 			$(APP_ZIP_FILE) $(DISTDIR)/$(DISTZIP).zip; \
 	fi
+
+# -------------------------------------------------------------------------
+# copy-to-landing : copy static asset to landing folder.
+# -------------------------------------------------------------------------
+.PHONY: copy-to-landing
+copy-to-landing:
+	make $(APPNAME)
+	cp $(APP_ZIP_FILE) ../landing/static/dl/putio-roku-v2.zip
 
 # -------------------------------------------------------------------------
 # clean: remove any build output for the app.
