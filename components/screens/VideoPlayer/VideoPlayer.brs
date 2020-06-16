@@ -1,8 +1,6 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
   m.video = m.top.findNode("video")
-  m.startFromMap = {}
-  m.startFrom = 0
 end function
 
 sub onVisibleChange()
@@ -43,16 +41,23 @@ sub setupPlayer()
 
   m.video.content = videoContent
 
-  if m.startFromMap[file.id.toStr()] <> invalid
-    m.startFrom = m.startFromMap[file.id.toStr()]
-  else if file.start_from > 0
-    m.startFrom = file.start_from
-  else
-    m.startFrom = 0
-  end if
+  fetchStartFrom()
+end sub
 
-  if m.startFrom > 0
-    showChooseStartFromDialog()
+sub fetchStartFrom()
+  m.fetchStartFromTask = createObject("roSGNode", "HttpTask")
+  m.fetchStartFromTask.observeField("response", "onFetchStartFromResponse")
+  m.fetchStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from")
+  m.fetchStartFromTask.method = "GET"
+  m.fetchStartFromTask.control = "RUN"
+end sub
+
+sub onFetchStartFromResponse(obj)
+  m.fetchStartFromTask.unobserveField("response")
+  data = parseJSON(obj.getData())
+
+  if data <> invalid and data.start_from <> invalid and data.start_from > 0
+    showChooseStartFromDialog(data.start_from)
   else
     startPlayback(0)
   end if
@@ -64,20 +69,12 @@ sub startPlayback(time)
   m.video.setFocus(true)
 end sub
 
-sub onPlayerStateChanged(obj)
-  state = obj.getData()
-  if state = "error"
-    onError()
-	else if state = "finished"
-    onGoBack()
-	end if
-end sub
-
-sub showChooseStartFromDialog()
+sub showChooseStartFromDialog(time)
   m.chooseStartFromDialog = createObject("roSGNode", "Dialog")
   m.chooseStartFromDialog.title = "Where would you like to start?"
+  m.chooseStartFromDialog.message = "Last saved timestamp for this video is " + getDurationString(time) + " of " + getDurationString(m.top.params.file.video_metadata.duration)
   m.chooseStartFromDialog.buttons = [
-    "Continue watching from " + getDurationString(m.startFrom) + " of " + getDurationString(m.top.params.file.video_metadata.duration),
+    "Continue watching",
     "Start from the beginning"
   ]
 
@@ -91,7 +88,7 @@ sub onChooseStartFromDialogButtonSelected(obj)
   m.chooseStartFromDialog.close = "true"
 
   if obj.getData() = 0
-    startPlayback(m.startFrom)
+    startPlayback(time)
   else
     startPlayback(0)
   end if
@@ -105,10 +102,17 @@ sub onChooseStartFromDialogClosed()
   end if
 end sub
 
+sub onPlayerStateChanged(obj)
+  state = obj.getData()
+
+  if state = "error"
+    onError()
+	else if state = "finished"
+    onGoBack()
+	end if
+end sub
 
 sub onError()
-  ? "Video Error: " + m.video.errorMsg
-  ? "Video Error Code: " + m.video.errorCode.toStr()
   m.errorDialog = createObject("roSGNode", "Dialog")
   m.errorDialog.title = "Video Error"
   m.errorDialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
@@ -128,7 +132,6 @@ end sub
 
 sub saveVideoTime(time)
   if time > 0
-    m.startFromMap[m.top.params.file.id.toStr()] = time
     m.setStartFromTask = createObject("roSGNode", "HttpTask")
     m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
     m.setStartFromTask.method = "POST"
@@ -159,13 +162,13 @@ sub getDurationString(seconds) as String
 	minutes = datetime.GetMinutes().ToStr()
 	seconds = datetime.GetSeconds().ToStr()
 
-	If Len( hours ) = 1 Then
+	If Len(hours) = 1 Then
 		hours = "0" + hours
 	End If
-	If Len( minutes ) = 1 Then
+	If Len(minutes) = 1 Then
 		minutes = "0" + minutes
 	End If
-	If Len( seconds ) = 1 Then
+	If Len(seconds) = 1 Then
 		seconds = "0" + seconds
 	End If
 
