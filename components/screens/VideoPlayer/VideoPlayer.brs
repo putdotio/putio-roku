@@ -1,6 +1,11 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
   m.video = m.top.findNode("video")
+  m.video.retrievingBar.filledBarBlendColor = "0xFFCF00FF"
+  m.video.trickPlayBar.filledBarBlendColor = "0xFFCF00FF"
+  m.video.trickPlayBar.currentTimeMarkerBlendColor = "0xFFFFFFFF"
+  m.video.trickPlayBar.thumbBlendColor = "0xFFFFFFFF"
+  m.video.bufferingBar.filledBarBlendColor = "0xFFCF00FF"
 end function
 
 sub onVisibleChange()
@@ -57,7 +62,8 @@ sub onFetchStartFromResponse(obj)
   data = parseJSON(obj.getData())
 
   if data <> invalid and data.start_from <> invalid and data.start_from > 0
-    showChooseStartFromDialog(data.start_from)
+    m.fetchedStartFrom = data.start_from
+    showChooseStartFromDialog()
   else
     startPlayback(0)
   end if
@@ -69,10 +75,10 @@ sub startPlayback(time)
   m.video.setFocus(true)
 end sub
 
-sub showChooseStartFromDialog(time)
+sub showChooseStartFromDialog()
   m.chooseStartFromDialog = createObject("roSGNode", "Dialog")
   m.chooseStartFromDialog.title = "Where would you like to start?"
-  m.chooseStartFromDialog.message = "Last saved timestamp for this video is " + getDurationString(time) + " of " + getDurationString(m.top.params.file.video_metadata.duration)
+  m.chooseStartFromDialog.message = "Last saved timestamp for this video is " + getDurationString(m.fetchedStartFrom) + " of " + getDurationString(m.top.params.file.video_metadata.duration)
   m.chooseStartFromDialog.buttons = [
     "Continue watching",
     "Start from the beginning"
@@ -88,7 +94,7 @@ sub onChooseStartFromDialogButtonSelected(obj)
   m.chooseStartFromDialog.close = "true"
 
   if obj.getData() = 0
-    startPlayback(time)
+    startPlayback(m.fetchedStartFrom)
   else
     startPlayback(0)
   end if

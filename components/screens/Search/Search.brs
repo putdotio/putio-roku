@@ -1,4 +1,5 @@
 function init()
+  m.storage = CreateObject("roRegistrySection", "userConfig")
   m.top.observeField("visible", "onVisibleChange")
 
   m.keyboard = m.top.findNode("keyboard")
@@ -29,6 +30,9 @@ end sub
 
 sub onSearch(keyword)
   m.searchTask.observeField("response", "onSearchResponse")
+  if toBool(m.storage.read("show_only_media_files"))
+    keyword = (keyword + " type:FOLDER,AUDIO,VIDEO,IMAGE")
+  end if
   m.searchTask.url = "/files/search/" + keyword.encodeUri() + "/page/1"
   m.searchTask.method = "GET"
   m.searchTask.control = "RUN"
@@ -38,11 +42,13 @@ sub onSearchResponse(obj)
   m.searchTask.unobserveField("response")
   data = parseJSON(obj.getData())
 
-  if data.files <> invalid
-    m.files = data.files
-    configureFileList()
-  else
-    showErrorDialog(data)
+  if data <> invalid
+    if data.files <> invalid
+      m.files = data.files
+      configureFileList()
+    else
+      showErrorDialog(data)
+    end if
   end if
 
   hideLoading()
@@ -52,23 +58,15 @@ end sub
 sub onFileSelected(obj)
   file = m.list.content.getChild(obj.getData()).file
 
-  if file.file_type = "FOLDER"
-    m.top.navigate = {
-      id: "filesScreen",
-      params: {
-        fileId: file.id,
-      }
-    }
-  else if file.file_type = "VIDEO"
-    m.top.navigate = {
-      id: "videoScreen",
-      params: {
-        fileId: file.id,
-        fileName: file.name,
-      }
-    }
+  if isFileSupported(file)
+    navigateToFile(file)
   else
+    showFileNotSupportedDialog()
   end if
+end sub
+
+sub onFileNotSupportedDialogClosed()
+  m.list.setFocus(true)
 end sub
 
 ''' UI

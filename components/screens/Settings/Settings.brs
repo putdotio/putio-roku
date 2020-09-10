@@ -1,22 +1,24 @@
 function init()
+  m.storage = CreateObject("roRegistrySection", "userConfig")
+
   m.top.observeField("visible", "onVisibleChange")
+  m.version = m.top.findNode("version")
+  m.version.text = m.version.text + createObject("roAppInfo").GetVersion()
 
   m.list = m.top.findNode("settingsList")
   m.list.observeField("itemSelected", "onListItemSelected")
-
-  m.items = [
-    {
-      key: "version",
-      title: "Version",
-      description: createObject("roAppInfo").GetVersion(),
-      iconName: "info"
+  
+  m.items = {
+    show_only_media_files: {
+      title: "Only Show Media Files",
+      iconName: "align-left-1",
     },
-    {
-      key: "logout",
+    logout: {
       title: "Logout",
       iconName: "logout"
     }
-  ]
+  }
+  m.itemsOrder = ["show_only_media_files", "logout"]
 
   renderList()
 end function
@@ -24,6 +26,7 @@ end function
 sub onVisibleChange()
   if m.top.visible
     m.list.setFocus(true)
+    updateShowOnlyMediaValue()
   end if
 end sub
 
@@ -31,14 +34,16 @@ sub renderList()
   content = createObject("roSGNode", "ContentNode")
 
   for i = 0 to m.items.count() - 1
-    item = m.items[i]
+    key = m.itemsOrder[i]
+    item = m.items[key]
     listItemData = content.createChild("ListItemData")
-    listItemData.key = item.key
+    listItemData.key = key
     listItemData.title = item.title
     listItemData.iconName = item.iconName
     if item.description <> invalid
       listItemData.description = item.description
     end if
+    item.node = listItemData
   end for
 
   m.list.content = content
@@ -48,13 +53,32 @@ sub onListItemSelected(obj)
   key = m.list.content.getChild(obj.getData()).key
 
   if key = "logout"
-    storage = CreateObject("roRegistrySection", "user")
+    storage = CreateObject("roRegistrySection", "userConfig")
     storage.Delete("token")
     storage.Flush()
     m.top.navigate = {
       id: "authScreen"
       params: {}
     }
+  else if key = "show_only_media_files"
+    setShowOnlyMedia()
+  end if
+end sub
+
+sub setShowOnlyMedia()
+  newValue = not toBool(m.storage.read("show_only_media_files"))
+  m.storage.write("show_only_media_files", newValue.toStr())
+  m.storage.flush()
+
+  updateShowOnlyMediaValue()
+end sub
+
+sub updateShowOnlyMediaValue()
+  m.showOnlyMediaListItem = m.items.show_only_media_files.node
+  if toBool(m.storage.read("show_only_media_files"))
+    m.showOnlyMediaListItem.description = "Enabled"
+  else
+    m.showOnlyMediaListItem.description = "Disabled"
   end if
 end sub
 

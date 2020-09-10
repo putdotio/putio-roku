@@ -27,7 +27,7 @@
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
 			focusBitmapBlendColor="0x00000FF"
-      vertFocusAnimationStyle="floatingFocus"
+      		vertFocusAnimationStyle="floatingFocus"
 			numRows="6"
 		/>
 	</children>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ImageScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Image/Image.brs" />
+  <interface>
+    <field id="params" type="assocarray" />
+		<field id="navigateBack" type="bool" alwaysNotify="true" />
+		<field id="showDialog" type="node" alwaysNotify="true" />
+  </interface>
+  <children>
+    <Overhang
+      id="overhang"
+      showClock="false"
+      title="Your Files"
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      showOptions="true"
+      optionsAvailable="false"
+      optionsDimColor="0x00000000"
+      optionsIconDimColor="0x00000000"
+	  />
+
+    <LoadingIndicator
+      id="loading"
+      imageWidth="120"
+      imageHeight="120"
+    />
+
+    <Poster
+        id="image"
+        translation="[190,190]"
+        visible="false"
+        loadDisplayMode="scaleToFit"
+    />
+  </children>
+</component>

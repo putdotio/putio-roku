@@ -1,5 +1,5 @@
 function init()
-  m.storage = CreateObject("roRegistrySection", "user")
+  m.storage = CreateObject("roRegistrySection", "userConfig")
   configureRouter()
   checkToken()
 end function

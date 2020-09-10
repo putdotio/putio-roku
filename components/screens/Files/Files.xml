@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="FilesScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Files/Files.brs" />
 
 	<interface>
@@ -34,7 +35,6 @@
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
 			focusBitmapBlendColor="0x00000FF"
-			vertFocusAnimationStyle="floatingFocus"
 			numRows="6"
 		/>
 	</children>

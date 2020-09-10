@@ -10,7 +10,8 @@ sub Main()
     route: {
       id: "splashScreen",
       params: {},
-    }
+    },
+    apiURL: "https://api.put.io/v2",
   })
 
   scene = screen.CreateScene("App")

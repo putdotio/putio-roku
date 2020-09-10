@@ -36,8 +36,8 @@
     >
       <Poster
         id="poster"
+        loadWidth="720"
         width="720"
-        height="480"
         loadingBitmapUri="pkg:/images/Splash-Blank-SD.png"
         failedBitMapUri="pkg:/images/Splash-Blank-SD.png"
       />

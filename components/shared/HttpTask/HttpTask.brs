@@ -13,7 +13,7 @@ function request()
   m.http.enablepeerverification(false)
 
   ' Inject Token
-  storage = CreateObject("roRegistrySection", "user")
+  storage = CreateObject("roRegistrySection", "userConfig")
   if storage.Exists("token")
     m.http.AddHeader("Authorization", "token " + storage.Read("token"))
   end if
@@ -21,7 +21,7 @@ function request()
   m.http.InitClientCertificates()
 
   ' Set URL
-  m.http.SetUrl("https://api.put.io/v2" + m.top.url)
+  m.http.SetUrl(m.global.apiURL + m.top.url)
 
   ' Set Request Method
   m.http.SetRequest(m.top.method)

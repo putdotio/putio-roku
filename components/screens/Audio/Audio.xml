@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="AudioScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Audio/Audio.brs" />
+
+	<interface>
+    <field id="params" type="assocarray" />
+		<field id="navigate" type="assocarray" />
+		<field id="navigateBack" type="bool" alwaysNotify="true" />
+    <field id="showDialog" type="node" alwaysNotify="true" />
+  </interface>
+
+	<children>
+    <Overhang
+      id="overhang"
+      showClock="false"
+      title="Your Files"
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      showOptions="true"
+      optionsAvailable="false"
+      optionsDimColor="0x00000000"
+      optionsIconDimColor="0x00000000"
+	  />
+
+    <LayoutGroup
+      id="audioPlayer"
+      itemSpacings="96"
+      layoutDirection="vert"
+    >
+      <LayoutGroup
+        id="controls"
+        itemSpacings="96"
+        layoutDirection="horiz"
+        vertAlignment="center"
+      >
+        <Poster
+          id="rewind"
+          width="96"
+          height="96"
+          uri="pkg:/images/icons/goback15.png"
+          audioGuideText="Rewind"
+        />
+        <Poster
+          id="play"
+          width="128"
+          height="128"
+          uri="pkg:/images/icons/play-4-focused.png"
+          audioGuideText="Play or Pause"
+        />
+        <Poster
+          id="fastforward"
+          width="96"
+          height="96"
+          uri="pkg:/images/icons/goforward15.png"
+          audioGuideText="Fast Forward"
+        />
+      </LayoutGroup>
+    </LayoutGroup>
+
+    <LayoutGroup
+        id="progress"
+        itemSpacings="32"
+        layoutDirection="horiz"
+        vertAlignment="center"
+      >
+        <Label
+					id="position"
+					font="font:MediumBoldSystemFont"
+					color="0xFFFFFFFF"
+					text="..:.."
+					width="128"
+				/>
+
+        <ProgressBar
+          id="progressBar"
+          width="960"
+          filledBarBlendColor="0xFFCF00FF"
+        />
+
+        <Label
+					id="duration"
+					font="font:MediumBoldSystemFont"
+					color="0xFFFFFFFF"
+					text="..:.."
+					width="128"
+				/>
+      </LayoutGroup>
+
+    <LoadingIndicator
+      id="loading"
+      imageWidth="120"
+      imageHeight="120"
+      visible="true"
+    />
+
+    <Audio id="audio" />
+	</children>
+</component>

@@ -6,14 +6,14 @@ function init()
 
   m.items = [
     {
-      key: "search",
-      title: "Search",
-      iconName: "search"
-    },
-    {
       key: "files",
       title: "Your Files",
       iconName: "file_type_folder"
+    },
+    {
+      key: "search",
+      title: "Search",
+      iconName: "search"
     },
     {
       key: "settings"

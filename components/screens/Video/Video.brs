@@ -127,15 +127,19 @@ end sub
 sub setSubtitles()
   content = createObject("roSGNode", "ContentNode")
 
+  noSelectionItem = content.createChild("ContentNode")
+  noSelectionItem.title = "Don’t load any subtitles"
+
   for each subtitle in m.subtitles
     listItemData = content.createChild("ContentNode")
     listItemData.title = subtitle.language + " — " + subtitle.name
   end for
 
-  noSelectionItem = content.createChild("ContentNode")
-  noSelectionItem.title = "Don’t load any subtitles"
-
   m.subtitleList.checkedItem = 0
+  if m.subtitles.count() > 0
+    m.subtitleList.checkedItem = 1
+  end if
+  
   m.subtitleList.visible = "true"
   m.subtitleList.content = content
 end sub

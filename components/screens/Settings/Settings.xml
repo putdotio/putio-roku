@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SettingsScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Settings/Settings.brs" />
 
 	<interface>
     <field id="params" type="assocarray" />
 		<field id="navigate" type="assocarray" />
 		<field id="navigateBack" type="bool" alwaysNotify="true" />
+		<field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
 
 	<children>
@@ -28,8 +30,17 @@
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
 			focusBitmapBlendColor="0x00000FF"
-      vertFocusAnimationStyle="floatingFocus"
+      		vertFocusAnimationStyle="floatingFocus"
 			numRows="6"
+		/>
+
+		<Label
+			id="version"
+			font="font:MediumBoldSystemFont"
+			color="0xFFFFFFFF"
+			text="Version "
+			width="512"
+			translation="[190, 1000]"
 		/>
 	</children>
 </component>

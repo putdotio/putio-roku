@@ -22,28 +22,9 @@ sub setTitle(file)
 end sub
 
 sub setDescription(file)
-  ' Size
-  u = 0
-  s = 1024
-  b = file.size
-  sizes = ["B", "KB", "MB", "GB", "TB"]
-
-  while b >= s or -b >= s
-    b = b / s
-    u = u + 1
-  end while
-
-  if u > 4
-    u = 4
-  end if
-
-  size = Fix(b).toStr() + " " + sizes[u]
-
-  ' Date
-  date = CreateObject("roDateTime")
-  date.FromISO8601String(file.created_at)
-
-  m.description.text = size + " - " + date.AsDateString("short-month-no-weekday")
+  size = convertSize(file.size)
+  date = convertDate(file.created_at)
+  m.description.text = size + " - " + date
 end sub
 
 sub setIcon(file)

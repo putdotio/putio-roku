@@ -50,6 +50,18 @@
       translation="[0, 0]"
     />
 
+    <AudioScreen
+      id="audioScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
+    <ImageScreen
+      id="imageScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
     <SettingsScreen
       id="settingsScreen"
       visible="false"

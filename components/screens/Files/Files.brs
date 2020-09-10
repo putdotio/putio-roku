@@ -1,4 +1,6 @@
 function init()
+  m.storage = CreateObject("roRegistrySection", "userConfig")
+
   m.top.observeField("visible", "onVisibleChange")
 
   m.parent = {}
@@ -33,6 +35,9 @@ sub fetchFiles(parentId)
   m.fetchFilesTask = createObject("roSGNode", "HttpTask")
   m.fetchFilesTask.observeField("response", "onFetchFilesResponse")
   m.fetchFilesTask.url = ("/files/list?parent_id=" + parentId.toStr() + "&breadcrumbs=1")
+  if toBool(m.storage.read("show_only_media_files"))
+    m.fetchFilesTask.url = (m.fetchFilesTask.url + "&file_type=FOLDER,AUDIO,VIDEO,IMAGE")
+  end if
   m.fetchFilesTask.method = "GET"
   m.fetchFilesTask.control = "RUN"
 end sub
@@ -97,22 +102,18 @@ sub onFileSelected(obj)
   fileListItem = m.fileList.content.getChild(obj.getData())
   file = fileListItem.file
 
-  if file.file_type = "FOLDER"
-    fileListItem.isLoading = true
-    fetchFiles(file.id)
-  else if file.file_type = "VIDEO"
+  if isFileSupported(file)
     m.top.params = {
       fileId: m.parent.id,
       focusFileId: file.id,
     }
 
-    m.top.navigate = {
-      id: "videoScreen",
-      params: {
-        fileId: file.id,
-        fileName: file.name,
-      }
-    }
+    if file.file_type = "FOLDER"
+      fileListItem.isLoading = true
+      fetchFiles(file.id)
+    else
+      navigateToFile(file)
+    end if
   else
     showFileNotSupportedDialog()
   end if
@@ -131,17 +132,7 @@ sub onFetchFilesErrorDialogClosed()
   m.fileList.setFocus(true)
 end sub
 
-''' File Not Supported Dialog
-sub showFileNotSupportedDialog()
-  m.fileNotSupportedDialog = createObject("roSGNode", "Dialog")
-  m.fileNotSupportedDialog.title = "Oops :("
-  m.fileNotSupportedDialog.message = "We're unable to show these kind of files on this app (for now)"
-  m.fileNotSupportedDialog.observeField("wasClosed", "onFileNotSupportedDialogClosed")
-  m.top.showDialog = m.fileNotSupportedDialog
-end sub
-
 sub onFileNotSupportedDialogClosed()
-  m.fileNotSupportedDialog.unobserveField("wasClosed")
   m.fileList.setFocus(true)
 end sub
 
@@ -175,7 +166,7 @@ function onKeyEvent(key, press)
 
       return true
 
-    else if key="options"
+    else if key = "options"
       showDeleteFileDialog()
       return true
     end if
