@@ -13,12 +13,16 @@ function init()
       title: "Only Show Media Files",
       iconName: "align-left-1",
     },
+    show_history: {
+      title: "Keep populating the history page with your activities",
+      iconName: "history-1",
+    },
     logout: {
       title: "Logout",
       iconName: "logout"
     }
   }
-  m.itemsOrder = ["show_only_media_files", "logout"]
+  m.itemsOrder = ["show_only_media_files", "show_history", "logout"]
 
   renderList()
 end function
@@ -27,6 +31,7 @@ sub onVisibleChange()
   if m.top.visible
     m.list.setFocus(true)
     updateShowOnlyMediaValue()
+    updateShowHistory()
   end if
 end sub
 
@@ -62,6 +67,21 @@ sub onListItemSelected(obj)
     }
   else if key = "show_only_media_files"
     setShowOnlyMedia()
+  else if key = "show_history"
+    updateSetting("history_enabled", (not m.global.user.settings.history_enabled))
+  end if
+end sub
+
+sub onUpdateSetting()
+  updateShowHistory()
+end sub
+
+sub updateShowHistory()
+  m.showHistory = m.items.show_history.node
+  if m.global.user.settings.history_enabled
+    m.showHistory.description = "Enabled"
+  else
+    m.showHistory.description = "Disabled"
   end if
 end sub
 

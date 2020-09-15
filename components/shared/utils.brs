@@ -34,17 +34,18 @@ function isFileSupported(file) as Boolean
 end function
 
 ''' send a callback to override navigation behaviour
-function navigateToFile(file)
+function navigateToFile(file, immediateBackFileId = invalid)
   screen = getScreenFromFileType(file.file_type)
-  navigateTo(screen, file)
+  navigateTo(screen, file, immediateBackFileId)
 end function
 
-function navigateTo(screen, file)
+function navigateTo(screen, file, immediateBackFileId)
   m.top.navigate = {
     id: screen,
     params: {
       fileId: file.id,
       fileName: file.name,
+      immediateBackFileId: immediateBackFileId,
     }
   }
 end function
@@ -68,10 +69,39 @@ function showFileNotSupportedDialog()
   m.fileNotSupportedDialog.title = "Oops :("
   m.fileNotSupportedDialog.message = "We're unable to show these kind of files on this app (for now)"
   m.fileNotSupportedDialog.observeField("wasClosed", "onFileNotSupportedDialogClosedBase")
-  m.fileNotSupportedDialog.observeField("wasClosed", "onFileNotSupportedDialogClosed")
   m.top.showDialog = m.fileNotSupportedDialog
 end function
 
 function onFileNotSupportedDialogClosedBase()
   m.fileNotSupportedDialog.unobserveField("wasClosed")
+  if onFileNotSupportedDialogClosed <> invalid
+    onFileNotSupportedDialogClosed()
+  end if
+end function
+
+function updateSetting(key, value)
+  m.httpTask = createObject("roSGNode", "HttpTask")
+  m.httpTask.observeField("response", "onUpdateSettingBase")
+  m.httpTask.url = "/account/settings"
+
+  payload = {}
+  payload.addReplace(key, value)
+  m.httpTask.body = payload
+
+  m.tempSetting = {key: key, value: value}
+  m.httpTask.method = "POST"
+  m.httpTask.control = "RUN"
+end function
+
+function onUpdateSettingBase(obj)
+  data = parseJSON(obj.getData())
+  if data <> invalid and data.status <> invalid and data.status = "OK"
+    user = m.global.user
+    user.settings[m.tempSetting.key] = m.tempSetting.value
+    m.global.user = user
+  end if
+
+  if onUpdateSetting <> invalid
+    onUpdateSetting()
+  end if
 end function

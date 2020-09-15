@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="HistoryListItemData" extends="ContentNode">
+  <interface>
+    <field id="event" type="assocarray" />
+    <field id="isLoading" type="boolean" value="false" />
+  </interface>
+</component>

@@ -32,6 +32,12 @@
       translation="[0, 0]"
     />
 
+    <HistoryScreen
+      id="historyScreen"
+      visible="false"
+      translation="[0, 0]"
+    />
+
     <FilesScreen
       id="filesScreen"
       visible="false"

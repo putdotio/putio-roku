@@ -1,5 +1,6 @@
 function init()
   m.top.observeField("visible", "onVisibleChange")
+  m.global.observeField("user", "modifyList")
 
   m.list = m.top.findNode("list")
   m.list.observeField("itemSelected", "onListItemSelected")
@@ -8,20 +9,25 @@ function init()
     {
       key: "files",
       title: "Your Files",
-      iconName: "file_type_folder"
+      iconName: "file_type_folder",
     },
     {
       key: "search",
       title: "Search",
-      iconName: "search"
+      iconName: "search",
     },
     {
-      key: "settings"
-      title: "Settings"
-      iconName: "settings"
+      key: "history",
+      title: "History",
+      iconName: "history-1",
+      isEnabled: false
+    },
+    {
+      key: "settings",
+      title: "Settings",
+      iconName: "settings",
     }
   ]
-
   renderList()
 end function
 
@@ -31,15 +37,24 @@ sub onVisibleChange()
   end if
 end sub
 
+sub modifyList()
+  if m.global.user.settings.doesExist("history_enabled")
+    m.items[2].isEnabled = m.global.user.settings.history_enabled
+    renderList()
+  end if
+end sub
+
 sub renderList()
   content = createObject("roSGNode", "ContentNode")
 
   for i = 0 to m.items.count() - 1
     item = m.items[i]
-    listItemData = content.createChild("ListItemData")
-    listItemData.key = item.key
-    listItemData.title = item.title
-    listItemData.iconName = item.iconName
+    if item.isEnabled = invalid or (item.isEnabled <> invalid and item.isEnabled)
+      listItemData = content.createChild("ListItemData")
+      listItemData.key = item.key
+      listItemData.title = item.title
+      listItemData.iconName = item.iconName
+    end if
   end for
 
   m.list.content = content
@@ -65,6 +80,12 @@ sub onListItemSelected(obj)
   else if key = "settings"
     m.top.navigate = {
       id: "settingsScreen",
+      params: {},
+    }
+  
+  else if key = "history"
+    m.top.navigate = {
+      id: "historyScreen",
       params: {},
     }
 

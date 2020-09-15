@@ -106,6 +106,7 @@ sub onFileSelected(obj)
     m.top.params = {
       fileId: m.parent.id,
       focusFileId: file.id,
+      immediateBackFileId: m.top.params.immediateBackFileId,
     }
 
     if file.file_type = "FOLDER"
@@ -156,12 +157,12 @@ end sub
 function onKeyEvent(key, press)
   if m.top.visible and press
     if key = "back"
-      if m.breadcrumbs.count() > 0
+      if m.top.params.immediateBackFileId = m.parent.id or m.breadcrumbs.count() = 0
+        m.top.navigateBack = "true"
+      else
         m.focusFileId = m.parent.id
         breadcrumb = m.breadcrumbs.pop()
         fetchFiles(breadcrumb[0])
-      else
-        m.top.navigateBack = "true"
       end if
 
       return true

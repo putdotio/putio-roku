@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="HistoryListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/History/HistoryEvents.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/History/HistoryListItem.brs" />
+
+	<interface>
+ 		<field id="itemContent" type="node" onChange="itemContentChanged" />
+	</interface>
+
+	<children>
+		<LayoutGroup
+			layoutDirection="horiz"
+			vertAlignment="center"
+			translation="[0, 60]"
+			itemSpacings="32"
+		>
+			<Poster
+				id="icon"
+				width="50"
+				height="50"
+				loadDisplayMode="scaleToFit"
+				uri="pkg:/images/loader.png"
+			/>
+
+			<LayoutGroup
+				layoutDirection="vert"
+				horizAlignment="left"
+				itemSpacings="16"
+			>
+				<Label
+					id="title"
+					font="font:MediumBoldSystemFont"
+					color="0xFFFFFFFF"
+					text="Title"
+					width="1336"
+				/>
+
+				<Label
+					id="description"
+					font="font:SmallestSystemFont"
+					color="0xFFFFFFFF"
+					text="Description"
+				/>
+    	</LayoutGroup>
+
+			<Group>
+				<Poster
+					id="spinner"
+					uri="pkg:/images/Spinner.png"
+					width="50"
+					height="50"
+					visible="false"
+				/>
+
+				<Animation id="spinnerAnimation"
+					duration="1"
+					repeat="true"
+					easeFunction="linear"
+				>
+					<FloatFieldInterpolator
+						id="spinnerOpacityInterpolator"
+						key="[0.0, 0.25, 0.5, 0.75, 1.0]"
+						keyValue="[1, 0, 1, 0, 1]"
+						fieldToInterp="spinner.opacity"
+					/>
+				</Animation>
+			</Group>
+		</LayoutGroup>
+	</children>
+</component>

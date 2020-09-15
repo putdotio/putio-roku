@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="HistoryScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/History/History.brs" />
+
+	<interface>
+    	<field id="params" type="assocarray" />
+		<field id="navigate" type="assocarray" />
+		<field id="navigateBack" type="bool" alwaysNotify="true" />
+		<field id="showDialog" type="node" alwaysNotify="true" />
+  </interface>
+
+	<children>
+		<Overhang
+			id="overhang"
+			showClock="false"
+            title="History"
+			logoUri="pkg:/images/OverhangLogo.png"
+			logoBaselineOffset="9"
+			showOptions="true"
+			optionsAvailable="true"
+			optionsText="Delete"
+		/>
+
+		<LoadingIndicator
+            id="loading"
+            imageWidth="120"
+            imageHeight="120"
+        />
+
+		<MarkupList
+			id="historyList"
+			translation="[190, 190]"
+			itemComponentName="HistoryListItem"
+			itemSize="[1500, 120]"
+			itemSpacing="[0, 30]"
+			focusBitmapBlendColor="0x00000FF"
+			numRows="6"
+		/>
+	</children>
+</component>
