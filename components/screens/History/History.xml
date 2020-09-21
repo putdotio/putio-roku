@@ -18,8 +18,9 @@
 			logoUri="pkg:/images/OverhangLogo.png"
 			logoBaselineOffset="9"
 			showOptions="true"
-			optionsAvailable="true"
-			optionsText="Delete"
+			optionsAvailable="false"
+			optionsDimColor="0x00000000"
+			optionsIconDimColor="0x00000000"
 		/>
 
 		<LoadingIndicator
