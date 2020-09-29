@@ -2,7 +2,7 @@
 title=Put.io
 major_version=2
 minor_version=8
-build_version=00000
+build_version=00001
 
 ##   Channel Assets
 ###  Main Menu Icons / Channel Poster Artwork
@@ -13,9 +13,9 @@ mm_icon_focus_sd=pkg:/images/channel-poster_sd.png
 
 ###  Splash Screen + Loading Screen Artwork
 #### Image sizes are FHD: 1920x1080px | HD: 1280x720px | SD: 720x480px
-splash_screen_fhd=pkg:/images/Splash-FHD.jpg
-splash_screen_hd=pkg:/images/Splash-HD.jpg
-splash_screen_sd=pkg:/images/Splash-SD.jpg
+splash_screen_fhd=pkg:/images/Splash-FHD.png
+splash_screen_hd=pkg:/images/Splash-HD.png
+splash_screen_sd=pkg:/images/Splash-SD.png
 splash_color=#333333
 splash_min_time=2000
 splash_rsg_optimization=1
