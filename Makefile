@@ -207,14 +207,6 @@ $(APPNAME): manifest
 	fi
 
 # -------------------------------------------------------------------------
-# copy-to-landing : copy static asset to landing folder.
-# -------------------------------------------------------------------------
-.PHONY: copy-to-landing
-copy-to-landing:
-	make $(APPNAME)
-	cp $(APP_ZIP_FILE) ../landing/static/dl/putio-roku-v2.zip
-
-# -------------------------------------------------------------------------
 # clean: remove any build output for the app.
 # -------------------------------------------------------------------------
 .PHONY: clean
