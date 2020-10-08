@@ -200,7 +200,7 @@ sub onPlay()
   if m.subtitleList.checkedItem = 0
     selectedSubtitle = {}
   else if m.subtitles[m.subtitleList.checkedItem - 1] <> invalid
-    selectedSubtitle = m.subtitles[m.subtitleList.checkedItem]
+    selectedSubtitle = m.subtitles[m.subtitleList.checkedItem - 1]
   end if
 
   m.top.navigate = {
