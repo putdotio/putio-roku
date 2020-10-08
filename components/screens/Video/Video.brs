@@ -133,6 +133,7 @@ sub setSubtitles()
   for each subtitle in m.subtitles
     listItemData = content.createChild("ContentNode")
     listItemData.title = subtitle.language + " — " + subtitle.name
+    listItemData.title = listItemData.title.replace("Undetermined", "Custom")
   end for
 
   m.subtitleList.checkedItem = 0
