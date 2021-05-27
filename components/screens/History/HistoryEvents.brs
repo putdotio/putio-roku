@@ -143,7 +143,7 @@ sub GetMapFromHistoryEventType(eventType) as Object
       },
       transfer_from_rss_error: {
         title: HistoryEventRSSTransferErrorTitle,
-        title: HistoryEventRSSTransferErrorDescription,
+        description: HistoryEventRSSTransferErrorDescription,
         icon: "x-2-red",
       },
       transfer_callback_error: {
@@ -163,7 +163,7 @@ sub GetMapFromHistoryEventType(eventType) as Object
       }
   }
 
-  if eventMap[eventType] <> invalid
+  if eventMap.doesExist(eventType) and eventMap[eventType] <> invalid
     return eventMap[eventType]
   end if
   
