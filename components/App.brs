@@ -118,7 +118,7 @@ end sub
 sub onShowExitAppDialog(obj)
   if obj.getData() = true
     m.dialog = createObject("roSGNode", "Dialog")
-    m.dialog.title = "Exit Put.io?"
+    m.dialog.title = "Exit put.io?"
     m.dialog.buttons = ["OK", "Cancel"]
     m.dialog.observeField("buttonSelected", "onExitAppDialogButtonSelected")
     m.top.dialog = m.dialog
