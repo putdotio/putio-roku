@@ -7,7 +7,7 @@ function init()
 
   m.list = m.top.findNode("settingsList")
   m.list.observeField("itemSelected", "onListItemSelected")
-  
+
   m.items = {
     show_only_media_files: {
       title: "Only Show Media Files",
@@ -18,7 +18,7 @@ function init()
       iconName: "history-1",
     },
     logout: {
-      title: "Logout",
+      title: "Log out",
       iconName: "logout"
     }
   }
