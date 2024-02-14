@@ -27,7 +27,7 @@ function request()
   m.http.SetRequest(m.top.method)
 
   ' Make Request
-  if m.top.method = "POST"
+  if m.top.method = "POST" or m.top.method = "PUT"
     body = ""
 
     if m.top.body <> invalid
