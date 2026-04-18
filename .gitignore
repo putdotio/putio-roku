@@ -1,2 +1,4 @@
+.env
+*.pkg
 *.zip
-dist
+dist/

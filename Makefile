@@ -1,9 +1,10 @@
-include .env
+-include .env
 
 APPNAME = put.io
 VERSION = 2.8
+ARTIFACT_NAME = putio-roku-v2.zip
 
-ZIP_EXCLUDE= -x \*.pkg -x .gitignore -x README.md -x .env* -x design\* -x keys\* -x dist\* -x \*/.\*
+ZIP_EXCLUDE= -x \*.pkg -x .gitignore -x README.md -x CONTRIBUTING.md -x SECURITY.md -x AGENTS.md -x CLAUDE.md -x LICENSE -x .env* -x .git\* -x .github\* -x design\* -x keys\* -x dist\* -x \*/.\*
 
 #########################################################################
 # Makefile common usage:
@@ -78,6 +79,7 @@ DATE_TIME := $(shell date +%F-%T)
 
 APP_ZIP_FILE := $(ZIPREL)/$(APPNAME).zip
 APP_PKG_FILE := $(PKGREL)/$(APPNAME)_$(DATE_TIME).pkg
+ARTIFACT_ZIP_FILE := $(ZIPREL)/$(ARTIFACT_NAME)
 
 # these variables are only used for the .pkg file version tagging.
 APP_NAME := $(APPNAME)
@@ -212,10 +214,27 @@ $(APPNAME): manifest
 .PHONY: clean
 clean:
 	rm -f $(APP_ZIP_FILE)
+	rm -f $(ARTIFACT_ZIP_FILE)
 # FIXME: we should use a canonical output file name, rather than having
 # the date-time stamp in the output file name.
 #	rm -f $(APP_PKG_FILE)
 	rm -f $(PKGREL)/$(APPNAME)_*.pkg
+
+# -------------------------------------------------------------------------
+# verify: create a fresh zip and run the repo-native BrightScript check when
+# the desktop tool is available.
+# -------------------------------------------------------------------------
+.PHONY: verify
+verify: clean check
+	@test -f "$(APP_ZIP_FILE)"
+
+# -------------------------------------------------------------------------
+# artifact: produce the release-style zip name used by automation.
+# -------------------------------------------------------------------------
+.PHONY: artifact
+artifact: clean $(APPNAME)
+	@mv "$(APP_ZIP_FILE)" "$(ARTIFACT_ZIP_FILE)"
+	@test -f "$(ARTIFACT_ZIP_FILE)"
 
 # -------------------------------------------------------------------------
 # clobber: remove any build output for the app.
