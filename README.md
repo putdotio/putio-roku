@@ -6,7 +6,7 @@
   <h1>putio-roku</h1>
 
   <p>
-    BrightScript Roku app for put.io
+    Roku app for browsing, searching, and streaming your put.io library on TV
   </p>
 
   <p>
@@ -15,29 +15,33 @@
   </p>
 </div>
 
-## Overview
-
-`putio-roku` is the standalone source repository for the put.io Roku app.
-
 ## Install
 
-This repository does not ship a consumer install flow directly.
+Roku no longer supports private channels, so put.io on Roku is installed by sideloading.
 
-For local sideload builds, follow [CONTRIBUTING.md](./CONTRIBUTING.md)
+For most users, the right path is the published ZIP and the step-by-step guide in [docs/SIDELOADING.md](./docs/SIDELOADING.md)
+
+If you are working on the app itself, you can also sideload a ZIP generated from this repository. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Use
 
-Sign in with your put.io account to browse files, view history, search, manage settings, and stream supported media on Roku devices.
+After installation, sign in with your put.io account to:
+
+- browse your library
+- search files
+- review playback history
+- adjust app settings
+- stream supported media on Roku
 
 ## Docs
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, validation, and delivery notes
+- [docs/SIDELOADING.md](./docs/SIDELOADING.md) for device setup and ZIP installation
+- [CONTRIBUTING.md](./CONTRIBUTING.md) for local setup, validation, and PR workflow
 - [SECURITY.md](./SECURITY.md) for private vulnerability reporting
-- [AGENTS.md](./AGENTS.md) for repo-specific agent guidance
 
 ## Contributing
 
-Contributions are welcome. Start with [CONTRIBUTING.md](./CONTRIBUTING.md)
+Contributions are welcome. Use [CONTRIBUTING.md](./CONTRIBUTING.md) for the contributor workflow and local sideload setup.
 
 ## License
 

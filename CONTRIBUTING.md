@@ -1,66 +1,75 @@
 # Contributing
 
-Thanks for contributing to `putio-roku`.
+Thanks for contributing to `putio-roku`
 
 ## Setup
 
-- Prerequisites:
-  - `make`
-  - `zip`
-  - `curl`
-- Optional local overrides:
-  - copy `.env.example` to `.env`
-  - set `ROKU_DEV_TARGET` when you want to sideload to a developer-enabled Roku device
-  - set `ROKU_DEV_PASSWORD` when your device requires authenticated installs
+Prerequisites:
 
-## Run Locally
+- `make`
+- `zip`
+- `curl`
 
-- Build and install the app on a configured Roku developer device:
+Optional local overrides live in `.env`:
 
 ```bash
 cp .env.example .env
-make run
 ```
 
-- Verify device connectivity without reinstalling:
+Supported variables:
+
+- `ROKU_DEV_TARGET` for the IP address of a developer-enabled Roku device
+- `ROKU_DEV_PASSWORD` for the Roku Developer Mode password when authenticated installs are required
+
+If you need help enabling Developer Mode on the device itself, use [docs/SIDELOADING.md](./docs/SIDELOADING.md)
+
+## Run Locally
+
+Check that the Roku developer endpoint is reachable:
 
 ```bash
 make check-roku-dev-target
 ```
 
+Build and reinstall the app on the configured Roku device:
+
+```bash
+make run
+```
+
+`make run` removes the previously installed developer app, builds a fresh ZIP, validates the target, and reinstalls the app.
+
 ## Validation
 
-- Run the repo-local verification command before opening or updating a pull request:
+Run the standard repo verification before opening or updating a pull request:
 
 ```bash
 make verify
 ```
 
-- Build the release-style zip used by delivery automation:
+Build the release-style ZIP used by automation:
 
 ```bash
 make artifact
 ```
 
-## CI And Delivery
-
-- `.github/workflows/ci.yml`
-  - runs `make verify` on pull requests and default-branch pushes
-- `.github/workflows/deploy.yml`
-  - verifies first
-  - builds `dist/apps/putio-roku-v2.zip`
-  - uploads the artifact to GitHub Actions and the existing distribution bucket on default-branch pushes
+`make verify` always creates a fresh app ZIP. When the local BrightScript desktop checker is available, it also runs `make check` as part of verification.
 
 ## Development Notes
 
-- Keep repo-stored defaults open-source-safe
-- Do not commit real device addresses, passwords, signing keys, or private release notes
-- `make verify` always builds a fresh zip
-- `make check` also runs the BrightScript desktop checker when the local Roku toolchain is available
+- Keep checked-in defaults open-source-safe
+- Do not commit device addresses, passwords, signing keys, or private release notes
+- Prefer repo-relative doc links when adding or updating documentation
+- Update docs when sideloading, validation, CI, or release expectations change
 
 ## Pull Requests
 
 - Keep changes focused and explicit
 - Add or update validation when behavior changes
-- Update docs when setup, CI, or delivery expectations change
-- Prefer follow-up pull requests over mixing unrelated cleanup into the same branch
+- Prefer small follow-up pull requests over mixing unrelated cleanup into the same branch
+- Re-run `make verify` before requesting review
+
+## CI And Delivery
+
+- `.github/workflows/ci.yml` runs `make verify` on pull requests and pushes to `main`
+- `.github/workflows/deploy.yml` verifies first, builds `dist/apps/putio-roku-v2.zip`, and uploads the artifact on default deployment runs
