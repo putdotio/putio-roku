@@ -75,4 +75,4 @@ Useful commands:
 - `make verify` builds a fresh ZIP and runs the desktop BrightScript checker when available locally
 - `make artifact` creates `dist/apps/putio-roku-v2.zip`
 
-For the full contributor workflow, see [../CONTRIBUTING.md](../CONTRIBUTING.md)
+For the full contributor workflow, see [Contributing](../CONTRIBUTING.md)

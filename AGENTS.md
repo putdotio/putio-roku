@@ -7,9 +7,9 @@
 
 ## Start Here
 
-- [README.md](./README.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [SECURITY.md](./SECURITY.md)
+- [Overview](./README.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Security](./SECURITY.md)
 
 ## Commands
 

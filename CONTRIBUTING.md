@@ -21,7 +21,7 @@ Supported variables:
 - `ROKU_DEV_TARGET` for the IP address of a developer-enabled Roku device
 - `ROKU_DEV_PASSWORD` for the Roku Developer Mode password when authenticated installs are required
 
-If you need help enabling Developer Mode on the device itself, use [docs/SIDELOADING.md](./docs/SIDELOADING.md)
+If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/SIDELOADING.md)
 
 ## Run Locally
 
