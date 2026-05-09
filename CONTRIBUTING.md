@@ -72,4 +72,5 @@ make artifact
 ## CI And Delivery
 
 - `.github/workflows/ci.yml` runs `make verify` on pull requests and pushes to `main`
-- `.github/workflows/deploy.yml` verifies first, builds `dist/apps/putio-roku-v2.zip`, and uploads the artifact on default deployment runs
+- `.github/workflows/release.yml` verifies first, then semantic-release publishes official ZIPs when Conventional Commits produce a release
+- Released ZIPs are published to GitHub Releases and `https://roku.put.io/v2.zip`

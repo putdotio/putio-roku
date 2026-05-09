@@ -19,7 +19,7 @@
 
 Roku no longer supports private channels, so put.io on Roku is installed by sideloading.
 
-For most users, the right path is the published ZIP and the step-by-step [Sideloading guide](./docs/SIDELOADING.md)
+For most users, the right path is the published ZIP at `https://roku.put.io/v2.zip` and the step-by-step [Sideloading guide](./docs/SIDELOADING.md)
 
 If you are working on the app itself, you can also sideload a ZIP generated from this repository. Start with [Contributing](./CONTRIBUTING.md)
 
@@ -36,6 +36,7 @@ After installation, sign in with your put.io account to:
 ## Docs
 
 - [Sideloading guide](./docs/SIDELOADING.md) for device setup and ZIP installation
+- [Release workflow](./docs/RELEASE.md) for GitHub Releases and `roku.put.io` publishing
 - [Security](./SECURITY.md) for private vulnerability reporting
 
 ## Contributing

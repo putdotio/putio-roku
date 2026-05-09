@@ -9,7 +9,7 @@ Roku ended private channels, so the put.io Roku app is installed by sideloading 
 - A Roku device on the same local network as your computer
 - A computer with a web browser
 - A ZIP build of the app from either supported source:
-  - published artifact: `https://put.io/dl/putio-roku-v2.zip`
+  - published artifact: `https://roku.put.io/v2.zip`
   - generated from this repo: run `make artifact` and use `dist/apps/putio-roku-v2.zip`
 
 Do not extract the ZIP before uploading it to Roku.

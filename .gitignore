@@ -1,4 +1,6 @@
 .env
+node_modules/
+.sst/
 *.pkg
 *.zip
 dist/

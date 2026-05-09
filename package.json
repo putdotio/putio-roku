@@ -1,0 +1,17 @@
+{
+  "name": "@putdotio/roku",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "check": "sst version",
+    "deploy:production": "sst deploy --stage production"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "sst": "^4.13.1",
+    "typescript": "^6.0.2"
+  },
+  "packageManager": "pnpm@11.0.0"
+}

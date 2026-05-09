@@ -35,4 +35,5 @@
 ## CI
 
 - `.github/workflows/ci.yml` is verify-only and should stay aligned with `make verify`
-- `.github/workflows/deploy.yml` verifies first, then builds and publishes the release-style zip for default-branch pushes
+- `.github/workflows/release.yml` verifies first, then semantic-release publishes official ZIPs only when a release is due
+- `https://roku.put.io/v2.zip` is the latest official released v2 sideload ZIP
