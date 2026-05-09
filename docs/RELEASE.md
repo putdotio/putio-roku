@@ -28,7 +28,7 @@ Hosted immutable release ZIPs remain in the bucket after later releases. The SST
 
 Release job environment: `release`
 
-- `PUTIO_RELEASE_BOT_APP_ID`
+- `PUTIO_RELEASE_BOT_CLIENT_ID`
 - `PUTIO_RELEASE_BOT_PRIVATE_KEY`
 
 Production deploy job environment: `production`
