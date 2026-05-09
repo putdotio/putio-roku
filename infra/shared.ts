@@ -1,6 +1,6 @@
 /// <reference path="../.sst/platform/config.d.ts" />
 
-export const ROKU_DOMAIN = process.env.ROKU_DOMAIN ?? "roku.put.io";
+export const ROKU_DOMAIN = requiredEnv("ROKU_DOMAIN");
 
 export const AWS_ROUTE53_ZONE_ID = requiredEnv("AWS_ROUTE53_ZONE_ID");
 

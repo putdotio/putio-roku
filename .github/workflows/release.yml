@@ -100,22 +100,22 @@ jobs:
 
   deploy:
     if: ${{ needs.release.outputs.new_release_published == 'true' }}
-    name: Deploy released ZIP to roku.put.io
+    name: Deploy released ZIP
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
       - release
     environment:
       name: production
-      url: https://roku.put.io/v2.zip
+      url: https://${{ vars.ROKU_DOMAIN }}/v2.zip
     permissions:
       contents: read
       id-token: write
     env:
-      AWS_REGION: ${{ vars.AWS_REGION || 'eu-west-1' }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
       AWS_ROUTE53_ZONE_ID: ${{ vars.AWS_ROUTE53_ZONE_ID }}
       AWS_WILDCARD_CERT_ARN: ${{ vars.AWS_WILDCARD_CERT_ARN }}
-      ROKU_DOMAIN: ${{ vars.ROKU_DOMAIN || 'roku.put.io' }}
+      ROKU_DOMAIN: ${{ vars.ROKU_DOMAIN }}
 
     steps:
       - name: Check out repository
@@ -146,5 +146,5 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
 
-      - name: Deploy roku.put.io
+      - name: Deploy Roku site
         run: pnpm deploy:production

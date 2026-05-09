@@ -36,10 +36,10 @@ Release job environment: `release`
 Production deploy job environment: `production`
 
 - `AWS_DEPLOY_ROLE_ARN`
-- `AWS_REGION`, defaults to `eu-west-1`
+- `AWS_REGION`
 - `AWS_ROUTE53_ZONE_ID`
 - `AWS_WILDCARD_CERT_ARN`
-- `ROKU_DOMAIN`, defaults to `roku.put.io`
+- `ROKU_DOMAIN`
 
 Set these as repository variables on `putdotio/putio-roku`.
 

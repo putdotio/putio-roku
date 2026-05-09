@@ -19,7 +19,7 @@ export default $config({
       home: "aws",
       providers: {
         aws: {
-          region: process.env.AWS_REGION ?? "eu-west-1",
+          region: requiredEnv("AWS_REGION"),
           ...(awsProfile ? { profile: awsProfile } : {}),
           defaultTags: {
             tags: {
@@ -39,3 +39,11 @@ export default $config({
     createRokuSite();
   },
 });
+
+function requiredEnv(name: string) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} must be set for putio-roku infrastructure deploys.`);
+  }
+  return value;
+}
