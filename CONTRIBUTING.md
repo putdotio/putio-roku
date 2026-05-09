@@ -58,7 +58,7 @@ make artifact
 ## Development Notes
 
 - Keep checked-in defaults open-source-safe
-- Do not commit device addresses, passwords, signing keys, or private release notes
+- Keep device addresses, passwords, signing keys, and private release notes out of commits
 - Prefer repo-relative doc links when adding or updating documentation
 - Update docs when sideloading, validation, CI, or release expectations change
 
