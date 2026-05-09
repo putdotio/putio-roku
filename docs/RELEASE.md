@@ -10,6 +10,8 @@ Official Roku sideload releases are semantic-release driven from `main`.
 
 `v2.zip` updates only when semantic-release creates a new release. Regular `main` pushes that do not produce a release leave the public ZIP unchanged.
 
+The Roku sideload release line starts at `v2.0.0`; semantic-release publishes later fixes and features as `v2.x.y` tags.
+
 Hosted immutable release ZIPs remain in the bucket after later releases. The SST deploy does not purge prior `releases/v2/` objects.
 
 ## Flow
