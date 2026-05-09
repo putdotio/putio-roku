@@ -4,7 +4,7 @@ If you believe you have found a security or privacy issue in this project, pleas
 
 ## Contact
 
-- email: devs@put.io
+- Email [devs@put.io](mailto:devs@put.io)
 
 Use private email for vulnerabilities or sensitive reports.
 

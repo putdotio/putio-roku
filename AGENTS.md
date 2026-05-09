@@ -34,6 +34,6 @@
 
 ## CI
 
-- `.github/workflows/ci.yml` is verify-only and should stay aligned with `make verify`
-- `.github/workflows/release.yml` verifies first, then semantic-release publishes official ZIPs only when a release is due
-- `https://roku.put.io/v2.zip` is the latest official released v2 sideload ZIP
+- [CI](https://github.com/putdotio/putio-roku/actions/workflows/ci.yml) is verify-only and should stay aligned with `make verify`
+- [Release](https://github.com/putdotio/putio-roku/actions/workflows/release.yml) verifies first, then semantic-release publishes official ZIPs only when a release is due
+- [Latest Roku v2 ZIP](https://roku.put.io/v2.zip) is the official released sideload ZIP
