@@ -1,11 +1,12 @@
 {
   "name": "@putdotio/roku",
-  "version": "0.0.0",
+  "version": "2.8.3",
   "private": true,
   "license": "MIT",
   "type": "module",
   "scripts": {
     "check": "sst version",
+    "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
