@@ -1,7 +1,7 @@
 -include .env
 
 APPNAME = put.io
-VERSION = 2.8.4
+VERSION = 2.8.5
 ARTIFACT_NAME = putio-roku-v2.zip
 
 ZIP_EXCLUDE= -x \*.pkg -x .gitignore -x README.md -x CONTRIBUTING.md -x SECURITY.md -x AGENTS.md -x CLAUDE.md -x LICENSE -x .env* -x .git\* -x .github\* -x docs\* -x design\* -x keys\* -x dist\* -x node_modules\* -x package.json -x pnpm-lock.yaml -x sst.config.ts -x tsconfig.json -x infra\* -x scripts\* -x .node-version -x .sst\* -x .releaserc.json -x \*/.\*
