@@ -1,0 +1,19 @@
+{
+  "files": [
+    "manifest",
+    "source/**/*.*",
+    "components/**/*.*",
+    "images/**/*.*"
+  ],
+  "plugins": ["@rokucommunity/bslint"],
+  "lintConfig": "bslint.json",
+  "diagnosticFilters": [
+    "node_modules/**/*",
+    "**/roku_modules/**/*"
+  ],
+  "sourceMap": true,
+  "autoImportComponentScript": false,
+  "stagingDir": "build/staging",
+  "outFile": "build/putio-roku.zip",
+  "retainStagingDir": true
+}

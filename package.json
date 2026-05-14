@@ -5,12 +5,22 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build:roku": "bsc --project bsconfig.json",
+    "check:live": "tsc --ignoreConfig --noEmit --strict --skipLibCheck --target ES2024 --module NodeNext --moduleResolution NodeNext --types node scripts/roku-live-test.ts",
+    "check:roku": "bslint --project bsconfig.json",
     "check": "sst version",
+    "format:roku": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --check",
+    "format:roku:write": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --write",
+    "roku:live": "node scripts/roku-live-test.ts",
     "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
+    "@rokucommunity/bslint": "0.8.43",
     "@types/node": "^24.12.2",
+    "brighterscript": "0.72.1",
+    "brighterscript-formatter": "1.7.25",
+    "roku-deploy": "3.17.3",
     "sst": "^4.13.1",
     "typescript": "^6.0.2"
   },
