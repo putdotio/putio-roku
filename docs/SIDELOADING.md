@@ -71,8 +71,17 @@ If you want to sideload a local branch instead of the published ZIP:
 
 Useful commands:
 
+- `make smoke` runs the standard static checks and builds a fresh ZIP
 - `make check-roku-dev-target` checks that the Roku developer endpoint is reachable
-- `make verify` builds a fresh ZIP and runs the desktop BrightScript checker when available locally
+- `make live-test` runs read-only device reachability and state checks
+- `make live-test-launch` opens the installed developer app and reports active app state
+- `make live-test-install` builds, reinstalls, and launches this checkout on the device
+- `make launch` opens the sideloaded developer app on the configured Roku
+- `make active-app` prints the currently active Roku app from ECP
+- `make device-info` prints the configured Roku device metadata from ECP
+- `make console` attaches to the BrightScript debug console on port `8085`
+- `make verify` runs the Node-based Roku static checks and builds a fresh ZIP
 - `make artifact` creates `dist/apps/putio-roku-v2.zip`
 
-For the full contributor workflow, see [Contributing](../CONTRIBUTING.md)
+For hardware-backed debugging, see [Live Test](../live-test/README.md). For the
+full contributor workflow, see [Contributing](../CONTRIBUTING.md)

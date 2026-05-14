@@ -1,6 +1,9 @@
 .env
+.local/
 node_modules/
 .sst/
+build/
+out/
 *.pkg
 *.zip
 dist/

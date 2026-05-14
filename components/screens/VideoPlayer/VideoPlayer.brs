@@ -34,20 +34,38 @@ sub setupPlayer()
   videoContent.title = file.name
   videoContent.streamformat = "mp4"
 
-  if subtitle <> invalid and subtitle.url <> invalid
-    videoContent.subtitletracks = [
-      {
-        Language: subtitle.language,
-        Trackname: subtitle.url,
-        Description: subtitle.name
-      }
-    ]
+  if subtitle <> invalid and subtitle.url <> invalid and subtitle.url <> ""
+    subtitleTrack = createSubtitleTrack(subtitle)
+    videoContent.subtitletracks = [subtitleTrack]
+    videoContent.subtitleconfig = {
+      TrackName: subtitleTrack.TrackName
+    }
   end if
 
   m.video.content = videoContent
 
   fetchStartFrom()
 end sub
+
+function createSubtitleTrack(subtitle)
+  return {
+    Language: getSubtitleLanguageCode(subtitle),
+    TrackName: subtitle.url,
+    Description: subtitle.name
+  }
+end function
+
+function getSubtitleLanguageCode(subtitle) as String
+  if subtitle.language_code <> invalid and subtitle.language_code <> ""
+    return subtitle.language_code
+  end if
+
+  if subtitle.language <> invalid and subtitle.language <> ""
+    return subtitle.language
+  end if
+
+  return "und"
+end function
 
 sub fetchStartFrom()
   m.fetchStartFromTask = createObject("roSGNode", "HttpTask")
@@ -123,7 +141,7 @@ sub onError()
   m.errorDialog.title = "Video Error"
   m.errorDialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
   m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
-  m.top.showDialog = errorDialog
+  m.top.showDialog = m.errorDialog
 end sub
 
 sub onErrorDialogClosed()

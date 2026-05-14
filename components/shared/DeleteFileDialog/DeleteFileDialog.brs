@@ -10,13 +10,13 @@ end sub
 
 sub onButtonSelected(obj)
   if obj.getData() = 0
-    deleteFile()
+    deleteSelectedFile()
   else
     m.top.close = "true"
   end if
 end sub
 
-sub deleteFile()
+sub deleteSelectedFile()
   m.top.buttons = []
   m.top.message = "Deleting..."
 

@@ -116,7 +116,7 @@ sub onFileSelected(obj)
       navigateToFile(file)
     end if
   else
-    showFileNotSupportedDialog()
+    showFileNotSupportedDialog(onFileNotSupportedDialogClosed)
   end if
 end sub
 

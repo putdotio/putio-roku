@@ -43,7 +43,7 @@ sub setSearchHistory(text)
 end sub
 
 sub updateSearchHistoryButtons(keyword)
-  if m.keyboard.text.Len() = 0
+  if keyword = invalid or keyword.Len() = 0
     m.searchResultGroup.insertChild(m.searchHistory, 0)
     content = createObject("roSGNode", "ContentNode")
     for each historyItem in getSearchHistory()
@@ -117,7 +117,7 @@ sub onFileSelected(obj)
     setSearchHistory(m.keyboard.text)
     navigateToFile(file)
   else
-    showFileNotSupportedDialog()
+    showFileNotSupportedDialog(onFileNotSupportedDialogClosed)
   end if
 end sub
 
@@ -183,7 +183,7 @@ sub putSearchHistory(historyItems)
   m.putSearchHistory.control = "RUN"
 end sub
 
-sub onPutSearchHistory(obj)
+sub onPutSearchHistory()
   m.putSearchHistory.unobserveField("response")
   ' if there is an error, just skip
   fetchSearchHistory()

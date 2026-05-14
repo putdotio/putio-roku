@@ -68,7 +68,7 @@ sub onListItemSelected(obj)
   else if key = "show_only_media_files"
     setShowOnlyMedia()
   else if key = "show_history"
-    updateSetting("history_enabled", (not m.global.user.settings.history_enabled))
+    updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
   end if
 end sub
 

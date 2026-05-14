@@ -95,7 +95,7 @@ sub onHistoryItemSelected(obj)
   if canNavigateToEvent(event)
     fetchFilesAndNavigate(event.file_id)
   else
-    showFileNotSupportedDialog()
+    showFileNotSupportedDialog(onFileNotSupportedDialogClosed)
   end if
 end sub
 
@@ -118,7 +118,7 @@ sub onFetchFilesResponse(obj)
 
       navigateToFile(file, file.id)
     else
-      showFileNotSupportedDialog()
+      showFileNotSupportedDialog(onFileNotSupportedDialogClosed)
     end if
   else
     showFetchFilesErrorDialog(data)

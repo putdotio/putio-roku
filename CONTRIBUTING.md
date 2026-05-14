@@ -9,6 +9,8 @@ Prerequisites:
 - `make`
 - `zip`
 - `curl`
+- Node.js from `.node-version`
+- `pnpm`
 
 Optional local overrides live in `.env`:
 
@@ -22,6 +24,12 @@ Supported variables:
 - `ROKU_DEV_PASSWORD` for the Roku Developer Mode password when authenticated installs are required
 
 If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/SIDELOADING.md)
+
+Install the Node-based Roku toolchain:
+
+```bash
+pnpm install --frozen-lockfile
+```
 
 ## Run Locally
 
@@ -39,6 +47,22 @@ make run
 
 `make run` removes the previously installed developer app, builds a fresh ZIP, validates the target, and reinstalls the app.
 
+Useful device-debug commands:
+
+- `make smoke` runs the standard static checks and builds a fresh ZIP
+- `pnpm check:roku` runs the BrighterScript compiler diagnostics and `bslint`
+- `pnpm format:roku` checks BrightScript/BrighterScript formatting
+- `make check-roku-dev-target` checks that the Roku developer endpoint is reachable
+- `make live-test` runs read-only device reachability and state checks
+- `make live-test-launch` opens the installed developer app and reports active app state
+- `make live-test-install` builds, reinstalls, and launches this checkout on the device
+- `make launch` opens the sideloaded developer app on the configured Roku
+- `make active-app` prints the currently active Roku app from ECP
+- `make device-info` prints the configured Roku device metadata from ECP
+- `make console` attaches to the BrightScript debug console on port `8085`
+
+See [Live Test](./live-test/README.md) for the hardware-backed debugging flow.
+
 ## Validation
 
 Run the standard repo verification before opening or updating a pull request:
@@ -53,7 +77,7 @@ Build the release-style ZIP used by automation:
 make artifact
 ```
 
-`make verify` always creates a fresh app ZIP. When the local BrightScript desktop checker is available, it also runs `make check` as part of verification.
+`make verify` always runs the Node-based Roku static checks and creates a fresh app ZIP.
 
 ## Development Notes
 

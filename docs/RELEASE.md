@@ -20,9 +20,9 @@ The Roku `manifest` is the source of truth for the checked-in app version. Relea
 
 - `manifest` owns `major_version`, `minor_version`, and zero-padded `build_version`
 - `package.json` uses the derived semantic version, for example `2.8.4`
-- `Makefile VERSION` uses the full semantic version for signed `.pkg` labels
+- `Makefile VERSION` uses the full semantic version for release prep compatibility
 
-During a semantic-release run, `scripts/prepare-release.ts <version>` verifies that semantic-release is not trying to publish a version lower than the manifest, syncs the manifest, `package.json`, and `Makefile`, builds the ZIP, and stages the hosted and GitHub Release artifacts. The release bot then commits the version fields back to `main` with `[skip ci]`, so the Git tag, Roku manifest, and package metadata stay aligned.
+During a semantic-release run, `scripts/prepare-release.ts <version>` verifies that semantic-release is not trying to publish a version lower than the manifest, syncs the manifest, `package.json`, and `Makefile`, builds the ZIP, and stages the hosted and GitHub Release artifacts. The release bot then commits the version fields back to `main` with `[skip ci]`, so the Git tag, Roku manifest, package metadata, and Makefile release field stay aligned.
 
 ## Flow
 

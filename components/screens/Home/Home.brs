@@ -97,4 +97,6 @@ function onKeyEvent(key, press)
     m.top.showExitAppDialog = true
     return true
   end if
+
+  return false
 end function

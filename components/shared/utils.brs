@@ -64,7 +64,8 @@ function getScreenFromFileType(file_type) as String
 end function
 
 ''' File Not Supported Dialog
-function showFileNotSupportedDialog()
+function showFileNotSupportedDialog(callback = invalid)
+  m.fileNotSupportedDialogCallback = callback
   m.fileNotSupportedDialog = createObject("roSGNode", "Dialog")
   m.fileNotSupportedDialog.title = "Oops :("
   m.fileNotSupportedDialog.message = "We're unable to show these kind of files on this app (for now)"
@@ -74,12 +75,15 @@ end function
 
 function onFileNotSupportedDialogClosedBase()
   m.fileNotSupportedDialog.unobserveField("wasClosed")
-  if onFileNotSupportedDialogClosed <> invalid
-    onFileNotSupportedDialogClosed()
+  if m.fileNotSupportedDialogCallback <> invalid
+    callback = m.fileNotSupportedDialogCallback
+    m.fileNotSupportedDialogCallback = invalid
+    callback()
   end if
 end function
 
-function updateSetting(key, value)
+function updateSetting(key, value, callback = invalid)
+  m.updateSettingCallback = callback
   m.httpTask = createObject("roSGNode", "HttpTask")
   m.httpTask.observeField("response", "onUpdateSettingBase")
   m.httpTask.url = "/account/settings"
@@ -101,7 +105,9 @@ function onUpdateSettingBase(obj)
     m.global.user = user
   end if
 
-  if onUpdateSetting <> invalid
-    onUpdateSetting()
+  if m.updateSettingCallback <> invalid
+    callback = m.updateSettingCallback
+    m.updateSettingCallback = invalid
+    callback()
   end if
 end function
