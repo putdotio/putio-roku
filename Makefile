@@ -51,8 +51,12 @@ check-roku-static:
 	@echo "*** Running Roku static checks ***"
 	pnpm exec bslint --project bsconfig.json
 
+.PHONY: check-roku-live
+check-roku-live:
+	pnpm run check:live
+
 .PHONY: verify
-verify: clean check-roku-static build
+verify: clean check-roku-live check-roku-static build
 	@test -f "$(APP_ZIP_FILE)"
 
 .PHONY: smoke
@@ -167,6 +171,26 @@ console: check-roku-dev-target
 
 .PHONY: live-test
 live-test: check-roku-dev-target active-app device-info
+
+.PHONY: live-test-control
+live-test-control:
+	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live control-smoke
+
+.PHONY: live-test-press
+live-test-press:
+	@if [ -z "$(KEYS)" ]; then \
+		echo "ERROR: KEYS is not set. Example: make live-test-press KEYS=\"Back Info\""; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live press $(KEYS)
+
+.PHONY: live-test-deeplink
+live-test-deeplink:
+	@if [ -z "$(CONTENT_ID)" ]; then \
+		echo "ERROR: CONTENT_ID is not set. Example: make live-test-deeplink CONTENT_ID=1587417579"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live launch-deeplink $(CONTENT_ID) $(or $(MEDIA_TYPE),movie)
 
 .PHONY: live-test-launch
 live-test-launch: launch

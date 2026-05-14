@@ -17,13 +17,19 @@
 - `make verify`
 - `make smoke`
 - `make live-test`
+- `make live-test-control`
+- `make live-test-press KEYS="Back Info"`
+- `make live-test-deeplink CONTENT_ID=1587417579`
 - `make live-test-launch`
 - `make live-test-install`
 - `make console`
 - `make artifact`
 - `make run`
+- `make check-roku-live`
 - `make check-roku-dev-target`
+- `pnpm check:live`
 - `pnpm check:roku`
+- `pnpm roku:live control-smoke`
 - `pnpm format:roku`
 
 ## Rules
@@ -38,6 +44,7 @@
 - `.env.example` must stay sanitized and safe to publish
 - `make verify` runs the Node-based Roku static checks and builds a fresh ZIP
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
+- Headless Roku control uses ECP through `scripts/roku-live-test.ts`
 
 ## CI
 

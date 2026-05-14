@@ -50,10 +50,14 @@ make run
 Useful device-debug commands:
 
 - `make smoke` runs the standard static checks and builds a fresh ZIP
+- `pnpm check:live` type-checks the headless Roku ECP controller
 - `pnpm check:roku` runs the BrighterScript compiler diagnostics and `bslint`
 - `pnpm format:roku` checks BrightScript/BrighterScript formatting
 - `make check-roku-dev-target` checks that the Roku developer endpoint is reachable
 - `make live-test` runs read-only device reachability and state checks
+- `make live-test-control` launches the sideloaded app, sends remote keypresses over ECP, and asserts the dev app stays active
+- `make live-test-press KEYS="Back Info"` sends explicit remote keypresses over ECP
+- `make live-test-deeplink CONTENT_ID=<file-id> [MEDIA_TYPE=movie]` launches the sideloaded app through Roku deep linking
 - `make live-test-launch` opens the installed developer app and reports active app state
 - `make live-test-install` builds, reinstalls, and launches this checkout on the device
 - `make launch` opens the sideloaded developer app on the configured Roku
