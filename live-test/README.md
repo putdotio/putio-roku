@@ -42,7 +42,7 @@ make smoke
 make live-test
 make live-test-control
 make live-test-press KEYS="Back Info"
-make live-test-deeplink CONTENT_ID=1587417579
+make live-test-deeplink CONTENT_ID=<file-id>
 make live-test-launch
 make live-test-install
 make console

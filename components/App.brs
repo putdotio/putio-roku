@@ -1,6 +1,7 @@
 function init()
     m.storage = CreateObject("roRegistrySection", "userConfig")
     m.pendingDeepLink = invalid
+    m.replaceRoute = false
     m.top.observeField("deepLink", "onDeepLink")
     configureRouter()
     queueDeepLink(m.top.deepLink)
@@ -23,8 +24,12 @@ sub onNavigateToRoute(obj)
     currentRouteScreen.unobserveField("showDialog")
     currentRouteScreen.visible = false
 
-    m.activeRoute.params = currentRouteScreen.params
-    m.routeHistory.push(m.activeRoute)
+    if m.replaceRoute
+        m.replaceRoute = false
+    else
+        m.activeRoute.params = currentRouteScreen.params
+        m.routeHistory.push(m.activeRoute)
+    end if
     m.activeRoute = nextRoute
 
     nextRouteScreen = m.top.findNode(nextRoute.id)
@@ -188,7 +193,13 @@ sub routePendingDeepLink()
         return
     end if
 
-    m.routeHistory = []
+    m.routeHistory = [
+        {
+            id: "homeScreen",
+            params: {}
+        }
+    ]
+    m.replaceRoute = true
     m.global.route = {
         id: "videoScreen",
         params: {
