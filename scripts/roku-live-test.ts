@@ -1,9 +1,21 @@
 #!/usr/bin/env node
-import { execFile } from "node:child_process";
 import { access, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
 import process from "node:process";
-import { promisify } from "node:util";
+import {
+  assertNamedNodeState,
+  checkDevice as rokitCheckDevice,
+  isNamedNodeVisible,
+  pressKey as rokitPressKey,
+  queryActiveApp as rokitQueryActiveApp,
+  querySceneGraph as rokitQuerySceneGraph,
+  readNamedNodeAttribute,
+  readNamedNodeAttributes,
+  takeScreenshot as rokitTakeScreenshot,
+  validateRemoteKey,
+  type ActiveApp,
+  type RokuContext,
+} from "@putdotio/rokit";
 
 const ecpPort = 8060;
 const requestTimeoutMs = 10_000;
@@ -11,45 +23,6 @@ const sceneGraphRequestTimeoutMs = 4_000;
 const sceneGraphPollIntervalMs = 1_500;
 const launchTimeoutMs = 10_000;
 const playbackLaunchTimeoutMs = 90_000;
-const execFileAsync = promisify(execFile);
-
-const remoteKeys = [
-  "Home",
-  "Rev",
-  "Fwd",
-  "Play",
-  "Select",
-  "Left",
-  "Right",
-  "Down",
-  "Up",
-  "Back",
-  "InstantReplay",
-  "Info",
-  "Backspace",
-  "Search",
-  "Enter",
-  "VolumeDown",
-  "VolumeMute",
-  "VolumeUp",
-  "PowerOff",
-  "ChannelUp",
-  "ChannelDown",
-  "InputTuner",
-  "InputHDMI1",
-  "InputHDMI2",
-  "InputHDMI3",
-  "InputHDMI4",
-] as const;
-
-type RemoteKey = (typeof remoteKeys)[number] | `Lit_${string}`;
-
-type ActiveApp = {
-  id: string;
-  name: string;
-  type: string;
-  version: string;
-};
 
 type TrackMenuTitle = "Audio tracks" | "Subtitle tracks" | "Playback speed";
 
@@ -81,17 +54,18 @@ function usage(): never {
   node scripts/roku-live-test.ts control-smoke
 
 environment:
-  ROKU_DEV_TARGET=<roku-ip>
-  ROKU_DEV_PASSWORD=<developer-mode-password>
+  ROKU_DEV_TARGET=<roku-ip> or ROKIT_TARGET=<roku-ip>
+  ROKU_DEV_PASSWORD=<developer-mode-password> or ROKIT_PASSWORD=<developer-mode-password>
   PLAYER_UI_REFERENCE_IMAGE=<optional-reference-image-path>`);
   process.exit(1);
 }
 
 function requireTarget(): string {
-  const rawTarget = process.env.ROKU_DEV_TARGET?.trim();
+  const rawTarget =
+    process.env.ROKIT_TARGET?.trim() ?? process.env.ROKU_DEV_TARGET?.trim();
 
   if (!rawTarget) {
-    throw new Error("ROKU_DEV_TARGET is not set");
+    throw new Error("ROKU_DEV_TARGET or ROKIT_TARGET is not set");
   }
 
   return rawTarget
@@ -104,35 +78,22 @@ function ecpUrl(target: string, path: string): URL {
   return new URL(path, `http://${target}:${ecpPort}`);
 }
 
-function installerUrl(target: string): URL {
-  return new URL("/", `http://${target}`);
+function rokitContext(target: string, timeoutMs = requestTimeoutMs): RokuContext {
+  return {
+    target,
+    timeoutMs,
+    username: "rokudev",
+  };
 }
 
 function requireDeveloperPassword(): string {
-  const password = process.env.ROKU_DEV_PASSWORD;
+  const password = process.env.ROKIT_PASSWORD ?? process.env.ROKU_DEV_PASSWORD;
 
   if (!password) {
-    throw new Error("ROKU_DEV_PASSWORD is not set");
+    throw new Error("ROKU_DEV_PASSWORD or ROKIT_PASSWORD is not set");
   }
 
   return password;
-}
-
-async function fetchText(
-  url: URL,
-  method = "GET",
-  timeoutMs = requestTimeoutMs,
-): Promise<string> {
-  const response = await fetch(url, {
-    method,
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-
-  if (!response.ok) {
-    throw new Error(`${method} ${url.href} returned HTTP ${response.status}`);
-  }
-
-  return await response.text();
 }
 
 async function postOk(url: URL): Promise<void> {
@@ -168,106 +129,16 @@ async function postLaunchMaybeAccepted(url: URL): Promise<void> {
   }
 }
 
-async function fetchInstallerStatus(target: string): Promise<number> {
-  const response = await fetch(installerUrl(target), {
-    signal: AbortSignal.timeout(requestTimeoutMs),
-  });
-
-  return response.status;
-}
-
-function readXmlTag(xml: string, tag: string): string | undefined {
-  const pattern = new RegExp(`<${tag}>([^<]*)</${tag}>`);
-  return pattern.exec(xml)?.[1]?.trim();
-}
-
-function readActiveApp(xml: string): ActiveApp {
-  const match = /<app\s+([^>]*)>([^<]*)<\/app>/.exec(xml);
-
-  if (!match) {
-    throw new Error("active app response did not include an app node");
-  }
-
-  const attributes = match[1] ?? "";
-
-  return {
-    id: readXmlAttribute(attributes, "id") ?? "",
-    name: match[2]?.trim() ?? "",
-    type: readXmlAttribute(attributes, "type") ?? "",
-    version: readXmlAttribute(attributes, "version") ?? "",
-  };
-}
-
-function readXmlAttribute(attributes: string, name: string): string | undefined {
-  const pattern = new RegExp(`${name}="([^"]*)"`);
-  return pattern.exec(attributes)?.[1];
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function readNamedNodeAttributes(
-  xml: string,
-  nodeName: string,
-): string | undefined {
-  const pattern = new RegExp(
-    `<[A-Za-z0-9]+\\b(?=[^>]*\\bname="${escapeRegExp(nodeName)}")([^>]*)>`,
-  );
-
-  return pattern.exec(xml)?.[1];
-}
-
-function readNamedNodeAttribute(
-  xml: string,
-  nodeName: string,
-  attributeName: string,
-): string | undefined {
-  const attributes = readNamedNodeAttributes(xml, nodeName);
-
-  if (!attributes) {
-    return undefined;
-  }
-
-  return readXmlAttribute(attributes, attributeName);
-}
-
 function assertNamedNodeVisible(xml: string, nodeName: string): void {
-  const attributes = readNamedNodeAttributes(xml, nodeName);
-
-  if (!attributes) {
-    throw new Error(`expected SceneGraph node "${nodeName}"`);
-  }
-
-  if (attributes.includes('visible="false"')) {
-    throw new Error(`expected SceneGraph node "${nodeName}" to be visible`);
-  }
-}
-
-function isNamedNodeVisible(xml: string, nodeName: string): boolean {
-  const attributes = readNamedNodeAttributes(xml, nodeName);
-
-  return attributes !== undefined && !attributes.includes('visible="false"');
+  assertNamedNodeState(xml, nodeName, "visible");
 }
 
 function assertNamedNodeHidden(xml: string, nodeName: string): void {
-  const attributes = readNamedNodeAttributes(xml, nodeName);
-
-  if (!attributes) {
-    throw new Error(`expected SceneGraph node "${nodeName}"`);
-  }
-
-  if (!attributes.includes('visible="false"')) {
-    throw new Error(`expected SceneGraph node "${nodeName}" to be hidden`);
-  }
+  assertNamedNodeState(xml, nodeName, "hidden");
 }
 
 function assertNamedNodeAbsent(xml: string, nodeName: string): void {
-  const attributes = readNamedNodeAttributes(xml, nodeName);
-
-  if (attributes) {
-    throw new Error(`expected SceneGraph node "${nodeName}" to be absent`);
-  }
+  assertNamedNodeState(xml, nodeName, "absent");
 }
 
 async function waitForNamedNodeVisible(
@@ -510,22 +381,15 @@ function assertTrackMenuLayout(
 }
 
 async function checkDevice(target: string): Promise<void> {
-  const deviceInfo = await fetchText(ecpUrl(target, "/query/device-info"));
-  const name =
-    readXmlTag(deviceInfo, "friendly-device-name") ??
-    readXmlTag(deviceInfo, "friendlyName") ??
-    "unknown";
-  const model = readXmlTag(deviceInfo, "model-name") ?? "unknown model";
-  const installerStatus = await fetchInstallerStatus(target);
+  const summary = await rokitCheckDevice(rokitContext(target));
 
-  console.log(`device: ${name} (${model})`);
-  console.log(`ecp: http://${target}:${ecpPort}`);
-  console.log(`developer installer HTTP status: ${installerStatus}`);
+  console.log(`device: ${summary.name} (${summary.model})`);
+  console.log(`ecp: ${summary.ecp}`);
+  console.log(`developer installer HTTP status: ${summary.installerStatus}`);
 }
 
 async function queryActiveApp(target: string): Promise<ActiveApp> {
-  const xml = await fetchText(ecpUrl(target, "/query/active-app"));
-  return readActiveApp(xml);
+  return await rokitQueryActiveApp(rokitContext(target));
 }
 
 async function printActiveApp(target: string): Promise<void> {
@@ -567,10 +431,8 @@ async function querySceneGraph(target: string): Promise<string> {
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      return await fetchText(
-        ecpUrl(target, "/query/sgnodes/all"),
-        "GET",
-        sceneGraphRequestTimeoutMs,
+      return await rokitQuerySceneGraph(
+        rokitContext(target, sceneGraphRequestTimeoutMs),
       );
     } catch (error) {
       lastError = error;
@@ -764,19 +626,9 @@ async function waitForActiveApp(
 }
 
 async function pressKey(target: string, key: string): Promise<void> {
-  assertRemoteKey(key);
-  await postOk(ecpUrl(target, `/keypress/${encodeURIComponent(key)}`));
+  validateRemoteKey(key);
+  await rokitPressKey(rokitContext(target), key);
   console.log(`pressed: ${key}`);
-}
-
-function assertRemoteKey(key: string): asserts key is RemoteKey {
-  if (key.startsWith("Lit_")) {
-    return;
-  }
-
-  if (!remoteKeys.includes(key as (typeof remoteKeys)[number])) {
-    throw new Error(`unsupported remote key: ${key}`);
-  }
 }
 
 async function controlSmoke(target: string): Promise<void> {
@@ -1279,45 +1131,7 @@ async function captureDeveloperScreenshot(
   outputPath: string,
 ): Promise<string> {
   await mkdir(dirname(outputPath), { recursive: true });
-
-  const { stdout: html } = await execFileAsync(
-    "curl",
-    [
-      "--user",
-      `rokudev:${password}`,
-      "--digest",
-      "--silent",
-      "--show-error",
-      "-F",
-      "mysubmit=Screenshot",
-      "-F",
-      "archive=",
-      `http://${target}/plugin_inspect`,
-    ],
-    { maxBuffer: 2_000_000 },
-  );
-  const screenshotPath = /["' ](pkgs\/dev\.(?:jpg|png)\?[^"' <]+)/.exec(html)?.[1];
-
-  if (!screenshotPath) {
-    throw new Error("screenshot URL missing from Roku plugin inspector response");
-  }
-
-  await execFileAsync(
-    "curl",
-    [
-      "--user",
-      `rokudev:${password}`,
-      "--digest",
-      "--silent",
-      "--show-error",
-      "--output",
-      outputPath,
-      `http://${target}/${screenshotPath}`,
-    ],
-    { maxBuffer: 2_000_000 },
-  );
-
-  return outputPath;
+  return await rokitTakeScreenshot({ ...rokitContext(target), password }, outputPath);
 }
 
 async function playerUiScreenshots(

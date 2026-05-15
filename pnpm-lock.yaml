@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@putdotio/rokit':
+        specifier: 1.1.0
+        version: 1.1.0
       '@rokucommunity/bslint':
         specifier: 0.8.43
         version: 0.8.43(brighterscript@0.72.1)
@@ -20,9 +23,6 @@ importers:
       brighterscript-formatter:
         specifier: 1.7.25
         version: 1.7.25
-      roku-deploy:
-        specifier: 3.17.3
-        version: 3.17.3
       sst:
         specifier: ^4.13.1
         version: 4.13.1
@@ -194,6 +194,11 @@ packages:
 
   '@postman/tunnel-agent@0.6.8':
     resolution: {integrity: sha512-2U42SmZW5G+suEcS++zB94sBWNO4qD4bvETGFRFDTqSpYl5ksfjcPqzYpgQgXgUmb6dfz+fAGbkcRamounGm0w==}
+
+  '@putdotio/rokit@1.1.0':
+    resolution: {integrity: sha512-bT2tN88VVVumoAKxuxGje2VcpfjafAxaX8cEWMC1uMyd8S7yD4JQxApDfCJGYR/yxEM75smEqbwhYB1zznfITg==}
+    engines: {node: '>=24.14.0 <25'}
+    hasBin: true
 
   '@rokucommunity/bslib@0.1.1':
     resolution: {integrity: sha512-2ox6EUL+UTtccTbD4dbVjZK3QHa0PHCqpoKMF8lZz9ayzzEP3iVPF8KZR6hOi6bxsIcbGXVjqmtCVkpC4P9SrA==}
@@ -1719,6 +1724,12 @@ snapshots:
   '@postman/tunnel-agent@0.6.8':
     dependencies:
       safe-buffer: 5.2.1
+
+  '@putdotio/rokit@1.1.0':
+    dependencies:
+      roku-deploy: 3.17.3
+    transitivePeerDependencies:
+      - supports-color
 
   '@rokucommunity/bslib@0.1.1': {}
 

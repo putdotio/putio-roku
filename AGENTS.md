@@ -48,7 +48,7 @@
 - `.env.example` must stay sanitized and safe to publish
 - `make verify` runs the Node-based Roku static checks and builds a fresh ZIP
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
-- Headless Roku control uses ECP through `scripts/roku-live-test.ts`
+- Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
 
 ## CI
 

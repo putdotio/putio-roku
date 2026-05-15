@@ -15,12 +15,14 @@ Required for read-only device checks:
 
 ```bash
 ROKU_DEV_TARGET=<roku-ip>
+# or ROKIT_TARGET=<roku-ip>
 ```
 
 Required for sideload install checks:
 
 ```bash
 ROKU_DEV_PASSWORD=<developer-mode-password>
+# or ROKIT_PASSWORD=<developer-mode-password>
 ```
 
 Optional for player UI screenshot review pages:
@@ -39,7 +41,9 @@ pnpm install --frozen-lockfile
 ```
 
 The Make targets load `.env` automatically. If you call `pnpm roku:live`
-directly, export `ROKU_DEV_TARGET` in the shell first.
+directly, export `ROKU_DEV_TARGET` or `ROKIT_TARGET` in the shell first. The
+scenario script uses `@putdotio/rokit` for generic Roku device control and keeps
+put.io-specific playback assertions in this repo.
 
 ## Commands
 
