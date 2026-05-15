@@ -614,7 +614,7 @@ async function launchPlaybackWithRemoteStart(
     app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
   }
 
-  await sleep(remotePlaybackLaunchQuietMs);
+  await waitForRemotePlaybackSettle(target, remotePlaybackLaunchQuietMs);
 
   const start = Date.now();
   let didChooseStartFrom = false;
@@ -659,6 +659,35 @@ async function launchPlaybackWithRemoteStart(
   throw new Error(
     `expected videoPlayerScreen after remote-assisted deeplink, last visible state: ${lastState}`,
   );
+}
+
+async function waitForRemotePlaybackSettle(
+  target: string,
+  timeoutMs: number,
+): Promise<void> {
+  const start = Date.now();
+
+  while (Date.now() - start < timeoutMs) {
+    const mediaState = await queryMediaPlayerStateSafe(target);
+    if (isActiveMediaPlayerState(mediaState)) {
+      await sleep(1_000);
+      return;
+    }
+
+    try {
+      const xml = await querySceneGraph(target);
+      if (
+        hasStartFromDialog(xml) ||
+        hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")
+      ) {
+        return;
+      }
+    } catch {
+      // SceneGraph may be temporarily unavailable during app launch.
+    }
+
+    await sleep(1_000);
+  }
 }
 
 function formatErrorMessage(error: unknown): string {
