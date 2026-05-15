@@ -30,23 +30,23 @@
 
       <Rectangle
         id="bottomShadeSoft"
-        translation="[0,700]"
+        translation="[0,760]"
         width="1920"
         height="80"
-        color="0x00000040"
+        color="0x00000033"
       />
 
       <Rectangle
         id="bottomShade"
-        translation="[0,780]"
+        translation="[0,840]"
         width="1920"
-        height="300"
+        height="240"
         color="0x000000BF"
       />
 
       <Label
         id="title"
-        translation="[96,820]"
+        translation="[96,900]"
         width="960"
         font="font:LargeBoldSystemFont"
         color="0xDADADAFF"
@@ -63,7 +63,7 @@
 
       <Group
         id="progress"
-        translation="[96,934]"
+        translation="[96,960]"
       >
         <Label
           id="position"
@@ -131,6 +131,7 @@
         <Group
           id="rewindButton"
           translation="[804,0]"
+          visible="false"
         >
           <Poster
             id="rewindBackground"
@@ -168,6 +169,7 @@
         <Group
           id="playButton"
           translation="[916,0]"
+          visible="false"
         >
           <Poster
             id="playBackground"
@@ -196,6 +198,7 @@
         <Group
           id="fastForwardButton"
           translation="[1028,0]"
+          visible="false"
         >
           <Poster
             id="fastForwardBackground"
@@ -304,7 +307,7 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-captions.png"
+            uri="pkg:/images/icons/player-captions-off.png"
           />
         </Group>
 
@@ -323,11 +326,12 @@
             text="Speed"
             visible="false"
           />
-          <Rectangle
+          <Poster
             id="speedBackground"
-            width="0"
-            height="0"
-            color="0x00000000"
+            translation="[6,6]"
+            width="76"
+            height="76"
+            uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
           <Rectangle
@@ -337,14 +341,12 @@
             color="0x00000000"
             visible="false"
           />
-          <Label
-            id="speedText"
-            translation="[0,21]"
-            width="88"
-            font="font:MediumBoldSystemFont"
-            color="0xD6D6D6FF"
-            horizAlign="center"
-            text="1x"
+          <Poster
+            id="speedIcon"
+            translation="[16,16]"
+            width="56"
+            height="56"
+            uri="pkg:/images/icons/player-speed.png"
           />
         </Group>
       </Group>
@@ -405,6 +407,26 @@
           <Label id="trackRow5Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
           <Label id="trackRow5Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
         </Group>
+        <Group id="trackRow6" translation="[0,552]">
+          <Rectangle id="trackRow6Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow6Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow6Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow7" translation="[0,644]">
+          <Rectangle id="trackRow7Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow7Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow7Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow8" translation="[0,736]">
+          <Rectangle id="trackRow8Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow8Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow8Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow9" translation="[0,828]">
+          <Rectangle id="trackRow9Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow9Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow9Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
       </Group>
 
       <Label
@@ -420,7 +442,7 @@
 
     <Timer
       id="osdTimer"
-      duration="5"
+      duration="3"
       repeat="false"
     />
     <Timer

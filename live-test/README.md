@@ -90,10 +90,12 @@ make console
 - `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=dist/tmp/player-ui]`
   drives the same playback path and saves `play-focus.jpg`,
   `audio-button-focus.jpg`, `audio-menu.jpg`, `subtitle-button-focus.jpg`,
-  `subtitle-menu.jpg`, `progress-focus.jpg`, and `review.html` for visual
-  review. The review page includes the content IDs and proof commands used to
-  generate the screenshots. Set `PLAYER_UI_REFERENCE_IMAGE` to copy a reference
-  image into the review page. It requires `ROKU_DEV_PASSWORD` because
+  `subtitle-menu.jpg`, `speed-button-focus.jpg`, `speed-menu.jpg`,
+  `progress-focus.jpg`, and `review.html` for visual
+  review. The review page includes the content IDs, proof commands, and the
+  exported tv-native Android reference captures when the peer handbook repo is
+  available. Set `PLAYER_UI_REFERENCE_IMAGE` to copy an extra reference image
+  into the review page. It requires `ROKU_DEV_PASSWORD` because
   screenshots come from the Roku developer inspector.
 - `make live-test-launch` opens the installed developer app and prints the
   active app state.

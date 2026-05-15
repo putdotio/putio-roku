@@ -29,7 +29,7 @@ function init()
     m.trackMenuSelectionGuard = m.top.findNode("trackMenuSelectionGuard")
     m.trackMenuSelectionGuard.observeField("fire", "onTrackMenuSelectionGuardFire")
     m.trackMenuRows = []
-    for i = 0 to 5
+    for i = 0 to 9
         index = i.toStr()
         m.trackMenuRows.push({
             node: m.top.findNode("trackRow" + index),
@@ -92,9 +92,9 @@ function init()
             focusLabel: m.top.findNode("audioFocusLabel"),
             width: 88,
             action: "audio",
-            showFocusBackground: false,
+            showFocusBackground: true,
             iconUri: "pkg:/images/icons/player-audio.png",
-            focusedIconUri: "pkg:/images/icons/player-audio-focused.png"
+            focusedIconUri: "pkg:/images/icons/player-audio.png"
         },
         {
             node: m.top.findNode("captionsButton"),
@@ -106,23 +106,23 @@ function init()
             focusLabel: m.top.findNode("captionsFocusLabel"),
             width: 88,
             action: "captions",
-            showFocusBackground: false,
-            iconUri: "pkg:/images/icons/player-captions.png",
-            focusedIconUri: "pkg:/images/icons/player-captions-focused.png"
+            showFocusBackground: true,
+            iconUri: "pkg:/images/icons/player-captions-off.png",
+            focusedIconUri: "pkg:/images/icons/player-captions-off.png"
         },
         {
             node: m.top.findNode("speedButton"),
             background: m.top.findNode("speedBackground"),
             focusBar: m.top.findNode("speedFocus"),
-            icon: invalid,
-            valueLabel: m.top.findNode("speedText"),
+            icon: m.top.findNode("speedIcon"),
+            valueLabel: invalid,
             label: invalid,
             focusLabel: m.top.findNode("speedFocusLabel"),
             width: 88,
             action: "speed",
-            showFocusBackground: false,
-            iconUri: invalid,
-            focusedIconUri: invalid
+            showFocusBackground: true,
+            iconUri: "pkg:/images/icons/player-speed.png",
+            focusedIconUri: "pkg:/images/icons/player-speed.png"
         }
     ]
 
@@ -147,7 +147,7 @@ function init()
     m.trackMenuReturnFocusIndex = 1
     m.selectedAudioTrack = invalid
     m.selectedSubtitleTrackName = ""
-    m.playbackSpeedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]
+    m.playbackSpeedOptions = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false
@@ -464,7 +464,26 @@ end function
 
 sub updateTrackSummary()
     m.trackSummary.text = ""
+    updateTrackControlIcons()
     updateTrackControlVisibility()
+end sub
+
+sub updateTrackControlIcons()
+    if m.selectedAudioTrack <> invalid
+        m.controls[3].iconUri = "pkg:/images/icons/player-audio.png"
+        m.controls[3].focusedIconUri = "pkg:/images/icons/player-audio.png"
+    else
+        m.controls[3].iconUri = "pkg:/images/icons/player-audio-off.png"
+        m.controls[3].focusedIconUri = "pkg:/images/icons/player-audio-off.png"
+    end if
+
+    if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> ""
+        m.controls[4].iconUri = "pkg:/images/icons/player-captions.png"
+        m.controls[4].focusedIconUri = "pkg:/images/icons/player-captions.png"
+    else
+        m.controls[4].iconUri = "pkg:/images/icons/player-captions-off.png"
+        m.controls[4].focusedIconUri = "pkg:/images/icons/player-captions-off.png"
+    end if
 end sub
 
 sub updateTrackControlVisibility()
@@ -498,7 +517,7 @@ sub updateControlLayout()
         end if
     end for
 
-    m.controlsGroup.translation = [0, 810]
+    m.controlsGroup.translation = [0, 870]
 end sub
 
 function getAuxiliaryControlsWidth(controlGap as integer) as integer
@@ -591,19 +610,19 @@ end sub
 
 sub updateProgressFocusStyle(focused as boolean)
     if focused
-        m.progressTrack.translation = [0, 24]
-        m.progressTrack.height = 10
-        m.progressTrack.color = "0x7D7D7DE8"
-        m.progressFill.translation = [0, 24]
-        m.progressFill.height = 10
+        m.progressTrack.translation = [0, 23]
+        m.progressTrack.height = 12
+        m.progressTrack.color = "0x8A8A8AFF"
+        m.progressFill.translation = [0, 23]
+        m.progressFill.height = 12
         m.progressFill.color = "0xFDCE45FF"
         m.progressFocusTop.width = 0
         m.progressFocusTop.height = 0
         m.progressFocusBottom.width = 0
         m.progressFocusBottom.height = 0
         m.progressThumb.uri = "pkg:/images/player-progress-thumb-focused.png"
-        m.progressThumb.width = 30
-        m.progressThumb.height = 30
+        m.progressThumb.width = 34
+        m.progressThumb.height = 34
         m.progressThumb.visible = true
     else
         m.progressTrack.translation = [0, 25]
@@ -647,18 +666,22 @@ sub ensureFocusedControlAvailable()
         return
     end if
 
-    if isControlAvailable(1)
-        m.focusIndex = 1
+    firstAvailableIndex = getFirstAvailableControlIndex()
+    if firstAvailableIndex <> invalid
+        m.focusIndex = firstAvailableIndex
         return
     end if
+end sub
 
+function getFirstAvailableControlIndex()
     for i = 0 to m.controls.count() - 1
         if isControlAvailable(i)
-            m.focusIndex = i
-            return
+            return i
         end if
     end for
-end sub
+
+    return invalid
+end function
 
 sub updatePlayIcon()
     playFocused = m.focusArea = "controls" and m.focusIndex = 1
@@ -742,6 +765,12 @@ sub focusProgress()
 end sub
 
 sub focusControls()
+    firstAvailableIndex = getFirstAvailableControlIndex()
+    if firstAvailableIndex = invalid
+        focusProgress()
+        return
+    end if
+
     m.focusArea = "controls"
     m.focusIndex = m.progressReturnFocusIndex
     ensureFocusedControlAvailable()
@@ -960,7 +989,7 @@ sub showTrackMenu(mode)
         m.trackMenuTitle.text = "Audio tracks"
         addTrackMenuItems(content, m.audioTracks, false)
     else if mode = "captions"
-        m.trackMenuTitle.text = "Subtitle tracks"
+        m.trackMenuTitle.text = "Subtitles"
         addSubtitleOffItem(content)
         addTrackMenuItems(content, m.subtitleTracks, true)
     else if mode = "speed"
@@ -993,7 +1022,11 @@ sub renderTrackMenuRows()
     rowCount = getTrackMenuVisibleRowCount()
     metrics = getTrackMenuMetrics()
 
-    panelHeight = 168 + (rowCount * 92)
+    panelHeight = metrics.topPadding + metrics.bottomPadding + (rowCount * metrics.rowHeight)
+    if rowCount > 1
+        panelHeight = panelHeight + ((rowCount - 1) * metrics.rowGap)
+    end if
+
     if panelHeight < metrics.minPanelHeight
         panelHeight = metrics.minPanelHeight
     end if
@@ -1007,25 +1040,27 @@ sub renderTrackMenuRows()
     m.trackMenuPanel.height = panelHeight
     m.trackMenuPanel.translation = [metrics.panelX, panelY]
     m.trackMenuTitle.width = metrics.titleWidth
-    m.trackMenuTitle.translation = [metrics.titleX, m.trackMenuPanel.translation[1] + 58]
-    m.top.findNode("trackRows").translation = [metrics.rowsX, m.trackMenuPanel.translation[1] + 148]
+    m.trackMenuTitle.translation = [metrics.titleX, m.trackMenuPanel.translation[1] + metrics.titleY]
+    m.top.findNode("trackRows").translation = [metrics.rowsX, m.trackMenuPanel.translation[1] + metrics.rowsY]
 
     for i = 0 to m.trackMenuRows.count() - 1
         row = m.trackMenuRows[i]
         itemIndex = m.trackMenuScrollOffset + i
+        row.node.translation = [0, i * (metrics.rowHeight + metrics.rowGap)]
         row.background.width = metrics.rowWidth
+        row.background.height = metrics.rowHeight
         row.label.width = metrics.labelWidth
-        row.check.translation = [metrics.checkX, 21]
+        row.check.translation = [metrics.checkX, metrics.checkY]
 
         if i < rowCount and itemIndex < m.trackMenuItems.count()
             row.node.visible = true
             row.label.text = getMenuSafeTrackLabel(m.trackMenuItems[itemIndex].label)
             if m.trackMenuMode = "captions"
                 row.label.font = "font:SmallSystemFont"
-                row.label.translation = [28, 28]
+                row.label.translation = [16, metrics.captionLabelY]
             else
                 row.label.font = "font:MediumSystemFont"
-                row.label.translation = [28, 24]
+                row.label.translation = [16, metrics.labelY]
             end if
         else
             row.node.visible = false
@@ -1035,46 +1070,36 @@ sub renderTrackMenuRows()
 end sub
 
 function getTrackMenuMetrics() as object
+    baseMetrics = {
+        panelWidth: 640,
+        panelX: 640,
+        titleWidth: 576,
+        titleX: 672,
+        rowsX: 672,
+        rowWidth: 576,
+        labelWidth: 500,
+        checkX: 516,
+        minPanelHeight: 284,
+        titleY: 40,
+        rowsY: 104,
+        topPadding: 104,
+        bottomPadding: 32,
+        rowHeight: 70,
+        rowGap: 8,
+        labelY: 15,
+        captionLabelY: 18,
+        checkY: 10
+    }
+
     if m.trackMenuMode = "captions"
-        return {
-            panelWidth: 1160,
-            panelX: 280,
-            titleWidth: 1040,
-            titleX: 340,
-            rowsX: 320,
-            rowWidth: 1080,
-            labelWidth: 948,
-            checkX: 1008,
-            minPanelHeight: 384
-        }
+        return baseMetrics
     end if
 
     if m.trackMenuMode = "speed"
-        return {
-            panelWidth: 760,
-            panelX: 580,
-            titleWidth: 640,
-            titleX: 640,
-            rowsX: 620,
-            rowWidth: 680,
-            labelWidth: 548,
-            checkX: 608,
-            panelY: 180,
-            minPanelHeight: 352
-        }
+        return baseMetrics
     end if
 
-    return {
-        panelWidth: 760,
-        panelX: 580,
-        titleWidth: 640,
-        titleX: 640,
-        rowsX: 620,
-        rowWidth: 680,
-        labelWidth: 548,
-        checkX: 608,
-        minPanelHeight: 352
-    }
+    return baseMetrics
 end function
 
 sub addPlaybackSpeedMenuItems(content)
@@ -1184,10 +1209,7 @@ function getTrackMenuVisibleRowCount() as integer
         rowCount = m.trackMenuRows.count()
     end if
 
-    maxVisibleRows = 4
-    if m.trackMenuMode = "speed"
-        maxVisibleRows = 5
-    end if
+    maxVisibleRows = m.trackMenuRows.count()
 
     if rowCount > maxVisibleRows
         rowCount = maxVisibleRows
@@ -1292,21 +1314,22 @@ sub applyPlaybackSpeed(item)
         return
     end if
 
+    wasPlaying = m.video.state = "playing" or m.video.state = "buffering"
     m.selectedPlaybackSpeed = item.speed
     m.selectedPlaybackSpeedLabel = getPlaybackSpeedLabel(item.speed)
     m.video.playbackSpeed = item.speed
-    updatePlaybackSpeedLabel()
-end sub
 
-sub updatePlaybackSpeedLabel()
-    speedLabel = m.top.findNode("speedText")
-    if speedLabel <> invalid
-        speedLabel.text = m.selectedPlaybackSpeedLabel
+    if wasPlaying
+        m.video.control = "pause"
+        m.video.control = "resume"
     end if
+
 end sub
 
 function getPlaybackSpeedLabel(speed) as string
-    if speed = 0.5
+    if speed = 0.25
+        return "0.25x"
+    else if speed = 0.5
         return "0.5x"
     else if speed = 0.75
         return "0.75x"
@@ -1316,10 +1339,10 @@ function getPlaybackSpeedLabel(speed) as string
         return "1.25x"
     else if speed = 1.5
         return "1.5x"
+    else if speed = 1.75
+        return "1.75x"
     else if speed = 2
         return "2x"
-    else if speed = 3
-        return "3x"
     end if
 
     return speed.toStr() + "x"
@@ -1333,6 +1356,9 @@ sub applySubtitleSelection()
         m.video.subtitleTrack = ""
         m.video.globalCaptionMode = "Off"
     end if
+
+    updateTrackControlIcons()
+    updateControlFocus()
 end sub
 
 sub closeTrackMenu()
@@ -1391,9 +1417,11 @@ function getMenuSafeTrackLabel(label) as string
     end if
 
     safeLabel = label.toStr()
-    maxLength = 82
+    maxLength = 28
     if m.trackMenuMode = "captions"
-        maxLength = 98
+        maxLength = 32
+    else if m.trackMenuMode = "speed"
+        maxLength = 12
     end if
 
     if Len(safeLabel) > maxLength
@@ -1483,10 +1511,14 @@ function onKeyEvent(key as string, press as boolean) as boolean
             showOsd()
             return true
         else if normalizedKey = "rewind" or normalizedKey = "rev"
-            rewind()
+            showOsd()
+            focusProgress()
+            previewSeekBy(-15)
             return true
         else if normalizedKey = "fastforward" or normalizedKey = "fwd"
-            fastforward()
+            showOsd()
+            focusProgress()
+            previewSeekBy(15)
             return true
         else if normalizedKey = "replay" or normalizedKey = "instantreplay"
             seekToStart()
@@ -1517,19 +1549,19 @@ function onKeyEvent(key as string, press as boolean) as boolean
             showOsd()
             if osdWasHidden
                 focusProgress()
-            else if m.focusArea = "controls"
-                focusProgress()
+            else if m.focusArea = "progress"
+                focusControls()
             else
-                focusProgress()
+                focusControls()
             end if
         else if normalizedKey = "down"
             showOsd()
             if osdWasHidden
                 focusProgress()
-            else if m.focusArea = "progress"
-                focusControls()
+            else if m.focusArea = "controls"
+                focusProgress()
             else
-                focusControls()
+                focusProgress()
             end if
         else if normalizedKey = "ok" or normalizedKey = "select"
             showOsd()
