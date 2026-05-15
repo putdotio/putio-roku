@@ -24,6 +24,10 @@ function init()
 end function
 
 function getSearchHistory()
+    if m.searchHistoryItems = invalid
+        return []
+    end if
+
     return m.searchHistoryItems
 end function
 
@@ -44,7 +48,10 @@ end sub
 
 sub updateSearchHistoryButtons(keyword)
     if keyword = invalid or keyword.Len() = 0
-        m.searchResultGroup.insertChild(m.searchHistory, 0)
+        if m.searchHistory.getParent() = invalid
+            m.searchResultGroup.insertChild(m.searchHistory, 0)
+        end if
+
         content = createObject("roSGNode", "ContentNode")
         for each historyItem in getSearchHistory()
             label = content.createChild("ContentNode")
@@ -54,10 +61,12 @@ sub updateSearchHistoryButtons(keyword)
         m.searchHistory.content = content
         m.searchHistory.visible = true
     else
-        m.searchResultGroup.removeChild(m.searchHistory)
+        if m.searchHistory.getParent() <> invalid
+            m.searchResultGroup.removeChild(m.searchHistory)
+        end if
+
         m.searchHistory.visible = false
     end if
-    ' STOP
 end sub
 
 sub onVisibleChange()
@@ -203,13 +212,15 @@ sub onFetchSearchHistory(obj)
     end if
 end sub
 
-function onKeyEvent(key, press)
+function onKeyEvent(key as string, press as boolean) as boolean
     if m.top.visible and press
-        if key = "back"
+        normalizedKey = LCase(key)
+
+        if normalizedKey = "back"
             m.keyboard.text = ""
             m.top.navigateBack = "true"
             return true
-        else if key = "left"
+        else if normalizedKey = "left"
             if m.searchHistory.isInFocusChain()
                 m.keyboard.setFocus(true)
                 return true
@@ -218,7 +229,7 @@ function onKeyEvent(key, press)
                 return true
             end if
             return false
-        else if key = "right"
+        else if normalizedKey = "right"
             if m.keyboard.isInFocusChain()
                 if m.searchHistory.visible
                     m.searchHistory.setFocus(true)
@@ -228,6 +239,16 @@ function onKeyEvent(key, press)
                     return true
                 end if
             end if
+            return false
+        else if normalizedKey = "options" or normalizedKey = "info" or normalizedKey = "search"
+            if m.searchFileList.visible
+                m.searchFileList.setFocus(true)
+                return true
+            else if m.searchHistory.visible
+                m.searchHistory.setFocus(true)
+                return true
+            end if
+
             return false
         end if
         return false

@@ -36,6 +36,6 @@ sub onDeleteFileResponse(obj)
         m.top.completed = "true"
         m.top.close = "true"
     else
-        m.top.message = "An error ocurred, please try again."
+        m.top.message = "An error occurred, please try again."
     end if
 end sub

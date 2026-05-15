@@ -35,7 +35,7 @@ sub HistoryEventTransferCompletedDescription(event) as string
     return SubtitleWithDate(event.created_at, size)
 end sub
 
-' Transfer rrror
+' Transfer error
 sub HistoryEventTransferErrorTitle(event) as string
     return "Error in transfer " + event.transfer_name
 end sub
@@ -51,7 +51,7 @@ end sub
 
 sub HistoryEventFileFromRSSDeletedDescription(event) as string
     size = convertSize(event.file_size)
-    return SubtitleWithDate(size)
+    return SubtitleWithDate(event.created_at, size)
 end sub
 
 ' RSS paused
@@ -137,7 +137,7 @@ sub GetMapFromHistoryEventType(eventType) as object
             icon: "exclamation-point-1",
         },
         rss_filter_paused: {
-            title: HistoryEventRSSPausedDescription,
+            title: HistoryEventRSSPausedTitle,
             description: HistoryEventRSSPausedDescription,
             icon: "rss-1",
         },

@@ -7,10 +7,13 @@ ARTIFACT_NAME := putio-roku-v2.zip
 DIST_DIR := dist
 ZIP_DIR := $(DIST_DIR)/apps
 TMP_DIR := $(DIST_DIR)/tmp
+ZIP_STAGING_DIR := $(TMP_DIR)/zip-root
 APP_ZIP_FILE := $(ZIP_DIR)/$(APP_NAME).zip
+APP_ZIP_ABS := $(abspath $(APP_ZIP_FILE))
 ARTIFACT_ZIP_FILE := $(ZIP_DIR)/$(ARTIFACT_NAME)
 ROKU_RESPONSE_FILE := $(TMP_DIR)/roku-response.html
-ROKU_APP_FILES := $(shell find manifest source components images -type f ! -name '*~' 2>/dev/null)
+ROKU_APP_FILES := $(shell LC_ALL=C find manifest source components images -type f ! -name '.*' ! -name '*~' 2>/dev/null | sort)
+ROKU_ZIP_FILES := LC_ALL=C find manifest source components images -type f ! -name '.*' ! -name '*~' | sort
 
 ROKU_DEV_CONSOLE_PORT ?= 8085
 
@@ -30,12 +33,20 @@ build: $(APP_ZIP_FILE)
 .PHONY: $(APP_NAME)
 $(APP_NAME): build
 
+.PHONY: $(APP_ZIP_FILE)
 $(APP_ZIP_FILE): $(ROKU_APP_FILES)
 	@echo "*** Creating $(APP_NAME).zip ***"
 	@rm -f "$(APP_ZIP_FILE)"
-	@mkdir -p "$(ZIP_DIR)"
-	@find images components -type f -name '*.png' -print | zip -0 "$(APP_ZIP_FILE)" -@
-	@find manifest source components images -type f ! -name '*.png' ! -name '*~' -print | zip -9 "$(APP_ZIP_FILE)" -@
+	@rm -rf "$(ZIP_STAGING_DIR)"
+	@mkdir -p "$(ZIP_STAGING_DIR)" "$(ZIP_DIR)"
+	@$(ROKU_ZIP_FILES) | while IFS= read -r file; do \
+		mkdir -p "$(ZIP_STAGING_DIR)/$$(dirname "$$file")"; \
+		cp "$$file" "$(ZIP_STAGING_DIR)/$$file"; \
+	done
+	@find "$(ZIP_STAGING_DIR)" -type f -exec touch -t 202001010000 {} +
+	@(cd "$(ZIP_STAGING_DIR)" && $(ROKU_ZIP_FILES) | grep '\.png$$' | zip -X -0 "$(APP_ZIP_ABS)" -@)
+	@(cd "$(ZIP_STAGING_DIR)" && $(ROKU_ZIP_FILES) | grep -v '\.png$$' | zip -X -9 "$(APP_ZIP_ABS)" -@)
+	@rm -rf "$(ZIP_STAGING_DIR)"
 	@test -f "$(APP_ZIP_FILE)"
 	@echo "*** Packaging $(APP_NAME) complete ***"
 
@@ -104,7 +115,7 @@ install: verify check-roku-dev-target
 	@mkdir -p "$(TMP_DIR)"
 	@HTTP_STATUS=""; \
 		for attempt in 1 2; do \
-			HTTP_STATUS=$$(curl --user "$(ROKU_DEV_USERPASS)" --digest --silent --show-error \
+			HTTP_STATUS=$$(curl --user "$(ROKU_DEV_USERPASS)" --anyauth --http1.0 --silent --show-error \
 				-F "mysubmit=Install" -F "archive=@$(APP_ZIP_FILE)" \
 				--output "$(ROKU_RESPONSE_FILE)" \
 				--write-out "%{http_code}" \
@@ -128,7 +139,7 @@ install: verify check-roku-dev-target
 remove: check-roku-dev-target
 	@echo "Removing dev app..."
 	@mkdir -p "$(TMP_DIR)"
-	@HTTP_STATUS=$$(curl --user "$(ROKU_DEV_USERPASS)" --digest --silent --show-error \
+	@HTTP_STATUS=$$(curl --user "$(ROKU_DEV_USERPASS)" --anyauth --http1.0 --silent --show-error \
 		-F "mysubmit=Delete" -F "archive=" \
 		--output "$(ROKU_RESPONSE_FILE)" \
 		--write-out "%{http_code}" \
