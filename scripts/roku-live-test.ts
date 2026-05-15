@@ -31,6 +31,7 @@ const playbackLaunchTimeoutMs = 240_000;
 const playbackLaunchRetryMs = 45_000;
 const remotePlaybackLaunchQuietMs = 18_000;
 const maxPlaybackLaunchAttempts = 4;
+const screenshotCaptureAttempts = 5;
 
 type TrackMenuTitle = "Audio tracks" | "Subtitles" | "Playback speed";
 type PlayerControlId =
@@ -1344,6 +1345,34 @@ async function assertSpeedValueLabel(target: string, expectedLabel: string): Pro
   await sleep(500);
 }
 
+function isOptionalSpeedUnavailable(error: unknown): boolean {
+  return formatErrorMessage(error).includes("expected speed control to be available");
+}
+
+async function smokePlaybackSpeedIfAvailable(target: string): Promise<void> {
+  if (!(await isSpeedControlAvailable(target))) {
+    console.log("skipped playback speed menu: Roku Video.playbackSpeed is unavailable");
+    return;
+  }
+
+  try {
+    await focusSpeedButtonFromPlayback(target);
+    await assertSpeedFocusRoundTrip(target);
+    await openSpeedMenuFromPlayback(target);
+    await selectNextTrackMenuItem(target);
+    await sleep(750);
+    await assertSpeedValueLabel(target, "1.25x");
+    console.log("asserted playback speed menu and selection");
+  } catch (error) {
+    if (isOptionalSpeedUnavailable(error)) {
+      console.log("skipped playback speed menu: Roku Video.playbackSpeed is unavailable");
+      return;
+    }
+
+    throw error;
+  }
+}
+
 async function playerUiSmoke(
   target: string,
   audioContentId: string,
@@ -1362,17 +1391,7 @@ async function playerUiSmoke(
   );
   await waitForPlayerClockReady(target);
   await pausePlaybackForStableOsd(target);
-  if (await isSpeedControlAvailable(target)) {
-    await focusSpeedButtonFromPlayback(target);
-    await assertSpeedFocusRoundTrip(target);
-    await openSpeedMenuFromPlayback(target);
-    await selectNextTrackMenuItem(target);
-    await sleep(750);
-    await assertSpeedValueLabel(target, "1.25x");
-    console.log("asserted playback speed menu and selection");
-  } else {
-    console.log("skipped playback speed menu: Roku Video.playbackSpeed is unavailable");
-  }
+  await smokePlaybackSpeedIfAvailable(target);
 
   await focusAudioButtonFromPlayback(target);
   await assertFocusRoundTrip(target, "audioFocusLabel");
@@ -1428,7 +1447,7 @@ async function captureDeveloperScreenshot(
   await mkdir(dirname(outputPath), { recursive: true });
   let lastError = "unknown";
 
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= screenshotCaptureAttempts; attempt += 1) {
     const captureDir = await mkdtemp(
       join(tmpdir(), `putio-roku-${basename(outputPath, extname(outputPath))}-`),
     );
@@ -1465,12 +1484,14 @@ async function captureDeveloperScreenshot(
       throw new Error("screenshot capture succeeded without writing an image file");
     } catch (error) {
       lastError = formatErrorMessage(error);
-      if (attempt === 3) {
+      if (attempt === screenshotCaptureAttempts) {
         break;
       }
 
-      console.log(`screenshot retry ${attempt}/3 for ${basename(outputPath)}: ${lastError}`);
-      await sleep(1_000);
+      console.log(
+        `screenshot retry ${attempt}/${screenshotCaptureAttempts} for ${basename(outputPath)}: ${lastError}`,
+      );
+      await sleep(1_500);
     } finally {
       await rm(captureDir, { force: true, recursive: true });
     }

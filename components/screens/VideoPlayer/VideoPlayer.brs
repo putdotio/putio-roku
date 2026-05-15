@@ -135,6 +135,8 @@ function init()
     m.seekValue = 0
     m.seekPressCount = 0
     m.seekDirection = 0
+    m.seekRepeatWindowMs = 500
+    m.seekPressTimer = CreateObject("roTimespan")
     m.wasPlayingBeforeSeek = false
     m.audioTracks = []
     m.rokuSubtitleTracks = []
@@ -854,6 +856,7 @@ sub startPreviewSeek(seconds)
         m.wasPlayingBeforeSeek = m.video.state = "playing" or m.video.state = "buffering"
         m.seekPressCount = 0
         m.seekDirection = direction
+        resetSeekPressTimer()
 
         if m.wasPlayingBeforeSeek
             m.video.control = "pause"
@@ -861,6 +864,7 @@ sub startPreviewSeek(seconds)
     else if direction <> m.seekDirection
         m.seekPressCount = 0
         m.seekDirection = direction
+        resetSeekPressTimer()
     end if
 end sub
 
@@ -873,7 +877,13 @@ function getSeekDirection(seconds) as integer
 end function
 
 function getPreviewSeekDelta(seconds) as integer
+    if m.seekPressTimer <> invalid and m.seekPressTimer.TotalMilliseconds() > m.seekRepeatWindowMs
+        m.seekPressCount = 0
+    end if
+
     m.seekPressCount = m.seekPressCount + 1
+    resetSeekPressTimer()
+
     stepSize = Abs(seconds)
 
     if stepSize < 15
@@ -911,13 +921,14 @@ sub commitPreviewSeek()
     end if
 
     seekPosition = m.seekValue
+    shouldResume = m.wasPlayingBeforeSeek
     resetPreviewSeek()
     m.pendingSeekPosition = seekPosition
     m.positionLabel.text = getDurationString(seekPosition)
     updateProgress(seekPosition)
     m.video.seek = seekPosition
 
-    if m.wasPlayingBeforeSeek
+    if shouldResume
         m.video.control = "resume"
     end if
 
@@ -945,6 +956,12 @@ sub resetPreviewSeek()
     m.seekInProgress = false
     m.seekPressCount = 0
     m.seekDirection = 0
+    m.wasPlayingBeforeSeek = false
+    resetSeekPressTimer()
+end sub
+
+sub resetSeekPressTimer()
+    m.seekPressTimer = CreateObject("roTimespan")
 end sub
 
 sub seekToStart()
