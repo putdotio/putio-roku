@@ -12,6 +12,8 @@ import {
   querySceneGraph as rokitQuerySceneGraph,
   readNamedNodeAttribute,
   readNamedNodeAttributes,
+  readNamedNodeNumber,
+  readNamedNodeTranslation,
   takeScreenshot as rokitTakeScreenshot,
   validateRemoteKey,
   waitForActiveApp as rokitWaitForActiveApp,
@@ -137,75 +139,6 @@ function assertNamedNodeText(
       `expected "${nodeName}" text "${expectedText}", got "${text ?? "missing"}"`,
     );
   }
-}
-
-function readNamedNodeBoundsHeight(
-  xml: string,
-  nodeName: string,
-): string | undefined {
-  const bounds = readNamedNodeAttribute(xml, nodeName, "bounds");
-
-  if (!bounds) {
-    return undefined;
-  }
-
-  const parts = bounds
-    .replace(/[{}]/g, "")
-    .split(",")
-    .map((part) => part.trim());
-
-  return parts[3];
-}
-
-function readNamedNodeNumber(
-  xml: string,
-  nodeName: string,
-  attributeName: "height" | "width",
-): number | undefined {
-  const value = readNamedNodeAttribute(xml, nodeName, attributeName);
-
-  if (value !== undefined) {
-    const numberValue = Number(value);
-    return Number.isFinite(numberValue) ? numberValue : undefined;
-  }
-
-  const bounds = readNamedNodeAttribute(xml, nodeName, "bounds");
-
-  if (!bounds) {
-    return undefined;
-  }
-
-  const parts = parseSceneGraphNumberList(bounds);
-  const index = attributeName === "width" ? 2 : 3;
-
-  return parts[index];
-}
-
-function parseSceneGraphNumberList(value: string): number[] {
-  return value
-    .replace(/[\[\]{}]/g, "")
-    .split(",")
-    .map((part) => Number(part.trim()))
-    .filter((part) => Number.isFinite(part));
-}
-
-function readNamedNodeTranslation(
-  xml: string,
-  nodeName: string,
-): [number, number] | undefined {
-  const translation = readNamedNodeAttribute(xml, nodeName, "translation");
-
-  if (!translation) {
-    return undefined;
-  }
-
-  const parts = parseSceneGraphNumberList(translation);
-
-  if (parts.length < 2) {
-    return undefined;
-  }
-
-  return [parts[0], parts[1]];
 }
 
 function assertNear(
@@ -694,17 +627,17 @@ async function focusProgressFromOpenMenu(target: string): Promise<void> {
 
 async function assertProgressFocused(target: string): Promise<void> {
   const xml = await querySceneGraph(target);
-  const progressHeight =
-    readNamedNodeAttribute(xml, "progressTrack", "height") ??
-    readNamedNodeBoundsHeight(xml, "progressTrack");
+  const progressHeight = readNamedNodeNumber(xml, "progressTrack", "height");
 
   assertNamedNodeVisible(xml, "videoPlayerScreen");
   assertNamedNodeVisible(xml, "osd");
   assertNamedNodeVisible(xml, "progressThumb");
   assertPlayerOsdLayout(xml);
 
-  if (progressHeight !== "10") {
-    throw new Error(`expected focused progress track height 10, got ${progressHeight ?? "missing"}`);
+  if (progressHeight !== 10) {
+    throw new Error(
+      `expected focused progress track height 10, got ${progressHeight?.toString() ?? "missing"}`,
+    );
   }
 }
 
