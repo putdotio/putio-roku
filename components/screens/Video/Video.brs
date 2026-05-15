@@ -3,13 +3,9 @@ function init()
 
     m.file = {}
     m.subtitles = []
-
-    m.playButton = m.top.findNode("button-play")
-    m.subtitleList = m.top.findNode("subtitleList")
-    m.subtitleList.observeField("itemSelected", "onSubtitleSelected")
-
     m.fetchFileTask = createObject("roSGNode", "HttpTask")
     m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
+    m.fetchStartFromTask = createObject("roSGNode", "HttpTask")
 end function
 
 sub onVisibleChange()
@@ -22,19 +18,19 @@ end sub
 
 sub onMount()
     setTitle(m.top.params.fileName)
+    showLoading()
 
     if m.file.id <> m.top.params.fileId
-        hideContent()
-        showLoading()
         fetchFile(m.top.params.fileId)
     else
-        focusPlayButton()
+        handleFetchedFile()
     end if
 end sub
 
 sub cancelHttpTasks()
     m.fetchFileTask.unobserveField("response")
     m.fetchSubtitlesTask.unobserveField("response")
+    m.fetchStartFromTask.unobserveField("response")
 end sub
 
 ''' API
@@ -52,15 +48,27 @@ sub onFetchFileResponse(obj)
     if data <> invalid and data.parent <> invalid
         m.file = data.parent
         setTitle(m.file.name)
-        fetchSubtitles(m.top.params.fileId)
+        handleFetchedFile()
     else
+        hideLoading()
         showFetchFileErrorDialog(data)
     end if
 end sub
 
-sub fetchSubtitles(fileId)
+sub handleFetchedFile()
+    if m.file.need_convert
+        hideLoading()
+        showVideoConversionDialog()
+        return
+    end if
+
+    fetchSubtitles()
+end sub
+
+sub fetchSubtitles()
+    m.subtitles = []
     m.fetchSubtitlesTask.observeField("response", "onFetchSubtitlesResponse")
-    m.fetchSubtitlesTask.url = ("/files/" + fileId.toStr() + "/subtitles")
+    m.fetchSubtitlesTask.url = ("/files/" + m.file.id.toStr() + "/subtitles")
     m.fetchSubtitlesTask.method = "GET"
     m.fetchSubtitlesTask.control = "RUN"
 end sub
@@ -73,34 +81,38 @@ sub onFetchSubtitlesResponse(obj)
         m.subtitles = data.subtitles
     end if
 
+    fetchStartFrom()
+end sub
+
+sub fetchStartFrom()
+    m.fetchStartFromTask.observeField("response", "onFetchStartFromResponse")
+    m.fetchStartFromTask.url = ("/files/" + m.file.id.toStr() + "/start-from")
+    m.fetchStartFromTask.method = "GET"
+    m.fetchStartFromTask.control = "RUN"
+end sub
+
+sub onFetchStartFromResponse(obj)
+    m.fetchStartFromTask.unobserveField("response")
+    data = parseJSON(obj.getData())
     hideLoading()
-    showContent()
-    focusPlayButton()
+
+    if data <> invalid and data.start_from <> invalid and data.start_from > 0
+        m.fetchedStartFrom = data.start_from
+        if m.top.params.startFromChoice = "beginning"
+            navigateToVideoPlayer(0)
+        else if m.top.params.startFromChoice = "continue"
+            navigateToVideoPlayer(m.fetchedStartFrom)
+        else
+            showChooseStartFromDialog()
+        end if
+    else
+        navigateToVideoPlayer(0)
+    end if
 end sub
 
 ''' UI
 sub setTitle(title)
     m.top.findNode("overhang").title = title
-end sub
-
-sub configurePlayButtonImage()
-    if m.playButton.hasFocus()
-        if m.file.need_convert
-            m.playButton.uri = "pkg:/images/ConvertButtonFocused.png"
-            m.playButton.width = "430"
-        else
-            m.playButton.uri = "pkg:/images/PlayButtonFocused.png"
-            m.playButton.width = "312"
-        end if
-    else
-        if m.file.need_convert
-            m.playButton.uri = "pkg:/images/ConvertButtonUnfocused.png"
-            m.playButton.width = "430"
-        else
-            m.playButton.uri = "pkg:/images/PlayButtonUnfocused.png"
-            m.playButton.width = "312"
-        end if
-    end if
 end sub
 
 sub showLoading()
@@ -109,51 +121,6 @@ end sub
 
 sub hideLoading()
     m.top.findNode("loading").visible = "false"
-end sub
-
-sub showContent()
-    m.top.findNode("content").visible = "true"
-    setPoster()
-    setSubtitles()
-end sub
-
-sub hideContent()
-    m.top.findNode("content").visible = "false"
-end sub
-
-sub setPoster()
-    m.top.findNode("poster").uri = m.file.screenshot
-end sub
-
-sub setSubtitles()
-    content = createObject("roSGNode", "ContentNode")
-
-    noSelectionItem = content.createChild("ContentNode")
-    noSelectionItem.title = "Don’t load any subtitles"
-
-    for each subtitle in m.subtitles
-        listItemData = content.createChild("ContentNode")
-        listItemData.title = subtitle.language + " — " + subtitle.name
-        listItemData.title = listItemData.title.replace("Undetermined", "Custom")
-    end for
-
-    m.subtitleList.checkedItem = 0
-    if m.subtitles.count() > 0
-        m.subtitleList.checkedItem = 1
-    end if
-
-    m.subtitleList.visible = "true"
-    m.subtitleList.content = content
-end sub
-
-sub focusPlayButton()
-    m.playButton.setFocus(true)
-    configurePlayButtonImage()
-end sub
-
-sub unfocusPlaybutton()
-    m.playButton.setFocus(false)
-    configurePlayButtonImage()
 end sub
 
 ''' Error Dialog
@@ -179,69 +146,100 @@ sub showVideoConversionDialog()
 end sub
 
 sub onVideoConversionDialogClosed()
-    focusPlayButton()
+    m.videoConversionDialog.unobserveField("wasClosed")
+
+    if m.file.need_convert
+        m.top.navigateBack = "true"
+    end if
 end sub
 
 sub onVideoConversionCompleted()
     m.file = m.videoConversionDialog.convertedFile
-    onPlay()
+    setTitle(m.file.name)
+    handleFetchedFile()
 end sub
 
-''' Events
-sub onSubtitleSelected()
-    focusPlayButton()
-    onPlay()
+''' Start From Dialog
+sub showChooseStartFromDialog()
+    m.didChooseStartFrom = false
+    m.chooseStartFromDialog = createObject("roSGNode", "Dialog")
+    m.chooseStartFromDialog.title = "Where would you like to start?"
+    m.chooseStartFromDialog.message = "Last saved timestamp for this video is " + getDurationString(m.fetchedStartFrom) + " of " + getDurationString(m.file.video_metadata.duration)
+    m.chooseStartFromDialog.buttons = [
+        "Continue watching",
+        "Start from the beginning"
+    ]
+
+    m.chooseStartFromDialog.observeField("buttonSelected", "onChooseStartFromDialogButtonSelected")
+    m.chooseStartFromDialog.observeField("wasClosed", "onChooseStartFromDialogClosed")
+    m.top.showDialog = m.chooseStartFromDialog
 end sub
 
-sub onPlay()
-    if m.file.need_convert
-        showVideoConversionDialog()
-        return
+sub onChooseStartFromDialogButtonSelected(obj)
+    m.chooseStartFromDialog.unobserveField("buttonSelected")
+    m.didChooseStartFrom = true
+
+    if obj.getData() = 0
+        m.selectedStartFrom = m.fetchedStartFrom
+    else
+        m.selectedStartFrom = 0
     end if
 
-    if m.subtitleList.checkedItem = 0
-        selectedSubtitle = {}
-    else if m.subtitles[m.subtitleList.checkedItem - 1] <> invalid
-        selectedSubtitle = m.subtitles[m.subtitleList.checkedItem - 1]
-    end if
+    m.chooseStartFromDialog.close = true
+    m.top.showDialog = invalid
+    navigateToVideoPlayer(m.selectedStartFrom)
+end sub
 
+sub onChooseStartFromDialogClosed()
+    m.chooseStartFromDialog.unobserveField("wasClosed")
+
+    if m.didChooseStartFrom <> true
+        m.top.navigateBack = "true"
+    end if
+end sub
+
+sub navigateToVideoPlayer(startFrom)
     m.top.navigate = {
         id: "videoPlayerScreen",
+        replace: true,
         params: {
             file: m.file,
-            subtitle: selectedSubtitle,
+            subtitles: m.subtitles,
+            startFrom: startFrom
         }
     }
 end sub
 
-function onKeyEvent(key, press)
-    if m.top.visible and press
-        if key = "back"
-            m.top.navigateBack = "true"
-            return true
-        end if
-
-        if m.playButton.hasFocus()
-            if key = "OK"
-                onPlay()
-                return true
-            end if
-
-            if key = "down"
-                unfocusPlaybutton()
-                m.subtitleList.setFocus(true)
-                return true
-            end if
-        end if
-
-        if m.subtitleList.hasFocus()
-            if key = "up"
-                m.subtitleList.setFocus(false)
-                focusPlayButton()
-                return true
-            end if
-        end if
+function onKeyEvent(key as string, press as boolean) as boolean
+    if m.top.visible and press and key = "back"
+        m.top.navigateBack = "true"
+        return true
     end if
 
     return false
 end function
+
+sub getDurationString(seconds) as string
+    datetime = CreateObject("roDateTime")
+    datetime.FromSeconds(seconds)
+
+    hours = datetime.GetHours().ToStr()
+    minutes = datetime.GetMinutes().ToStr()
+    seconds = datetime.GetSeconds().ToStr()
+
+    if Len(hours) = 1 then
+        hours = "0" + hours
+    end if
+    if Len(minutes) = 1 then
+        minutes = "0" + minutes
+    end if
+    if Len(seconds) = 1 then
+        seconds = "0" + seconds
+    end if
+
+    if hours <> "00"
+        return hours + ":" + minutes + ":" + seconds
+    else
+        return minutes + ":" + seconds
+    end if
+end sub

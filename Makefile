@@ -203,6 +203,46 @@ live-test-deeplink:
 	fi
 	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live launch-deeplink $(CONTENT_ID) $(or $(MEDIA_TYPE),movie)
 
+.PHONY: live-test-playback
+live-test-playback:
+	@if [ -z "$(CONTENT_ID)" ]; then \
+		echo "ERROR: CONTENT_ID is not set. Example: make live-test-playback CONTENT_ID=1587417579"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live launch-playback $(CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue)
+
+.PHONY: live-test-playback-remote
+live-test-playback-remote:
+	@if [ -z "$(CONTENT_ID)" ]; then \
+		echo "ERROR: CONTENT_ID is not set. Example: make live-test-playback-remote CONTENT_ID=1587417579"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live launch-playback-remote $(CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue)
+
+.PHONY: live-test-player-ui
+live-test-player-ui:
+	@if [ -z "$(AUDIO_CONTENT_ID)" ]; then \
+		echo "ERROR: AUDIO_CONTENT_ID is not set. Example: make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		exit 1; \
+	fi
+	@if [ -z "$(SUBTITLE_CONTENT_ID)" ]; then \
+		echo "ERROR: SUBTITLE_CONTENT_ID is not set. Example: make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) pnpm roku:live player-ui-smoke $(AUDIO_CONTENT_ID) $(SUBTITLE_CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue)
+
+.PHONY: live-test-player-ui-screenshots
+live-test-player-ui-screenshots:
+	@if [ -z "$(AUDIO_CONTENT_ID)" ]; then \
+		echo "ERROR: AUDIO_CONTENT_ID is not set. Example: make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		exit 1; \
+	fi
+	@if [ -z "$(SUBTITLE_CONTENT_ID)" ]; then \
+		echo "ERROR: SUBTITLE_CONTENT_ID is not set. Example: make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		exit 1; \
+	fi
+	@ROKU_DEV_TARGET=$(ROKU_DEV_TARGET) ROKU_DEV_PASSWORD="$(ROKU_DEV_PASSWORD)" PLAYER_UI_REFERENCE_IMAGE="$(PLAYER_UI_REFERENCE_IMAGE)" pnpm roku:live player-ui-screenshots $(AUDIO_CONTENT_ID) $(SUBTITLE_CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue) $(or $(OUTPUT_DIR),dist/tmp/player-ui)
+
 .PHONY: live-test-launch
 live-test-launch: launch
 

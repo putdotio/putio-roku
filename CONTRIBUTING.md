@@ -58,6 +58,8 @@ Useful device-debug commands:
 - `make live-test-control` launches the sideloaded app, sends remote keypresses over ECP, and asserts the dev app stays active
 - `make live-test-press KEYS="Back Info"` sends explicit remote keypresses over ECP
 - `make live-test-deeplink CONTENT_ID=<file-id> [MEDIA_TYPE=movie]` launches the sideloaded app through Roku deep linking
+- `make live-test-playback CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]` launches through Roku deep linking, accepts the start-from prompt when it appears, and waits for `videoPlayerScreen`
+- `make live-test-playback-remote CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]` launches through Roku deep linking, drives the start-from prompt with remote keypresses, avoids startup SceneGraph polling, and then confirms playback
 - `make live-test-launch` opens the installed developer app and reports active app state
 - `make live-test-install` builds, reinstalls, and launches this checkout on the device
 - `make launch` opens the sideloaded developer app on the configured Roku

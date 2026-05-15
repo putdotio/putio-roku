@@ -16,5 +16,417 @@
       width="1920"
       height="1080"
     />
+
+    <Group
+      id="osd"
+      visible="false"
+    >
+      <Rectangle
+        id="topShade"
+        width="1920"
+        height="0"
+        color="0x00000000"
+      />
+
+      <Rectangle
+        id="bottomShadeSoft"
+        translation="[0,700]"
+        width="1920"
+        height="80"
+        color="0x00000040"
+      />
+
+      <Rectangle
+        id="bottomShade"
+        translation="[0,780]"
+        width="1920"
+        height="300"
+        color="0x000000BF"
+      />
+
+      <Label
+        id="title"
+        translation="[96,820]"
+        width="960"
+        font="font:LargeBoldSystemFont"
+        color="0xDADADAFF"
+      />
+
+      <Label
+        id="trackSummary"
+        translation="[96,923]"
+        width="1400"
+        font="font:MediumSystemFont"
+        color="0xCCCCCCFF"
+        visible="false"
+      />
+
+      <Group
+        id="progress"
+        translation="[96,934]"
+      >
+        <Label
+          id="position"
+          translation="[0,52]"
+          width="180"
+          font="font:SmallSystemFont"
+          color="0xBDBDBDFF"
+          text="..:.."
+        />
+
+        <Group id="progressHitArea">
+          <Rectangle
+            id="progressFocusTop"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Rectangle
+            id="progressTrack"
+            translation="[0,25]"
+            width="1728"
+            height="8"
+            color="0x5B5B5BE0"
+          />
+          <Rectangle
+            id="progressFill"
+            translation="[0,25]"
+            width="0"
+            height="8"
+            color="0xD2A923FF"
+          />
+          <Poster
+            id="progressThumb"
+            translation="[0,20]"
+            width="18"
+            height="18"
+            uri="pkg:/images/player-progress-thumb.png"
+            visible="false"
+          />
+          <Rectangle
+            id="progressFocusBottom"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+        </Group>
+
+        <Label
+          id="duration"
+          translation="[1548,52]"
+          width="180"
+          font="font:SmallSystemFont"
+          color="0xBDBDBDFF"
+          horizAlign="right"
+          text="..:.."
+        />
+      </Group>
+
+      <Group
+        id="controls"
+        translation="[0,810]"
+      >
+        <Group
+          id="rewindButton"
+          translation="[804,0]"
+        >
+          <Poster
+            id="rewindBackground"
+            translation="[0,0]"
+            width="88"
+            height="88"
+            uri="pkg:/images/player-control-focus.png"
+            visible="false"
+          />
+          <Rectangle
+            id="rewindFocus"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Poster
+            id="rewindIcon"
+            translation="[16,16]"
+            width="56"
+            height="56"
+            uri="pkg:/images/icons/player-goback15.png"
+          />
+          <Label
+            id="rewindLabel"
+            translation="[0,0]"
+            width="0"
+            font="font:SmallBoldSystemFont"
+            color="0xFFFFFFFF"
+            text="15"
+            visible="false"
+          />
+        </Group>
+
+        <Group
+          id="playButton"
+          translation="[916,0]"
+        >
+          <Poster
+            id="playBackground"
+            translation="[0,0]"
+            width="88"
+            height="88"
+            uri="pkg:/images/player-control-focus.png"
+            visible="false"
+          />
+          <Rectangle
+            id="playFocus"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Poster
+            id="playIcon"
+            translation="[16,16]"
+            width="56"
+            height="56"
+            uri="pkg:/images/icons/player-play.png"
+          />
+        </Group>
+
+        <Group
+          id="fastForwardButton"
+          translation="[1028,0]"
+        >
+          <Poster
+            id="fastForwardBackground"
+            translation="[0,0]"
+            width="88"
+            height="88"
+            uri="pkg:/images/player-control-focus.png"
+            visible="false"
+          />
+          <Rectangle
+            id="fastForwardFocus"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Poster
+            id="fastForwardIcon"
+            translation="[16,16]"
+            width="56"
+            height="56"
+            uri="pkg:/images/icons/player-goforward15.png"
+          />
+          <Label
+            id="fastForwardLabel"
+            translation="[0,0]"
+            width="0"
+            font="font:SmallBoldSystemFont"
+            color="0xFFFFFFFF"
+            text="15"
+            visible="false"
+          />
+        </Group>
+
+        <Group
+          id="audioButton"
+          translation="[1736,0]"
+          visible="false"
+        >
+          <Label
+            id="audioFocusLabel"
+            translation="[-66,-42]"
+            width="220"
+            font="font:SmallSystemFont"
+            color="0xBDBDBDFF"
+            horizAlign="center"
+            text="Language"
+            visible="false"
+          />
+          <Poster
+            id="audioBackground"
+            translation="[6,6]"
+            width="76"
+            height="76"
+            uri="pkg:/images/player-control-focus.png"
+            visible="false"
+          />
+          <Rectangle
+            id="audioFocus"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Poster
+            id="audioIcon"
+            translation="[16,16]"
+            width="56"
+            height="56"
+            uri="pkg:/images/icons/player-audio.png"
+          />
+        </Group>
+
+        <Group
+          id="captionsButton"
+          translation="[1736,0]"
+          visible="false"
+        >
+          <Label
+            id="captionsFocusLabel"
+            translation="[-66,-42]"
+            width="220"
+            font="font:SmallSystemFont"
+            color="0xBDBDBDFF"
+            horizAlign="center"
+            text="Subtitles"
+            visible="false"
+          />
+          <Poster
+            id="captionsBackground"
+            translation="[6,6]"
+            width="76"
+            height="76"
+            uri="pkg:/images/player-control-focus.png"
+            visible="false"
+          />
+          <Rectangle
+            id="captionsFocus"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Poster
+            id="captionsIcon"
+            translation="[16,16]"
+            width="56"
+            height="56"
+            uri="pkg:/images/icons/player-captions.png"
+          />
+        </Group>
+
+        <Group
+          id="speedButton"
+          translation="[1736,0]"
+          visible="false"
+        >
+          <Label
+            id="speedFocusLabel"
+            translation="[-66,-42]"
+            width="220"
+            font="font:SmallSystemFont"
+            color="0xBDBDBDFF"
+            horizAlign="center"
+            text="Speed"
+            visible="false"
+          />
+          <Rectangle
+            id="speedBackground"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Rectangle
+            id="speedFocus"
+            width="0"
+            height="0"
+            color="0x00000000"
+            visible="false"
+          />
+          <Label
+            id="speedText"
+            translation="[0,21]"
+            width="88"
+            font="font:MediumBoldSystemFont"
+            color="0xD6D6D6FF"
+            horizAlign="center"
+            text="1x"
+          />
+        </Group>
+      </Group>
+    </Group>
+
+    <Group
+      id="trackMenu"
+      visible="false"
+    >
+      <Rectangle
+        width="1920"
+        height="1080"
+        color="0x0000004D"
+      />
+      <Rectangle
+        id="trackMenuPanel"
+        translation="[320,348]"
+        width="1280"
+        height="384"
+        color="0x151515F8"
+      />
+      <Label
+        id="trackMenuTitle"
+        translation="[380,406]"
+        width="1160"
+        font="font:LargeBoldSystemFont"
+        color="0xBDBDBDFF"
+      />
+
+      <Group id="trackRows" translation="[360,496]">
+        <Group id="trackRow0">
+          <Rectangle id="trackRow0Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow0Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow0Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow1" translation="[0,92]">
+          <Rectangle id="trackRow1Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow1Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow1Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow2" translation="[0,184]">
+          <Rectangle id="trackRow2Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow2Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow2Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow3" translation="[0,276]">
+          <Rectangle id="trackRow3Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow3Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow3Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow4" translation="[0,368]">
+          <Rectangle id="trackRow4Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow4Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow4Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+        <Group id="trackRow5" translation="[0,460]">
+          <Rectangle id="trackRow5Background" width="1200" height="92" color="0x333333FF" visible="false" />
+          <Label id="trackRow5Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
+          <Label id="trackRow5Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
+        </Group>
+      </Group>
+
+      <Label
+        id="trackMenuHint"
+        translation="[748,678]"
+        width="424"
+        font="font:SmallSystemFont"
+        color="0xAAAAAAFF"
+        text="OK selects. Back closes."
+        visible="false"
+      />
+    </Group>
+
+    <Timer
+      id="osdTimer"
+      duration="5"
+      repeat="false"
+    />
+    <Timer
+      id="trackMenuSelectionGuard"
+      duration="0.25"
+      repeat="false"
+    />
 	</children>
 </component>

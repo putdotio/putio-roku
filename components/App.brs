@@ -17,6 +17,8 @@ end sub
 sub onNavigateToRoute(obj)
     nextRoute = obj.getData()
 
+    clearActiveDialog()
+
     currentRouteScreen = m.top.findNode(m.activeRoute.id)
     currentRouteScreen.unobserveField("navigate")
     currentRouteScreen.unobserveField("navigateBack")
@@ -24,7 +26,7 @@ sub onNavigateToRoute(obj)
     currentRouteScreen.unobserveField("showDialog")
     currentRouteScreen.visible = false
 
-    if m.replaceRoute
+    if m.replaceRoute or nextRoute.replace = true
         m.replaceRoute = false
     else
         m.activeRoute.params = currentRouteScreen.params
@@ -46,6 +48,8 @@ sub onNavigateBack()
     prevRoute = m.routeHistory.pop()
 
     if prevRoute <> invalid
+        clearActiveDialog()
+
         currentRouteScreen = m.top.findNode(m.activeRoute.id)
         currentRouteScreen.unobserveField("navigate")
         currentRouteScreen.unobserveField("navigateBack")
@@ -168,8 +172,18 @@ function normalizeVideoDeepLink(args)
         return invalid
     end if
 
+    startFrom = readDeepLinkValue(args, "startFrom")
+    startFromChoice = invalid
+    if startFrom <> invalid
+        normalizedStartFrom = LCase(startFrom.toStr())
+        if normalizedStartFrom = "continue" or normalizedStartFrom = "beginning"
+            startFromChoice = normalizedStartFrom
+        end if
+    end if
+
     return {
         fileId: fileId,
+        startFromChoice: startFromChoice,
     }
 end function
 
@@ -193,6 +207,7 @@ sub routePendingDeepLink()
         return
     end if
 
+    clearActiveDialog()
     m.routeHistory = [
         {
             id: "homeScreen",
@@ -205,12 +220,27 @@ sub routePendingDeepLink()
         params: {
             fileId: deepLink.fileId,
             fileName: "",
+            startFromChoice: deepLink.startFromChoice,
         },
     }
 end sub
 
 sub onShowDialog(obj)
-    m.top.dialog = obj.getData()
+    dialog = obj.getData()
+
+    if dialog = invalid
+        clearActiveDialog()
+    else
+        clearActiveDialog()
+        m.top.dialog = dialog
+    end if
+end sub
+
+sub clearActiveDialog()
+    if m.top.dialog <> invalid
+        m.top.dialog.close = true
+        m.top.dialog = invalid
+    end if
 end sub
 
 sub onShowExitAppDialog(obj)
