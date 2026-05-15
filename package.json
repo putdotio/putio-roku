@@ -16,7 +16,7 @@
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
-    "@putdotio/rokit": "1.1.0",
+    "@putdotio/rokit": "1.2.0",
     "@rokucommunity/bslint": "0.8.43",
     "@types/node": "^24.12.2",
     "brighterscript": "0.72.1",

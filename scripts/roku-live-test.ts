@@ -6,6 +6,7 @@ import {
   assertNamedNodeState,
   checkDevice as rokitCheckDevice,
   isNamedNodeVisible,
+  launchApp as rokitLaunchApp,
   pressKey as rokitPressKey,
   queryActiveApp as rokitQueryActiveApp,
   querySceneGraph as rokitQuerySceneGraph,
@@ -13,11 +14,11 @@ import {
   readNamedNodeAttributes,
   takeScreenshot as rokitTakeScreenshot,
   validateRemoteKey,
+  waitForActiveApp as rokitWaitForActiveApp,
   type ActiveApp,
   type RokuContext,
 } from "@putdotio/rokit";
 
-const ecpPort = 8060;
 const requestTimeoutMs = 10_000;
 const sceneGraphRequestTimeoutMs = 4_000;
 const sceneGraphPollIntervalMs = 1_500;
@@ -74,10 +75,6 @@ function requireTarget(): string {
     .replace(/:\d+$/, "");
 }
 
-function ecpUrl(target: string, path: string): URL {
-  return new URL(path, `http://${target}:${ecpPort}`);
-}
-
 function rokitContext(target: string, timeoutMs = requestTimeoutMs): RokuContext {
   return {
     target,
@@ -94,39 +91,6 @@ function requireDeveloperPassword(): string {
   }
 
   return password;
-}
-
-async function postOk(url: URL): Promise<void> {
-  const response = await fetch(url, {
-    method: "POST",
-    signal: AbortSignal.timeout(requestTimeoutMs),
-  });
-
-  if (!response.ok) {
-    throw new Error(`POST ${url.href} returned HTTP ${response.status}`);
-  }
-}
-
-async function postLaunchMaybeAccepted(url: URL): Promise<void> {
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      signal: AbortSignal.timeout(requestTimeoutMs),
-    });
-
-    if (!response.ok && response.status !== 503) {
-      throw new Error(`POST ${url.href} returned HTTP ${response.status}`);
-    }
-  } catch (error) {
-    const message = formatErrorMessage(error).toLowerCase();
-    if (
-      !message.includes("abort") &&
-      !message.includes("timeout") &&
-      !message.includes("fetch failed")
-    ) {
-      throw error;
-    }
-  }
 }
 
 function assertNamedNodeVisible(xml: string, nodeName: string): void {
@@ -398,8 +362,7 @@ async function printActiveApp(target: string): Promise<void> {
 }
 
 async function launchApp(target: string, appId: string): Promise<ActiveApp> {
-  await postLaunchMaybeAccepted(ecpUrl(target, `/launch/${encodeURIComponent(appId)}`));
-  return await waitForActiveApp(target, appId);
+  return await rokitLaunchApp(rokitContext(target), appId);
 }
 
 async function launchDeepLink(
@@ -408,39 +371,28 @@ async function launchDeepLink(
   mediaType: string,
   startFromChoice?: "continue" | "beginning",
 ): Promise<ActiveApp> {
-  const url = ecpUrl(target, "/launch/dev");
-  url.searchParams.set("contentID", contentId);
-  url.searchParams.set("mediaType", mediaType);
+  const params = new Map<string, string>([
+    ["contentID", contentId],
+    ["mediaType", mediaType],
+  ]);
   if (startFromChoice !== undefined) {
-    url.searchParams.set("startFrom", startFromChoice);
+    params.set("startFrom", startFromChoice);
   }
 
   try {
-    await postOk(url);
+    return await rokitLaunchApp(rokitContext(target), "dev", params);
   } catch {
     await launchApp(target, "dev");
     await sleep(1_000);
-    await postOk(url);
+    return await rokitLaunchApp(rokitContext(target), "dev", params);
   }
-
-  return await waitForActiveApp(target, "dev");
 }
 
 async function querySceneGraph(target: string): Promise<string> {
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      return await rokitQuerySceneGraph(
-        rokitContext(target, sceneGraphRequestTimeoutMs),
-      );
-    } catch (error) {
-      lastError = error;
-      await sleep(500);
-    }
-  }
-
-  throw new Error(`SceneGraph query failed: ${formatErrorMessage(lastError)}`);
+  return await rokitQuerySceneGraph(rokitContext(target, sceneGraphRequestTimeoutMs), {
+    attempts: 3,
+    retryDelayMs: 500,
+  });
 }
 
 function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean {
@@ -544,13 +496,14 @@ async function launchPlaybackWithRemoteStart(
   await pressKey(target, "Home");
   await sleep(2_000);
   const app = await launchApp(target, "dev");
-  const url = ecpUrl(target, "/launch/dev");
-  url.searchParams.set("contentID", contentId);
-  url.searchParams.set("mediaType", mediaType);
-  url.searchParams.set("startFrom", startFromChoice);
+  const params = new Map<string, string>([
+    ["contentID", contentId],
+    ["mediaType", mediaType],
+    ["startFrom", startFromChoice],
+  ]);
 
   await sleep(4_000);
-  await postLaunchMaybeAccepted(url);
+  await rokitLaunchApp(rokitContext(target), "dev", params);
   await sleep(5_000);
 
   const start = Date.now();
@@ -599,30 +552,7 @@ async function waitForActiveApp(
   target: string,
   appId: string,
 ): Promise<ActiveApp> {
-  const start = Date.now();
-  let lastApp: ActiveApp | undefined;
-  let lastError: string | undefined;
-
-  while (Date.now() - start < launchTimeoutMs) {
-    try {
-      lastApp = await queryActiveApp(target);
-      lastError = undefined;
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-      await sleep(500);
-      continue;
-    }
-
-    if (lastApp.id === appId) {
-      return lastApp;
-    }
-
-    await sleep(500);
-  }
-
-  const last = lastApp ? `${lastApp.id} ${lastApp.name}` : "unknown";
-  const errorSuffix = lastError ? `; last ECP error: ${lastError}` : "";
-  throw new Error(`expected active app ${appId}, got ${last}${errorSuffix}`);
+  return await rokitWaitForActiveApp(rokitContext(target), appId, launchTimeoutMs);
 }
 
 async function pressKey(target: string, key: string): Promise<void> {
