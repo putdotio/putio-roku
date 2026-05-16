@@ -93,7 +93,7 @@ make console
   `subtitle-menu.jpg`, `speed-button-focus.jpg`, `speed-menu.jpg`,
   `progress-focus.jpg`, and `review.html` for visual
   review. The review page includes the content IDs, proof commands, and the
-  exported tv-native Android reference captures when the peer handbook repo is
+  exported tv-native Android reference captures when the peer workspace repo is
   available. Set `PLAYER_UI_REFERENCE_IMAGE` to copy an extra reference image
   into the review page. It requires `ROKU_DEV_PASSWORD` because
   screenshots come from the Roku developer inspector.

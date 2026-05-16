@@ -2082,7 +2082,7 @@ async function copyPlayerUiReferenceImages(outputDir: string): Promise<ReviewIma
     join(
       process.cwd(),
       "..",
-      "putio-frontend-handbook",
+      "putio-frontend-workspace",
       "docs",
       "specs",
       "tv-native",
