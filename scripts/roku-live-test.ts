@@ -5,6 +5,10 @@ import { basename, dirname, extname, join } from "node:path";
 import process from "node:process";
 import {
   assertNamedNodeState,
+  assertNamedNodeSize as assertNodeSize,
+  assertNamedNodeText,
+  assertNamedNodeTranslation as assertNodeTranslation,
+  assertSceneGraphNumberNear as assertNear,
   checkDevice as rokitCheckDevice,
   isNamedNodeVisible,
   launchApp as rokitLaunchApp,
@@ -16,9 +20,12 @@ import {
   readNamedNodeAttributes,
   readNamedNodeNumber,
   readNamedNodeTranslation,
+  readSceneGraphFailure,
   takeScreenshot as rokitTakeScreenshot,
   validateRemoteKey,
   waitForActiveApp as rokitWaitForActiveApp,
+  waitForSceneGraphAssertion as rokitWaitForSceneGraphAssertion,
+  waitForSceneGraphNode as rokitWaitForSceneGraphNode,
   type ActiveApp,
   type RokuContext,
 } from "@putdotio/rokit";
@@ -131,68 +138,12 @@ async function waitForNamedNodeVisible(
   nodeName: string,
   timeoutMs = 30_000,
 ): Promise<void> {
-  const start = Date.now();
-
-  while (Date.now() - start < timeoutMs) {
-    const xml = await querySceneGraph(target);
-
-    if (isNamedNodeVisible(xml, nodeName)) {
-      return;
-    }
-
-    await sleep(sceneGraphPollIntervalMs);
-  }
-
-  throw new Error(`expected SceneGraph node "${nodeName}" to become visible`);
-}
-
-function assertNamedNodeText(
-  xml: string,
-  nodeName: string,
-  expectedText: string,
-): void {
-  const text = readNamedNodeAttribute(xml, nodeName, "text");
-
-  if (text !== expectedText) {
-    throw new Error(
-      `expected "${nodeName}" text "${expectedText}", got "${text ?? "missing"}"`,
-    );
-  }
-}
-
-function assertNear(
-  actual: number | undefined,
-  expected: number,
-  label: string,
-  tolerance = 1,
-): void {
-  if (actual === undefined || Math.abs(actual - expected) > tolerance) {
-    throw new Error(
-      `expected ${label} ${expected}, got ${actual ?? "missing"}`,
-    );
-  }
-}
-
-function assertNodeTranslation(
-  xml: string,
-  nodeName: string,
-  expectedX: number,
-  expectedY: number,
-): void {
-  const translation = readNamedNodeTranslation(xml, nodeName);
-
-  assertNear(translation?.[0], expectedX, `${nodeName} x`);
-  assertNear(translation?.[1], expectedY, `${nodeName} y`);
-}
-
-function assertNodeSize(
-  xml: string,
-  nodeName: string,
-  expectedWidth: number,
-  expectedHeight: number,
-): void {
-  assertNear(readNamedNodeNumber(xml, nodeName, "width"), expectedWidth, `${nodeName} width`);
-  assertNear(readNamedNodeNumber(xml, nodeName, "height"), expectedHeight, `${nodeName} height`);
+  await rokitWaitForSceneGraphNode(
+    rokitContext(target, sceneGraphRequestTimeoutMs),
+    nodeName,
+    { state: "visible" },
+    timeoutMs,
+  );
 }
 
 function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
@@ -474,15 +425,26 @@ function readAuthCode(xml: string): string | undefined {
     return undefined;
   }
 
-  return readNamedNodeAttribute(xml, "code", "text");
+  const code = readNamedNodeAttribute(xml, "code", "text")?.trim();
+  if (code === undefined || code === "" || code === "Loading..." || code === "Error!") {
+    return undefined;
+  }
+
+  return code;
 }
 
 function assertNotAuthScreen(xml: string): void {
+  if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+    return;
+  }
+
   const authCode = readAuthCode(xml);
 
   if (authCode !== undefined) {
     throw new Error(`Roku dev app is signed out; redeem device code ${authCode}`);
   }
+
+  throw new Error("Roku dev app is signed out; device code has not loaded yet");
 }
 
 function assertHlsDirectPlaybackSurface(xml: string, contentId: string): void {
@@ -705,15 +667,6 @@ async function launchPlaybackWithRemoteStart(
   );
 }
 
-function readSceneGraphFailure(xml: string): string | undefined {
-  if (!xml.includes("<status>FAILED</status>")) {
-    return undefined;
-  }
-
-  const match = /<error>([^<]*)<\/error>/.exec(xml);
-  return match ? match[1] : "unknown";
-}
-
 async function waitForRemotePlaybackSettle(
   target: string,
   timeoutMs: number,
@@ -834,21 +787,12 @@ async function waitForSceneGraphAssertion(
   assertion: (xml: string) => void,
   timeoutMs = 6_000,
 ): Promise<string> {
-  const start = Date.now();
-  let lastError = "unknown";
-
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const xml = await querySceneGraph(target);
-      assertion(xml);
-      return xml;
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-      await sleep(250);
-    }
-  }
-
-  throw new Error(`${description}: ${lastError}`);
+  return await rokitWaitForSceneGraphAssertion(
+    rokitContext(target, sceneGraphRequestTimeoutMs),
+    description,
+    assertion,
+    { pollIntervalMs: 250, timeoutMs },
+  );
 }
 
 async function assertTrackMenu(
