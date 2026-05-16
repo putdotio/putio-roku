@@ -3,9 +3,17 @@ function init()
 
     m.file = {}
     m.subtitles = []
+    m.phase = "idle"
+    m.fetchedStartFrom = 0
     m.fetchFileTask = createObject("roSGNode", "HttpTask")
     m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
     m.fetchStartFromTask = createObject("roSGNode", "HttpTask")
+    m.continueWatchingPrompt = m.top.findNode("continueWatchingPrompt")
+    m.continueWatchingPrompt.observeField("selectedStartFrom", "onContinueWatchingPromptSelected")
+    m.continueWatchingPrompt.observeField("dismissed", "onContinueWatchingPromptDismissed")
+    m.conversionStatus = m.top.findNode("conversionStatus")
+    m.conversionStatus.observeField("completed", "onVideoConversionCompleted")
+    m.conversionStatus.observeField("dismissed", "onVideoConversionDismissed")
 end function
 
 sub onVisibleChange()
@@ -17,10 +25,13 @@ sub onVisibleChange()
 end sub
 
 sub onMount()
+    hideOverlays()
     setTitle(m.top.params.fileName)
     showLoading()
 
     if m.file.id <> m.top.params.fileId
+        m.file = {}
+        m.subtitles = []
         fetchFile(m.top.params.fileId)
     else
         handleFetchedFile()
@@ -31,10 +42,12 @@ sub cancelHttpTasks()
     m.fetchFileTask.unobserveField("response")
     m.fetchSubtitlesTask.unobserveField("response")
     m.fetchStartFromTask.unobserveField("response")
+    m.conversionStatus.control = "stop"
 end sub
 
 ''' API
 sub fetchFile(fileId)
+    m.phase = "loadingFile"
     m.fetchFileTask.observeField("response", "onFetchFileResponse")
     m.fetchFileTask.url = ("/files/list?parent_id=" + fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1&video_metadata_parent=1")
     m.fetchFileTask.method = "GET"
@@ -56,9 +69,9 @@ sub onFetchFileResponse(obj)
 end sub
 
 sub handleFetchedFile()
-    if m.file.need_convert
+    if shouldShowConversionFlow(m.file)
         hideLoading()
-        showVideoConversionDialog()
+        showVideoConversionStatus()
         return
     end if
 
@@ -66,6 +79,7 @@ sub handleFetchedFile()
 end sub
 
 sub fetchSubtitles()
+    m.phase = "loadingSubtitles"
     m.subtitles = []
     m.fetchSubtitlesTask.observeField("response", "onFetchSubtitlesResponse")
     m.fetchSubtitlesTask.url = ("/files/" + m.file.id.toStr() + "/subtitles")
@@ -85,6 +99,7 @@ sub onFetchSubtitlesResponse(obj)
 end sub
 
 sub fetchStartFrom()
+    m.phase = "loadingStartFrom"
     m.fetchStartFromTask.observeField("response", "onFetchStartFromResponse")
     m.fetchStartFromTask.url = ("/files/" + m.file.id.toStr() + "/start-from")
     m.fetchStartFromTask.method = "GET"
@@ -96,14 +111,14 @@ sub onFetchStartFromResponse(obj)
     data = parseJSON(obj.getData())
     hideLoading()
 
-    if data <> invalid and data.start_from <> invalid and data.start_from > 0
+    if data <> invalid and data.start_from <> invalid and shouldResumeFrom(data.start_from)
         m.fetchedStartFrom = data.start_from
         if m.top.params.startFromChoice = "beginning"
             navigateToVideoPlayer(0)
         else if m.top.params.startFromChoice = "continue"
             navigateToVideoPlayer(m.fetchedStartFrom)
         else
-            showChooseStartFromDialog()
+            showContinueWatchingPrompt()
         end if
     else
         navigateToVideoPlayer(0)
@@ -123,6 +138,12 @@ sub hideLoading()
     m.top.findNode("loading").visible = "false"
 end sub
 
+sub hideOverlays()
+    m.continueWatchingPrompt.visible = false
+    m.conversionStatus.visible = false
+    m.conversionStatus.control = "stop"
+end sub
+
 ''' Error Dialog
 sub showFetchFileErrorDialog(data)
     m.fetchFileErrorDialog = createObject("roSGNode", "ErrorDialog")
@@ -136,69 +157,63 @@ sub onFetchFileErrorDialogClosed()
     m.top.navigateBack = "true"
 end sub
 
-''' Video Conversion Dialog
-sub showVideoConversionDialog()
-    m.videoConversionDialog = createObject("roSGNode", "VideoConversionDialog")
-    m.videoConversionDialog.fileId = m.top.params.fileId
-    m.videoConversionDialog.observeField("completed", "onVideoConversionCompleted")
-    m.videoConversionDialog.observeField("wasClosed", "onVideoConversionDialogClosed")
-    m.top.showDialog = m.videoConversionDialog
+''' Video Conversion
+sub showVideoConversionStatus()
+    m.phase = "conversion"
+    m.conversionStatus.control = "stop"
+    m.conversionStatus.fileName = m.file.name
+    m.conversionStatus.fileId = m.file.id
+    m.conversionStatus.visible = true
+    m.conversionStatus.setFocus(true)
+    m.conversionStatus.control = "start"
 end sub
 
-sub onVideoConversionDialogClosed()
-    m.videoConversionDialog.unobserveField("wasClosed")
-
-    if m.file.need_convert
-        m.top.navigateBack = "true"
+sub onVideoConversionDismissed()
+    if m.phase = "conversion"
+        m.conversionStatus.visible = false
+        m.top.navigateBack = true
     end if
 end sub
 
 sub onVideoConversionCompleted()
-    m.file = m.videoConversionDialog.convertedFile
+    if m.phase <> "conversion"
+        return
+    end if
+
+    m.conversionStatus.visible = false
+    m.file = m.conversionStatus.completedFile
     setTitle(m.file.name)
     handleFetchedFile()
 end sub
 
-''' Start From Dialog
-sub showChooseStartFromDialog()
-    m.didChooseStartFrom = false
-    m.chooseStartFromDialog = createObject("roSGNode", "Dialog")
-    m.chooseStartFromDialog.title = "Where would you like to start?"
-    m.chooseStartFromDialog.message = "Last saved timestamp for this video is " + getDurationString(m.fetchedStartFrom) + " of " + getDurationString(m.file.video_metadata.duration)
-    m.chooseStartFromDialog.buttons = [
-        "Continue watching",
-        "Start from the beginning"
-    ]
-
-    m.chooseStartFromDialog.observeField("buttonSelected", "onChooseStartFromDialogButtonSelected")
-    m.chooseStartFromDialog.observeField("wasClosed", "onChooseStartFromDialogClosed")
-    m.top.showDialog = m.chooseStartFromDialog
+''' Resume Prompt
+sub showContinueWatchingPrompt()
+    m.phase = "resumePrompt"
+    m.continueWatchingPrompt.fileName = m.file.name
+    m.continueWatchingPrompt.duration = getFileDuration(m.file)
+    m.continueWatchingPrompt.startFrom = m.fetchedStartFrom
+    m.continueWatchingPrompt.visible = true
+    m.continueWatchingPrompt.setFocus(true)
 end sub
 
-sub onChooseStartFromDialogButtonSelected(obj)
-    m.chooseStartFromDialog.unobserveField("buttonSelected")
-    m.didChooseStartFrom = true
-
-    if obj.getData() = 0
-        m.selectedStartFrom = m.fetchedStartFrom
-    else
-        m.selectedStartFrom = 0
+sub onContinueWatchingPromptSelected(obj)
+    if m.phase <> "resumePrompt"
+        return
     end if
 
-    m.chooseStartFromDialog.close = true
-    m.top.showDialog = invalid
-    navigateToVideoPlayer(m.selectedStartFrom)
+    m.continueWatchingPrompt.visible = false
+    navigateToVideoPlayer(obj.getData())
 end sub
 
-sub onChooseStartFromDialogClosed()
-    m.chooseStartFromDialog.unobserveField("wasClosed")
-
-    if m.didChooseStartFrom <> true
-        m.top.navigateBack = "true"
+sub onContinueWatchingPromptDismissed()
+    if m.phase = "resumePrompt"
+        m.continueWatchingPrompt.visible = false
+        m.top.navigateBack = true
     end if
 end sub
 
 sub navigateToVideoPlayer(startFrom)
+    m.phase = "launchingPlayer"
     m.top.navigate = {
         id: "videoPlayerScreen",
         replace: true,
@@ -212,6 +227,13 @@ end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     if m.top.visible and press and key = "back"
+        if m.continueWatchingPrompt.visible
+            m.continueWatchingPrompt.visible = false
+        else if m.conversionStatus.visible
+            m.conversionStatus.control = "stop"
+            m.conversionStatus.visible = false
+        end if
+
         m.top.navigateBack = "true"
         return true
     end if
@@ -219,27 +241,31 @@ function onKeyEvent(key as string, press as boolean) as boolean
     return false
 end function
 
-sub getDurationString(seconds) as string
-    datetime = CreateObject("roDateTime")
-    datetime.FromSeconds(seconds)
+function shouldShowConversionFlow(file as object) as boolean
+    return file.need_convert = true and hasMp4Stream(file) = false
+end function
 
-    hours = datetime.GetHours().ToStr()
-    minutes = datetime.GetMinutes().ToStr()
-    seconds = datetime.GetSeconds().ToStr()
+function hasMp4Stream(file as object) as boolean
+    return file.is_mp4_available = true and file.mp4_stream_url <> invalid and file.mp4_stream_url <> ""
+end function
 
-    if Len(hours) = 1 then
-        hours = "0" + hours
-    end if
-    if Len(minutes) = 1 then
-        minutes = "0" + minutes
-    end if
-    if Len(seconds) = 1 then
-        seconds = "0" + seconds
+function shouldResumeFrom(startFrom as integer) as boolean
+    if startFrom <= 0
+        return false
     end if
 
-    if hours <> "00"
-        return hours + ":" + minutes + ":" + seconds
-    else
-        return minutes + ":" + seconds
+    duration = getFileDuration(m.file)
+    if duration > 0 and startFrom >= int(duration * 0.95)
+        return false
     end if
-end sub
+
+    return true
+end function
+
+function getFileDuration(file as object) as integer
+    if file.video_metadata <> invalid and file.video_metadata.duration <> invalid
+        return file.video_metadata.duration
+    end if
+
+    return 0
+end function

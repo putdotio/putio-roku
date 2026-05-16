@@ -416,8 +416,12 @@ function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean
   return match !== null && !match[1]?.includes('visible="false"');
 }
 
-function hasStartFromDialog(xml: string): boolean {
-  return xml.includes("Where would you like to start?");
+function hasStartFromPrompt(xml: string): boolean {
+  return (
+    hasVisibleNode(xml, "ContinueWatchingPrompt", "continueWatchingPrompt") ||
+    xml.includes("Continue playing from") ||
+    xml.includes("Where would you like to start?")
+  );
 }
 
 function readAuthCode(xml: string): string | undefined {
@@ -447,24 +451,28 @@ function assertNotAuthScreen(xml: string): void {
   throw new Error("Roku dev app is signed out; device code has not loaded yet");
 }
 
-function assertHlsDirectPlaybackSurface(xml: string, contentId: string): void {
+function assertDirectPlaybackSurface(xml: string, contentId: string): void {
   assertNamedNodeVisible(xml, "videoPlayerScreen");
   assertNamedNodeHidden(xml, "videoScreen");
   assertNamedNodeAbsent(xml, "button-play");
   assertNamedNodeAbsent(xml, "subtitleList");
 
-  const expectedPath = `/files/${contentId}/hls/media.m3u8`;
-  if (!xml.includes(expectedPath)) {
-    throw new Error(`expected player content to use HLS path ${expectedPath}`);
+  if (xml.includes("/hls/media.m3u8")) {
+    throw new Error("expected Roku player content to avoid HLS playback URLs");
   }
 
   if (xml.includes("original=1")) {
     throw new Error("expected player content to avoid original=1 playback URLs");
   }
+
+  const expectedPathPrefix = `/files/${contentId}/`;
+  if (!xml.includes(expectedPathPrefix)) {
+    throw new Error(`expected player content to include file path ${expectedPathPrefix}`);
+  }
 }
 
-function readVisibleHlsContentId(xml: string): string | undefined {
-  const match = /\/files\/(\d+)\/hls\/media\.m3u8/.exec(xml);
+function readVisiblePlaybackContentId(xml: string): string | undefined {
+  const match = /\/files\/(\d+)\//.exec(xml);
   return match ? match[1] : undefined;
 }
 
@@ -534,18 +542,18 @@ async function launchPlayback(
 
     assertNotAuthScreen(xml);
 
-    if (!didChooseStartFrom && hasStartFromDialog(xml)) {
+    if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
       await chooseStartFrom(target, startFromChoice);
-      lastState = "startFromDialog";
-    } else if (hasStartFromDialog(xml)) {
-      lastState = "startFromDialog";
+      lastState = "startFromPrompt";
+    } else if (hasStartFromPrompt(xml)) {
+      lastState = "startFromPrompt";
     } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
       try {
-        assertHlsDirectPlaybackSurface(xml, contentId);
+        assertDirectPlaybackSurface(xml, contentId);
         return app;
       } catch (error) {
-        const visibleContentId = readVisibleHlsContentId(xml);
+        const visibleContentId = readVisiblePlaybackContentId(xml);
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
           await retryDeepLink(`stale content ${visibleContentId}`);
         }
@@ -566,7 +574,7 @@ async function launchPlayback(
 
   try {
     const xml = await querySceneGraph(target);
-    assertHlsDirectPlaybackSurface(xml, contentId);
+    assertDirectPlaybackSurface(xml, contentId);
     return app;
   } catch {
     throw new Error(
@@ -638,15 +646,15 @@ async function launchPlaybackWithRemoteStart(
       const activeApp = await queryActiveAppSafe(target);
       lastState = `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}`;
       await sendPlaybackLaunch(lastState);
-    } else if (!didChooseStartFrom && hasStartFromDialog(xml)) {
+    } else if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
       await chooseStartFrom(target, startFromChoice);
-      lastState = "startFromDialog";
-    } else if (hasStartFromDialog(xml)) {
-      lastState = "startFromDialog";
+      lastState = "startFromPrompt";
+    } else if (hasStartFromPrompt(xml)) {
+      lastState = "startFromPrompt";
     } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
       try {
-        assertHlsDirectPlaybackSurface(xml, contentId);
+        assertDirectPlaybackSurface(xml, contentId);
         return app;
       } catch (error) {
         lastState = formatErrorMessage(error);
@@ -683,7 +691,7 @@ async function waitForRemotePlaybackSettle(
     try {
       const xml = await querySceneGraph(target);
       if (
-        hasStartFromDialog(xml) ||
+        hasStartFromPrompt(xml) ||
         hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")
       ) {
         return;

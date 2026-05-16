@@ -27,5 +27,15 @@
       imageWidth="120"
       imageHeight="120"
     />
+
+    <VideoConversionStatus
+      id="conversionStatus"
+      visible="false"
+    />
+
+    <ContinueWatchingPrompt
+      id="continueWatchingPrompt"
+      visible="false"
+    />
 	</children>
 </component>

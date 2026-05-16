@@ -188,13 +188,10 @@ sub setupPlayer()
 
     resetPlaybackState()
 
-    videoContent.url = getHlsStreamUrl(file)
+    videoContent.url = getPlaybackStreamUrl(file)
     videoContent.title = file.name
-    videoContent.streamformat = "hls"
-    m.externalSubtitleTracks = createSubtitleTracks(m.top.params.subtitles)
-    if m.externalSubtitleTracks.count() > 0
-        videoContent.subtitletracks = m.externalSubtitleTracks
-    end if
+    videoContent.streamformat = "mp4"
+    m.externalSubtitleTracks = []
 
     m.title.text = file.name
     m.duration = getFileDuration(file)
@@ -246,8 +243,12 @@ sub resetPlaybackState()
     updateTrackSummary()
 end sub
 
-function getHlsStreamUrl(file) as string
-    return m.global.apiURL + "/files/" + file.id.toStr() + "/hls/media.m3u8?subtitle_key=all&max_subtitle_count=-1&oauth_token=" + m.global.user.download_token.toStr()
+function getPlaybackStreamUrl(file) as string
+    if file.is_mp4_available = true and file.mp4_stream_url <> invalid and file.mp4_stream_url <> ""
+        return file.mp4_stream_url
+    end if
+
+    return file.stream_url
 end function
 
 function createSubtitleTracks(subtitles) as object
@@ -468,12 +469,12 @@ function getPositionPauseIconX() as integer
 
     textLength = Len(positionText)
     if textLength <= 5
-        return 86
+        return 112
     else if textLength <= 8
-        return 122
+        return 158
     end if
 
-    return 150
+    return 188
 end function
 
 sub onAvailableAudioTracksChanged(obj)

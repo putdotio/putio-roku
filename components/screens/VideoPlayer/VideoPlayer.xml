@@ -75,7 +75,7 @@
         />
         <Poster
           id="positionPauseIcon"
-          translation="[86,56]"
+          translation="[112,56]"
           width="22"
           height="22"
           uri="pkg:/images/icons/player-pause-circle.png"
