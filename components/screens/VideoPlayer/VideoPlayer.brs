@@ -4,7 +4,6 @@ function init()
 
     m.video = m.top.findNode("video")
     m.video.enableUI = false
-    m.video.globalCaptionMode = "Off"
 
     m.osd = m.top.findNode("osd")
     m.osdTimer = m.top.findNode("osdTimer")
@@ -139,6 +138,9 @@ function init()
     m.seekRepeatWindowMs = 500
     m.seekPressTimer = CreateObject("roTimespan")
     m.wasPlayingBeforeSeek = false
+    m.resumeSaveIntervalMs = 10000
+    m.resumeSaveTimer = CreateObject("roTimespan")
+    m.lastSavedVideoTime = invalid
     m.audioTracks = []
     m.rokuSubtitleTracks = []
     m.externalSubtitleTracks = []
@@ -184,6 +186,8 @@ sub setupPlayer()
     file = m.top.params.file
     videoContent = createObject("RoSGNode", "ContentNode")
 
+    resetPlaybackState()
+
     videoContent.url = getHlsStreamUrl(file)
     videoContent.title = file.name
     videoContent.streamformat = "hls"
@@ -201,6 +205,45 @@ sub setupPlayer()
     m.video.content = videoContent
     applySubtitleSelection()
     startPlayback(m.top.params.startFrom)
+end sub
+
+sub resetPlaybackState()
+    if m.playbackSpeedSupported
+        m.video.playbackSpeed = 1.0
+    end if
+
+    m.focusIndex = 1
+    m.focusArea = "progress"
+    m.progressReturnFocusIndex = 1
+    m.pendingSeekPosition = invalid
+    m.seekInProgress = false
+    m.seekValue = 0
+    m.seekPressCount = 0
+    m.seekDirection = 0
+    m.wasPlayingBeforeSeek = false
+    m.audioTracks = []
+    m.rokuSubtitleTracks = []
+    m.externalSubtitleTracks = []
+    m.subtitleTracks = []
+    m.trackMenuItems = []
+    m.trackMenuMode = ""
+    m.trackMenuFocusIndex = 0
+    m.trackMenuScrollOffset = 0
+    m.trackMenuReturnFocusIndex = 1
+    m.selectedAudioTrack = invalid
+    m.selectedSubtitleTrackName = invalid
+    m.selectedPlaybackSpeed = 1.0
+    m.selectedPlaybackSpeedLabel = "1x"
+    m.canSelectTrackMenu = false
+    m.lastSavedVideoTime = invalid
+    m.resumeSaveTimer = CreateObject("roTimespan")
+    resetSeekPressTimer()
+
+    m.trackMenu.visible = false
+    m.trackMenuSelectionGuard.control = "stop"
+    m.positionLabel.text = getDurationString(0)
+    updateProgress(0)
+    updateTrackSummary()
 end sub
 
 function getHlsStreamUrl(file) as string
@@ -315,10 +358,7 @@ sub onPlayerPositionChanged(obj)
     position = obj.getData()
 
     if m.seekInProgress
-        if position <> invalid and m.global.user.settings.start_from = true
-            saveVideoTime(position)
-        end if
-
+        maybeSaveVideoTime(position, false)
         return
     end if
 
@@ -337,9 +377,7 @@ sub onPlayerPositionChanged(obj)
         m.positionLabel.text = "..:.."
     end if
 
-    if m.global.user.settings.start_from = true
-        saveVideoTime(position)
-    end if
+    maybeSaveVideoTime(position, false)
 end sub
 
 sub onPlayerDurationChanged(obj)
@@ -447,7 +485,12 @@ sub onAvailableAudioTracksChanged(obj)
     end if
 
     if m.selectedAudioTrack = invalid and m.audioTracks.count() > 0
-        m.selectedAudioTrack = readTrackValue(m.audioTracks[0], "Track")
+        currentAudioTrack = m.video.audioTrack
+        if currentAudioTrack <> invalid and currentAudioTrack <> ""
+            m.selectedAudioTrack = currentAudioTrack
+        else
+            m.selectedAudioTrack = readTrackValue(m.audioTracks[0], "Track")
+        end if
     end if
 
     updateTrackSummary()
@@ -863,6 +906,7 @@ sub seekBy(seconds)
     m.positionLabel.text = getDurationString(nextPosition)
     updateProgress(nextPosition)
     m.video.seek = nextPosition
+    maybeSaveVideoTime(nextPosition, true)
     showOsd()
 end sub
 
@@ -965,6 +1009,7 @@ sub commitPreviewSeek()
     m.positionLabel.text = getDurationString(seekPosition)
     updateProgress(seekPosition)
     m.video.seek = seekPosition
+    maybeSaveVideoTime(seekPosition, true)
 
     if shouldResume
         m.video.control = "resume"
@@ -1308,7 +1353,7 @@ function isTrackMenuItemSelected(item) as boolean
     end if
 
     if item.type = "subtitleOff"
-        return m.selectedSubtitleTrackName = ""
+        return m.selectedSubtitleTrackName = invalid or m.selectedSubtitleTrackName = ""
     end if
 
     if item.type = "subtitle"
@@ -1407,7 +1452,7 @@ sub applySubtitleSelection()
     if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> ""
         m.video.globalCaptionMode = "On"
         m.video.subtitleTrack = m.selectedSubtitleTrackName
-    else
+    else if m.selectedSubtitleTrackName = ""
         m.video.subtitleTrack = ""
         m.video.globalCaptionMode = "Off"
     end if
@@ -1506,13 +1551,31 @@ sub onErrorDialogClosed()
     onGoBack()
 end sub
 
+sub maybeSaveVideoTime(time, force as boolean)
+    if m.global.user.settings.start_from <> true or time = invalid or time <= 0
+        return
+    end if
+
+    if force = false and m.resumeSaveTimer <> invalid and m.resumeSaveTimer.TotalMilliseconds() < m.resumeSaveIntervalMs
+        return
+    end if
+
+    if m.lastSavedVideoTime <> invalid and Abs(time - m.lastSavedVideoTime) < 1
+        return
+    end if
+
+    saveVideoTime(time)
+end sub
+
 sub saveVideoTime(time)
-    if time > 0
+    if time <> invalid and time > 0
         m.setStartFromTask = createObject("roSGNode", "HttpTask")
         m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
         m.setStartFromTask.method = "POST"
         m.setStartFromTask.body = { time: time }
         m.setStartFromTask.control = "RUN"
+        m.lastSavedVideoTime = time
+        m.resumeSaveTimer = CreateObject("roTimespan")
     end if
 end sub
 

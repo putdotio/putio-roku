@@ -1038,6 +1038,18 @@ async function ensureOsdVisibleForActivation(target: string): Promise<void> {
 
 async function pausePlaybackForStableOsd(target: string): Promise<void> {
   await ensureOsdVisibleForActivation(target);
+
+  const currentState = await queryMediaPlayerStateSafe(target);
+  if (currentState === "pause") {
+    await waitForOsdVisible(target);
+    await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
+    return;
+  }
+
+  if (currentState !== "play") {
+    await waitForMediaPlayerState(target, "play", 8_000);
+  }
+
   await pressKey(target, "Play");
   if (await waitForMediaPlayerState(target, "pause")) {
     await waitForOsdVisible(target);
@@ -1141,6 +1153,11 @@ async function assertMediaKeysSeek(target: string): Promise<void> {
 
 async function assertMediaPlayKeyToggles(target: string): Promise<void> {
   await ensureOsdVisibleForActivation(target);
+  if ((await queryMediaPlayerStateSafe(target)) === "pause") {
+    await pressKey(target, "Play");
+    await waitForMediaPlayerState(target, "play", 8_000);
+  }
+
   const beforePause = await readPlayerPositionSecondsFromDevice(target);
   await pressKey(target, "Play");
   const pausedByState = await waitForMediaPlayerState(target, "pause");
