@@ -73,6 +73,14 @@
           color="0xBDBDBDFF"
           text="..:.."
         />
+        <Poster
+          id="positionPauseIcon"
+          translation="[86,56]"
+          width="22"
+          height="22"
+          uri="pkg:/images/icons/player-pause-circle.png"
+          visible="false"
+        />
 
         <Group id="progressHitArea">
           <Rectangle

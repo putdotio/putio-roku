@@ -28,7 +28,7 @@ const sceneGraphRequestTimeoutMs = 10_000;
 const sceneGraphPollIntervalMs = 1_500;
 const launchTimeoutMs = 30_000;
 const playbackLaunchTimeoutMs = 240_000;
-const playbackLaunchRetryMs = 45_000;
+const playbackLaunchRetryMs = 10_000;
 const remotePlaybackLaunchQuietMs = 18_000;
 const maxPlaybackLaunchAttempts = 4;
 const screenshotCaptureAttempts = 5;
@@ -469,6 +469,22 @@ function hasStartFromDialog(xml: string): boolean {
   return xml.includes("Where would you like to start?");
 }
 
+function readAuthCode(xml: string): string | undefined {
+  if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+    return undefined;
+  }
+
+  return readNamedNodeAttribute(xml, "code", "text");
+}
+
+function assertNotAuthScreen(xml: string): void {
+  const authCode = readAuthCode(xml);
+
+  if (authCode !== undefined) {
+    throw new Error(`Roku dev app is signed out; redeem device code ${authCode}`);
+  }
+}
+
 function assertHlsDirectPlaybackSurface(xml: string, contentId: string): void {
   assertNamedNodeVisible(xml, "videoPlayerScreen");
   assertNamedNodeHidden(xml, "videoScreen");
@@ -554,6 +570,8 @@ async function launchPlayback(
       continue;
     }
 
+    assertNotAuthScreen(xml);
+
     if (!didChooseStartFrom && hasStartFromDialog(xml)) {
       didChooseStartFrom = true;
       await chooseStartFrom(target, startFromChoice);
@@ -606,19 +624,38 @@ async function launchPlaybackWithRemoteStart(
 
   let app = await launchApp(target, "dev");
   const params = createPlaybackParams(contentId, mediaType, startFromChoice);
+  let launchAttempts = 0;
+  let lastPlaybackLaunchAt = 0;
+  let didChooseStartFrom = false;
+  let lastState = "remote-assisted launch";
+
+  async function sendPlaybackLaunch(reason: string): Promise<void> {
+    if (
+      launchAttempts >= maxPlaybackLaunchAttempts ||
+      Date.now() - lastPlaybackLaunchAt < playbackLaunchRetryMs
+    ) {
+      return;
+    }
+
+    launchAttempts += 1;
+    lastPlaybackLaunchAt = Date.now();
+    didChooseStartFrom = false;
+    lastState = `retrying playback launch after ${reason}`;
+
+    try {
+      app = await rokitLaunchApp(rokitContext(target), "dev", params);
+    } catch (error) {
+      app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
+      console.log(`retried playback launch after ${reason}: ${formatErrorMessage(error)}`);
+    }
+  }
 
   await sleep(4_000);
-  try {
-    app = await rokitLaunchApp(rokitContext(target), "dev", params);
-  } catch {
-    app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-  }
+  await sendPlaybackLaunch("initial dev launch");
 
   await waitForRemotePlaybackSettle(target, remotePlaybackLaunchQuietMs);
 
   const start = Date.now();
-  let didChooseStartFrom = false;
-  let lastState = "remote-assisted launch";
 
   while (Date.now() - start < playbackLaunchTimeoutMs) {
     let xml: string;
@@ -632,7 +669,14 @@ async function launchPlaybackWithRemoteStart(
       continue;
     }
 
-    if (!didChooseStartFrom && hasStartFromDialog(xml)) {
+    assertNotAuthScreen(xml);
+
+    const sceneGraphFailure = readSceneGraphFailure(xml);
+    if (sceneGraphFailure !== undefined) {
+      const activeApp = await queryActiveAppSafe(target);
+      lastState = `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}`;
+      await sendPlaybackLaunch(lastState);
+    } else if (!didChooseStartFrom && hasStartFromDialog(xml)) {
       didChooseStartFrom = true;
       await chooseStartFrom(target, startFromChoice);
       lastState = "startFromDialog";
@@ -659,6 +703,15 @@ async function launchPlaybackWithRemoteStart(
   throw new Error(
     `expected videoPlayerScreen after remote-assisted deeplink, last visible state: ${lastState}`,
   );
+}
+
+function readSceneGraphFailure(xml: string): string | undefined {
+  if (!xml.includes("<status>FAILED</status>")) {
+    return undefined;
+  }
+
+  const match = /<error>([^<]*)<\/error>/.exec(xml);
+  return match ? match[1] : "unknown";
 }
 
 async function waitForRemotePlaybackSettle(
@@ -937,6 +990,22 @@ function assertProgressFocusedXml(xml: string): void {
   }
 }
 
+function assertPausedPositionGlyph(xml: string): void {
+  assertNamedNodeVisible(xml, "positionPauseIcon");
+  assertNodeSize(xml, "positionPauseIcon", 22, 22);
+
+  const translation = readNamedNodeTranslation(xml, "positionPauseIcon");
+  const x = translation?.[0];
+  const y = translation?.[1];
+  const allowedX = [86, 122, 150];
+
+  if (x === undefined || !allowedX.includes(x)) {
+    throw new Error(`expected pause glyph x to follow position label, got ${x ?? "missing"}`);
+  }
+
+  assertNear(y, 56, "positionPauseIcon y");
+}
+
 async function assertOsdHideRevealFlow(target: string): Promise<void> {
   await ensureOsdVisibleForActivation(target);
 
@@ -1028,6 +1097,7 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
   await pressKey(target, "Play");
   if (await waitForMediaPlayerState(target, "pause")) {
     await waitForOsdVisible(target);
+    await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
     return;
   }
 
@@ -1041,6 +1111,11 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
     await pressKey(target, "Play");
     if (await waitForMediaPlayerState(target, "pause")) {
       await waitForOsdVisible(target);
+      await waitForSceneGraphAssertion(
+        target,
+        "expected paused position glyph",
+        assertPausedPositionGlyph,
+      );
       return;
     }
 
@@ -1058,6 +1133,7 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
   }
 
   await waitForOsdVisible(target);
+  await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
 }
 
 async function focusInitialControlsForScreenshot(target: string): Promise<void> {
@@ -1134,6 +1210,7 @@ async function assertMediaPlayKeyToggles(target: string): Promise<void> {
       `expected Play key to pause playback, got before=${beforePause}s pausedAt=${pausedAt}s stillPausedAt=${stillPausedAt}s`,
     );
   }
+  await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
 
   await pressKey(target, "Play");
   const resumedByState = await waitForMediaPlayerState(target, "play");

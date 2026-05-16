@@ -13,6 +13,7 @@ function init()
     m.title = m.top.findNode("title")
     m.trackSummary = m.top.findNode("trackSummary")
     m.positionLabel = m.top.findNode("position")
+    m.positionPauseIcon = m.top.findNode("positionPauseIcon")
     m.durationLabel = m.top.findNode("duration")
     m.progressTrack = m.top.findNode("progressTrack")
     m.progressFill = m.top.findNode("progressFill")
@@ -297,6 +298,7 @@ sub onPlayerStateChanged(obj)
     state = obj.getData()
 
     updatePlayIcon()
+    updatePositionPauseIcon()
 
     if state = "error"
         onError()
@@ -398,7 +400,43 @@ sub updateProgress(position)
     end if
 
     m.progressThumb.translation = [thumbX, thumbY]
+    updatePositionPauseIcon()
 end sub
+
+sub updatePositionPauseIcon()
+    if m.positionPauseIcon = invalid
+        return
+    end if
+
+    showPausedGlyph = m.seekInProgress or isVideoPaused()
+    m.positionPauseIcon.visible = showPausedGlyph
+
+    if showPausedGlyph = false
+        return
+    end if
+
+    m.positionPauseIcon.translation = [getPositionPauseIconX(), 56]
+end sub
+
+function isVideoPaused() as boolean
+    return m.video.state = "paused" or m.video.state = "pause"
+end function
+
+function getPositionPauseIconX() as integer
+    positionText = m.positionLabel.text
+    if positionText = invalid
+        return 86
+    end if
+
+    textLength = Len(positionText)
+    if textLength <= 5
+        return 86
+    else if textLength <= 8
+        return 122
+    end if
+
+    return 150
+end function
 
 sub onAvailableAudioTracksChanged(obj)
     tracks = obj.getData()
