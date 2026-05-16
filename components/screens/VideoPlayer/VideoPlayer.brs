@@ -1639,7 +1639,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             previewSeekBy(15)
             return true
         else if normalizedKey = "replay" or normalizedKey = "instantreplay"
-            seekToStart()
+            rewind()
             return true
         end if
 
