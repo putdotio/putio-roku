@@ -36,11 +36,13 @@ const execFile = promisify(execFileCallback);
 const requestTimeoutMs = 15_000;
 const sceneGraphRequestTimeoutMs = 10_000;
 const sceneGraphPollIntervalMs = 1_500;
+const playbackLaunchSceneGraphPollIntervalMs = 3_000;
+const playbackLaunchInitialSettleMs = 5_000;
+const playbackLaunchPostPromptSettleMs = 10_000;
 const launchTimeoutMs = 30_000;
 const authPrepareTimeoutMs = 90_000;
 const playbackLaunchTimeoutMs = 240_000;
 const playbackLaunchRetryMs = 10_000;
-const remotePlaybackLaunchQuietMs = 18_000;
 const appSceneGraphReadyTimeoutMs = 45_000;
 const maxPlaybackLaunchAttempts = 4;
 const screenshotCaptureAttempts = 5;
@@ -190,8 +192,8 @@ function assertAuxiliaryControlsLayout(xml: string): void {
     assertNodeTranslation(xml, buttonName, nextX, 0);
 
     if (isNamedNodeVisible(xml, labelName)) {
-      assertNodeTranslation(xml, labelName, -66, -42);
-      assertNodeSize(xml, labelName, 220, 35);
+      assertNodeTranslation(xml, labelName, -86, -22);
+      assertNodeSize(xml, labelName, 260, 36);
     }
 
     assertNodeTranslation(xml, valueName, 16, 16);
@@ -202,8 +204,8 @@ function assertAuxiliaryControlsLayout(xml: string): void {
 }
 
 function assertFocusedAuxiliaryLabelLayout(xml: string, focusLabelNodeName: string): void {
-  assertNodeTranslation(xml, focusLabelNodeName, -66, -42);
-  assertNodeSize(xml, focusLabelNodeName, 220, 35);
+  assertNodeTranslation(xml, focusLabelNodeName, -86, -22);
+  assertNodeSize(xml, focusLabelNodeName, 260, 36);
 }
 
 function assertTrackMenuLayout(
@@ -386,8 +388,66 @@ async function queryMediaPlayerStateSafe(target: string): Promise<string | undef
   }
 }
 
+async function queryMediaPlayerXmlSafe(target: string): Promise<string | undefined> {
+  try {
+    return await rokitQueryEcp(rokitContext(target), "/query/media-player");
+  } catch {
+    return undefined;
+  }
+}
+
 function isActiveMediaPlayerState(state: string | undefined): boolean {
   return state === "play" || state === "pause" || state === "buffer" || state === "buffering";
+}
+
+async function hasActiveMediaPlayback(target: string): Promise<boolean> {
+  return isActiveMediaPlayerState(await queryMediaPlayerStateSafe(target));
+}
+
+async function assertHlsPlaybackSurfaceOnDevice(
+  target: string,
+  contentId: string,
+): Promise<void> {
+  const xml = await querySceneGraph(target);
+
+  try {
+    assertHlsPlaybackSurface(xml, contentId);
+    return;
+  } catch (error) {
+    const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
+    if (
+      hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
+      mediaPlayerXml !== undefined &&
+      mediaPlayerXml.includes('container="hls"') &&
+      isActiveMediaPlayerState(await queryMediaPlayerStateSafe(target))
+    ) {
+      return;
+    }
+
+    throw error;
+  }
+}
+
+async function assertDirectPlaybackSurfaceOnDevice(
+  target: string,
+  contentId: string,
+): Promise<void> {
+  const xml = await querySceneGraph(target);
+
+  try {
+    assertDirectPlaybackSurface(xml, contentId);
+    return;
+  } catch (error) {
+    if (
+      hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
+      readVisiblePlaybackContentId(xml) === undefined &&
+      await hasActiveMediaPlayback(target)
+    ) {
+      return;
+    }
+
+    throw error;
+  }
 }
 
 async function queryActiveAppSafe(target: string): Promise<ActiveApp | undefined> {
@@ -672,6 +732,9 @@ async function launchPlayback(
         return app;
       } catch (error) {
         const visibleContentId = readVisiblePlaybackContentId(xml);
+        if (visibleContentId === undefined && await hasActiveMediaPlayback(target)) {
+          return app;
+        }
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
           await retryDeepLink(`stale content ${visibleContentId}`);
         }
@@ -707,15 +770,18 @@ async function launchPlaybackWithRemoteStart(
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<ActiveApp> {
-  await pressKey(target, "Home");
-  await sleep(2_000);
+  const existingPlaybackApp = await findExistingPlaybackSurface(target, contentId);
+  if (existingPlaybackApp !== undefined) {
+    return existingPlaybackApp;
+  }
 
-  let app = await launchApp(target, "dev");
-  const params = createPlaybackParams(contentId, mediaType, startFromChoice);
-  let launchAttempts = 0;
+  await leaveActivePlaybackSurface(target);
+
+  let app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
+  let launchAttempts = 1;
   let lastPlaybackLaunchAt = 0;
   let didChooseStartFrom = false;
-  let lastState = "remote-assisted launch";
+  let lastState = "playback deeplink launch";
 
   async function sendPlaybackLaunch(reason: string): Promise<void> {
     if (
@@ -731,29 +797,31 @@ async function launchPlaybackWithRemoteStart(
     lastState = `retrying playback launch after ${reason}`;
 
     try {
-      app = await rokitLaunchApp(rokitContext(target), "dev", params);
-    } catch (error) {
       app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-      console.log(`retried playback launch after ${reason}: ${formatErrorMessage(error)}`);
+    } catch (error) {
+      lastState = `playback launch retry failed after ${reason}: ${formatErrorMessage(error)}`;
     }
   }
 
-  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
-  await sendPlaybackLaunch("initial dev launch");
-
-  await waitForRemotePlaybackSettle(target, remotePlaybackLaunchQuietMs);
-
+  await sleep(playbackLaunchInitialSettleMs);
   const start = Date.now();
 
   while (Date.now() - start < playbackLaunchTimeoutMs) {
+    const mediaState = await queryMediaPlayerStateSafe(target);
+    if (isActiveMediaPlayerState(mediaState)) {
+      const activeApp = await queryActiveAppSafe(target);
+      if (activeApp?.id === "dev") {
+        return app;
+      }
+    }
+
     let xml: string;
 
     try {
       xml = await querySceneGraph(target);
     } catch (error) {
-      const mediaState = await queryMediaPlayerStateSafe(target);
       lastState = `scene graph unavailable: ${formatErrorMessage(error)}; media-player=${mediaState ?? "unknown"}`;
-      await sleep(sceneGraphPollIntervalMs);
+      await sleep(playbackLaunchSceneGraphPollIntervalMs);
       continue;
     }
 
@@ -762,7 +830,6 @@ async function launchPlaybackWithRemoteStart(
     const sceneGraphFailure = readSceneGraphFailure(xml);
     if (sceneGraphFailure !== undefined) {
       const activeApp = await queryActiveAppSafe(target);
-      const mediaState = await queryMediaPlayerStateSafe(target);
       lastState = `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}; media-player=${mediaState ?? "unknown"}`;
 
       if (!isActiveMediaPlayerState(mediaState)) {
@@ -771,6 +838,7 @@ async function launchPlaybackWithRemoteStart(
     } else if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
       await chooseStartFrom(target, startFromChoice);
+      await sleep(playbackLaunchPostPromptSettleMs);
       lastState = "startFromPrompt";
     } else if (hasStartFromPrompt(xml)) {
       lastState = "startFromPrompt";
@@ -779,6 +847,10 @@ async function launchPlaybackWithRemoteStart(
         assertDirectPlaybackSurface(xml, contentId);
         return app;
       } catch (error) {
+        const visibleContentId = readVisiblePlaybackContentId(xml);
+        if (visibleContentId === undefined && isActiveMediaPlayerState(mediaState)) {
+          return app;
+        }
         lastState = formatErrorMessage(error);
       }
     } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
@@ -787,14 +859,69 @@ async function launchPlaybackWithRemoteStart(
       lastState = "searchScreen";
     } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
       lastState = "homeScreen";
+
+      if (Date.now() - start >= playbackLaunchRetryMs) {
+        await sendPlaybackLaunch(lastState);
+      }
     }
 
-    await sleep(sceneGraphPollIntervalMs);
+    await sleep(playbackLaunchSceneGraphPollIntervalMs);
   }
 
   throw new Error(
-    `expected videoPlayerScreen after remote-assisted deeplink, last visible state: ${lastState}`,
+    `expected videoPlayerScreen after playback deeplink, last visible state: ${lastState}`,
   );
+}
+
+async function findExistingPlaybackSurface(
+  target: string,
+  contentId: string,
+): Promise<ActiveApp | undefined> {
+  const activeApp = await queryActiveAppSafe(target);
+  if (activeApp?.id !== "dev") {
+    return undefined;
+  }
+
+  try {
+    const xml = await querySceneGraph(target);
+    if (!hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
+      return undefined;
+    }
+
+    assertDirectPlaybackSurface(xml, contentId);
+    return activeApp;
+  } catch {
+    return undefined;
+  }
+}
+
+async function leaveActivePlaybackSurface(target: string): Promise<void> {
+  let lastState = "active playback";
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const mediaState = await queryMediaPlayerStateSafe(target);
+    let playerVisible = false;
+
+    try {
+      playerVisible = hasVisibleNode(
+        await querySceneGraph(target),
+        "VideoPlayerScreen",
+        "videoPlayerScreen",
+      );
+    } catch {
+      playerVisible = isActiveMediaPlayerState(mediaState);
+    }
+
+    if (!playerVisible && !isActiveMediaPlayerState(mediaState)) {
+      return;
+    }
+
+    lastState = `playerVisible=${playerVisible.toString()} media-player=${mediaState ?? "unknown"}`;
+    await pressKey(target, "Back");
+    await sleep(2_000);
+  }
+
+  throw new Error(`could not leave active playback before relaunch: ${lastState}`);
 }
 
 async function waitForDevAppSceneGraphReady(
@@ -829,35 +956,6 @@ async function waitForDevAppSceneGraphReady(
   }
 
   console.log(`continuing playback launch before dev app SceneGraph settled: ${lastState}`);
-}
-
-async function waitForRemotePlaybackSettle(
-  target: string,
-  timeoutMs: number,
-): Promise<void> {
-  const start = Date.now();
-
-  while (Date.now() - start < timeoutMs) {
-    const mediaState = await queryMediaPlayerStateSafe(target);
-    if (isActiveMediaPlayerState(mediaState)) {
-      await sleep(1_000);
-      return;
-    }
-
-    try {
-      const xml = await querySceneGraph(target);
-      if (
-        hasStartFromPrompt(xml) ||
-        hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")
-      ) {
-        return;
-      }
-    } catch {
-      // SceneGraph may be temporarily unavailable during app launch.
-    }
-
-    await sleep(1_000);
-  }
 }
 
 function formatErrorMessage(error: unknown): string {
@@ -1615,7 +1713,7 @@ async function playerUiSmoke(
     `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
   );
   await waitForPlayerClockReady(target);
-  assertHlsPlaybackSurface(await querySceneGraph(target), audioContentId);
+  await assertHlsPlaybackSurfaceOnDevice(target, audioContentId);
   await pausePlaybackForStableOsd(target);
   await smokePlaybackSpeedIfAvailable(target);
 
@@ -1640,7 +1738,7 @@ async function playerUiSmoke(
     `opened subtitle playback: ${subtitleApp.id} ${subtitleApp.name} ${subtitleApp.version} contentID=${subtitleContentId}`,
   );
   await waitForPlayerClockReady(target);
-  assertDirectPlaybackSurface(await querySceneGraph(target), subtitleContentId);
+  await assertDirectPlaybackSurfaceOnDevice(target, subtitleContentId);
   await pausePlaybackForStableOsd(target);
   await focusSubtitleButtonFromPlayback(target);
   await assertFocusRoundTrip(target, "captionsFocusLabel");
@@ -1748,7 +1846,7 @@ async function playerUiScreenshots(
     `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
   );
   await waitForPlayerClockReady(target);
-  assertHlsPlaybackSurface(await querySceneGraph(target), audioContentId);
+  await assertHlsPlaybackSurfaceOnDevice(target, audioContentId);
   await pausePlaybackForStableOsd(target);
   await focusInitialControlsForScreenshot(target);
   const playFocusPath = await captureDeveloperScreenshot(
@@ -1805,7 +1903,7 @@ async function playerUiScreenshots(
     `opened subtitle playback: ${subtitleApp.id} ${subtitleApp.name} ${subtitleApp.version} contentID=${subtitleContentId}`,
   );
   await waitForPlayerClockReady(target);
-  assertDirectPlaybackSurface(await querySceneGraph(target), subtitleContentId);
+  await assertDirectPlaybackSurfaceOnDevice(target, subtitleContentId);
   await pausePlaybackForStableOsd(target);
   await focusSubtitleButtonFromPlayback(target);
   await assertFocusRoundTrip(target, "captionsFocusLabel");
