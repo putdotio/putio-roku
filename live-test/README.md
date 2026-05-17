@@ -81,10 +81,11 @@ make console
   `videoPlayerScreen` is visible. Use it when repeated SceneGraph polling makes
   the device unstable during HLS startup.
 - `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
-  opens playback through deep links, asserts direct HLS playback instead of the
-  old play/subtitle preselection surface, opens the audio and subtitle pickers
-  from the custom player controls, asserts the tuned OSD/menu geometry, asserts
-  the scrubber can receive focus, and checks Roku media seek keys move playback.
+  opens playback through deep links, asserts direct player routing instead of
+  the old play/subtitle preselection surface, asserts HLS playback for the
+  multi-audio fixture, opens the audio and subtitle pickers from the custom
+  player controls, asserts the tuned OSD/menu geometry, asserts the scrubber can
+  receive focus, and checks Roku media seek keys move playback.
   It uses SceneGraph state because Roku developer screenshots capture the app UI
   plane but not always the video plane.
 - `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=dist/tmp/player-ui]`

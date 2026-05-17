@@ -8,17 +8,19 @@ function init()
     m.osd = m.top.findNode("osd")
     m.osdTimer = m.top.findNode("osdTimer")
     m.osdTimer.observeField("fire", "onOsdTimerFire")
+    m.bufferingOverlay = m.top.findNode("bufferingOverlay")
+    m.bufferingIndicator = m.top.findNode("bufferingIndicator")
 
-    m.title = m.top.findNode("title")
+    m.title = m.top.findNode("playerTitle")
     m.trackSummary = m.top.findNode("trackSummary")
-    m.positionLabel = m.top.findNode("position")
-    m.positionPauseIcon = m.top.findNode("positionPauseIcon")
-    m.durationLabel = m.top.findNode("duration")
-    m.progressTrack = m.top.findNode("progressTrack")
-    m.progressFill = m.top.findNode("progressFill")
-    m.progressThumb = m.top.findNode("progressThumb")
-    m.progressFocusTop = m.top.findNode("progressFocusTop")
-    m.progressFocusBottom = m.top.findNode("progressFocusBottom")
+    m.positionLabel = m.top.findNode("playerPosition")
+    m.positionPauseIcon = m.top.findNode("playerPositionPauseIcon")
+    m.durationLabel = m.top.findNode("playerDuration")
+    m.progressTrack = m.top.findNode("playerProgressTrack")
+    m.progressFill = m.top.findNode("playerProgressFill")
+    m.progressThumb = m.top.findNode("playerProgressThumb")
+    m.progressFocusTop = m.top.findNode("playerProgressFocusTop")
+    m.progressFocusBottom = m.top.findNode("playerProgressFocusBottom")
     m.progressTrackWidth = 1728
     m.controlsGroup = m.top.findNode("controls")
     m.playbackSpeedSupported = m.video.hasField("playbackSpeed")
@@ -171,6 +173,7 @@ sub onVisibleChange()
         showOsd()
     else
         m.video.control = "stop"
+        updateBufferingOverlay(false)
         m.video.unobserveField("state")
         m.video.unobserveField("position")
         m.video.unobserveField("duration")
@@ -184,17 +187,23 @@ end sub
 
 sub setupPlayer()
     file = m.top.params.file
+    streamInfo = getPlayableStreamInfo(file, m.global.apiURL, m.global.user.download_token)
     videoContent = createObject("RoSGNode", "ContentNode")
 
     resetPlaybackState()
 
-    videoContent.url = getPlaybackStreamUrl(file)
+    if streamInfo = invalid
+        showPlaybackUnavailableDialog()
+        return
+    end if
+
+    videoContent.url = streamInfo.url
     videoContent.title = file.name
-    videoContent.streamformat = "mp4"
-    m.externalSubtitleTracks = []
+    videoContent.streamFormat = streamInfo.format
+    m.externalSubtitleTracks = createSubtitleTracks(m.top.params.subtitles)
 
     m.title.text = file.name
-    m.duration = getFileDuration(file)
+    m.duration = getVideoFileDurationSeconds(file)
     updateDurationLabel()
     syncSubtitleTracks()
     updateTrackSummary()
@@ -237,19 +246,12 @@ sub resetPlaybackState()
     resetSeekPressTimer()
 
     m.trackMenu.visible = false
+    updateBufferingOverlay(false)
     m.trackMenuSelectionGuard.control = "stop"
     m.positionLabel.text = getDurationString(0)
     updateProgress(0)
     updateTrackSummary()
 end sub
-
-function getPlaybackStreamUrl(file) as string
-    if file.is_mp4_available = true and file.mp4_stream_url <> invalid and file.mp4_stream_url <> ""
-        return file.mp4_stream_url
-    end if
-
-    return file.stream_url
-end function
 
 function createSubtitleTracks(subtitles) as object
     tracks = []
@@ -320,14 +322,6 @@ function getSubtitleLanguageCode(subtitle) as string
     return "und"
 end function
 
-function getFileDuration(file) as integer
-    if file.video_metadata <> invalid and file.video_metadata.duration <> invalid
-        return file.video_metadata.duration
-    end if
-
-    return 0
-end function
-
 sub startPlayback(time)
     if time = invalid
         time = 0
@@ -345,13 +339,35 @@ sub onPlayerStateChanged(obj)
     updatePositionPauseIcon()
 
     if state = "error"
+        updateBufferingOverlay(false)
         onError()
     else if state = "finished"
+        updateBufferingOverlay(false)
         onGoBack()
     else if state = "buffering"
+        updateBufferingOverlay(true)
         showOsd()
     else
+        updateBufferingOverlay(false)
         restartOsdTimer()
+    end if
+end sub
+
+sub updateBufferingOverlay(visible as boolean)
+    if m.bufferingOverlay = invalid
+        return
+    end if
+
+    m.bufferingOverlay.visible = visible
+
+    if m.bufferingIndicator = invalid
+        return
+    end if
+
+    if visible
+        m.bufferingIndicator.control = "start"
+    else
+        m.bufferingIndicator.control = "stop"
     end if
 end sub
 
@@ -889,7 +905,10 @@ sub fastforward()
 end sub
 
 sub seekBy(seconds)
+    shouldResume = false
+
     if m.seekInProgress
+        shouldResume = m.wasPlayingBeforeSeek
         resetPreviewSeek()
     end if
 
@@ -908,6 +927,11 @@ sub seekBy(seconds)
     updateProgress(nextPosition)
     m.video.seek = nextPosition
     maybeSaveVideoTime(nextPosition, true)
+
+    if shouldResume
+        m.video.control = "resume"
+    end if
+
     showOsd()
 end sub
 
@@ -1548,6 +1572,14 @@ sub onError()
     m.top.showDialog = m.errorDialog
 end sub
 
+sub showPlaybackUnavailableDialog()
+    m.errorDialog = createObject("roSGNode", "Dialog")
+    m.errorDialog.title = "Video unavailable"
+    m.errorDialog.message = "This video does not have a Roku-compatible stream yet."
+    m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
+    m.top.showDialog = m.errorDialog
+end sub
+
 sub onErrorDialogClosed()
     onGoBack()
 end sub
@@ -1630,14 +1662,10 @@ function onKeyEvent(key as string, press as boolean) as boolean
             showOsd()
             return true
         else if normalizedKey = "rewind" or normalizedKey = "rev"
-            showOsd()
-            focusProgress()
-            previewSeekBy(-15)
+            rewind()
             return true
         else if normalizedKey = "fastforward" or normalizedKey = "fwd"
-            showOsd()
-            focusProgress()
-            previewSeekBy(15)
+            fastforward()
             return true
         else if normalizedKey = "replay" or normalizedKey = "instantreplay"
             rewind()

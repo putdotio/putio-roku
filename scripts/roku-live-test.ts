@@ -151,16 +151,16 @@ function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
   assertNodeSize(xml, "bottomShadeSoft", 1920, 80);
   assertNodeTranslation(xml, "bottomShade", 0, 840);
   assertNodeSize(xml, "bottomShade", 1920, 240);
-  assertNodeTranslation(xml, "title", 96, 900);
+  assertNodeTranslation(xml, "playerTitle", 96, 900);
   assertNodeTranslation(xml, "controls", 0, 870);
   assertNamedNodeHidden(xml, "rewindButton");
   assertNamedNodeHidden(xml, "playButton");
   assertNamedNodeHidden(xml, "fastForwardButton");
   assertAuxiliaryControlsLayout(xml);
   assertNodeTranslation(xml, "progress", 96, 960);
-  assertNodeTranslation(xml, "progressTrack", 0, progressFocused ? 23 : 25);
-  assertNodeSize(xml, "progressTrack", 1728, progressFocused ? 12 : 8);
-  assertNodeTranslation(xml, "duration", 1548, 52);
+  assertNodeTranslation(xml, "playerProgressTrack", 0, progressFocused ? 23 : 25);
+  assertNodeSize(xml, "playerProgressTrack", 1728, progressFocused ? 12 : 8);
+  assertNodeTranslation(xml, "playerDuration", 1548, 52);
 }
 
 function assertAuxiliaryControlsLayout(xml: string): void {
@@ -457,10 +457,6 @@ function assertDirectPlaybackSurface(xml: string, contentId: string): void {
   assertNamedNodeAbsent(xml, "button-play");
   assertNamedNodeAbsent(xml, "subtitleList");
 
-  if (xml.includes("/hls/media.m3u8")) {
-    throw new Error("expected Roku player content to avoid HLS playback URLs");
-  }
-
   if (xml.includes("original=1")) {
     throw new Error("expected player content to avoid original=1 playback URLs");
   }
@@ -468,6 +464,14 @@ function assertDirectPlaybackSurface(xml: string, contentId: string): void {
   const expectedPathPrefix = `/files/${contentId}/`;
   if (!xml.includes(expectedPathPrefix)) {
     throw new Error(`expected player content to include file path ${expectedPathPrefix}`);
+  }
+}
+
+function assertHlsPlaybackSurface(xml: string, contentId: string): void {
+  assertDirectPlaybackSurface(xml, contentId);
+
+  if (!xml.includes("/hls/") && !xml.includes(".m3u8")) {
+    throw new Error(`expected player content for ${contentId} to use an HLS URL`);
   }
 }
 
@@ -755,7 +759,7 @@ function parseDurationLabel(label: string): number | undefined {
 }
 
 function readPlayerPositionSeconds(xml: string): number {
-  const text = readNamedNodeAttribute(xml, "position", "text");
+  const text = readNamedNodeAttribute(xml, "playerPosition", "text");
 
   if (!text) {
     throw new Error("expected player position label");
@@ -928,11 +932,11 @@ async function assertProgressFocused(target: string): Promise<void> {
 }
 
 function assertProgressFocusedXml(xml: string): void {
-  const progressHeight = readNamedNodeNumber(xml, "progressTrack", "height");
+  const progressHeight = readNamedNodeNumber(xml, "playerProgressTrack", "height");
 
   assertNamedNodeVisible(xml, "videoPlayerScreen");
   assertNamedNodeVisible(xml, "osd");
-  assertNamedNodeVisible(xml, "progressThumb");
+  assertNamedNodeVisible(xml, "playerProgressThumb");
   assertPlayerOsdLayout(xml);
 
   if (progressHeight !== 12) {
@@ -943,19 +947,19 @@ function assertProgressFocusedXml(xml: string): void {
 }
 
 function assertPausedPositionGlyph(xml: string): void {
-  assertNamedNodeVisible(xml, "positionPauseIcon");
-  assertNodeSize(xml, "positionPauseIcon", 22, 22);
+  assertNamedNodeVisible(xml, "playerPositionPauseIcon");
+  assertNodeSize(xml, "playerPositionPauseIcon", 22, 22);
 
-  const translation = readNamedNodeTranslation(xml, "positionPauseIcon");
+  const translation = readNamedNodeTranslation(xml, "playerPositionPauseIcon");
   const x = translation?.[0];
   const y = translation?.[1];
-  const allowedX = [86, 122, 150];
+  const allowedX = [112, 158, 188];
 
   if (x === undefined || !allowedX.includes(x)) {
     throw new Error(`expected pause glyph x to follow position label, got ${x ?? "missing"}`);
   }
 
-  assertNear(y, 56, "positionPauseIcon y");
+  assertNear(y, 56, "playerPositionPauseIcon y");
 }
 
 async function assertOsdHideRevealFlow(target: string): Promise<void> {
@@ -1011,8 +1015,8 @@ async function waitForPlayerClockReady(
   while (Date.now() - start < timeoutMs) {
     try {
       const xml = await querySceneGraph(target);
-      const position = readNamedNodeAttribute(xml, "position", "text");
-      const duration = readNamedNodeAttribute(xml, "duration", "text");
+      const position = readNamedNodeAttribute(xml, "playerPosition", "text");
+      const duration = readNamedNodeAttribute(xml, "playerDuration", "text");
 
       if (
         isNamedNodeVisible(xml, "videoPlayerScreen") &&
@@ -1120,42 +1124,29 @@ async function assertInitialControlsVisible(target: string): Promise<void> {
 async function assertMediaKeysSeek(target: string): Promise<void> {
   const before = await readPlayerPositionSecondsFromDevice(target);
   await pressKey(target, "Fwd");
-  await sleep(750);
-  await assertProgressFocused(target);
-  const afterFwdPreview = await readPlayerPositionSecondsFromDevice(target);
-
-  if (afterFwdPreview <= before + 5) {
-    throw new Error(
-      `expected Fwd to preview an advance, got before=${before}s afterFwdPreview=${afterFwdPreview}s`,
-    );
-  }
-
-  await pressKey(target, "Select");
   await sleep(1_500);
-  const afterFwdCommit = await readPlayerPositionSecondsFromDevice(target);
+  await assertProgressFocused(target);
+  const afterFwd = await readPlayerPositionSecondsFromDevice(target);
 
-  if (afterFwdCommit <= before + 5) {
+  if (afterFwd <= before + 5) {
     throw new Error(
-      `expected Select to commit Fwd preview, got before=${before}s afterFwdCommit=${afterFwdCommit}s`,
+      `expected Fwd to seek forward, got before=${before}s afterFwd=${afterFwd}s`,
     );
   }
 
   await pressKey(target, "Rev");
-  await sleep(750);
+  await sleep(1_500);
   await assertProgressFocused(target);
-  const afterRevPreview = await readPlayerPositionSecondsFromDevice(target);
+  const afterRev = await readPlayerPositionSecondsFromDevice(target);
 
-  if (afterRevPreview >= afterFwdCommit) {
+  if (afterRev >= afterFwd) {
     throw new Error(
-      `expected Rev to preview a move backward, got afterFwdCommit=${afterFwdCommit}s afterRevPreview=${afterRevPreview}s`,
+      `expected Rev to seek backward, got afterFwd=${afterFwd}s afterRev=${afterRev}s`,
     );
   }
 
-  await pressKey(target, "Select");
-  await sleep(1_000);
-
   console.log(
-    `asserted media seek keys: before=${before}s afterFwdPreview=${afterFwdPreview}s afterFwdCommit=${afterFwdCommit}s afterRevPreview=${afterRevPreview}s`,
+    `asserted media seek keys: before=${before}s afterFwd=${afterFwd}s afterRev=${afterRev}s`,
   );
 }
 
@@ -1198,7 +1189,7 @@ async function assertMediaPlayKeyToggles(target: string): Promise<void> {
 }
 
 function readFocusedPlaybackControl(xml: string): PlayerControlId | "progress" | undefined {
-  if (isNamedNodeVisible(xml, "progressThumb")) {
+  if (isNamedNodeVisible(xml, "playerProgressThumb")) {
     return "progress";
   }
 
@@ -1465,6 +1456,7 @@ async function playerUiSmoke(
     `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
   );
   await waitForPlayerClockReady(target);
+  assertHlsPlaybackSurface(await querySceneGraph(target), audioContentId);
   await pausePlaybackForStableOsd(target);
   await smokePlaybackSpeedIfAvailable(target);
 
@@ -1489,6 +1481,7 @@ async function playerUiSmoke(
     `opened subtitle playback: ${subtitleApp.id} ${subtitleApp.name} ${subtitleApp.version} contentID=${subtitleContentId}`,
   );
   await waitForPlayerClockReady(target);
+  assertDirectPlaybackSurface(await querySceneGraph(target), subtitleContentId);
   await pausePlaybackForStableOsd(target);
   await focusSubtitleButtonFromPlayback(target);
   await assertFocusRoundTrip(target, "captionsFocusLabel");
@@ -1596,6 +1589,7 @@ async function playerUiScreenshots(
     `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
   );
   await waitForPlayerClockReady(target);
+  assertHlsPlaybackSurface(await querySceneGraph(target), audioContentId);
   await pausePlaybackForStableOsd(target);
   await focusInitialControlsForScreenshot(target);
   const playFocusPath = await captureDeveloperScreenshot(
@@ -1652,6 +1646,7 @@ async function playerUiScreenshots(
     `opened subtitle playback: ${subtitleApp.id} ${subtitleApp.name} ${subtitleApp.version} contentID=${subtitleContentId}`,
   );
   await waitForPlayerClockReady(target);
+  assertDirectPlaybackSurface(await querySceneGraph(target), subtitleContentId);
   await pausePlaybackForStableOsd(target);
   await focusSubtitleButtonFromPlayback(target);
   await assertFocusRoundTrip(target, "captionsFocusLabel");

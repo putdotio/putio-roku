@@ -75,6 +75,12 @@ sub handleFetchedFile()
         return
     end if
 
+    if hasPlayableVideoStream(m.file) = false
+        hideLoading()
+        showPlaybackUnavailableDialog()
+        return
+    end if
+
     fetchSubtitles()
 end sub
 
@@ -157,6 +163,19 @@ sub onFetchFileErrorDialogClosed()
     m.top.navigateBack = "true"
 end sub
 
+sub showPlaybackUnavailableDialog()
+    m.playbackUnavailableDialog = createObject("roSGNode", "Dialog")
+    m.playbackUnavailableDialog.title = "Video unavailable"
+    m.playbackUnavailableDialog.message = "This video does not have a Roku-compatible stream yet."
+    m.playbackUnavailableDialog.observeField("wasClosed", "onPlaybackUnavailableDialogClosed")
+    m.top.showDialog = m.playbackUnavailableDialog
+end sub
+
+sub onPlaybackUnavailableDialogClosed()
+    m.playbackUnavailableDialog.unobserveField("wasClosed")
+    m.top.navigateBack = true
+end sub
+
 ''' Video Conversion
 sub showVideoConversionStatus()
     m.phase = "conversion"
@@ -190,7 +209,7 @@ end sub
 sub showContinueWatchingPrompt()
     m.phase = "resumePrompt"
     m.continueWatchingPrompt.fileName = m.file.name
-    m.continueWatchingPrompt.duration = getFileDuration(m.file)
+    m.continueWatchingPrompt.duration = getVideoFileDurationSeconds(m.file)
     m.continueWatchingPrompt.startFrom = m.fetchedStartFrom
     m.continueWatchingPrompt.visible = true
     m.continueWatchingPrompt.setFocus(true)
@@ -242,11 +261,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
 end function
 
 function shouldShowConversionFlow(file as object) as boolean
-    return file.need_convert = true and hasMp4Stream(file) = false
-end function
-
-function hasMp4Stream(file as object) as boolean
-    return file.is_mp4_available = true and file.mp4_stream_url <> invalid and file.mp4_stream_url <> ""
+    return file.need_convert = true and hasPlayableMp4Stream(file) = false
 end function
 
 function shouldResumeFrom(startFrom as integer) as boolean
@@ -254,18 +269,10 @@ function shouldResumeFrom(startFrom as integer) as boolean
         return false
     end if
 
-    duration = getFileDuration(m.file)
+    duration = getVideoFileDurationSeconds(m.file)
     if duration > 0 and startFrom >= int(duration * 0.95)
         return false
     end if
 
     return true
-end function
-
-function getFileDuration(file as object) as integer
-    if file.video_metadata <> invalid and file.video_metadata.duration <> invalid
-        return file.video_metadata.duration
-    end if
-
-    return 0
 end function
