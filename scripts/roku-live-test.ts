@@ -39,6 +39,7 @@ import {
   type ActiveApp,
   type RokuContext,
 } from "@putdotio/rokit";
+import { createPlaybackLaunchRetry } from "./roku-playback-launch.ts";
 
 const execFile = promisify(execFileCallback);
 const requestTimeoutMs = 15_000;
@@ -183,9 +184,9 @@ function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
   assertNodeSize(xml, "bottomShade", 1920, 280);
   assertNodeTranslation(xml, "playerTitle", 96, 900);
   assertNodeTranslation(xml, "controls", 0, 870);
-  assertNamedNodeHidden(xml, "rewindButton");
-  assertNamedNodeHidden(xml, "playButton");
-  assertNamedNodeHidden(xml, "fastForwardButton");
+  assertNamedNodeVisible(xml, "rewindButton");
+  assertNamedNodeVisible(xml, "playButton");
+  assertNamedNodeVisible(xml, "fastForwardButton");
   assertAuxiliaryControlsLayout(xml);
   assertNodeTranslation(xml, "progress", 96, 960);
   assertNodeTranslation(xml, "playerProgressTrack", 0, progressFocused ? 23 : 25);
@@ -802,34 +803,27 @@ async function launchPlayback(
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<ActiveApp> {
-  let app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-  let lastLaunchAt = Date.now();
-  let launchAttempts = 1;
+  const initialApp = await launchDeepLink(target, contentId, mediaType, startFromChoice);
   const start = Date.now();
   let didChooseStartFrom = false;
   let lastStartFromChoiceAt = 0;
-  let lastState = "unknown";
-
-  async function retryDeepLink(reason: string): Promise<void> {
-    if (
-      launchAttempts >= maxPlaybackLaunchAttempts ||
-      Date.now() - lastLaunchAt < playbackLaunchRetryMs
-    ) {
-      return;
-    }
-
-    launchAttempts += 1;
-    lastLaunchAt = Date.now();
-    didChooseStartFrom = false;
-    lastState = `retrying deeplink after ${reason}`;
-    try {
-      app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-    } catch (error) {
-      lastState = `deeplink retry failed after ${reason}: ${formatErrorMessage(error)}`;
-    }
-    lastStartFromChoiceAt = 0;
-    await sleep(1_500);
-  }
+  const retry = createPlaybackLaunchRetry({
+    afterLaunch: async () => {
+      await sleep(1_500);
+    },
+    formatError: formatErrorMessage,
+    initialApp,
+    initialLastLaunchAtMs: Date.now(),
+    initialState: "unknown",
+    launch: async () => await launchDeepLink(target, contentId, mediaType, startFromChoice),
+    launchLabel: "deeplink",
+    maxAttempts: maxPlaybackLaunchAttempts,
+    onRetry: () => {
+      didChooseStartFrom = false;
+      lastStartFromChoiceAt = 0;
+    },
+    retryDelayMs: playbackLaunchRetryMs,
+  });
 
   while (Date.now() - start < playbackLaunchTimeoutMs) {
     let xml: string;
@@ -839,12 +833,13 @@ async function launchPlayback(
     } catch (error) {
       const mediaState = await queryMediaPlayerStateSafe(target);
       const activeApp = await queryActiveAppSafe(target);
-      lastState =
+      retry.setLastState(
         `scene graph unavailable: ${formatErrorMessage(error)}; ` +
-        `media-player=${mediaState ?? "unknown"}; ` +
-        `active-app=${activeApp ? activeApp.id : "unknown"}`;
+          `media-player=${mediaState ?? "unknown"}; ` +
+          `active-app=${activeApp ? activeApp.id : "unknown"}`,
+      );
       if (!isActiveMediaPlayerState(mediaState) && activeApp?.id !== "dev") {
-        await retryDeepLink(lastState);
+        await retry.maybeRetry(retry.lastState);
       }
       await sleep(sceneGraphPollIntervalMs);
       continue;
@@ -856,9 +851,9 @@ async function launchPlayback(
       didChooseStartFrom = true;
       lastStartFromChoiceAt = Date.now();
       await chooseStartFrom(target, startFromChoice);
-      lastState = "startFromPrompt";
+      retry.setLastState("startFromPrompt");
     } else if (hasStartFromPrompt(xml)) {
-      lastState = "startFromPrompt";
+      retry.setLastState("startFromPrompt");
       if (Date.now() - lastStartFromChoiceAt >= playbackLaunchRetryMs) {
         lastStartFromChoiceAt = Date.now();
         await chooseStartFrom(target, startFromChoice);
@@ -866,22 +861,25 @@ async function launchPlayback(
     } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
       try {
         assertDirectPlaybackSurface(xml, contentId);
-        return app;
+        return retry.app;
       } catch (error) {
         const visibleContentId = readVisiblePlaybackContentId(xml);
+        let didRetry = false;
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
-          await retryDeepLink(`stale content ${visibleContentId}`);
+          didRetry = await retry.maybeRetry(`stale content ${visibleContentId}`);
         }
-        lastState = formatErrorMessage(error);
+        if (!didRetry) {
+          retry.setLastState(formatErrorMessage(error));
+        }
       }
     } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
-      lastState = "videoScreen";
+      retry.setLastState("videoScreen");
     } else if (hasVisibleNode(xml, "SearchScreen", "searchScreen")) {
-      lastState = "searchScreen";
-      await retryDeepLink(lastState);
+      retry.setLastState("searchScreen");
+      await retry.maybeRetry(retry.lastState);
     } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
-      lastState = "homeScreen";
-      await retryDeepLink(lastState);
+      retry.setLastState("homeScreen");
+      await retry.maybeRetry(retry.lastState);
     }
 
     await sleep(sceneGraphPollIntervalMs);
@@ -890,10 +888,10 @@ async function launchPlayback(
   try {
     const xml = await querySceneGraph(target);
     assertDirectPlaybackSurface(xml, contentId);
-    return app;
+    return retry.app;
   } catch {
     throw new Error(
-      `expected videoPlayerScreen after deeplink, last visible state: ${lastState}`,
+      `expected videoPlayerScreen after deeplink, last visible state: ${retry.lastState}`,
     );
   }
 }
@@ -911,33 +909,22 @@ async function launchPlaybackWithRemoteStart(
 
   await leaveActivePlaybackSurface(target);
 
-  let app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-  let launchAttempts = 1;
-  let lastPlaybackLaunchAt = 0;
+  const initialApp = await launchDeepLink(target, contentId, mediaType, startFromChoice);
   let didChooseStartFrom = false;
   let lastStartFromChoiceAt = 0;
-  let lastState = "playback deeplink launch";
-
-  async function sendPlaybackLaunch(reason: string): Promise<void> {
-    if (
-      launchAttempts >= maxPlaybackLaunchAttempts ||
-      Date.now() - lastPlaybackLaunchAt < playbackLaunchRetryMs
-    ) {
-      return;
-    }
-
-    launchAttempts += 1;
-    lastPlaybackLaunchAt = Date.now();
-    didChooseStartFrom = false;
-    lastState = `retrying playback launch after ${reason}`;
-
-    try {
-      app = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-    } catch (error) {
-      lastState = `playback launch retry failed after ${reason}: ${formatErrorMessage(error)}`;
-    }
-    lastStartFromChoiceAt = 0;
-  }
+  const retry = createPlaybackLaunchRetry({
+    formatError: formatErrorMessage,
+    initialApp,
+    initialState: "playback deeplink launch",
+    launch: async () => await launchDeepLink(target, contentId, mediaType, startFromChoice),
+    launchLabel: "playback launch",
+    maxAttempts: maxPlaybackLaunchAttempts,
+    onRetry: () => {
+      didChooseStartFrom = false;
+      lastStartFromChoiceAt = 0;
+    },
+    retryDelayMs: playbackLaunchRetryMs,
+  });
 
   await sleep(playbackLaunchInitialSettleMs);
   const start = Date.now();
@@ -950,7 +937,9 @@ async function launchPlaybackWithRemoteStart(
     try {
       xml = await querySceneGraph(target);
     } catch (error) {
-      lastState = `scene graph unavailable: ${formatErrorMessage(error)}; media-player=${mediaState ?? "unknown"}`;
+      retry.setLastState(
+        `scene graph unavailable: ${formatErrorMessage(error)}; media-player=${mediaState ?? "unknown"}`,
+      );
       await sleep(playbackLaunchSceneGraphPollIntervalMs);
       continue;
     }
@@ -960,19 +949,21 @@ async function launchPlaybackWithRemoteStart(
     const sceneGraphFailure = readSceneGraphFailure(xml);
     if (sceneGraphFailure !== undefined) {
       const activeApp = await queryActiveAppSafe(target);
-      lastState = `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}; media-player=${mediaState ?? "unknown"}`;
+      retry.setLastState(
+        `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}; media-player=${mediaState ?? "unknown"}`,
+      );
 
       if (!isActiveMediaPlayerState(mediaState)) {
-        await sendPlaybackLaunch(lastState);
+        await retry.maybeRetry(retry.lastState);
       }
     } else if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
       lastStartFromChoiceAt = Date.now();
       await chooseStartFrom(target, startFromChoice);
       await sleep(playbackLaunchPostPromptSettleMs);
-      lastState = "startFromPrompt";
+      retry.setLastState("startFromPrompt");
     } else if (hasStartFromPrompt(xml)) {
-      lastState = "startFromPrompt";
+      retry.setLastState("startFromPrompt");
       if (Date.now() - lastStartFromChoiceAt >= playbackLaunchRetryMs) {
         lastStartFromChoiceAt = Date.now();
         await chooseStartFrom(target, startFromChoice);
@@ -981,23 +972,26 @@ async function launchPlaybackWithRemoteStart(
     } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
       try {
         assertDirectPlaybackSurface(xml, contentId);
-        return app;
+        return retry.app;
       } catch (error) {
         const visibleContentId = readVisiblePlaybackContentId(xml);
+        let didRetry = false;
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
-          await sendPlaybackLaunch(`stale content ${visibleContentId}`);
+          didRetry = await retry.maybeRetry(`stale content ${visibleContentId}`);
         }
-        lastState = formatErrorMessage(error);
+        if (!didRetry) {
+          retry.setLastState(formatErrorMessage(error));
+        }
       }
     } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
-      lastState = "videoScreen";
+      retry.setLastState("videoScreen");
     } else if (hasVisibleNode(xml, "SearchScreen", "searchScreen")) {
-      lastState = "searchScreen";
+      retry.setLastState("searchScreen");
     } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
-      lastState = "homeScreen";
+      retry.setLastState("homeScreen");
 
       if (Date.now() - start >= playbackLaunchRetryMs) {
-        await sendPlaybackLaunch(lastState);
+        await retry.maybeRetry(retry.lastState);
       }
     }
 
@@ -1005,7 +999,7 @@ async function launchPlaybackWithRemoteStart(
   }
 
   throw new Error(
-    `expected videoPlayerScreen after playback deeplink, last visible state: ${lastState}`,
+    `expected videoPlayerScreen after playback deeplink, last visible state: ${retry.lastState}`,
   );
 }
 
@@ -1587,9 +1581,9 @@ async function assertInitialControlsVisible(target: string): Promise<void> {
   await waitForSceneGraphAssertion(target, "expected initial player controls", (xml) => {
     assertNamedNodeVisible(xml, "videoPlayerScreen");
     assertNamedNodeVisible(xml, "osd");
-    assertNamedNodeHidden(xml, "rewindButton");
-    assertNamedNodeHidden(xml, "playButton");
-    assertNamedNodeHidden(xml, "fastForwardButton");
+    assertNamedNodeVisible(xml, "rewindButton");
+    assertNamedNodeVisible(xml, "playButton");
+    assertNamedNodeVisible(xml, "fastForwardButton");
     assertProgressFocusedXml(xml);
   });
 }

@@ -78,7 +78,8 @@ make live-test-auth-prepare
 make console
 ```
 
-- `make smoke` runs BrighterScript/`bslint` and builds a fresh sideload ZIP.
+- `make smoke` type-checks the live-test harness, checks Roku source
+  formatting, runs BrighterScript/`bslint`, and builds a fresh sideload ZIP.
 - `make live-test` proves the configured Roku responds to ECP, exposes the
   developer installer, and returns active-app/device metadata.
 - `make live-test-control` launches the sideloaded developer app, sends remote
@@ -178,8 +179,9 @@ because some Roku developer endpoints intermittently close multipart uploads.
 
 - Bootable: partial. The app can be packaged locally and launched on a
   configured developer-enabled Roku.
-- Testable: partial. `make smoke` and CI prove static checks plus packaging;
-  hardware behavior still needs a real device.
+- Testable: partial. `make smoke` and CI prove live-test type safety, Roku
+  formatting, static checks, and packaging; hardware behavior still needs a
+  real device.
 - Observable: partial. ECP state and the BrightScript console are available
   through Make targets.
 - Verifiable: partial. `make verify` is deterministic locally/CI; real
