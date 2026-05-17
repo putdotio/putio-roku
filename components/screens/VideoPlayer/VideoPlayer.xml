@@ -372,14 +372,10 @@
       />
       <LoadingIndicator
         id="bufferingIndicator"
-        width="360"
-        height="220"
+        width="160"
+        height="160"
         imageWidth="58"
         imageHeight="58"
-        spacing="28"
-        text="Buffering..."
-        textColor="0xE8E8E8FF"
-        font="font:MediumSystemFont"
         backgroundOpacity="0"
       />
     </Group>
