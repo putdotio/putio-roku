@@ -158,10 +158,9 @@ async function waitForNamedNodeVisible(
 }
 
 function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
-  assertNodeTranslation(xml, "bottomShadeSoft", 0, 760);
-  assertNodeSize(xml, "bottomShadeSoft", 1920, 80);
-  assertNodeTranslation(xml, "bottomShade", 0, 840);
-  assertNodeSize(xml, "bottomShade", 1920, 240);
+  assertNamedNodeAbsent(xml, "bottomShadeSoft0");
+  assertNodeTranslation(xml, "bottomShade", 0, 800);
+  assertNodeSize(xml, "bottomShade", 1920, 280);
   assertNodeTranslation(xml, "playerTitle", 96, 900);
   assertNodeTranslation(xml, "controls", 0, 870);
   assertNamedNodeHidden(xml, "rewindButton");
@@ -192,7 +191,7 @@ function assertAuxiliaryControlsLayout(xml: string): void {
     assertNodeTranslation(xml, buttonName, nextX, 0);
 
     if (isNamedNodeVisible(xml, labelName)) {
-      assertNodeTranslation(xml, labelName, -86, -22);
+      assertNodeTranslation(xml, labelName, -86, -44);
       assertNodeSize(xml, labelName, 260, 36);
     }
 
@@ -204,7 +203,7 @@ function assertAuxiliaryControlsLayout(xml: string): void {
 }
 
 function assertFocusedAuxiliaryLabelLayout(xml: string, focusLabelNodeName: string): void {
-  assertNodeTranslation(xml, focusLabelNodeName, -86, -22);
+  assertNodeTranslation(xml, focusLabelNodeName, -86, -44);
   assertNodeSize(xml, focusLabelNodeName, 260, 36);
 }
 

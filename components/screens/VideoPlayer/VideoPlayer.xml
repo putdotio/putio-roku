@@ -30,67 +30,11 @@
       />
 
       <Rectangle
-        id="bottomShadeSoft0"
-        translation="[0,680]"
-        width="1920"
-        height="400"
-        color="0x0000000A"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft1"
-        translation="[0,720]"
-        width="1920"
-        height="360"
-        color="0x00000012"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft2"
-        translation="[0,760]"
-        width="1920"
-        height="320"
-        color="0x0000001A"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft3"
+        id="bottomShade"
         translation="[0,800]"
         width="1920"
         height="280"
-        color="0x00000024"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft4"
-        translation="[0,840]"
-        width="1920"
-        height="240"
-        color="0x00000030"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft5"
-        translation="[0,880]"
-        width="1920"
-        height="200"
-        color="0x0000003D"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft6"
-        translation="[0,920]"
-        width="1920"
-        height="160"
-        color="0x0000004D"
-      />
-
-      <Rectangle
-        id="bottomShadeSoft7"
-        translation="[0,960]"
-        width="1920"
-        height="120"
-        color="0x0000005C"
+        color="0x000000A8"
       />
 
       <Label
@@ -297,7 +241,7 @@
         >
           <Label
             id="audioFocusLabel"
-            translation="[-86,-22]"
+            translation="[-86,-44]"
             width="260"
             height="36"
             font="font:SmallSystemFont"
@@ -337,7 +281,7 @@
         >
           <Label
             id="captionsFocusLabel"
-            translation="[-86,-22]"
+            translation="[-86,-44]"
             width="260"
             height="36"
             font="font:SmallSystemFont"
@@ -377,7 +321,7 @@
         >
           <Label
             id="speedFocusLabel"
-            translation="[-86,-22]"
+            translation="[-86,-44]"
             width="260"
             height="36"
             font="font:SmallSystemFont"
