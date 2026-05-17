@@ -7,6 +7,9 @@ function init()
 
     m.list = m.top.findNode("settingsList")
     m.list.observeField("itemSelected", "onListItemSelected")
+    m.playbackTypeUpdateInFlight = false
+    m.pendingPlaybackType = invalid
+    m.settingsErrorDialog = invalid
 
     m.items = {
         show_only_media_files: {
@@ -17,12 +20,16 @@ function init()
             title: "Keep populating the history page with your activities",
             iconName: "history-1",
         },
+        playback_type: {
+            title: "Video playback type",
+            iconName: "file_type_video",
+        },
         logout: {
             title: "Log out",
             iconName: "logout"
         }
     }
-    m.itemsOrder = ["show_only_media_files", "show_history", "logout"]
+    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "logout"]
 
     renderList()
 end function
@@ -32,6 +39,7 @@ sub onVisibleChange()
         m.list.setFocus(true)
         updateShowOnlyMediaValue()
         updateShowHistory()
+        updatePlaybackTypeValue()
     end if
 end sub
 
@@ -69,6 +77,8 @@ sub onListItemSelected(obj)
         setShowOnlyMedia()
     else if key = "show_history"
         updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
+    else if key = "playback_type"
+        setPlaybackType(getNextPlaybackType())
     end if
 end sub
 
@@ -82,6 +92,84 @@ sub updateShowHistory()
         m.showHistory.description = "Enabled"
     else
         m.showHistory.description = "Disabled"
+    end if
+end sub
+
+function getPlaybackType() as string
+    return getPlaybackTypeFromConfig(m.global.config)
+end function
+
+function getNextPlaybackType() as string
+    if getPlaybackType() = "hls"
+        return "mp4"
+    end if
+
+    return "hls"
+end function
+
+sub setPlaybackType(playbackType as string)
+    if m.playbackTypeUpdateInFlight
+        return
+    end if
+
+    normalizedPlaybackType = normalizePlaybackTypeSetting(playbackType)
+    m.updateConfigTask = createObject("roSGNode", "HttpTask")
+    m.updateConfigTask.observeField("response", "onUpdatePlaybackType")
+    m.updateConfigTask.url = "/config/playbackType"
+    m.updateConfigTask.body = { value: normalizedPlaybackType }
+    m.updateConfigTask.method = "PUT"
+    m.pendingPlaybackType = normalizedPlaybackType
+    m.playbackTypeUpdateInFlight = true
+    updatePlaybackTypeValue("Saving " + getPlaybackTypeLabel(normalizedPlaybackType) + "...")
+    m.updateConfigTask.control = "RUN"
+end sub
+
+sub onUpdatePlaybackType(obj)
+    m.updateConfigTask.unobserveField("response")
+    data = parseJSON(obj.getData())
+
+    if data = invalid or data.status <> "OK"
+        m.playbackTypeUpdateInFlight = false
+        m.pendingPlaybackType = invalid
+        updatePlaybackTypeValue()
+        showSettingsErrorDialog("Video playback type could not be saved. Please try again.")
+        return
+    end if
+
+    config = m.global.config
+    if config = invalid
+        config = {}
+    end if
+
+    config.playbackType = m.pendingPlaybackType
+    m.global.config = config
+    m.playbackTypeUpdateInFlight = false
+    m.pendingPlaybackType = invalid
+    updatePlaybackTypeValue()
+end sub
+
+sub updatePlaybackTypeValue(description = invalid)
+    m.playbackTypeListItem = m.items.playback_type.node
+    if description <> invalid
+        m.playbackTypeListItem.description = description
+    else
+        m.playbackTypeListItem.description = getPlaybackTypeLabel(getPlaybackType())
+    end if
+end sub
+
+sub showSettingsErrorDialog(message as string)
+    m.settingsErrorDialog = createObject("roSGNode", "Dialog")
+    m.settingsErrorDialog.title = "Settings not saved"
+    m.settingsErrorDialog.message = message
+    m.settingsErrorDialog.buttons = ["OK"]
+    m.settingsErrorDialog.observeField("wasClosed", "onSettingsErrorDialogClosed")
+    m.top.showDialog = m.settingsErrorDialog
+end sub
+
+sub onSettingsErrorDialogClosed()
+    if m.settingsErrorDialog <> invalid
+        m.settingsErrorDialog.unobserveField("wasClosed")
+        m.settingsErrorDialog = invalid
     end if
 end sub
 

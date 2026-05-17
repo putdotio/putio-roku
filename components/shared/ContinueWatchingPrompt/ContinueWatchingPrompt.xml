@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="ContinueWatchingPrompt" extends="Group">
+  <interface>
+    <field id="fileName" type="string" onChange="updateLabels" />
+    <field id="startFrom" type="integer" onChange="updateLabels" />
+    <field id="duration" type="integer" onChange="updateLabels" />
+    <field id="selectedStartFrom" type="integer" alwaysNotify="true" />
+    <field id="dismissed" type="bool" alwaysNotify="true" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/ContinueWatchingPrompt/ContinueWatchingPrompt.brs" />
+
+  <children>
+    <Rectangle
+      id="backdrop"
+      width="1920"
+      height="1080"
+      color="0x000000CC"
+    />
+
+    <Group
+      id="panel"
+      translation="[560,340]"
+    >
+      <Rectangle
+        width="800"
+        height="400"
+        color="0x141414F4"
+      />
+
+      <Label
+        id="title"
+        translation="[56,54]"
+        width="688"
+        font="font:LargeBoldSystemFont"
+        color="0xE8E8E8FF"
+      />
+
+      <Group
+        id="progressTrack"
+        translation="[56,138]"
+      >
+        <Rectangle
+          id="progressRemaining"
+          width="688"
+          height="12"
+          color="0x5F5F5FFF"
+        />
+
+        <Rectangle
+          id="progressElapsed"
+          width="0"
+          height="12"
+          color="0xB49A22FF"
+        />
+      </Group>
+
+      <Group
+        id="continueButton"
+        translation="[56,192]"
+      >
+        <Rectangle
+          id="continueBackground"
+          width="688"
+          height="74"
+          color="0x3A3A3AFF"
+        />
+        <Label
+          id="continueLabel"
+          translation="[28,18]"
+          width="632"
+          font="font:MediumBoldSystemFont"
+          color="0xFFFFFFFF"
+        />
+      </Group>
+
+      <Group
+        id="beginningButton"
+        translation="[56,282]"
+      >
+        <Rectangle
+          id="beginningBackground"
+          width="688"
+          height="74"
+          color="0x14141400"
+        />
+        <Label
+          id="beginningLabel"
+          translation="[28,18]"
+          width="632"
+          font="font:MediumBoldSystemFont"
+          color="0xD6D6D6FF"
+          text="Start from the beginning"
+        />
+      </Group>
+    </Group>
+  </children>
+</component>

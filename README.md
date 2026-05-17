@@ -43,7 +43,7 @@ After installation, sign in with your put.io account to:
 ## Development
 
 The app is BrightScript/SceneGraph, with `brighterscript`, `bslint`, and
-`roku-deploy` installed through pnpm for local and CI validation.
+`@putdotio/rokit` installed through pnpm for local and CI validation.
 
 ```bash
 pnpm install --frozen-lockfile

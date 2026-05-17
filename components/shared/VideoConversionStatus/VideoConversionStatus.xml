@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="VideoConversionStatus" extends="Group">
+  <interface>
+    <field id="fileId" type="integer" />
+    <field id="fileName" type="string" onChange="onFileNameChange" />
+    <field id="control" type="string" onChange="onControlChange" />
+    <field id="completedFile" type="assocarray" value="" />
+    <field id="completed" type="bool" alwaysNotify="true" />
+    <field id="dismissed" type="bool" alwaysNotify="true" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/VideoConversionStatus/VideoConversionStatus.brs" />
+
+  <children>
+    <Rectangle
+      id="backdrop"
+      width="1920"
+      height="1080"
+      color="0x000000CC"
+    />
+
+    <Group
+      id="panel"
+      translation="[590,320]"
+    >
+      <Rectangle
+        width="740"
+        height="440"
+        color="0x141414F4"
+      />
+
+      <Label
+        id="title"
+        translation="[56,54]"
+        width="628"
+        font="font:LargeBoldSystemFont"
+        color="0xE8E8E8FF"
+        text="Preparing video"
+      />
+
+      <Label
+        id="fileNameLabel"
+        translation="[56,118]"
+        width="628"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xBDBDBDFF"
+      />
+
+      <LoadingIndicator
+        id="spinner"
+        translation="[326,184]"
+        centered="false"
+        width="88"
+        height="88"
+        imageWidth="72"
+        imageHeight="72"
+      />
+
+      <Group
+        id="progressGroup"
+        translation="[56,274]"
+        visible="false"
+      >
+        <Rectangle
+          id="progressTrack"
+          width="628"
+          height="8"
+          color="0x4E4E4EFF"
+        />
+        <Rectangle
+          id="progressFill"
+          width="0"
+          height="8"
+          color="0xD2A923FF"
+        />
+      </Group>
+
+      <Label
+        id="statusLabel"
+        translation="[56,306]"
+        width="628"
+        font="font:MediumSystemFont"
+        color="0xD6D6D6FF"
+        horizAlign="center"
+        text="Checking conversion status..."
+      />
+
+      <Group
+        id="actionButton"
+        translation="[226,360]"
+      >
+        <Rectangle
+          id="actionBackground"
+          width="288"
+          height="58"
+          color="0x3A3A3AFF"
+        />
+        <Label
+          id="actionLabel"
+          translation="[0,13]"
+          width="288"
+          font="font:MediumBoldSystemFont"
+          color="0xFFFFFFFF"
+          horizAlign="center"
+          text="Cancel"
+        />
+      </Group>
+    </Group>
+  </children>
+</component>

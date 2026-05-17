@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="VideoScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/PlaybackUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Video/Video.brs" />
 
 	<interface>
@@ -28,50 +30,14 @@
       imageHeight="120"
     />
 
-    <LayoutGroup
-      id="content"
-      translation="[190, 190]"
-      itemSpacings="96"
-      layoutDirection="horiz"
-    >
-      <Poster
-        id="poster"
-        loadWidth="720"
-        width="720"
-        loadingBitmapUri="pkg:/images/Splash-Blank-SD.png"
-        failedBitMapUri="pkg:/images/Splash-Blank-SD.png"
-      />
+    <VideoConversionStatus
+      id="conversionStatus"
+      visible="false"
+    />
 
-      <LayoutGroup itemSpacings="84">
-        <Poster
-          id="button-play"
-          uri="pkg:/images/PlayButtonFocused.png"
-          width="312"
-          height="140"
-        />
-
-        <LayoutGroup itemSpacings="16">
-          <Label
-            text="SUBTITLES"
-            font="font:SmallestSystemFont"
-            color="0xFFFFFFFF"
-          />
-
-          <RadioButtonList
-            id="subtitleList"
-            checkedItem="0"
-            color="0xFFFFFFFF"
-            focusedColor="0xFFFFFFFF"
-            focusBitmapBlendColor="0x00000FF"
-            itemSize="[720, 96]"
-            focusedCheckedIconUri="pkg:/images/icons/checkmark.png"
-            vertFocusAnimationStyle="floatingFocus"
-            numRows="6"
-            font="font:MediumSystemFont"
-            focusedFont="font:MediumSystemFont"
-          />
-        </LayoutGroup>
-      </LayoutGroup>
-    </LayoutGroup>
+    <ContinueWatchingPrompt
+      id="continueWatchingPrompt"
+      visible="false"
+    />
 	</children>
 </component>
