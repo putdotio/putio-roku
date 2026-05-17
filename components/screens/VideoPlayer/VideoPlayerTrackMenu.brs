@@ -83,7 +83,7 @@ sub renderTrackMenuRows()
     m.trackMenuPanel.translation = [metrics.panelX, panelY]
     m.trackMenuTitle.width = metrics.titleWidth
     m.trackMenuTitle.translation = [metrics.titleX, m.trackMenuPanel.translation[1] + metrics.titleY]
-    m.top.findNode("trackRows").translation = [metrics.rowsX, m.trackMenuPanel.translation[1] + metrics.rowsY]
+    m.trackRows.translation = [metrics.rowsX, m.trackMenuPanel.translation[1] + metrics.rowsY]
 
     for i = 0 to m.trackMenuRows.count() - 1
         row = m.trackMenuRows[i]

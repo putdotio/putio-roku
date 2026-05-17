@@ -401,58 +401,7 @@
         color="0xBDBDBDFF"
       />
 
-      <Group id="trackRows" translation="[360,496]">
-        <Group id="trackRow0">
-          <Rectangle id="trackRow0Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow0Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow0Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow1" translation="[0,92]">
-          <Rectangle id="trackRow1Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow1Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow1Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow2" translation="[0,184]">
-          <Rectangle id="trackRow2Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow2Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow2Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow3" translation="[0,276]">
-          <Rectangle id="trackRow3Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow3Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow3Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow4" translation="[0,368]">
-          <Rectangle id="trackRow4Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow4Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow4Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow5" translation="[0,460]">
-          <Rectangle id="trackRow5Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow5Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow5Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow6" translation="[0,552]">
-          <Rectangle id="trackRow6Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow6Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow6Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow7" translation="[0,644]">
-          <Rectangle id="trackRow7Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow7Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow7Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow8" translation="[0,736]">
-          <Rectangle id="trackRow8Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow8Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow8Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-        <Group id="trackRow9" translation="[0,828]">
-          <Rectangle id="trackRow9Background" width="1200" height="92" color="0x333333FF" visible="false" />
-          <Label id="trackRow9Label" translation="[28,24]" width="1068" font="font:MediumSystemFont" color="0xF0F0F0FF" />
-          <Label id="trackRow9Check" translation="[1128,21]" width="48" font="font:LargeBoldSystemFont" color="0xFFFFFFFF" horizAlign="center" text="✓" visible="false" />
-        </Group>
-      </Group>
+      <Group id="trackRows" translation="[360,496]" />
 
       <Label
         id="trackMenuHint"

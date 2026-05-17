@@ -28,18 +28,10 @@ function init()
     m.trackMenu = m.top.findNode("trackMenu")
     m.trackMenuPanel = m.top.findNode("trackMenuPanel")
     m.trackMenuTitle = m.top.findNode("trackMenuTitle")
+    m.trackRows = m.top.findNode("trackRows")
     m.trackMenuSelectionGuard = m.top.findNode("trackMenuSelectionGuard")
     m.trackMenuSelectionGuard.observeField("fire", "onTrackMenuSelectionGuardFire")
-    m.trackMenuRows = []
-    for i = 0 to 9
-        index = i.toStr()
-        m.trackMenuRows.push({
-            node: m.top.findNode("trackRow" + index),
-            background: m.top.findNode("trackRow" + index + "Background"),
-            label: m.top.findNode("trackRow" + index + "Label"),
-            check: m.top.findNode("trackRow" + index + "Check")
-        })
-    end for
+    m.trackMenuRows = createTrackMenuRows(m.trackRows, 10)
 
     m.controls = [
         {
@@ -163,6 +155,54 @@ function init()
     m.errorDialog = invalid
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
+end function
+
+function createTrackMenuRows(parent as object, rowCount as integer) as object
+    rows = []
+
+    for i = 0 to rowCount - 1
+        index = i.toStr()
+        row = CreateObject("roSGNode", "Group")
+        row.id = "trackRow" + index
+        row.visible = false
+
+        background = CreateObject("roSGNode", "Rectangle")
+        background.id = "trackRow" + index + "Background"
+        background.width = 1200
+        background.height = 92
+        background.color = "0x333333FF"
+        background.visible = false
+        row.appendChild(background)
+
+        label = CreateObject("roSGNode", "Label")
+        label.id = "trackRow" + index + "Label"
+        label.translation = [28, 24]
+        label.width = 1068
+        label.font = "font:MediumSystemFont"
+        label.color = "0xF0F0F0FF"
+        row.appendChild(label)
+
+        check = CreateObject("roSGNode", "Label")
+        check.id = "trackRow" + index + "Check"
+        check.translation = [1128, 21]
+        check.width = 48
+        check.font = "font:LargeBoldSystemFont"
+        check.color = "0xFFFFFFFF"
+        check.horizAlign = "center"
+        check.text = "✓"
+        check.visible = false
+        row.appendChild(check)
+
+        parent.appendChild(row)
+        rows.push({
+            node: row,
+            background: background,
+            label: label,
+            check: check
+        })
+    end for
+
+    return rows
 end function
 
 function isPlaybackSpeedSupported(video) as boolean
