@@ -23,6 +23,11 @@ function hasPlayableVideoStream(file as object) as boolean
 end function
 
 function getPlayableStreamInfo(file as object, apiUrl, downloadToken, playbackType = "hls") as object
+    directStreamInfo = getDirectStreamInfo(file)
+    if directStreamInfo <> invalid
+        return directStreamInfo
+    end if
+
     if getNormalizedPlaybackType(playbackType) = "mp4"
         return getMp4FirstStreamInfo(file, apiUrl, downloadToken)
     end if
@@ -67,6 +72,10 @@ function getMp4StreamInfo(file as object) as object
         }
     end if
 
+    return invalid
+end function
+
+function getDirectStreamInfo(file as object) as object
     if hasPlayableStreamUrl(file)
         streamUrl = file.stream_url.toStr()
         return {
