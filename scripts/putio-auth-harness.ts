@@ -110,7 +110,176 @@ async function runJson(command: string, args: ReadonlyArray<string>, profile: st
     maxBuffer: 1024 * 1024,
   });
 
-  return JSON.parse(stdout) as unknown;
+  return parseJsonText(stdout, `${command} ${args.join(" ")}`);
+}
+
+function parseJsonText(text: string, context: string): unknown {
+  try {
+    const value: unknown = JSON.parse(text);
+    return value;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown JSON parse error";
+    throw new Error(`Could not parse JSON from ${context}: ${message}`);
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function expectRecord(value: unknown, context: string): Record<string, unknown> {
+  if (!isRecord(value)) {
+    throw new Error(`Expected ${context} to be an object`);
+  }
+
+  return value;
+}
+
+function optionalString(record: Record<string, unknown>, key: string): string | undefined {
+  const value = record[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function optionalBoolean(record: Record<string, unknown>, key: string): boolean | undefined {
+  const value = record[key];
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function optionalNullableString(record: Record<string, unknown>, key: string): string | null | undefined {
+  const value = record[key];
+  if (value === null) {
+    return null;
+  }
+
+  return typeof value === "string" ? value : undefined;
+}
+
+function requiredString(record: Record<string, unknown>, key: string, context: string): string {
+  const value = optionalString(record, key);
+  if (value === undefined) {
+    throw new Error(`Expected ${context}.${key} to be a string`);
+  }
+
+  return value;
+}
+
+function parsePutioDescribe(value: unknown): PutioDescribe {
+  const record = expectRecord(value, "putio describe response");
+  const authValue = record.auth;
+  const auth = isRecord(authValue)
+    ? { profileEnv: optionalString(authValue, "profileEnv") }
+    : undefined;
+  const commandsValue = record.commands;
+  const commands = Array.isArray(commandsValue)
+    ? commandsValue.flatMap((commandValue) => {
+        if (!isRecord(commandValue)) {
+          return [];
+        }
+
+        const command = optionalString(commandValue, "command");
+        if (command === undefined) {
+          return [];
+        }
+
+        const inputValue = commandValue.input;
+        const flagsValue = isRecord(inputValue) ? inputValue.flags : undefined;
+        const flags = Array.isArray(flagsValue)
+          ? flagsValue.flatMap((flagValue) => {
+              if (!isRecord(flagValue)) {
+                return [];
+              }
+
+              const name = optionalString(flagValue, "name");
+              return name === undefined ? [] : [{ name }];
+            })
+          : undefined;
+
+        return [{
+          command,
+          input: flags === undefined ? undefined : { flags },
+        }];
+      })
+    : undefined;
+
+  return { auth, commands };
+}
+
+function parseAuthStatus(value: unknown): AuthStatus {
+  const record = expectRecord(value, "putio auth status response");
+  const source = optionalNullableString(record, "source");
+
+  return {
+    authenticated: optionalBoolean(record, "authenticated") ?? false,
+    source: source === undefined ? null : source,
+    apiBaseUrl: requiredString(record, "apiBaseUrl", "auth status"),
+    configPath: requiredString(record, "configPath", "auth status"),
+    profile: optionalString(record, "profile"),
+  };
+}
+
+function parseLoginResponse(value: unknown): LoginResponse {
+  const record = isRecord(value) ? value : {};
+  return {
+    access_token: optionalString(record, "access_token"),
+    error_message: optionalString(record, "error_message"),
+    message: optionalString(record, "message"),
+  };
+}
+
+function parseValidateTokenResponse(value: unknown): ValidateTokenResponse {
+  const record = isRecord(value) ? value : {};
+  return {
+    result: optionalBoolean(record, "result"),
+    token_scope: optionalNullableString(record, "token_scope"),
+  };
+}
+
+function parseVerifyTotpResponse(value: unknown): VerifyTotpResponse {
+  const record = isRecord(value) ? value : {};
+  return {
+    token: optionalString(record, "token"),
+    error_message: optionalString(record, "error_message"),
+    message: optionalString(record, "message"),
+  };
+}
+
+function parsePutioConfig(value: unknown): PutioConfig {
+  const record = expectRecord(value, "put.io CLI config");
+  const rawProfiles = record.profiles;
+  const profiles: Record<string, { api_base_url: string; auth_token: string }> = {};
+
+  if (isRecord(rawProfiles)) {
+    for (const [profile, rawProfile] of Object.entries(rawProfiles)) {
+      if (!isRecord(rawProfile)) {
+        continue;
+      }
+
+      const authToken = optionalString(rawProfile, "auth_token");
+      if (authToken === undefined) {
+        continue;
+      }
+
+      profiles[profile] = {
+        api_base_url: optionalString(rawProfile, "api_base_url") ?? apiBaseUrl(),
+        auth_token: authToken,
+      };
+    }
+  }
+
+  return {
+    api_base_url: optionalString(record, "api_base_url") ?? apiBaseUrl(),
+    auth_token: optionalString(record, "auth_token"),
+    default_profile: optionalString(record, "default_profile"),
+    profiles: Object.keys(profiles).length === 0 ? undefined : profiles,
+  };
+}
+
+function parseMessageResponse(value: unknown): { error_message?: string; message?: string } {
+  const record = isRecord(value) ? value : {};
+  return {
+    error_message: optionalString(record, "error_message"),
+    message: optionalString(record, "message"),
+  };
 }
 
 function hasProfileSupport(describe: PutioDescribe): boolean {
@@ -128,7 +297,7 @@ function hasProfileSupport(describe: PutioDescribe): boolean {
 }
 
 async function describePutio(profile: string): Promise<PutioDescribe> {
-  return (await runJson("putio", ["describe"], profile)) as PutioDescribe;
+  return parsePutioDescribe(await runJson("putio", ["describe"], profile));
 }
 
 async function readAuthStatus(profile: string): Promise<AuthStatus> {
@@ -137,7 +306,7 @@ async function readAuthStatus(profile: string): Promise<AuthStatus> {
     ? ["auth", "status", "--profile", profile, "--output", "json"]
     : ["auth", "status", "--output", "json"];
 
-  return (await runJson("putio", args, profile)) as AuthStatus;
+  return parseAuthStatus(await runJson("putio", args, profile));
 }
 
 async function opField(item: string, field: string): Promise<string> {
@@ -183,7 +352,7 @@ async function loginWithPassword(input: {
     },
     method: "PUT",
   });
-  const data = (await response.json().catch(() => ({}))) as LoginResponse;
+  const data = parseLoginResponse(await response.json().catch(() => ({})));
 
   if (!response.ok || typeof data.access_token !== "string" || data.access_token === "") {
     throw new Error(
@@ -204,7 +373,7 @@ async function validateToken(token: string): Promise<ValidateTokenResponse> {
     return { result: false };
   }
 
-  return (await response.json().catch(() => ({ result: false }))) as ValidateTokenResponse;
+  return parseValidateTokenResponse(await response.json().catch(() => ({ result: false })));
 }
 
 async function verifyTotpToken(twoFactorToken: string, code: string): Promise<string> {
@@ -215,7 +384,7 @@ async function verifyTotpToken(twoFactorToken: string, code: string): Promise<st
     body: new URLSearchParams({ code }),
     method: "POST",
   });
-  const data = (await response.json().catch(() => ({}))) as VerifyTotpResponse;
+  const data = parseVerifyTotpResponse(await response.json().catch(() => ({})));
 
   if (!response.ok || typeof data.token !== "string" || data.token === "") {
     throw new Error(
@@ -307,7 +476,10 @@ async function readPreparedToken(profile: string): Promise<string> {
     return envToken;
   }
 
-  const config = JSON.parse(await readFile(configPathForProfile(profile), "utf8")) as PutioConfig;
+  const config = parsePutioConfig(parseJsonText(
+    await readFile(configPathForProfile(profile), "utf8"),
+    configPathForProfile(profile),
+  ));
   const token = config.profiles?.[profile]?.auth_token ?? config.auth_token;
 
   if (!token) {
@@ -328,7 +500,7 @@ async function approveDeviceCode(profile: string, code: string): Promise<void> {
     },
     method: "POST",
   });
-  const data = (await response.json().catch(() => ({}))) as { error_message?: string; message?: string };
+  const data = parseMessageResponse(await response.json().catch(() => ({})));
 
   if (!response.ok) {
     throw new Error(

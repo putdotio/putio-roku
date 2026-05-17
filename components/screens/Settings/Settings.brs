@@ -7,6 +7,9 @@ function init()
 
     m.list = m.top.findNode("settingsList")
     m.list.observeField("itemSelected", "onListItemSelected")
+    m.playbackTypeUpdateInFlight = false
+    m.pendingPlaybackType = invalid
+    m.settingsErrorDialog = invalid
 
     m.items = {
         show_only_media_files: {
@@ -105,6 +108,10 @@ function getNextPlaybackType() as string
 end function
 
 sub setPlaybackType(playbackType as string)
+    if m.playbackTypeUpdateInFlight
+        return
+    end if
+
     normalizedPlaybackType = normalizePlaybackTypeSetting(playbackType)
     m.updateConfigTask = createObject("roSGNode", "HttpTask")
     m.updateConfigTask.observeField("response", "onUpdatePlaybackType")
@@ -112,6 +119,8 @@ sub setPlaybackType(playbackType as string)
     m.updateConfigTask.body = { value: normalizedPlaybackType }
     m.updateConfigTask.method = "PUT"
     m.pendingPlaybackType = normalizedPlaybackType
+    m.playbackTypeUpdateInFlight = true
+    updatePlaybackTypeValue("Saving " + getPlaybackTypeLabel(normalizedPlaybackType) + "...")
     m.updateConfigTask.control = "RUN"
 end sub
 
@@ -120,7 +129,10 @@ sub onUpdatePlaybackType(obj)
     data = parseJSON(obj.getData())
 
     if data = invalid or data.status <> "OK"
+        m.playbackTypeUpdateInFlight = false
+        m.pendingPlaybackType = invalid
         updatePlaybackTypeValue()
+        showSettingsErrorDialog("Video playback type could not be saved. Please try again.")
         return
     end if
 
@@ -131,12 +143,34 @@ sub onUpdatePlaybackType(obj)
 
     config.playbackType = m.pendingPlaybackType
     m.global.config = config
+    m.playbackTypeUpdateInFlight = false
+    m.pendingPlaybackType = invalid
     updatePlaybackTypeValue()
 end sub
 
-sub updatePlaybackTypeValue()
+sub updatePlaybackTypeValue(description = invalid)
     m.playbackTypeListItem = m.items.playback_type.node
-    m.playbackTypeListItem.description = getPlaybackTypeLabel(getPlaybackType())
+    if description <> invalid
+        m.playbackTypeListItem.description = description
+    else
+        m.playbackTypeListItem.description = getPlaybackTypeLabel(getPlaybackType())
+    end if
+end sub
+
+sub showSettingsErrorDialog(message as string)
+    m.settingsErrorDialog = createObject("roSGNode", "Dialog")
+    m.settingsErrorDialog.title = "Settings not saved"
+    m.settingsErrorDialog.message = message
+    m.settingsErrorDialog.buttons = ["OK"]
+    m.settingsErrorDialog.observeField("wasClosed", "onSettingsErrorDialogClosed")
+    m.top.showDialog = m.settingsErrorDialog
+end sub
+
+sub onSettingsErrorDialogClosed()
+    if m.settingsErrorDialog <> invalid
+        m.settingsErrorDialog.unobserveField("wasClosed")
+        m.settingsErrorDialog = invalid
+    end if
 end sub
 
 sub setShowOnlyMedia()

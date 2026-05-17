@@ -404,7 +404,11 @@ sub onPlayerStateChanged(obj)
         if hasVideoErrorInfo()
             handlePlaybackError()
         else if m.hasPlaybackError = false
-            onGoBack()
+            if isPlaybackFinishedNormally()
+                onGoBack()
+            else
+                handlePlaybackError()
+            end if
         end if
     else if state = "buffering"
         updateBufferingOverlay(true)
@@ -442,16 +446,19 @@ sub onPlayerPositionChanged(obj)
     end if
 
     if position <> invalid
+        displayedPosition = position
+
         if m.pendingSeekPosition <> invalid
             if Abs(position - m.pendingSeekPosition) <= 2
+                displayedPosition = m.pendingSeekPosition
                 m.pendingSeekPosition = invalid
             else if m.video.state = "playing"
                 return
             end if
         end if
 
-        m.positionLabel.text = getDurationString(position)
-        updateProgress(position)
+        m.positionLabel.text = getDurationString(displayedPosition)
+        updateProgress(displayedPosition)
     else
         m.positionLabel.text = "..:.."
     end if
@@ -1815,6 +1822,14 @@ end sub
 
 function hasVideoErrorInfo() as boolean
     return getSafeVideoErrorMessage() <> "" or getSafeVideoErrorCode() <> ""
+end function
+
+function isPlaybackFinishedNormally() as boolean
+    if m.duration <= 0
+        return false
+    end if
+
+    return getDisplayedPosition() >= (m.duration - 2)
 end function
 
 sub showPlaybackErrorDialog()

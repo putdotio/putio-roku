@@ -386,8 +386,55 @@ function putioApiBaseUrl(): string {
   return process.env.PUTIO_CLI_API_BASE_URL?.trim() || "https://api.put.io";
 }
 
+function parseJsonText(text: string, context: string): unknown {
+  try {
+    const value: unknown = JSON.parse(text);
+    return value;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown JSON parse error";
+    throw new Error(`Could not parse JSON from ${context}: ${message}`);
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function optionalString(record: Record<string, unknown>, key: string): string | undefined {
+  const value = record[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function parsePutioCliConfig(value: unknown): PutioCliConfig {
+  if (!isRecord(value)) {
+    throw new Error("Expected put.io CLI config to be an object");
+  }
+
+  const rawProfiles = value.profiles;
+  const profiles: Record<string, PutioCliAuthProfile> = {};
+
+  if (isRecord(rawProfiles)) {
+    for (const [profile, rawProfile] of Object.entries(rawProfiles)) {
+      if (!isRecord(rawProfile)) {
+        continue;
+      }
+
+      const authToken = optionalString(rawProfile, "auth_token");
+      if (authToken !== undefined) {
+        profiles[profile] = { auth_token: authToken };
+      }
+    }
+  }
+
+  return {
+    auth_token: optionalString(value, "auth_token"),
+    profiles: Object.keys(profiles).length === 0 ? undefined : profiles,
+  };
+}
+
 async function readPreparedPutioToken(profile: string): Promise<string> {
-  const config = JSON.parse(await readFile(putioConfigPathForProfile(profile), "utf8")) as PutioCliConfig;
+  const configPath = putioConfigPathForProfile(profile);
+  const config = parsePutioCliConfig(parseJsonText(await readFile(configPath, "utf8"), configPath));
   const token = config.profiles?.[profile]?.auth_token ?? config.auth_token;
 
   if (!token) {
