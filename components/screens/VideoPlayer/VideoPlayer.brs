@@ -160,6 +160,9 @@ function init()
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false
     m.hasPlaybackError = false
+    m.errorDialog = invalid
+    m.errorDialogShown = false
+    m.currentStreamInfo = invalid
 end function
 
 function isPlaybackSpeedSupported(video) as boolean
@@ -227,6 +230,7 @@ sub setupPlayer()
         return
     end if
 
+    m.currentStreamInfo = streamInfo
     videoContent.url = streamInfo.url
     videoContent.title = file.name
     videoContent.streamFormat = streamInfo.format
@@ -289,6 +293,9 @@ sub resetPlaybackState()
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false
     m.hasPlaybackError = false
+    m.errorDialog = invalid
+    m.errorDialogShown = false
+    m.currentStreamInfo = invalid
     m.lastSavedVideoTime = invalid
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
@@ -391,12 +398,12 @@ sub onPlayerStateChanged(obj)
     updatePositionPauseIcon()
 
     if state = "error"
-        m.hasPlaybackError = true
-        updateBufferingOverlay(false)
-        onError()
+        handlePlaybackError()
     else if state = "finished"
         updateBufferingOverlay(false)
-        if m.hasPlaybackError = false
+        if hasVideoErrorInfo()
+            handlePlaybackError()
+        else if m.hasPlaybackError = false
             onGoBack()
         end if
     else if state = "buffering"
@@ -1795,23 +1802,111 @@ function readTrackValue(track, key)
     return invalid
 end function
 
-sub onError()
+sub handlePlaybackError()
+    m.hasPlaybackError = true
+    updateBufferingOverlay(false)
+    m.osdTimer.control = "stop"
+    m.video.control = "stop"
+
+    if m.errorDialogShown = false
+        showPlaybackErrorDialog()
+    end if
+end sub
+
+function hasVideoErrorInfo() as boolean
+    return getSafeVideoErrorMessage() <> "" or getSafeVideoErrorCode() <> ""
+end function
+
+sub showPlaybackErrorDialog()
+    m.errorDialogShown = true
     m.errorDialog = createObject("roSGNode", "Dialog")
-    m.errorDialog.title = "Video Error"
-    m.errorDialog.message = m.video.errorMsg + chr(10) + "Code: " + m.video.errorCode.toStr()
+    m.errorDialog.title = "Playback failed"
+    m.errorDialog.message = getPlaybackErrorDialogMessage()
+    m.errorDialog.buttons = ["OK"]
     m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
     m.top.showDialog = m.errorDialog
 end sub
+
+function getPlaybackErrorDialogMessage() as string
+    message = getSafeVideoErrorMessage()
+    if message = ""
+        message = "Roku could not play this video."
+    end if
+
+    sourceLabel = getCurrentPlaybackSourceLabel()
+    if sourceLabel <> ""
+        message = message + chr(10) + "Source: " + sourceLabel
+    end if
+
+    code = getSafeVideoErrorCode()
+    if code <> ""
+        message = message + chr(10) + "Roku error code: " + code
+    end if
+
+    message = message + chr(10) + chr(10) + "Try another video playback type in Settings if this keeps happening."
+    return message
+end function
+
+function getSafeVideoErrorMessage() as string
+    if m.video <> invalid and m.video.errorMsg <> invalid and m.video.errorMsg.toStr() <> ""
+        return m.video.errorMsg.toStr()
+    end if
+
+    return ""
+end function
+
+function getSafeVideoErrorCode() as string
+    if m.video <> invalid and m.video.errorCode <> invalid and m.video.errorCode.toStr() <> "" and m.video.errorCode.toStr() <> "0"
+        return m.video.errorCode.toStr()
+    end if
+
+    return ""
+end function
+
+function getCurrentPlaybackSourceLabel() as string
+    if m.currentStreamInfo = invalid
+        return ""
+    end if
+
+    format = ""
+    if m.currentStreamInfo.format <> invalid
+        format = LCase(m.currentStreamInfo.format.toStr())
+    end if
+
+    if m.currentStreamInfo.url <> invalid and Instr(1, LCase(m.currentStreamInfo.url.toStr()), "/stream/") > 0
+        if format <> ""
+            return "Direct stream (" + UCase(format) + ")"
+        end if
+
+        return "Direct stream"
+    end if
+
+    if format = "hls"
+        return "HLS"
+    else if format = "mp4"
+        return "MP4"
+    else if format <> ""
+        return UCase(format)
+    end if
+
+    return ""
+end function
 
 sub showPlaybackUnavailableDialog()
     m.errorDialog = createObject("roSGNode", "Dialog")
     m.errorDialog.title = "Video unavailable"
     m.errorDialog.message = "This video does not have a Roku-compatible stream yet."
+    m.errorDialog.buttons = ["OK"]
     m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
     m.top.showDialog = m.errorDialog
 end sub
 
 sub onErrorDialogClosed()
+    if m.errorDialog <> invalid
+        m.errorDialog.unobserveField("wasClosed")
+        m.errorDialog = invalid
+    end if
+
     onGoBack()
 end sub
 
