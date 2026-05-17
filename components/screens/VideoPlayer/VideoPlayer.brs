@@ -31,7 +31,7 @@ function init()
     m.trackRows = m.top.findNode("trackRows")
     m.trackMenuSelectionGuard = m.top.findNode("trackMenuSelectionGuard")
     m.trackMenuSelectionGuard.observeField("fire", "onTrackMenuSelectionGuardFire")
-    m.trackMenuRows = createTrackMenuRows(m.trackRows, 10)
+    m.trackMenuRows = createTrackMenuRows(m.trackRows, getTrackMenuRowPoolSize())
 
     m.controls = [
         {
@@ -155,6 +155,10 @@ function init()
     m.errorDialog = invalid
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
+end function
+
+function getTrackMenuRowPoolSize() as integer
+    return 12
 end function
 
 function createTrackMenuRows(parent as object, rowCount as integer) as object

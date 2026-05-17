@@ -55,6 +55,7 @@ const playbackLaunchRetryMs = 10_000;
 const appSceneGraphReadyTimeoutMs = 45_000;
 const maxPlaybackLaunchAttempts = 4;
 const screenshotCaptureAttempts = 5;
+const trackMenuRowPoolSize = 12;
 
 type TrackMenuTitle = "Audio tracks" | "Subtitles" | "Playback speed";
 type PlayerControlId =
@@ -252,7 +253,7 @@ function assertTrackMenuLayout(
 function countVisibleTrackRows(xml: string): number {
   let visibleRows = 0;
 
-  for (let index = 0; index < 10; index += 1) {
+  for (let index = 0; index < trackMenuRowPoolSize; index += 1) {
     if (isNamedNodeVisible(xml, `trackRow${index}`)) {
       visibleRows += 1;
     }
@@ -1217,7 +1218,7 @@ async function isTrackMenuOpen(
 }
 
 function assertSelectedTrackRow(xml: string, selectedRowIndex: number): void {
-  for (let rowIndex = 0; rowIndex < 10; rowIndex += 1) {
+  for (let rowIndex = 0; rowIndex < trackMenuRowPoolSize; rowIndex += 1) {
     const checkName = `trackRow${rowIndex}Check`;
 
     if (rowIndex === selectedRowIndex) {
