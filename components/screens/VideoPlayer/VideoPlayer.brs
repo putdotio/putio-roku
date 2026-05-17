@@ -23,7 +23,7 @@ function init()
     m.progressFocusBottom = m.top.findNode("playerProgressFocusBottom")
     m.progressTrackWidth = 1728
     m.controlsGroup = m.top.findNode("controls")
-    m.playbackSpeedSupported = m.video.hasField("playbackSpeed")
+    m.playbackSpeedSupported = isPlaybackSpeedSupported(m.video)
 
     m.trackMenu = m.top.findNode("trackMenu")
     m.trackMenuPanel = m.top.findNode("trackMenuPanel")
@@ -153,11 +153,28 @@ function init()
     m.trackMenuScrollOffset = 0
     m.trackMenuReturnFocusIndex = 1
     m.selectedAudioTrack = invalid
+    m.userSelectedAudioTrack = false
     m.selectedSubtitleTrackName = ""
     m.playbackSpeedOptions = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false
+end function
+
+function isPlaybackSpeedSupported(video) as boolean
+    if video = invalid or video.hasField("playbackSpeed") = false
+        return false
+    end if
+
+    deviceInfo = CreateObject("roDeviceInfo")
+    model = deviceInfo.GetModel()
+
+    ' The 3500X exposes Video.playbackSpeed but keeps advancing at 1.0x on HLS.
+    if model = "3500X"
+        return false
+    end if
+
+    return true
 end function
 
 sub onVisibleChange()
@@ -168,6 +185,12 @@ sub onVisibleChange()
         m.video.observeField("duration", "onPlayerDurationChanged")
         m.video.observeField("availableAudioTracks", "onAvailableAudioTracksChanged")
         m.video.observeField("availableSubtitleTracks", "onAvailableSubtitleTracksChanged")
+        if m.video.hasField("audioTrack")
+            m.video.observeField("audioTrack", "onAudioTrackChanged")
+        end if
+        if m.video.hasField("currentAudioTrack")
+            m.video.observeField("currentAudioTrack", "onAudioTrackChanged")
+        end if
 
         setupPlayer()
         showOsd()
@@ -179,6 +202,12 @@ sub onVisibleChange()
         m.video.unobserveField("duration")
         m.video.unobserveField("availableAudioTracks")
         m.video.unobserveField("availableSubtitleTracks")
+        if m.video.hasField("audioTrack")
+            m.video.unobserveField("audioTrack")
+        end if
+        if m.video.hasField("currentAudioTrack")
+            m.video.unobserveField("currentAudioTrack")
+        end if
         m.osdTimer.control = "stop"
         m.trackMenuSelectionGuard.control = "stop"
         m.trackMenu.visible = false
@@ -201,6 +230,9 @@ sub setupPlayer()
     videoContent.title = file.name
     videoContent.streamFormat = streamInfo.format
     m.externalSubtitleTracks = createSubtitleTracks(m.top.params.subtitles)
+    if m.externalSubtitleTracks.count() > 0
+        videoContent.SubtitleTracks = m.externalSubtitleTracks
+    end if
 
     m.title.text = file.name
     m.duration = getVideoFileDurationSeconds(file)
@@ -238,6 +270,7 @@ sub resetPlaybackState()
     m.trackMenuScrollOffset = 0
     m.trackMenuReturnFocusIndex = 1
     m.selectedAudioTrack = invalid
+    m.userSelectedAudioTrack = false
     m.selectedSubtitleTrackName = invalid
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
@@ -335,6 +368,10 @@ end sub
 
 sub onPlayerStateChanged(obj)
     state = obj.getData()
+
+    if state = "playing" or state = "buffering"
+        enforcePlaybackSpeed()
+    end if
 
     updatePlayIcon()
     updatePositionPauseIcon()
@@ -502,17 +539,99 @@ sub onAvailableAudioTracksChanged(obj)
         m.audioTracks = []
     end if
 
-    if m.selectedAudioTrack = invalid and m.audioTracks.count() > 0
-        currentAudioTrack = m.video.audioTrack
-        if currentAudioTrack <> invalid and currentAudioTrack <> ""
-            m.selectedAudioTrack = currentAudioTrack
-        else
-            m.selectedAudioTrack = readTrackValue(m.audioTracks[0], "Track")
-        end if
+    if m.userSelectedAudioTrack
+        syncSelectedAudioTrackFromPlayer()
+    else
+        selectDefaultAudioTrack()
     end if
 
     updateTrackSummary()
 end sub
+
+sub onAudioTrackChanged(obj)
+    if m.userSelectedAudioTrack = false
+        return
+    end if
+
+    changedAudioTrack = obj.getData()
+    if changedAudioTrack <> invalid and changedAudioTrack.toStr() <> "" and hasAudioTrack(changedAudioTrack)
+        m.selectedAudioTrack = changedAudioTrack
+        updateTrackSummary()
+        return
+    end if
+
+    syncSelectedAudioTrackFromPlayer()
+    updateTrackSummary()
+end sub
+
+sub selectDefaultAudioTrack()
+    if m.audioTracks = invalid or m.audioTracks.count() = 0
+        m.selectedAudioTrack = invalid
+        return
+    end if
+
+    defaultAudioTrack = readTrackValue(m.audioTracks[0], "Track")
+    if defaultAudioTrack = invalid
+        return
+    end if
+
+    m.selectedAudioTrack = defaultAudioTrack
+    if m.video.hasField("audioTrack")
+        m.video.audioTrack = defaultAudioTrack.toStr()
+    end if
+end sub
+
+sub syncSelectedAudioTrackFromPlayer()
+    if m.audioTracks = invalid or m.audioTracks.count() = 0
+        m.selectedAudioTrack = invalid
+        return
+    end if
+
+    currentAudioTrack = getCurrentAudioTrack()
+    if currentAudioTrack <> invalid and hasAudioTrack(currentAudioTrack)
+        m.selectedAudioTrack = currentAudioTrack
+        return
+    end if
+
+    if m.selectedAudioTrack <> invalid and hasAudioTrack(m.selectedAudioTrack)
+        return
+    end if
+
+    m.selectedAudioTrack = readTrackValue(m.audioTracks[0], "Track")
+end sub
+
+function getCurrentAudioTrack()
+    if m.video.hasField("currentAudioTrack")
+        currentAudioTrack = m.video.currentAudioTrack
+        if currentAudioTrack <> invalid and currentAudioTrack.toStr() <> ""
+            return currentAudioTrack
+        end if
+    end if
+
+    if m.video.hasField("audioTrack")
+        audioTrack = m.video.audioTrack
+        if audioTrack <> invalid and audioTrack.toStr() <> ""
+            return audioTrack
+        end if
+    end if
+
+    return invalid
+end function
+
+function hasAudioTrack(trackValue) as boolean
+    if trackValue = invalid
+        return false
+    end if
+
+    for each track in m.audioTracks
+        audioTrack = readTrackValue(track, "Track")
+        if audioTrack <> invalid and audioTrack.toStr() = trackValue.toStr()
+            return true
+        end if
+    end for
+
+    return false
+end function
 
 sub onAvailableSubtitleTracksChanged(obj)
     tracks = obj.getData()
@@ -523,6 +642,9 @@ sub onAvailableSubtitleTracksChanged(obj)
     end if
 
     syncSubtitleTracks()
+    if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> ""
+        m.selectedSubtitleTrackName = getAvailableSubtitleTrackName(m.selectedSubtitleTrackName)
+    end if
     ensureDefaultSubtitleSelection()
     applySubtitleSelection()
     updateTrackSummary()
@@ -530,12 +652,25 @@ end sub
 
 sub syncSubtitleTracks()
     m.subtitleTracks = []
-    if m.externalSubtitleTracks <> invalid and m.externalSubtitleTracks.count() > 0
-        addUniqueSubtitleTracks(m.externalSubtitleTracks)
-    else
-        addUniqueSubtitleTracks(m.rokuSubtitleTracks)
+
+    if m.externalSubtitleTracks <> invalid
+        for each track in m.externalSubtitleTracks
+            addUniqueSubtitleTrack(createSelectableSubtitleTrack(track))
+        end for
     end if
+
+    addUniqueSubtitleTracks(m.rokuSubtitleTracks)
 end sub
+
+function createSelectableSubtitleTrack(track)
+    trackName = readTrackValue(track, "TrackName")
+    return {
+        Language: readTrackValue(track, "Language"),
+        Name: readTrackValue(track, "Name"),
+        TrackName: getAvailableSubtitleTrackName(trackName),
+        Description: readTrackValue(track, "Description")
+    }
+end function
 
 sub ensureDefaultSubtitleSelection()
     if m.selectedSubtitleTrackName <> invalid
@@ -558,11 +693,19 @@ sub addUniqueSubtitleTracks(tracks)
     end if
 
     for each track in tracks
-        trackName = readTrackValue(track, "TrackName")
-        if trackName = invalid or trackName = "" or hasSubtitleTrack(trackName) = false
-            m.subtitleTracks.push(track)
-        end if
+        addUniqueSubtitleTrack(track)
     end for
+end sub
+
+sub addUniqueSubtitleTrack(track)
+    if track = invalid
+        return
+    end if
+
+    trackName = readTrackValue(track, "TrackName")
+    if trackName = invalid or trackName = "" or hasSubtitleTrack(trackName) = false
+        m.subtitleTracks.push(track)
+    end if
 end sub
 
 function hasSubtitleTrack(trackName) as boolean
@@ -572,12 +715,46 @@ function hasSubtitleTrack(trackName) as boolean
 
     for each track in m.subtitleTracks
         existingTrackName = readTrackValue(track, "TrackName")
-        if existingTrackName <> invalid and existingTrackName.toStr() = trackName.toStr()
+        if subtitleTrackNamesMatch(existingTrackName, trackName)
             return true
         end if
     end for
 
     return false
+end function
+
+function getAvailableSubtitleTrackName(trackName)
+    if trackName = invalid or trackName = ""
+        return trackName
+    end if
+
+    if m.rokuSubtitleTracks = invalid
+        return trackName
+    end if
+
+    for each track in m.rokuSubtitleTracks
+        availableTrackName = readTrackValue(track, "TrackName")
+        if subtitleTrackNamesMatch(availableTrackName, trackName)
+            return availableTrackName
+        end if
+    end for
+
+    return trackName
+end function
+
+function subtitleTrackNamesMatch(leftTrackName, rightTrackName) as boolean
+    if leftTrackName = invalid or rightTrackName = invalid
+        return false
+    end if
+
+    leftValue = leftTrackName.toStr()
+    rightValue = rightTrackName.toStr()
+
+    if leftValue = "" or rightValue = ""
+        return false
+    end if
+
+    return leftValue = rightValue or Instr(1, leftValue, rightValue) > 0 or Instr(1, rightValue, leftValue) > 0
 end function
 
 sub updateTrackSummary()
@@ -1433,6 +1610,7 @@ sub selectFocusedTrackMenuItem()
     item = m.trackMenuItems[index]
 
     if item.type = "audio" and item.track <> invalid
+        m.userSelectedAudioTrack = true
         m.video.audioTrack = item.track.toStr()
         m.selectedAudioTrack = item.track
     else if item.type = "subtitle"
@@ -1460,13 +1638,29 @@ sub applyPlaybackSpeed(item)
     wasPlaying = m.video.state = "playing" or m.video.state = "buffering"
     m.selectedPlaybackSpeed = item.speed
     m.selectedPlaybackSpeedLabel = getPlaybackSpeedLabel(item.speed)
-    m.video.playbackSpeed = item.speed
 
     if wasPlaying
         m.video.control = "pause"
-        m.video.control = "resume"
     end if
 
+    enforcePlaybackSpeed()
+
+    if wasPlaying
+        m.video.control = "resume"
+        enforcePlaybackSpeed()
+    end if
+end sub
+
+sub enforcePlaybackSpeed()
+    if m.playbackSpeedSupported = false
+        return
+    end if
+
+    if m.selectedPlaybackSpeed = invalid
+        return
+    end if
+
+    m.video.playbackSpeed = m.selectedPlaybackSpeed
 end sub
 
 function getPlaybackSpeedLabel(speed) as string
@@ -1493,11 +1687,13 @@ end function
 
 sub applySubtitleSelection()
     if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> ""
+        selectedTrackName = getAvailableSubtitleTrackName(m.selectedSubtitleTrackName)
+        m.selectedSubtitleTrackName = selectedTrackName
         m.video.globalCaptionMode = "On"
-        m.video.subtitleTrack = m.selectedSubtitleTrackName
+        m.video.subtitleTrack = selectedTrackName
     else if m.selectedSubtitleTrackName = ""
-        m.video.subtitleTrack = ""
         m.video.globalCaptionMode = "Off"
+        m.video.subtitleTrack = ""
     end if
 
     updateTrackControlIcons()

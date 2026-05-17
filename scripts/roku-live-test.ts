@@ -395,6 +395,19 @@ async function queryMediaPlayerXmlSafe(target: string): Promise<string | undefin
   }
 }
 
+function readMediaPlayerPositionMs(xml: string | undefined): number | undefined {
+  if (xml === undefined) {
+    return undefined;
+  }
+
+  const match = /<position>(\d+) ms<\/position>/.exec(xml);
+  if (match === null) {
+    return undefined;
+  }
+
+  return Number(match[1]);
+}
+
 function isActiveMediaPlayerState(state: string | undefined): boolean {
   return state === "play" || state === "pause" || state === "buffer" || state === "buffering";
 }
@@ -473,6 +486,17 @@ async function waitForMediaPlayerState(
   }
 
   return false;
+}
+
+async function ensureMediaPlaying(target: string): Promise<void> {
+  if ((await queryMediaPlayerStateSafe(target)) === "play") {
+    return;
+  }
+
+  await pressKey(target, "Play");
+  if (!(await waitForMediaPlayerState(target, "play", 8_000))) {
+    throw new Error("expected media-player to resume playback");
+  }
 }
 
 function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean {
@@ -1667,6 +1691,33 @@ async function assertSpeedValueLabel(target: string, expectedLabel: string): Pro
   await sleep(500);
 }
 
+async function assertPlaybackSpeedAffectsPosition(target: string, expectedMinimumRate: number): Promise<void> {
+  await ensureMediaPlaying(target);
+  await sleep(1_000);
+
+  const startPosition = readMediaPlayerPositionMs(await queryMediaPlayerXmlSafe(target));
+  if (startPosition === undefined) {
+    throw new Error("expected media-player position before playback speed measurement");
+  }
+
+  const wallClockMs = 8_000;
+  await sleep(wallClockMs);
+
+  const endPosition = readMediaPlayerPositionMs(await queryMediaPlayerXmlSafe(target));
+  if (endPosition === undefined) {
+    throw new Error("expected media-player position after playback speed measurement");
+  }
+
+  const mediaDeltaMs = endPosition - startPosition;
+  const observedRate = mediaDeltaMs / wallClockMs;
+
+  if (observedRate < expectedMinimumRate) {
+    throw new Error(
+      `expected playback speed to advance faster than realtime; observed ${observedRate.toFixed(2)}x (${mediaDeltaMs}ms over ${wallClockMs}ms)`,
+    );
+  }
+}
+
 function isOptionalSpeedUnavailable(error: unknown): boolean {
   return formatErrorMessage(error).includes("expected speed control to be available");
 }
@@ -1684,7 +1735,8 @@ async function smokePlaybackSpeedIfAvailable(target: string): Promise<void> {
     await selectNextTrackMenuItem(target);
     await sleep(750);
     await assertSpeedValueLabel(target, "1.25x");
-    console.log("asserted playback speed menu and selection");
+    await assertPlaybackSpeedAffectsPosition(target, 1.1);
+    console.log("asserted playback speed menu, selection, and media rate");
   } catch (error) {
     if (isOptionalSpeedUnavailable(error)) {
       console.log("skipped playback speed menu: Roku Video.playbackSpeed is unavailable");

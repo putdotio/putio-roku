@@ -19,17 +19,17 @@ function hasPlayableVideoStream(file as object) as boolean
 end function
 
 function getPlayableStreamInfo(file as object, apiUrl, downloadToken) as object
-    if hasPlayableMp4Stream(file)
-        return {
-            url: file.mp4_stream_url.toStr(),
-            format: "mp4"
-        }
-    end if
-
     if hasPlayableHlsStream(file) and isNonEmptyString(apiUrl) and isNonEmptyString(downloadToken)
         return {
             url: getHlsManifestUrl(file, apiUrl, downloadToken),
             format: "hls"
+        }
+    end if
+
+    if hasPlayableMp4Stream(file)
+        return {
+            url: file.mp4_stream_url.toStr(),
+            format: "mp4"
         }
     end if
 
