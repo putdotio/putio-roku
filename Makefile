@@ -66,6 +66,10 @@ check-roku-static:
 	@echo "*** Running Roku static checks ***"
 	pnpm exec bslint --project bsconfig.json
 
+.PHONY: check-roku-format
+check-roku-format:
+	pnpm run format:roku
+
 .PHONY: check-roku-live
 check-roku-live:
 	pnpm run check:live
@@ -87,7 +91,7 @@ putio-auth-approve-device:
 	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-approve-device "$(CODE)" "$(PUTIO_CLI_PROFILE)"
 
 .PHONY: verify
-verify: clean check-roku-live check-roku-static build
+verify: clean check-roku-live check-roku-format check-roku-static build
 	@test -f "$(APP_ZIP_FILE)"
 
 .PHONY: smoke

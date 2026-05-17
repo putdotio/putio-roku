@@ -49,7 +49,7 @@ make run
 
 Useful device-debug commands:
 
-- `make smoke` runs the standard static checks and builds a fresh ZIP
+- `make smoke` type-checks the live-test harness, checks Roku source formatting, runs Roku static checks, and builds a fresh ZIP
 - `pnpm check:live` type-checks the headless Roku ECP controller
 - `pnpm check:roku` runs the BrighterScript compiler diagnostics and `bslint`
 - `pnpm format:roku` checks BrightScript/BrighterScript formatting
@@ -83,7 +83,7 @@ Build the release-style ZIP used by automation:
 make artifact
 ```
 
-`make verify` always runs the Node-based Roku static checks and creates a fresh app ZIP.
+`make verify` always type-checks the live-test harness, checks Roku source formatting, runs Roku static checks, and creates a fresh app ZIP.
 
 ## Development Notes
 
