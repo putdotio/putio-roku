@@ -247,6 +247,26 @@ live-test-playback-type:
 	fi
 	ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live set-playback-type $(TYPE) "$(PUTIO_CLI_PROFILE)"
 
+.PHONY: live-test-playback-type-smoke
+live-test-playback-type-smoke:
+	@if [ -z "$(TYPE)" ]; then \
+		echo "ERROR: TYPE is not set. Example: make live-test-playback-type-smoke TYPE=mp4 CONTENT_ID=<file-id>"; \
+		exit 1; \
+	fi
+	@if [ -z "$(CONTENT_ID)" ]; then \
+		echo "ERROR: CONTENT_ID is not set. Example: make live-test-playback-type-smoke TYPE=mp4 CONTENT_ID=<file-id>"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live playback-type-smoke $(TYPE) $(CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue)
+
+.PHONY: live-test-playback-error-dialog
+live-test-playback-error-dialog:
+	@if [ -z "$(CONTENT_ID)" ]; then \
+		echo "ERROR: CONTENT_ID is not set. Example: make live-test-playback-error-dialog CONTENT_ID=<bad-file-id>"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live playback-error-dialog-smoke $(CONTENT_ID) $(or $(MEDIA_TYPE),movie) "$(or $(EXPECTED_TITLE),Oops)" "$(or $(EXPECTED_MESSAGE),File not found)"
+
 .PHONY: live-test-player-ui
 live-test-player-ui:
 	@if [ -z "$(AUDIO_CONTENT_ID)" ]; then \

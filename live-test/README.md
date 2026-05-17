@@ -65,6 +65,8 @@ make live-test-deeplink CONTENT_ID=<file-id>
 make live-test-playback CONTENT_ID=<file-id>
 make live-test-playback-remote CONTENT_ID=<file-id>
 make live-test-playback-type TYPE=<hls|mp4>
+make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id>
+make live-test-playback-error-dialog CONTENT_ID=<bad-file-id>
 make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-launch
@@ -96,21 +98,29 @@ make console
   the device unstable during HLS startup.
 - `make live-test-playback-type TYPE=<hls|mp4>` updates the `playbackType`
   config value for the prepared `PUTIO_CLI_PROFILE`. The player UI smoke sets
-  this to HLS before running so persisted MP4 preference does not break
-  HLS-specific track assertions.
+  this to HLS before running so persisted MP4 preference does not change
+  player-control assertions.
+- `make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
+  updates the playback preference, opens the requested file, asserts the
+  requested file id in the player SceneGraph, and checks the Roku media-player
+  container matches the selected type.
+- `make live-test-playback-error-dialog CONTENT_ID=<bad-file-id> [MEDIA_TYPE=movie] [EXPECTED_TITLE=Oops] [EXPECTED_MESSAGE="File not found"]`
+  opens a negative playback route and asserts the error dialog stays visible
+  with readable title/message text before dismissing it.
 - `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
   opens playback through deep links, asserts direct player routing instead of
-  the old play/subtitle preselection surface, asserts HLS playback for the
-  multi-audio fixture, opens the audio and subtitle pickers from the custom
-  player controls, asserts the tuned OSD/menu geometry, asserts the scrubber can
-  receive focus, and checks Roku media seek keys move playback.
+  the old play/subtitle preselection surface, opens the audio and subtitle
+  pickers from the custom player controls, asserts the underlying `Video` node
+  audio/caption fields when Roku exposes those tracks, asserts the tuned
+  OSD/menu geometry, asserts the scrubber can receive focus, and checks Roku
+  media seek keys move playback.
   It uses SceneGraph state because Roku developer screenshots capture the app UI
   plane but not always the video plane.
 - `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=dist/tmp/player-ui]`
   drives the same playback path and saves `play-focus.jpg`,
-  `audio-button-focus.jpg`, `audio-menu.jpg`, `subtitle-button-focus.jpg`,
-  `subtitle-menu.jpg`, `speed-button-focus.jpg`, `speed-menu.jpg`,
-  `progress-focus.jpg`, and `review.html` for visual
+  `subtitle-button-focus.jpg`, `subtitle-menu.jpg`, `progress-focus.jpg`, and
+  optional `audio-button-focus.jpg`, `audio-menu.jpg`,
+  `speed-button-focus.jpg`, `speed-menu.jpg`, plus `review.html` for visual
   review. The review page includes the content IDs, proof commands, and the
   exported tv-native Android reference captures when the peer workspace repo is
   available. Set `PLAYER_UI_REFERENCE_IMAGE` to copy an extra reference image

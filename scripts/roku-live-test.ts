@@ -97,6 +97,8 @@ function usage(): never {
   node scripts/roku-live-test.ts auth-reset
   node scripts/roku-live-test.ts auth-prepare [profile]
   node scripts/roku-live-test.ts set-playback-type <hls|mp4> [profile]
+  node scripts/roku-live-test.ts playback-type-smoke <hls|mp4> <content-id> [media-type] [continue|beginning]
+  node scripts/roku-live-test.ts playback-error-dialog-smoke <content-id> [media-type] [expected-title] [expected-message-fragment]
   node scripts/roku-live-test.ts launch [app-id]
   node scripts/roku-live-test.ts launch-deeplink <content-id> [media-type]
   node scripts/roku-live-test.ts launch-playback <content-id> [media-type] [continue|beginning]
@@ -476,10 +478,6 @@ function isActiveMediaPlayerState(state: string | undefined): boolean {
   return rokitIsActiveMediaPlayerState(state) || state === "buffering";
 }
 
-async function hasActiveMediaPlayback(target: string): Promise<boolean> {
-  return isActiveMediaPlayerState(await queryMediaPlayerStateSafe(target));
-}
-
 async function assertHlsPlaybackSurfaceOnDevice(
   target: string,
   contentId: string,
@@ -490,6 +488,8 @@ async function assertHlsPlaybackSurfaceOnDevice(
     assertHlsPlaybackSurface(xml, contentId);
     return;
   } catch (error) {
+    assertDirectPlaybackSurface(xml, contentId);
+
     const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
     if (
       hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
@@ -509,20 +509,36 @@ async function assertDirectPlaybackSurfaceOnDevice(
   contentId: string,
 ): Promise<void> {
   const xml = await querySceneGraph(target);
+  assertDirectPlaybackSurface(xml, contentId);
+}
 
-  try {
-    assertDirectPlaybackSurface(xml, contentId);
-    return;
-  } catch (error) {
-    if (
-      hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
-      readVisiblePlaybackContentId(xml) === undefined &&
-      await hasActiveMediaPlayback(target)
-    ) {
-      return;
-    }
+async function assertMediaPlayerContainer(
+  target: string,
+  expectedContainer: string,
+): Promise<void> {
+  const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
 
-    throw error;
+  if (mediaPlayerXml === undefined) {
+    throw new Error(`expected media-player container ${expectedContainer}, got unavailable media-player`);
+  }
+
+  const actualContainer = readMediaPlayerContainer(mediaPlayerXml);
+  if (actualContainer !== expectedContainer) {
+    throw new Error(`expected media-player container ${expectedContainer}, got ${actualContainer ?? "unknown"}`);
+  }
+}
+
+async function assertPlaybackTypeSurfaceOnDevice(
+  target: string,
+  playbackType: "hls" | "mp4",
+  contentId: string,
+): Promise<void> {
+  if (playbackType === "hls") {
+    await assertHlsPlaybackSurfaceOnDevice(target, contentId);
+    await assertMediaPlayerContainer(target, "hls");
+  } else {
+    await assertDirectPlaybackSurfaceOnDevice(target, contentId);
+    await assertMediaPlayerContainer(target, "mp4");
   }
 }
 
@@ -572,11 +588,7 @@ function escapeRegExp(value: string): string {
 }
 
 function hasStartFromPrompt(xml: string): boolean {
-  return (
-    hasVisibleNode(xml, "ContinueWatchingPrompt", "continueWatchingPrompt") ||
-    (isNamedNodeVisible(xml, "panel") &&
-      (isNamedNodeVisible(xml, "continueLabel") || isNamedNodeVisible(xml, "beginningLabel")))
-  );
+  return hasVisibleNode(xml, "ContinueWatchingPrompt", "continueWatchingPrompt");
 }
 
 function readAuthCode(xml: string): string | undefined {
@@ -759,6 +771,7 @@ async function launchPlayback(
   let launchAttempts = 1;
   const start = Date.now();
   let didChooseStartFrom = false;
+  let lastStartFromChoiceAt = 0;
   let lastState = "unknown";
 
   async function retryDeepLink(reason: string): Promise<void> {
@@ -778,6 +791,7 @@ async function launchPlayback(
     } catch (error) {
       lastState = `deeplink retry failed after ${reason}: ${formatErrorMessage(error)}`;
     }
+    lastStartFromChoiceAt = 0;
     await sleep(1_500);
   }
 
@@ -804,19 +818,21 @@ async function launchPlayback(
 
     if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
+      lastStartFromChoiceAt = Date.now();
       await chooseStartFrom(target, startFromChoice);
       lastState = "startFromPrompt";
     } else if (hasStartFromPrompt(xml)) {
       lastState = "startFromPrompt";
+      if (Date.now() - lastStartFromChoiceAt >= playbackLaunchRetryMs) {
+        lastStartFromChoiceAt = Date.now();
+        await chooseStartFrom(target, startFromChoice);
+      }
     } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
       try {
         assertDirectPlaybackSurface(xml, contentId);
         return app;
       } catch (error) {
         const visibleContentId = readVisiblePlaybackContentId(xml);
-        if (visibleContentId === undefined && await hasActiveMediaPlayback(target)) {
-          return app;
-        }
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
           await retryDeepLink(`stale content ${visibleContentId}`);
         }
@@ -863,6 +879,7 @@ async function launchPlaybackWithRemoteStart(
   let launchAttempts = 1;
   let lastPlaybackLaunchAt = 0;
   let didChooseStartFrom = false;
+  let lastStartFromChoiceAt = 0;
   let lastState = "playback deeplink launch";
 
   async function sendPlaybackLaunch(reason: string): Promise<void> {
@@ -883,6 +900,7 @@ async function launchPlaybackWithRemoteStart(
     } catch (error) {
       lastState = `playback launch retry failed after ${reason}: ${formatErrorMessage(error)}`;
     }
+    lastStartFromChoiceAt = 0;
   }
 
   await sleep(playbackLaunchInitialSettleMs);
@@ -890,12 +908,6 @@ async function launchPlaybackWithRemoteStart(
 
   while (Date.now() - start < playbackLaunchTimeoutMs) {
     const mediaState = await queryMediaPlayerStateSafe(target);
-    if (isActiveMediaPlayerState(mediaState)) {
-      const activeApp = await queryActiveAppSafe(target);
-      if (activeApp?.id === "dev") {
-        return app;
-      }
-    }
 
     let xml: string;
 
@@ -919,19 +931,25 @@ async function launchPlaybackWithRemoteStart(
       }
     } else if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
+      lastStartFromChoiceAt = Date.now();
       await chooseStartFrom(target, startFromChoice);
       await sleep(playbackLaunchPostPromptSettleMs);
       lastState = "startFromPrompt";
     } else if (hasStartFromPrompt(xml)) {
       lastState = "startFromPrompt";
+      if (Date.now() - lastStartFromChoiceAt >= playbackLaunchRetryMs) {
+        lastStartFromChoiceAt = Date.now();
+        await chooseStartFrom(target, startFromChoice);
+        await sleep(playbackLaunchPostPromptSettleMs);
+      }
     } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
       try {
         assertDirectPlaybackSurface(xml, contentId);
         return app;
       } catch (error) {
         const visibleContentId = readVisiblePlaybackContentId(xml);
-        if (visibleContentId === undefined && isActiveMediaPlayerState(mediaState)) {
-          return app;
+        if (visibleContentId !== undefined && visibleContentId !== contentId) {
+          await sendPlaybackLaunch(`stale content ${visibleContentId}`);
         }
         lastState = formatErrorMessage(error);
       }
@@ -1244,6 +1262,86 @@ async function selectPreviousTrackMenuItem(target: string): Promise<void> {
   await sleep(250);
   await pressKey(target, "Select");
   await sleep(750);
+}
+
+async function readVideoNodeAttributeFromDevice(
+  target: string,
+  attributeName: string,
+): Promise<string | undefined> {
+  return readNamedNodeAttribute(await querySceneGraph(target), "video", attributeName);
+}
+
+async function waitForVideoNodeAttribute(
+  target: string,
+  attributeName: string,
+  description: string,
+  predicate: (value: string | undefined) => boolean,
+  timeoutMs = 6_000,
+): Promise<string | undefined> {
+  const start = Date.now();
+  let lastValue: string | undefined;
+
+  while (Date.now() - start < timeoutMs) {
+    lastValue = await readVideoNodeAttributeFromDevice(target, attributeName);
+    if (predicate(lastValue)) {
+      return lastValue;
+    }
+
+    await sleep(500);
+  }
+
+  throw new Error(
+    `expected video.${attributeName} ${description}, got ${lastValue ?? "missing"}`,
+  );
+}
+
+async function assertAudioTrackApplied(
+  target: string,
+  previousAudioTrack: string | undefined,
+): Promise<void> {
+  if (previousAudioTrack === undefined) {
+    console.log("skipped Video.audioTrack assertion: Roku did not expose the field");
+    return;
+  }
+
+  const selectedAudioTrack = await waitForVideoNodeAttribute(
+    target,
+    "audioTrack",
+    "to change after audio menu selection",
+    (value) => value !== undefined && value !== "" && value !== previousAudioTrack,
+  );
+
+  console.log(`asserted Video.audioTrack changed to ${selectedAudioTrack}`);
+}
+
+async function assertSubtitlesDisabled(target: string): Promise<void> {
+  const initialCaptionMode = await readVideoNodeAttributeFromDevice(target, "globalCaptionMode");
+
+  if (initialCaptionMode !== undefined) {
+    await waitForVideoNodeAttribute(
+      target,
+      "globalCaptionMode",
+      "to become Off after subtitle menu selection",
+      (value) => value === "Off",
+    );
+  } else {
+    console.log("skipped Video.globalCaptionMode assertion: Roku did not expose the field");
+  }
+
+  const subtitleTrack = await readVideoNodeAttributeFromDevice(target, "subtitleTrack");
+  if (subtitleTrack !== undefined && subtitleTrack !== "") {
+    throw new Error(`expected Video.subtitleTrack to be empty after disabling subtitles, got ${subtitleTrack}`);
+  }
+
+  const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
+  const captions = mediaPlayerXml === undefined
+    ? undefined
+    : /<captions>([^<]*)<\/captions>/.exec(mediaPlayerXml)?.[1];
+  if (captions !== undefined && captions !== "none") {
+    throw new Error(`expected media-player captions to be none after disabling subtitles, got ${captions}`);
+  }
+
+  console.log("asserted subtitles disabled");
 }
 
 async function reopenFocusedTrackMenu(
@@ -1672,6 +1770,10 @@ async function focusAudioButtonFromPlayback(target: string): Promise<void> {
   assertFocusedAuxiliaryLabelLayout(await querySceneGraph(target), "audioFocusLabel");
 }
 
+async function isAudioControlAvailable(target: string): Promise<boolean> {
+  return isNamedNodeVisible(await querySceneGraph(target), "audioButton");
+}
+
 async function openAudioMenuFromPlayback(target: string): Promise<void> {
   await focusAudioButtonFromPlayback(target);
   await activateFocusedTrackButton(target, "Audio tracks", "audio");
@@ -1825,20 +1927,26 @@ async function playerUiSmoke(
     `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
   );
   await waitForPlayerClockReady(target);
-  await assertHlsPlaybackSurfaceOnDevice(target, audioContentId);
+  await assertDirectPlaybackSurfaceOnDevice(target, audioContentId);
   await pausePlaybackForStableOsd(target);
   await smokePlaybackSpeedIfAvailable(target);
 
-  await focusAudioButtonFromPlayback(target);
-  await assertFocusRoundTrip(target, "audioFocusLabel");
-  await openAudioMenuFromPlayback(target);
-  console.log("asserted audio menu from player controls");
-  await selectNextTrackMenuItem(target);
-  await reopenFocusedTrackMenu(target, "Audio tracks");
-  await assertTrackMenu(target, "Audio tracks", 1);
-  console.log("asserted audio track selection moves checkmark");
-  await pressKey(target, "Back");
-  await sleep(500);
+  if (await isAudioControlAvailable(target)) {
+    await focusAudioButtonFromPlayback(target);
+    await assertFocusRoundTrip(target, "audioFocusLabel");
+    await openAudioMenuFromPlayback(target);
+    console.log("asserted audio menu from player controls");
+    const initialAudioTrack = await readVideoNodeAttributeFromDevice(target, "audioTrack");
+    await selectNextTrackMenuItem(target);
+    await assertAudioTrackApplied(target, initialAudioTrack);
+    await reopenFocusedTrackMenu(target, "Audio tracks");
+    await assertTrackMenu(target, "Audio tracks", 1);
+    console.log("asserted audio track selection moves checkmark");
+    await pressKey(target, "Back");
+    await sleep(500);
+  } else {
+    console.log("skipped audio menu assertions: Roku did not expose multiple audio tracks");
+  }
 
   const subtitleApp = await launchPlaybackWithRemoteStart(
     target,
@@ -1858,6 +1966,7 @@ async function playerUiSmoke(
   assertNamedNodeHidden(await querySceneGraph(target), "audioButton");
   console.log("asserted subtitle menu from player controls");
   await selectPreviousTrackMenuItem(target);
+  await assertSubtitlesDisabled(target);
   await reopenFocusedTrackMenu(target, "Subtitles");
   await assertTrackMenu(target, "Subtitles", 0);
   console.log("asserted subtitle off selection moves checkmark");
@@ -1874,6 +1983,69 @@ async function playerUiSmoke(
   await assertOsdHideRevealFlow(target);
   await assertMediaPlayKeyToggles(target);
   await assertMediaKeysSeek(target);
+}
+
+async function playbackTypeSmoke(
+  target: string,
+  playbackType: "hls" | "mp4",
+  contentId: string,
+  mediaType: string,
+  startFromChoice: "continue" | "beginning",
+): Promise<void> {
+  await setPlaybackTypeConfig(playbackType);
+  const app = await launchPlaybackWithRemoteStart(
+    target,
+    contentId,
+    mediaType,
+    startFromChoice,
+  );
+  console.log(
+    `opened ${playbackType} playback: ${app.id} ${app.name} ${app.version} contentID=${contentId}`,
+  );
+  await waitForPlayerClockReady(target);
+  await assertPlaybackTypeSurfaceOnDevice(target, playbackType, contentId);
+  console.log(`asserted ${playbackType} playback type for contentID=${contentId}`);
+}
+
+async function playbackErrorDialogSmoke(
+  target: string,
+  contentId: string,
+  mediaType: string,
+  expectedTitle: string,
+  expectedMessageFragment: string,
+): Promise<void> {
+  await launchDeepLink(target, contentId, mediaType, "beginning");
+  await waitForSceneGraphAssertion(
+    target,
+    `expected error dialog for contentID=${contentId}`,
+    (xml) => {
+      assertNotAuthScreen(xml);
+
+      if (!sceneGraphContainsText(xml, expectedTitle)) {
+        throw new Error(`expected dialog title/text to include "${expectedTitle}"`);
+      }
+
+      if (!sceneGraphContainsText(xml, expectedMessageFragment)) {
+        throw new Error(`expected dialog message to include "${expectedMessageFragment}"`);
+      }
+    },
+    30_000,
+  );
+
+  await pressKey(target, "Select");
+  console.log(`asserted readable playback error dialog for contentID=${contentId}`);
+}
+
+function sceneGraphContainsText(xml: string, text: string): boolean {
+  return xml.includes(escapeXmlAttribute(text));
+}
+
+function escapeXmlAttribute(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 async function captureDeveloperScreenshot(
@@ -1958,7 +2130,7 @@ async function playerUiScreenshots(
     `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
   );
   await waitForPlayerClockReady(target);
-  await assertHlsPlaybackSurfaceOnDevice(target, audioContentId);
+  await assertDirectPlaybackSurfaceOnDevice(target, audioContentId);
   await pausePlaybackForStableOsd(target);
   await focusInitialControlsForScreenshot(target);
   const playFocusPath = await captureDeveloperScreenshot(
@@ -1987,23 +2159,27 @@ async function playerUiScreenshots(
   } else {
     console.log("skipped speed screenshots: Roku Video.playbackSpeed is unavailable");
   }
-  await focusAudioButtonFromPlayback(target);
-  await assertFocusRoundTrip(target, "audioFocusLabel");
-  const audioButtonPath = await captureDeveloperScreenshot(
-    target,
-    password,
-    join(outputDir, "audio-button-focus.jpg"),
-  );
-  console.log(`captured audio button focus screenshot: ${audioButtonPath}`);
-  await openAudioMenuFromPlayback(target);
-  const audioPath = await captureDeveloperScreenshot(
-    target,
-    password,
-    join(outputDir, "audio-menu.jpg"),
-  );
-  console.log(`captured audio menu screenshot: ${audioPath}`);
-  await pressKey(target, "Select");
-  await sleep(750);
+  if (await isAudioControlAvailable(target)) {
+    await focusAudioButtonFromPlayback(target);
+    await assertFocusRoundTrip(target, "audioFocusLabel");
+    const audioButtonPath = await captureDeveloperScreenshot(
+      target,
+      password,
+      join(outputDir, "audio-button-focus.jpg"),
+    );
+    console.log(`captured audio button focus screenshot: ${audioButtonPath}`);
+    await openAudioMenuFromPlayback(target);
+    const audioPath = await captureDeveloperScreenshot(
+      target,
+      password,
+      join(outputDir, "audio-menu.jpg"),
+    );
+    console.log(`captured audio menu screenshot: ${audioPath}`);
+    await pressKey(target, "Select");
+    await sleep(750);
+  } else {
+    console.log("skipped audio screenshots: Roku did not expose multiple audio tracks");
+  }
 
   const subtitleApp = await launchPlaybackWithRemoteStart(
     target,
@@ -2087,6 +2263,8 @@ async function writePlayerUiReview(
   context: PlayerUiReviewContext,
 ): Promise<string> {
   const referenceImages = await copyPlayerUiReferenceImages(outputDir);
+  const hasAudioMenu = await fileExists(join(outputDir, "audio-menu.jpg"));
+  const hasAudioButton = await fileExists(join(outputDir, "audio-button-focus.jpg"));
   const hasSpeedMenu = await fileExists(join(outputDir, "speed-menu.jpg"));
   const hasSpeedButton = await fileExists(join(outputDir, "speed-button-focus.jpg"));
   const imageMetadata = await readPlayerUiImageMetadata(outputDir, [
@@ -2130,6 +2308,23 @@ async function writePlayerUiReview(
   const speedChecklistItem = hasSpeedMenu
     ? "<li>Playback speed menu captured and covered by live smoke selection.</li>"
     : "<li>Playback speed menu was skipped because this Roku did not expose Video.playbackSpeed.</li>";
+  const audioChecklistItem = hasAudioMenu
+    ? "<li>Audio and subtitle menus open from player controls and move selected checkmarks.</li>"
+    : "<li>Subtitle menu opens from player controls; audio menu was skipped because Roku did not expose multiple audio tracks.</li>";
+  const audioMenuPanel = hasAudioMenu
+    ? `
+      <section class="panel">
+        <h2>Audio menu</h2>
+        <img src="./audio-menu.jpg" alt="Roku audio menu" />
+      </section>`
+    : "";
+  const audioButtonPanel = hasAudioButton
+    ? `
+      <section class="panel">
+        <h2>Audio button focus</h2>
+        <img src="./audio-button-focus.jpg" alt="Roku audio button focus" />
+      </section>`
+    : "";
   const imageMetadataItems = imageMetadata
     .map(
       (metadata) =>
@@ -2281,8 +2476,8 @@ async function writePlayerUiReview(
     </div>
     <section class="checklist" aria-label="Player UI proof checklist">
       <ul>
-        <li>Direct HLS playback asserted; old play/subtitle preselection surface rejected.</li>
-        <li>Audio and subtitle menus open from player controls and move selected checkmarks.</li>
+        <li>Direct player routing asserted; old play/subtitle preselection surface rejected.</li>
+        ${audioChecklistItem}
         ${speedChecklistItem}
         <li>Progress focus and adaptive right-side option labels have SceneGraph geometry assertions.</li>
         <li>OSD auto-hide/reveal flow is covered by live smoke.</li>
@@ -2292,19 +2487,11 @@ async function writePlayerUiReview(
     <section class="captures" aria-label="Captured image metadata">
       <ul>${imageMetadataItems}</ul>
     </section>
-    <div class="grid">${nativeCapturePanels}
-      <section class="panel">
-        <h2>Audio menu</h2>
-        <img src="./audio-menu.jpg" alt="Roku audio menu" />
-      </section>
+    <div class="grid">${nativeCapturePanels}${audioMenuPanel}
       <section class="panel">
         <h2>Subtitle menu</h2>
         <img src="./subtitle-menu.jpg" alt="Roku subtitle menu" />
-      </section>${speedMenuPanel}
-      <section class="panel">
-        <h2>Audio button focus</h2>
-        <img src="./audio-button-focus.jpg" alt="Roku audio button focus" />
-      </section>
+      </section>${speedMenuPanel}${audioButtonPanel}
       <section class="panel">
         <h2>Subtitle button focus</h2>
         <img src="./subtitle-button-focus.jpg" alt="Roku subtitle button focus" />
@@ -2539,6 +2726,51 @@ async function main(): Promise<void> {
     }
 
     await setPlaybackTypeConfig(playbackTypeFromArg(rawPlaybackType), rawProfile);
+  } else if (command === "playback-type-smoke") {
+    const [
+      rawPlaybackType,
+      contentId,
+      mediaType = "movie",
+      rawStartFromChoice = "continue",
+    ] = args;
+
+    if (!rawPlaybackType || !contentId) {
+      usage();
+    }
+
+    if (
+      rawStartFromChoice !== "continue" &&
+      rawStartFromChoice !== "beginning"
+    ) {
+      throw new Error("start-from choice must be continue or beginning");
+    }
+
+    await playbackTypeSmoke(
+      target,
+      playbackTypeFromArg(rawPlaybackType),
+      contentId,
+      mediaType,
+      rawStartFromChoice,
+    );
+  } else if (command === "playback-error-dialog-smoke") {
+    const [
+      contentId,
+      mediaType = "movie",
+      expectedTitle = "Oops, an error occurred",
+      expectedMessageFragment = "File not found",
+    ] = args;
+
+    if (!contentId) {
+      usage();
+    }
+
+    await playbackErrorDialogSmoke(
+      target,
+      contentId,
+      mediaType,
+      expectedTitle,
+      expectedMessageFragment,
+    );
   } else if (command === "launch") {
     const appId = args[0] ?? "dev";
     const app = await launchApp(target, appId);
