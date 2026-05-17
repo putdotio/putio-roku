@@ -77,8 +77,8 @@ make console
   appears, and waits until `videoPlayerScreen` is visible.
 - `make live-test-playback-remote CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
   launches through Roku deep linking, drives the start-from prompt with remote
-  keypresses, avoids startup SceneGraph polling, and then confirms
-  `videoPlayerScreen` is visible. Use it when repeated SceneGraph polling makes
+  keypresses, waits briefly for the dev app SceneGraph when available, and then
+  confirms `videoPlayerScreen` is visible. Use it when repeated relaunches make
   the device unstable during HLS startup.
 - `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
   opens playback through deep links, asserts direct player routing instead of

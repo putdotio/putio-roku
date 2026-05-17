@@ -37,6 +37,7 @@ const launchTimeoutMs = 30_000;
 const playbackLaunchTimeoutMs = 240_000;
 const playbackLaunchRetryMs = 10_000;
 const remotePlaybackLaunchQuietMs = 18_000;
+const appSceneGraphReadyTimeoutMs = 45_000;
 const maxPlaybackLaunchAttempts = 4;
 const screenshotCaptureAttempts = 5;
 
@@ -416,11 +417,15 @@ function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean
   return match !== null && !match[1]?.includes('visible="false"');
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function hasStartFromPrompt(xml: string): boolean {
   return (
     hasVisibleNode(xml, "ContinueWatchingPrompt", "continueWatchingPrompt") ||
-    xml.includes("Continue playing from") ||
-    xml.includes("Where would you like to start?")
+    (isNamedNodeVisible(xml, "panel") &&
+      (isNamedNodeVisible(xml, "continueLabel") || isNamedNodeVisible(xml, "beginningLabel")))
   );
 }
 
@@ -461,9 +466,10 @@ function assertDirectPlaybackSurface(xml: string, contentId: string): void {
     throw new Error("expected player content to avoid original=1 playback URLs");
   }
 
-  const expectedPathPrefix = `/files/${contentId}/`;
-  if (!xml.includes(expectedPathPrefix)) {
-    throw new Error(`expected player content to include file path ${expectedPathPrefix}`);
+  const hasFilesPlaybackPath = xml.includes(`/files/${contentId}/`);
+  const hasStreamPlaybackPath = new RegExp(`/stream/${escapeRegExp(contentId)}(?:\\.|[/?&]|$)`).test(xml);
+  if (!hasFilesPlaybackPath && !hasStreamPlaybackPath) {
+    throw new Error(`expected player content to include playback path for ${contentId}`);
   }
 }
 
@@ -476,7 +482,7 @@ function assertHlsPlaybackSurface(xml: string, contentId: string): void {
 }
 
 function readVisiblePlaybackContentId(xml: string): string | undefined {
-  const match = /\/files\/(\d+)\//.exec(xml);
+  const match = /\/(?:files|stream)\/(\d+)(?:\/|\.|[?&]|$)/.exec(xml);
   return match ? match[1] : undefined;
 }
 
@@ -624,7 +630,7 @@ async function launchPlaybackWithRemoteStart(
     }
   }
 
-  await sleep(4_000);
+  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
   await sendPlaybackLaunch("initial dev launch");
 
   await waitForRemotePlaybackSettle(target, remotePlaybackLaunchQuietMs);
@@ -648,8 +654,12 @@ async function launchPlaybackWithRemoteStart(
     const sceneGraphFailure = readSceneGraphFailure(xml);
     if (sceneGraphFailure !== undefined) {
       const activeApp = await queryActiveAppSafe(target);
-      lastState = `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}`;
-      await sendPlaybackLaunch(lastState);
+      const mediaState = await queryMediaPlayerStateSafe(target);
+      lastState = `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}; media-player=${mediaState ?? "unknown"}`;
+
+      if (!isActiveMediaPlayerState(mediaState)) {
+        await sendPlaybackLaunch(lastState);
+      }
     } else if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
       didChooseStartFrom = true;
       await chooseStartFrom(target, startFromChoice);
@@ -677,6 +687,40 @@ async function launchPlaybackWithRemoteStart(
   throw new Error(
     `expected videoPlayerScreen after remote-assisted deeplink, last visible state: ${lastState}`,
   );
+}
+
+async function waitForDevAppSceneGraphReady(
+  target: string,
+  timeoutMs: number,
+): Promise<void> {
+  const start = Date.now();
+  let lastState = "waiting for dev app SceneGraph";
+
+  while (Date.now() - start < timeoutMs) {
+    const activeApp = await queryActiveAppSafe(target);
+    if (activeApp?.id !== "dev") {
+      lastState = `active-app=${activeApp?.id ?? "unknown"}`;
+      await sleep(sceneGraphPollIntervalMs);
+      continue;
+    }
+
+    try {
+      const xml = await querySceneGraph(target);
+      const sceneGraphFailure = readSceneGraphFailure(xml);
+
+      if (sceneGraphFailure === undefined) {
+        return;
+      }
+
+      lastState = `scene graph failed: ${sceneGraphFailure}`;
+    } catch (error) {
+      lastState = `scene graph unavailable: ${formatErrorMessage(error)}`;
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  console.log(`continuing playback launch before dev app SceneGraph settled: ${lastState}`);
 }
 
 async function waitForRemotePlaybackSettle(
