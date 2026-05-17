@@ -1059,6 +1059,13 @@ async function selectNextTrackMenuItem(target: string): Promise<void> {
   await sleep(750);
 }
 
+async function selectPreviousTrackMenuItem(target: string): Promise<void> {
+  await pressKey(target, "Up");
+  await sleep(250);
+  await pressKey(target, "Select");
+  await sleep(750);
+}
+
 async function reopenFocusedTrackMenu(
   target: string,
   expectedTitle: TrackMenuTitle,
@@ -1501,7 +1508,7 @@ async function focusSubtitleButtonFromPlayback(target: string): Promise<void> {
 async function openSubtitleMenuFromPlayback(target: string): Promise<void> {
   await focusSubtitleButtonFromPlayback(target);
   await activateFocusedTrackButton(target, "Subtitles", "captions");
-  await assertTrackMenu(target, "Subtitles");
+  await assertTrackMenu(target, "Subtitles", 1);
 }
 
 async function focusSpeedButtonFromPlayback(target: string): Promise<void> {
@@ -1640,10 +1647,10 @@ async function playerUiSmoke(
   await openSubtitleMenuFromPlayback(target);
   assertNamedNodeHidden(await querySceneGraph(target), "audioButton");
   console.log("asserted subtitle menu from player controls");
-  await selectNextTrackMenuItem(target);
+  await selectPreviousTrackMenuItem(target);
   await reopenFocusedTrackMenu(target, "Subtitles");
-  await assertTrackMenu(target, "Subtitles", 1);
-  console.log("asserted subtitle selection moves checkmark");
+  await assertTrackMenu(target, "Subtitles", 0);
+  console.log("asserted subtitle off selection moves checkmark");
   await pressKey(target, "Back");
   await sleep(500);
 

@@ -206,6 +206,7 @@ sub setupPlayer()
     m.duration = getVideoFileDurationSeconds(file)
     updateDurationLabel()
     syncSubtitleTracks()
+    ensureDefaultSubtitleSelection()
     updateTrackSummary()
 
     m.video.content = videoContent
@@ -522,6 +523,8 @@ sub onAvailableSubtitleTracksChanged(obj)
     end if
 
     syncSubtitleTracks()
+    ensureDefaultSubtitleSelection()
+    applySubtitleSelection()
     updateTrackSummary()
 end sub
 
@@ -531,6 +534,21 @@ sub syncSubtitleTracks()
         addUniqueSubtitleTracks(m.externalSubtitleTracks)
     else
         addUniqueSubtitleTracks(m.rokuSubtitleTracks)
+    end if
+end sub
+
+sub ensureDefaultSubtitleSelection()
+    if m.selectedSubtitleTrackName <> invalid
+        return
+    end if
+
+    if m.subtitleTracks = invalid or m.subtitleTracks.count() = 0
+        return
+    end if
+
+    trackName = readTrackValue(m.subtitleTracks[0], "TrackName")
+    if trackName <> invalid and trackName <> ""
+        m.selectedSubtitleTrackName = trackName.toStr()
     end if
 end sub
 
