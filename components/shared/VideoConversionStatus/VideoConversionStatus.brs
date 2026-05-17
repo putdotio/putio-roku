@@ -49,6 +49,9 @@ end sub
 
 sub stopTasks()
     m.timer.control = "stop"
+    m.startConversionTask.control = "stop"
+    m.checkConversionTask.control = "stop"
+    m.fetchFileTask.control = "stop"
     m.startConversionTask.unobserveField("response")
     m.checkConversionTask.unobserveField("response")
     m.fetchFileTask.unobserveField("response")

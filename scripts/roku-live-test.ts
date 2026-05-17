@@ -23,6 +23,7 @@ import {
   querySceneGraph as rokitQuerySceneGraph,
   readNamedNodeAttribute,
   readNamedNodeAttributes,
+  readNamedNodeBounds,
   readNamedNodeNumber,
   readNamedNodeTranslation,
   readMediaPlayerContainer,
@@ -184,15 +185,66 @@ function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
   assertNodeTranslation(xml, "bottomShade", 0, 800);
   assertNodeSize(xml, "bottomShade", 1920, 280);
   assertNodeTranslation(xml, "playerTitle", 96, 900);
+  assertNodeSize(xml, "playerTitle", 1360, 46);
   assertNodeTranslation(xml, "controls", 0, 870);
-  assertNamedNodeVisible(xml, "rewindButton");
-  assertNamedNodeVisible(xml, "playButton");
-  assertNamedNodeVisible(xml, "fastForwardButton");
+  assertNamedNodeHidden(xml, "rewindButton");
+  assertNamedNodeHidden(xml, "playButton");
+  assertNamedNodeHidden(xml, "fastForwardButton");
+  assertTitleDoesNotOverlapAuxiliaryControls(xml);
   assertAuxiliaryControlsLayout(xml);
   assertNodeTranslation(xml, "progress", 96, 960);
   assertNodeTranslation(xml, "playerProgressTrack", 0, progressFocused ? 23 : 25);
   assertNodeSize(xml, "playerProgressTrack", 1728, progressFocused ? 12 : 8);
   assertNodeTranslation(xml, "playerDuration", 1548, 52);
+}
+
+function assertTitleDoesNotOverlapAuxiliaryControls(xml: string): void {
+  const titleBounds = readNamedNodeBounds(xml, "playerTitle");
+  const controlsTranslation = readNamedNodeTranslation(xml, "controls");
+
+  if (titleBounds === undefined || controlsTranslation === undefined) {
+    throw new Error("expected bounds for playerTitle and translation for controls");
+  }
+
+  for (const controlNodeName of ["audioButton", "captionsButton", "speedButton"]) {
+    if (!isNamedNodeVisible(xml, controlNodeName)) {
+      continue;
+    }
+
+    const controlBounds = readNamedNodeBounds(xml, controlNodeName);
+
+    if (controlBounds === undefined) {
+      throw new Error(`expected bounds for ${controlNodeName}`);
+    }
+
+    const absoluteControlBounds = [
+      controlsTranslation[0] + controlBounds[0],
+      controlsTranslation[1] + controlBounds[1],
+      controlBounds[2],
+      controlBounds[3],
+    ] as const;
+
+    if (boundsOverlap(titleBounds, absoluteControlBounds)) {
+      throw new Error(
+        `expected playerTitle bounds ${titleBounds.join(",")} not to overlap ${controlNodeName} bounds ${absoluteControlBounds.join(",")}`,
+      );
+    }
+  }
+}
+
+function boundsOverlap(
+  firstBounds: readonly [number, number, number, number],
+  secondBounds: readonly [number, number, number, number],
+): boolean {
+  const [firstX, firstY, firstWidth, firstHeight] = firstBounds;
+  const [secondX, secondY, secondWidth, secondHeight] = secondBounds;
+
+  return (
+    firstX < secondX + secondWidth &&
+    firstX + firstWidth > secondX &&
+    firstY < secondY + secondHeight &&
+    firstY + firstHeight > secondY
+  );
 }
 
 function assertAuxiliaryControlsLayout(xml: string): void {
@@ -1441,6 +1493,29 @@ async function assertOsdHideRevealFlow(target: string): Promise<void> {
   console.log("asserted OSD auto-hides and reveals controls with Select");
 }
 
+async function assertOptionsRevealTrackControls(target: string): Promise<void> {
+  await ensureOsdVisibleForActivation(target);
+
+  await sleep(3_750);
+  assertNamedNodeHidden(await querySceneGraph(target), "osd");
+
+  await pressKey(target, "Info");
+  await waitForSceneGraphAssertion(target, "expected Options to focus track controls", (xml) => {
+    assertNamedNodeVisible(xml, "videoPlayerScreen");
+    assertNamedNodeVisible(xml, "osd");
+
+    const focusedControl = readFocusedPlaybackControl(xml);
+    if (
+      focusedControl !== "audio" &&
+      focusedControl !== "captions" &&
+      focusedControl !== "speed"
+    ) {
+      throw new Error(`expected Options to focus a track control, got ${focusedControl ?? "none"}`);
+    }
+  });
+  console.log("asserted Options reveals and focuses track controls");
+}
+
 async function assertOsdVisible(target: string): Promise<void> {
   await waitForSceneGraphAssertion(target, "expected visible OSD", (xml) => {
     assertNamedNodeVisible(xml, "videoPlayerScreen");
@@ -1582,9 +1657,9 @@ async function assertInitialControlsVisible(target: string): Promise<void> {
   await waitForSceneGraphAssertion(target, "expected initial player controls", (xml) => {
     assertNamedNodeVisible(xml, "videoPlayerScreen");
     assertNamedNodeVisible(xml, "osd");
-    assertNamedNodeVisible(xml, "rewindButton");
-    assertNamedNodeVisible(xml, "playButton");
-    assertNamedNodeVisible(xml, "fastForwardButton");
+    assertNamedNodeHidden(xml, "rewindButton");
+    assertNamedNodeHidden(xml, "playButton");
+    assertNamedNodeHidden(xml, "fastForwardButton");
     assertProgressFocusedXml(xml);
   });
 }
@@ -2011,6 +2086,7 @@ async function playerUiSmoke(
 
   await pressKey(target, "Play");
   await sleep(750);
+  await assertOptionsRevealTrackControls(target);
   await assertOsdHideRevealFlow(target);
   await assertMediaPlayKeyToggles(target);
   await assertMediaKeysSeek(target);

@@ -343,8 +343,8 @@ async function loginWithPassword(input: {
 }): Promise<string> {
   const credentials = Buffer.from(`${input.username}:${input.password}`, "utf8").toString("base64");
   const url = new URL(`/v2/oauth2/authorizations/clients/${encodeURIComponent(input.clientId)}`, apiBaseUrl());
-  url.searchParams.set("client_secret", input.clientSecret);
   url.searchParams.set("client_name", "putio-roku harness");
+  url.searchParams.set("client_secret", input.clientSecret);
 
   const response = await fetch(url, {
     headers: {

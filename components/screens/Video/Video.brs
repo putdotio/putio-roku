@@ -190,7 +190,7 @@ end sub
 
 sub onFetchFileErrorDialogClosed()
     m.fetchFileErrorDialog.unobserveField("wasClosed")
-    m.top.navigateBack = "true"
+    m.top.navigateBack = true
 end sub
 
 sub showPlaybackUnavailableDialog()
@@ -284,7 +284,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             m.conversionStatus.visible = false
         end if
 
-        m.top.navigateBack = "true"
+        m.top.navigateBack = true
         return true
     end if
 

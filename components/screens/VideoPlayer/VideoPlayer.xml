@@ -42,7 +42,7 @@
       <Label
         id="playerTitle"
         translation="[96,900]"
-        width="960"
+        width="1360"
         font="font:LargeBoldSystemFont"
         color="0xDADADAFF"
       />
@@ -50,7 +50,7 @@
       <Label
         id="trackSummary"
         translation="[96,923]"
-        width="1400"
+        width="1360"
         font="font:MediumSystemFont"
         color="0xCCCCCCFF"
         visible="false"

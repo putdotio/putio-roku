@@ -5,7 +5,7 @@
     <field id="fileId" type="integer" />
     <field id="fileName" type="string" onChange="onFileNameChange" />
     <field id="control" type="string" onChange="onControlChange" />
-    <field id="completedFile" type="assocarray" value="" />
+    <field id="completedFile" type="assocarray" />
     <field id="completed" type="bool" alwaysNotify="true" />
     <field id="dismissed" type="bool" alwaysNotify="true" />
   </interface>

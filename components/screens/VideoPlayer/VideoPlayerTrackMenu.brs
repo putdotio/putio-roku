@@ -321,7 +321,7 @@ sub selectFocusedTrackMenuItem()
 
     item = m.trackMenuItems[index]
 
-    if item.type = "audio" and item.track <> invalid
+    if item.type = "audio" and item.track <> invalid and m.video.hasField("audioTrack")
         m.userSelectedAudioTrack = true
         m.video.audioTrack = item.track.toStr()
         m.selectedAudioTrack = item.track
@@ -403,7 +403,7 @@ sub applySubtitleSelection()
         m.selectedSubtitleTrackName = selectedTrackName
         m.video.globalCaptionMode = "On"
         m.video.subtitleTrack = selectedTrackName
-    else if m.selectedSubtitleTrackName = ""
+    else
         m.video.globalCaptionMode = "Off"
         m.video.subtitleTrack = ""
     end if

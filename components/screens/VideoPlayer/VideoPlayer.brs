@@ -857,12 +857,12 @@ sub updateTrackControlIcons()
 end sub
 
 sub updateTrackControlVisibility()
-    hasAudioChoices = m.audioTracks <> invalid and m.audioTracks.count() > 1
+    hasAudioChoices = m.video.hasField("audioTrack") and m.audioTracks <> invalid and m.audioTracks.count() > 1
     hasCaptionChoices = m.subtitleTracks <> invalid and m.subtitleTracks.count() > 0
 
-    m.controls[0].node.visible = true
-    m.controls[1].node.visible = true
-    m.controls[2].node.visible = true
+    m.controls[0].node.visible = false
+    m.controls[1].node.visible = false
+    m.controls[2].node.visible = false
     m.controls[3].node.visible = hasAudioChoices
     m.controls[4].node.visible = hasCaptionChoices
     m.controls[5].node.visible = m.playbackSpeedSupported
@@ -1057,20 +1057,10 @@ function getFirstAvailableControlIndex()
 end function
 
 sub updatePlayIcon()
-    playFocused = m.focusArea = "controls" and m.focusIndex = 1
-
     if m.video.state = "playing" or m.video.state = "buffering"
-        if playFocused
-            m.controls[1].icon.uri = "pkg:/images/icons/player-pause.png"
-        else
-            m.controls[1].icon.uri = "pkg:/images/icons/player-pause.png"
-        end if
+        m.controls[1].icon.uri = "pkg:/images/icons/player-pause.png"
     else
-        if playFocused
-            m.controls[1].icon.uri = "pkg:/images/icons/player-play.png"
-        else
-            m.controls[1].icon.uri = "pkg:/images/icons/player-play.png"
-        end if
+        m.controls[1].icon.uri = "pkg:/images/icons/player-play.png"
     end if
 end sub
 
@@ -1500,7 +1490,7 @@ end sub
 
 sub onGoBack()
     m.video.control = "stop"
-    m.top.navigateBack = "true"
+    m.top.navigateBack = true
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
@@ -1605,7 +1595,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
             end if
         else if normalizedKey = "options" or normalizedKey = "info"
             showOsd()
-            if osdWasHidden
+            if getFirstAvailableControlIndex() <> invalid
+                focusControls()
+            else if osdWasHidden
                 focusProgress()
             end if
         else
