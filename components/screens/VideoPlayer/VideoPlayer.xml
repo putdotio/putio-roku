@@ -249,8 +249,9 @@
         >
           <Label
             id="audioFocusLabel"
-            translation="[-66,-42]"
-            width="220"
+            translation="[-86,-22]"
+            width="260"
+            height="36"
             font="font:SmallSystemFont"
             color="0xBDBDBDFF"
             horizAlign="center"
@@ -288,8 +289,9 @@
         >
           <Label
             id="captionsFocusLabel"
-            translation="[-66,-42]"
-            width="220"
+            translation="[-86,-22]"
+            width="260"
+            height="36"
             font="font:SmallSystemFont"
             color="0xBDBDBDFF"
             horizAlign="center"
@@ -327,8 +329,9 @@
         >
           <Label
             id="speedFocusLabel"
-            translation="[-66,-42]"
-            width="220"
+            translation="[-86,-22]"
+            width="260"
+            height="36"
             font="font:SmallSystemFont"
             color="0xBDBDBDFF"
             horizAlign="center"
