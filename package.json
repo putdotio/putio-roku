@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "build:roku": "bsc --project bsconfig.json",
-    "check:live": "tsc --ignoreConfig --noEmit --strict --skipLibCheck --target ES2024 --module NodeNext --moduleResolution NodeNext --types node scripts/roku-live-test.ts",
+    "check:live": "tsc -p tsconfig.live.json",
     "check:roku": "bslint --project bsconfig.json",
     "check": "sst version",
     "format:roku": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --check",
     "format:roku:write": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --write",
     "roku:live": "node scripts/roku-live-test.ts",
+    "roku:auth": "node scripts/putio-auth-harness.ts",
     "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"
   },

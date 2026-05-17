@@ -18,6 +18,8 @@ ROKU_ZIP_FILES := LC_ALL=C find manifest source components images -type f ! -nam
 ROKU_DEV_CONSOLE_PORT ?= 8085
 ROKU_TARGET := $(or $(ROKU_DEV_TARGET),$(ROKIT_TARGET))
 ROKU_PASSWORD := $(or $(ROKU_DEV_PASSWORD),$(ROKIT_PASSWORD))
+PUTIO_CLI_PROFILE ?= devs-fe-auto
+PUTIO_CLI_CONFIG_PATH ?= $(CURDIR)/.putio-cli/$(PUTIO_CLI_PROFILE).json
 
 ifneq ($(strip $(ROKU_PASSWORD)),)
 	ROKU_DEV_USERPASS := rokudev:$(ROKU_PASSWORD)
@@ -67,6 +69,22 @@ check-roku-static:
 .PHONY: check-roku-live
 check-roku-live:
 	pnpm run check:live
+
+.PHONY: putio-auth-status
+putio-auth-status:
+	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-status "$(PUTIO_CLI_PROFILE)"
+
+.PHONY: putio-auth-prepare
+putio-auth-prepare:
+	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-prepare "$(PUTIO_CLI_PROFILE)"
+
+.PHONY: putio-auth-approve-device
+putio-auth-approve-device:
+	@if [ -z "$(CODE)" ]; then \
+		echo "ERROR: CODE is not set. Example: make putio-auth-approve-device CODE=<device-code>"; \
+		exit 1; \
+	fi
+	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-approve-device "$(CODE)" "$(PUTIO_CLI_PROFILE)"
 
 .PHONY: verify
 verify: clean check-roku-live check-roku-static build
@@ -250,3 +268,11 @@ live-test-launch: launch
 
 .PHONY: live-test-install
 live-test-install: run launch
+
+.PHONY: live-test-auth-reset
+live-test-auth-reset:
+	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live auth-reset
+
+.PHONY: live-test-auth-prepare
+live-test-auth-prepare: putio-auth-prepare
+	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live auth-prepare "$(PUTIO_CLI_PROFILE)"

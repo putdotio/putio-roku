@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+import { execFile as execFileCallback } from "node:child_process";
 import { access, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join } from "node:path";
 import process from "node:process";
+import { promisify } from "node:util";
 import {
   assertNamedNodeState,
   assertNamedNodeSize as assertNodeSize,
@@ -30,10 +32,12 @@ import {
   type RokuContext,
 } from "@putdotio/rokit";
 
+const execFile = promisify(execFileCallback);
 const requestTimeoutMs = 15_000;
 const sceneGraphRequestTimeoutMs = 10_000;
 const sceneGraphPollIntervalMs = 1_500;
 const launchTimeoutMs = 30_000;
+const authPrepareTimeoutMs = 90_000;
 const playbackLaunchTimeoutMs = 240_000;
 const playbackLaunchRetryMs = 10_000;
 const remotePlaybackLaunchQuietMs = 18_000;
@@ -74,6 +78,8 @@ function usage(): never {
   console.error(`usage:
   node scripts/roku-live-test.ts check
   node scripts/roku-live-test.ts active-app
+  node scripts/roku-live-test.ts auth-reset
+  node scripts/roku-live-test.ts auth-prepare [profile]
   node scripts/roku-live-test.ts launch [app-id]
   node scripts/roku-live-test.ts launch-deeplink <content-id> [media-type]
   node scripts/roku-live-test.ts launch-playback <content-id> [media-type] [continue|beginning]
@@ -86,6 +92,8 @@ function usage(): never {
 environment:
   ROKU_DEV_TARGET=<roku-ip> or ROKIT_TARGET=<roku-ip>
   ROKU_DEV_PASSWORD=<developer-mode-password> or ROKIT_PASSWORD=<developer-mode-password>
+  PUTIO_CLI_PROFILE=devs-fe-auto
+  PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
   PLAYER_UI_REFERENCE_IMAGE=<optional-reference-image-path>`);
   process.exit(1);
 }
@@ -440,6 +448,106 @@ function readAuthCode(xml: string): string | undefined {
   }
 
   return code;
+}
+
+async function approveAuthCodeWithHarness(code: string, profile: string): Promise<void> {
+  await execFile(
+    process.execPath,
+    ["scripts/putio-auth-harness.ts", "auth-approve-device", code, profile],
+    {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PUTIO_CLI_PROFILE: profile,
+      },
+      maxBuffer: 1024 * 1024,
+    },
+  );
+}
+
+async function waitForAuthReady(target: string, profile: string): Promise<void> {
+  await launchApp(target, "dev");
+  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
+
+  const startedAt = Date.now();
+  let approvedCode: string | undefined;
+  let lastState = "waiting for auth state";
+
+  while (Date.now() - startedAt < authPrepareTimeoutMs) {
+    try {
+      const xml = await querySceneGraph(target);
+
+      if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+        console.log(`auth ready: profile=${profile}`);
+        return;
+      }
+
+      const code = readAuthCode(xml);
+      lastState = code === undefined ? "auth code has not loaded yet" : "auth screen waiting for approval";
+
+      if (code !== undefined && code !== approvedCode) {
+        await approveAuthCodeWithHarness(code, profile);
+        approvedCode = code;
+        console.log(`approved auth code for profile=${profile}`);
+      }
+    } catch (error) {
+      lastState = formatErrorMessage(error);
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  throw new Error(`Roku dev app is still signed out after auth prepare: ${lastState}`);
+}
+
+async function resetAuthState(target: string): Promise<void> {
+  await launchApp(target, "dev");
+  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
+
+  let xml = await querySceneGraph(target);
+
+  if (hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+    console.log("auth reset: already signed out");
+    return;
+  }
+
+  if (!isNamedNodeVisible(xml, "homeScreen")) {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      await pressKey(target, "Back");
+      await sleep(500);
+      xml = await querySceneGraph(target);
+
+      if (isNamedNodeVisible(xml, "homeScreen") || hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+        break;
+      }
+    }
+  }
+
+  xml = await querySceneGraph(target);
+
+  if (hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+    console.log("auth reset: already signed out");
+    return;
+  }
+
+  assertNamedNodeVisible(xml, "homeScreen");
+
+  for (let step = 0; step < 5; step += 1) {
+    await pressKey(target, "Down");
+    await sleep(200);
+  }
+
+  await pressKey(target, "Select");
+  await waitForNamedNodeVisible(target, "settingsScreen", 15_000);
+
+  for (let step = 0; step < 5; step += 1) {
+    await pressKey(target, "Down");
+    await sleep(200);
+  }
+
+  await pressKey(target, "Select");
+  await waitForNamedNodeVisible(target, "authScreen", 15_000);
+  console.log("auth reset: signed out");
 }
 
 function assertNotAuthScreen(xml: string): void {
@@ -2201,6 +2309,11 @@ async function main(): Promise<void> {
     await checkDevice(target);
   } else if (command === "active-app") {
     await printActiveApp(target);
+  } else if (command === "auth-reset") {
+    await resetAuthState(target);
+  } else if (command === "auth-prepare") {
+    const [profile = process.env.PUTIO_CLI_PROFILE ?? "devs-fe-auto"] = args;
+    await waitForAuthReady(target, profile);
   } else if (command === "launch") {
     const appId = args[0] ?? "dev";
     const app = await launchApp(target, appId);

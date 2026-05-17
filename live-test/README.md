@@ -31,8 +31,17 @@ Optional for player UI screenshot review pages:
 PLAYER_UI_REFERENCE_IMAGE=<path-to-reference-image>
 ```
 
+Optional for authenticated harness setup:
+
+```bash
+PUTIO_CLI_PROFILE=devs-fe-auto
+PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
+PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
+```
+
 Keep `.env` local. Device IPs, Developer Mode passwords, signing keys, and
-download tokens do not belong in git.
+download tokens do not belong in git. `.putio-cli/` is ignored and may contain
+local put.io CLI auth state for the testing account.
 
 Install the repo toolchain before running smoke or install checks:
 
@@ -59,6 +68,10 @@ make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-launch
 make live-test-install
+make putio-auth-status
+make putio-auth-prepare
+make live-test-auth-reset
+make live-test-auth-prepare
 make console
 ```
 
@@ -103,6 +116,17 @@ make console
 - `make live-test-install` removes the existing developer app, installs this
   checkout, launches it, and prints the active app state. It requires
   `ROKU_DEV_PASSWORD`.
+- `make putio-auth-status [PUTIO_CLI_PROFILE=devs-fe-auto]` checks the local
+  put.io CLI auth state without exposing token material.
+- `make putio-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` materializes local
+  testing-account auth into the ignored `PUTIO_CLI_CONFIG_PATH` through the
+  approved 1Password-backed `devs-fe-auto` setup.
+- `make live-test-auth-reset` launches the Roku developer app, drives Settings >
+  Log out through remote keypresses, and waits for the auth screen.
+- `make live-test-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` launches the
+  Roku developer app, reads the visible device code from SceneGraph when the app
+  is signed out, approves it with the prepared testing account, and waits until
+  the app reaches an authenticated state.
 - `make console` attaches to the BrightScript debug console on port `8085`.
 
 For a one-off install without saving the password in `.env`, pass it as a Make
