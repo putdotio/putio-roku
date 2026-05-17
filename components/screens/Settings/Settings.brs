@@ -17,12 +17,16 @@ function init()
             title: "Keep populating the history page with your activities",
             iconName: "history-1",
         },
+        playback_type: {
+            title: "Video playback type",
+            iconName: "file_type_video",
+        },
         logout: {
             title: "Log out",
             iconName: "logout"
         }
     }
-    m.itemsOrder = ["show_only_media_files", "show_history", "logout"]
+    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "logout"]
 
     renderList()
 end function
@@ -32,6 +36,7 @@ sub onVisibleChange()
         m.list.setFocus(true)
         updateShowOnlyMediaValue()
         updateShowHistory()
+        updatePlaybackTypeValue()
     end if
 end sub
 
@@ -69,6 +74,8 @@ sub onListItemSelected(obj)
         setShowOnlyMedia()
     else if key = "show_history"
         updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
+    else if key = "playback_type"
+        setPlaybackType(getNextPlaybackType())
     end if
 end sub
 
@@ -83,6 +90,53 @@ sub updateShowHistory()
     else
         m.showHistory.description = "Disabled"
     end if
+end sub
+
+function getPlaybackType() as string
+    return getPlaybackTypeFromConfig(m.global.config)
+end function
+
+function getNextPlaybackType() as string
+    if getPlaybackType() = "hls"
+        return "mp4"
+    end if
+
+    return "hls"
+end function
+
+sub setPlaybackType(playbackType as string)
+    normalizedPlaybackType = normalizePlaybackTypeSetting(playbackType)
+    m.updateConfigTask = createObject("roSGNode", "HttpTask")
+    m.updateConfigTask.observeField("response", "onUpdatePlaybackType")
+    m.updateConfigTask.url = "/config/playbackType"
+    m.updateConfigTask.body = { value: normalizedPlaybackType }
+    m.updateConfigTask.method = "PUT"
+    m.pendingPlaybackType = normalizedPlaybackType
+    m.updateConfigTask.control = "RUN"
+end sub
+
+sub onUpdatePlaybackType(obj)
+    m.updateConfigTask.unobserveField("response")
+    data = parseJSON(obj.getData())
+
+    if data = invalid or data.status <> "OK"
+        updatePlaybackTypeValue()
+        return
+    end if
+
+    config = m.global.config
+    if config = invalid
+        config = {}
+    end if
+
+    config.playbackType = m.pendingPlaybackType
+    m.global.config = config
+    updatePlaybackTypeValue()
+end sub
+
+sub updatePlaybackTypeValue()
+    m.playbackTypeListItem = m.items.playback_type.node
+    m.playbackTypeListItem.description = getPlaybackTypeLabel(getPlaybackType())
 end sub
 
 sub setShowOnlyMedia()

@@ -64,6 +64,7 @@ make live-test-press KEYS="Back Info"
 make live-test-deeplink CONTENT_ID=<file-id>
 make live-test-playback CONTENT_ID=<file-id>
 make live-test-playback-remote CONTENT_ID=<file-id>
+make live-test-playback-type TYPE=<hls|mp4>
 make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-launch
@@ -93,6 +94,10 @@ make console
   keypresses, waits briefly for the dev app SceneGraph when available, and then
   confirms `videoPlayerScreen` is visible. Use it when repeated relaunches make
   the device unstable during HLS startup.
+- `make live-test-playback-type TYPE=<hls|mp4>` updates the `playbackType`
+  config value for the prepared `PUTIO_CLI_PROFILE`. The player UI smoke sets
+  this to HLS before running so persisted MP4 preference does not break
+  HLS-specific track assertions.
 - `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
   opens playback through deep links, asserts direct player routing instead of
   the old play/subtitle preselection surface, asserts HLS playback for the

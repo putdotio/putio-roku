@@ -239,6 +239,14 @@ live-test-playback-remote:
 	fi
 	ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live launch-playback-remote $(CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue)
 
+.PHONY: live-test-playback-type
+live-test-playback-type:
+	@if [ -z "$(TYPE)" ]; then \
+		echo "ERROR: TYPE is not set. Example: make live-test-playback-type TYPE=hls"; \
+		exit 1; \
+	fi
+	ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live set-playback-type $(TYPE) "$(PUTIO_CLI_PROFILE)"
+
 .PHONY: live-test-player-ui
 live-test-player-ui:
 	@if [ -z "$(AUDIO_CONTENT_ID)" ]; then \

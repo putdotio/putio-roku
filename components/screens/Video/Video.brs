@@ -5,7 +5,9 @@ function init()
     m.subtitles = []
     m.phase = "idle"
     m.fetchedStartFrom = 0
+    m.playbackType = getDefaultPlaybackType()
     m.fetchFileTask = createObject("roSGNode", "HttpTask")
+    m.fetchConfigTask = createObject("roSGNode", "HttpTask")
     m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
     m.fetchStartFromTask = createObject("roSGNode", "HttpTask")
     m.continueWatchingPrompt = m.top.findNode("continueWatchingPrompt")
@@ -40,6 +42,7 @@ end sub
 
 sub cancelHttpTasks()
     m.fetchFileTask.unobserveField("response")
+    m.fetchConfigTask.unobserveField("response")
     m.fetchSubtitlesTask.unobserveField("response")
     m.fetchStartFromTask.unobserveField("response")
     m.conversionStatus.control = "stop"
@@ -79,6 +82,33 @@ sub handleFetchedFile()
         hideLoading()
         showPlaybackUnavailableDialog()
         return
+    end if
+
+    fetchPlaybackConfig()
+end sub
+
+sub fetchPlaybackConfig()
+    m.phase = "loadingConfig"
+    m.playbackType = getPlaybackTypeFromConfig(m.global.config)
+    m.fetchConfigTask.observeField("response", "onFetchPlaybackConfigResponse")
+    m.fetchConfigTask.url = "/config"
+    m.fetchConfigTask.method = "GET"
+    m.fetchConfigTask.control = "RUN"
+end sub
+
+sub onFetchPlaybackConfigResponse(obj)
+    m.fetchConfigTask.unobserveField("response")
+    data = parseJSON(obj.getData())
+
+    if data <> invalid and data.config <> invalid
+        m.playbackType = getPlaybackTypeFromConfig(data.config)
+
+        config = m.global.config
+        if config = invalid
+            config = {}
+        end if
+        config.playbackType = m.playbackType
+        m.global.config = config
     end if
 
     fetchSubtitles()
@@ -239,6 +269,7 @@ sub navigateToVideoPlayer(startFrom)
         params: {
             file: m.file,
             subtitles: m.subtitles,
+            playbackType: m.playbackType,
             startFrom: startFrom
         }
     }
@@ -261,7 +292,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
 end function
 
 function shouldShowConversionFlow(file as object) as boolean
-    return file.need_convert = true and hasPlayableMp4Stream(file) = false
+    return file.need_convert = true
 end function
 
 function shouldResumeFrom(startFrom as integer) as boolean

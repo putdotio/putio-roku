@@ -2,30 +2,64 @@ function isNonEmptyString(value) as boolean
     return value <> invalid and value.toStr() <> ""
 end function
 
+function isPlaybackConversionReady(file as object) as boolean
+    return file <> invalid and file.need_convert <> true
+end function
+
 function hasPlayableMp4Stream(file as object) as boolean
-    return file <> invalid and file.is_mp4_available = true and isNonEmptyString(file.mp4_stream_url)
+    return isPlaybackConversionReady(file) and file.is_mp4_available = true and isNonEmptyString(file.mp4_stream_url)
 end function
 
 function hasPlayableStreamUrl(file as object) as boolean
-    return file <> invalid and isNonEmptyString(file.stream_url)
+    return isPlaybackConversionReady(file) and isNonEmptyString(file.stream_url)
 end function
 
 function hasPlayableHlsStream(file as object) as boolean
-    return file <> invalid and file.need_convert <> true and file.id <> invalid
+    return isPlaybackConversionReady(file) and file.id <> invalid
 end function
 
 function hasPlayableVideoStream(file as object) as boolean
     return hasPlayableMp4Stream(file) or hasPlayableHlsStream(file) or hasPlayableStreamUrl(file)
 end function
 
-function getPlayableStreamInfo(file as object, apiUrl, downloadToken) as object
-    if hasPlayableHlsStream(file) and isNonEmptyString(apiUrl) and isNonEmptyString(downloadToken)
-        return {
-            url: getHlsManifestUrl(file, apiUrl, downloadToken),
-            format: "hls"
-        }
+function getPlayableStreamInfo(file as object, apiUrl, downloadToken, playbackType = "hls") as object
+    if getNormalizedPlaybackType(playbackType) = "mp4"
+        return getMp4FirstStreamInfo(file, apiUrl, downloadToken)
     end if
 
+    return getHlsFirstStreamInfo(file, apiUrl, downloadToken)
+end function
+
+function getHlsFirstStreamInfo(file as object, apiUrl, downloadToken) as object
+    hlsStreamInfo = getHlsStreamInfo(file, apiUrl, downloadToken)
+    if hlsStreamInfo <> invalid
+        return hlsStreamInfo
+    end if
+
+    return getMp4StreamInfo(file)
+end function
+
+function getMp4FirstStreamInfo(file as object, apiUrl, downloadToken) as object
+    mp4StreamInfo = getMp4StreamInfo(file)
+    if mp4StreamInfo <> invalid
+        return mp4StreamInfo
+    end if
+
+    return getHlsStreamInfo(file, apiUrl, downloadToken)
+end function
+
+function getHlsStreamInfo(file as object, apiUrl, downloadToken) as object
+    if hasPlayableHlsStream(file) = false or isNonEmptyString(apiUrl) = false or isNonEmptyString(downloadToken) = false
+        return invalid
+    end if
+
+    return {
+        url: getHlsManifestUrl(file, apiUrl, downloadToken),
+        format: "hls"
+    }
+end function
+
+function getMp4StreamInfo(file as object) as object
     if hasPlayableMp4Stream(file)
         return {
             url: file.mp4_stream_url.toStr(),
@@ -42,6 +76,10 @@ function getPlayableStreamInfo(file as object, apiUrl, downloadToken) as object
     end if
 
     return invalid
+end function
+
+function getNormalizedPlaybackType(playbackType) as string
+    return normalizePlaybackTypeSetting(playbackType)
 end function
 
 function getHlsManifestUrl(file as object, apiUrl, downloadToken) as string

@@ -7,6 +7,9 @@ sub Main(args as object)
     m.global.addFields({
         appId: "3776",
         user: {},
+        config: {
+            playbackType: "hls"
+        },
         route: {
             id: "splashScreen",
             params: {},

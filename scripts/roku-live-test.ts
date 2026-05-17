@@ -76,12 +76,22 @@ type ReviewImage = {
   title: string;
 };
 
+type PutioCliAuthProfile = {
+  auth_token?: string;
+};
+
+type PutioCliConfig = {
+  auth_token?: string;
+  profiles?: Record<string, PutioCliAuthProfile>;
+};
+
 function usage(): never {
   console.error(`usage:
   node scripts/roku-live-test.ts check
   node scripts/roku-live-test.ts active-app
   node scripts/roku-live-test.ts auth-reset
   node scripts/roku-live-test.ts auth-prepare [profile]
+  node scripts/roku-live-test.ts set-playback-type <hls|mp4> [profile]
   node scripts/roku-live-test.ts launch [app-id]
   node scripts/roku-live-test.ts launch-deeplink <content-id> [media-type]
   node scripts/roku-live-test.ts launch-playback <content-id> [media-type] [continue|beginning]
@@ -341,6 +351,66 @@ function createPlaybackParams(
   }
 
   return params;
+}
+
+function playbackTypeFromArg(value: string): "hls" | "mp4" {
+  if (value === "hls" || value === "mp4") {
+    return value;
+  }
+
+  throw new Error("playback type must be hls or mp4");
+}
+
+function putioProfileFromArg(rawProfile?: string): string {
+  return rawProfile?.trim() || process.env.PUTIO_CLI_PROFILE?.trim() || "devs-fe-auto";
+}
+
+function putioConfigPathForProfile(profile: string): string {
+  const rawPath = process.env.PUTIO_CLI_CONFIG_PATH?.trim();
+
+  if (rawPath) {
+    return rawPath;
+  }
+
+  return join(process.cwd(), ".putio-cli", `${profile}.json`);
+}
+
+function putioApiBaseUrl(): string {
+  return process.env.PUTIO_CLI_API_BASE_URL?.trim() || "https://api.put.io";
+}
+
+async function readPreparedPutioToken(profile: string): Promise<string> {
+  const config = JSON.parse(await readFile(putioConfigPathForProfile(profile), "utf8")) as PutioCliConfig;
+  const token = config.profiles?.[profile]?.auth_token ?? config.auth_token;
+
+  if (!token) {
+    throw new Error(`No put.io token is configured for ${profile}. Run auth-prepare first.`);
+  }
+
+  return token;
+}
+
+async function setPutioConfigValue(profile: string, key: string, value: string): Promise<void> {
+  const token = await readPreparedPutioToken(profile);
+  const url = new URL(`/v2/config/${encodeURIComponent(key)}`, putioApiBaseUrl());
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ value }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`put.io config update failed (${response.status}): ${await response.text()}`);
+  }
+}
+
+async function setPlaybackTypeConfig(playbackType: "hls" | "mp4", profile?: string): Promise<void> {
+  const resolvedProfile = putioProfileFromArg(profile);
+  await setPutioConfigValue(resolvedProfile, "playbackType", playbackType);
+  console.log(`set playbackType=${playbackType} for profile=${resolvedProfile}`);
 }
 
 async function querySceneGraph(target: string): Promise<string> {
@@ -1754,6 +1824,8 @@ async function playerUiSmoke(
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<void> {
+  await setPlaybackTypeConfig("hls");
+
   const audioApp = await launchPlaybackWithRemoteStart(
     target,
     audioContentId,
@@ -2470,6 +2542,14 @@ async function main(): Promise<void> {
   } else if (command === "auth-prepare") {
     const [profile = process.env.PUTIO_CLI_PROFILE ?? "devs-fe-auto"] = args;
     await waitForAuthReady(target, profile);
+  } else if (command === "set-playback-type") {
+    const [rawPlaybackType, rawProfile] = args;
+
+    if (!rawPlaybackType) {
+      usage();
+    }
+
+    await setPlaybackTypeConfig(playbackTypeFromArg(rawPlaybackType), rawProfile);
   } else if (command === "launch") {
     const appId = args[0] ?? "dev";
     const app = await launchApp(target, appId);

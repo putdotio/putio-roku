@@ -216,7 +216,7 @@ end sub
 
 sub setupPlayer()
     file = m.top.params.file
-    streamInfo = getPlayableStreamInfo(file, m.global.apiURL, m.global.user.download_token)
+    streamInfo = getPlayableStreamInfo(file, m.global.apiURL, m.global.user.download_token, getConfiguredPlaybackType())
     videoContent = createObject("RoSGNode", "ContentNode")
 
     resetPlaybackState()
@@ -245,6 +245,18 @@ sub setupPlayer()
     applySubtitleSelection()
     startPlayback(m.top.params.startFrom)
 end sub
+
+function getConfiguredPlaybackType() as string
+    if m.top.params <> invalid and m.top.params.playbackType <> invalid
+        return normalizePlaybackTypeSetting(m.top.params.playbackType)
+    end if
+
+    if m.global.config <> invalid and m.global.config.playbackType <> invalid
+        return normalizePlaybackTypeSetting(m.global.config.playbackType)
+    end if
+
+    return getDefaultPlaybackType()
+end function
 
 sub resetPlaybackState()
     if m.playbackSpeedSupported

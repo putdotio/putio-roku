@@ -114,16 +114,48 @@ sub onUserInfoResponse(obj)
     if data <> invalid and data.info <> invalid
         m.routeHistory = []
         m.global.user = data.info
-        if m.pendingDeepLink <> invalid
-            routePendingDeepLink()
-        else
-            m.global.route = {
-                id: "homeScreen",
-                params: {}
-            }
-        end if
+        getUserConfig()
     else
         goToAuthScreen()
+    end if
+end sub
+
+sub getUserConfig()
+    m.configTask = createObject("roSGNode", "HttpTask")
+    m.configTask.observeField("response", "onUserConfigResponse")
+    m.configTask.url = "/config"
+    m.configTask.control = "RUN"
+end sub
+
+sub onUserConfigResponse(obj)
+    m.configTask.unobserveField("response")
+    data = parseJSON(obj.getData())
+
+    if data <> invalid and data.config <> invalid
+        m.global.config = normalizeAppConfig(data.config)
+    end if
+
+    routeAfterBootstrap()
+end sub
+
+function normalizeAppConfig(config) as object
+    normalizedConfig = m.global.config
+    if normalizedConfig = invalid
+        normalizedConfig = {}
+    end if
+
+    normalizedConfig.playbackType = getPlaybackTypeFromConfig(config)
+    return normalizedConfig
+end function
+
+sub routeAfterBootstrap()
+    if m.pendingDeepLink <> invalid
+        routePendingDeepLink()
+    else
+        m.global.route = {
+            id: "homeScreen",
+            params: {}
+        }
     end if
 end sub
 
