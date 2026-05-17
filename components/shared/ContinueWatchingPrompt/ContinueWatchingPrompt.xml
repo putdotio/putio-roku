@@ -21,11 +21,11 @@
 
     <Group
       id="panel"
-      translation="[560,310]"
+      translation="[560,340]"
     >
       <Rectangle
         width="800"
-        height="460"
+        height="400"
         color="0x141414F4"
       />
 
@@ -35,22 +35,30 @@
         width="688"
         font="font:LargeBoldSystemFont"
         color="0xE8E8E8FF"
-        text="Continue watching?"
-      />
-
-      <Label
-        id="message"
-        translation="[56,126]"
-        width="688"
-        height="94"
-        wrap="true"
-        font="font:MediumSystemFont"
-        color="0xBDBDBDFF"
       />
 
       <Group
+        id="progressTrack"
+        translation="[56,138]"
+      >
+        <Rectangle
+          id="progressRemaining"
+          width="688"
+          height="12"
+          color="0x5F5F5FFF"
+        />
+
+        <Rectangle
+          id="progressElapsed"
+          width="0"
+          height="12"
+          color="0xB49A22FF"
+        />
+      </Group>
+
+      <Group
         id="continueButton"
-        translation="[56,252]"
+        translation="[56,192]"
       >
         <Rectangle
           id="continueBackground"
@@ -69,7 +77,7 @@
 
       <Group
         id="beginningButton"
-        translation="[56,342]"
+        translation="[56,282]"
       >
         <Rectangle
           id="beginningBackground"

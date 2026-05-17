@@ -5,22 +5,39 @@ sub init()
     m.beginningBackground = m.top.findNode("beginningBackground")
     m.continueLabel = m.top.findNode("continueLabel")
     m.beginningLabel = m.top.findNode("beginningLabel")
-    m.message = m.top.findNode("message")
+    m.title = m.top.findNode("title")
+    m.progressElapsed = m.top.findNode("progressElapsed")
     updateLabels()
     updateFocus()
 end sub
 
 sub updateLabels()
     startFromLabel = getDurationString(m.top.startFrom)
-    durationLabel = getDurationString(m.top.duration)
 
     if m.top.fileName <> invalid and m.top.fileName <> ""
-        m.message.text = m.top.fileName + chr(10) + "Last saved position is " + startFromLabel + " of " + durationLabel
+        m.title.text = m.top.fileName
     else
-        m.message.text = "Last saved position is " + startFromLabel + " of " + durationLabel
+        m.title.text = "Continue playing"
     end if
 
     m.continueLabel.text = "Continue playing from " + startFromLabel
+    updateProgress()
+end sub
+
+sub updateProgress()
+    progressWidth = 0
+
+    if m.top.duration > 0 and m.top.startFrom > 0
+        progressWidth = fix((m.top.startFrom / m.top.duration) * 688)
+    end if
+
+    if progressWidth < 0
+        progressWidth = 0
+    else if progressWidth > 688
+        progressWidth = 688
+    end if
+
+    m.progressElapsed.width = progressWidth
 end sub
 
 sub updateFocus()
