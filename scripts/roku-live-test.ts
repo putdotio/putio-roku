@@ -6,6 +6,7 @@ import { basename, dirname, extname, join } from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import {
+  assertMediaPlayerContainer as rokitAssertMediaPlayerContainer,
   assertNamedNodeState,
   assertNamedNodeSize as assertNodeSize,
   assertNamedNodeText,
@@ -18,6 +19,7 @@ import {
   pressKey as rokitPressKey,
   queryActiveApp as rokitQueryActiveApp,
   queryMediaPlayerXml as rokitQueryMediaPlayerXml,
+  queryMediaPlayerXmlSafe as rokitQueryMediaPlayerXmlSafe,
   querySceneGraph as rokitQuerySceneGraph,
   readNamedNodeAttribute,
   readNamedNodeAttributes,
@@ -27,6 +29,7 @@ import {
   readMediaPlayerPositionMs as rokitReadMediaPlayerPositionMs,
   readMediaPlayerState as rokitReadMediaPlayerState,
   readSceneGraphFailure,
+  sceneGraphContainsText,
   takeScreenshot as rokitTakeScreenshot,
   validateRemoteKey,
   waitForActiveApp as rokitWaitForActiveApp,
@@ -475,6 +478,7 @@ async function querySceneGraph(target: string): Promise<string> {
     try {
       xml = await rokitQuerySceneGraph(rokitContext(target, sceneGraphRequestTimeoutMs), {
         attempts: 2,
+        requireComplete: true,
         retryDelayMs: 500,
       });
     } catch (error) {
@@ -510,20 +514,14 @@ async function queryMediaPlayerStateSafe(target: string): Promise<string | undef
 }
 
 async function queryMediaPlayerXmlSafe(target: string): Promise<string | undefined> {
-  try {
-    return await rokitQueryMediaPlayerXml(rokitContext(target));
-  } catch {
-    return undefined;
-  }
+  return await rokitQueryMediaPlayerXmlSafe(rokitContext(target));
 }
 
 function readMediaPlayerPositionMs(xml: string | undefined): number | undefined {
   return xml === undefined ? undefined : rokitReadMediaPlayerPositionMs(xml);
 }
 
-function isActiveMediaPlayerState(state: string | undefined): boolean {
-  return rokitIsActiveMediaPlayerState(state) || state === "buffering";
-}
+const isActiveMediaPlayerState = rokitIsActiveMediaPlayerState;
 
 async function assertHlsPlaybackSurfaceOnDevice(
   target: string,
@@ -563,16 +561,7 @@ async function assertMediaPlayerContainer(
   target: string,
   expectedContainer: string,
 ): Promise<void> {
-  const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
-
-  if (mediaPlayerXml === undefined) {
-    throw new Error(`expected media-player container ${expectedContainer}, got unavailable media-player`);
-  }
-
-  const actualContainer = readMediaPlayerContainer(mediaPlayerXml);
-  if (actualContainer !== expectedContainer) {
-    throw new Error(`expected media-player container ${expectedContainer}, got ${actualContainer ?? "unknown"}`);
-  }
+  await rokitAssertMediaPlayerContainer(rokitContext(target), expectedContainer);
 }
 
 async function assertPlaybackTypeSurfaceOnDevice(
@@ -2081,18 +2070,6 @@ async function playbackErrorDialogSmoke(
 
   await pressKey(target, "Select");
   console.log(`asserted readable playback error dialog for contentID=${contentId}`);
-}
-
-function sceneGraphContainsText(xml: string, text: string): boolean {
-  return xml.includes(escapeXmlAttribute(text));
-}
-
-function escapeXmlAttribute(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 async function captureDeveloperScreenshot(
