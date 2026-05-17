@@ -159,6 +159,7 @@ function init()
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false
+    m.hasPlaybackError = false
 end function
 
 function isPlaybackSpeedSupported(video) as boolean
@@ -287,6 +288,7 @@ sub resetPlaybackState()
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false
+    m.hasPlaybackError = false
     m.lastSavedVideoTime = invalid
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
@@ -389,11 +391,14 @@ sub onPlayerStateChanged(obj)
     updatePositionPauseIcon()
 
     if state = "error"
+        m.hasPlaybackError = true
         updateBufferingOverlay(false)
         onError()
     else if state = "finished"
         updateBufferingOverlay(false)
-        onGoBack()
+        if m.hasPlaybackError = false
+            onGoBack()
+        end if
     else if state = "buffering"
         updateBufferingOverlay(true)
         showOsd()

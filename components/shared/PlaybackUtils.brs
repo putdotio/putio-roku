@@ -98,12 +98,12 @@ function getPlaybackStreamFormat(streamUrl as string) as string
         return "hls"
     end if
 
-    if Instr(1, lowerUrl, ".mp4") > 0
+    if Instr(1, lowerUrl, ".mp4") > 0 or Instr(1, lowerUrl, "/stream/") > 0
         return "mp4"
     end if
 
-    ' put.io's generic stream_url is the adaptive playback surface for Roku.
-    return "hls"
+    ' put.io stream_url is a direct stream fallback unless the URL identifies HLS.
+    return "mp4"
 end function
 
 function getVideoFileDurationSeconds(file as object) as integer
