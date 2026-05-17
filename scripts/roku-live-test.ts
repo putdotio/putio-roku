@@ -12,20 +12,25 @@ import {
   assertNamedNodeTranslation as assertNodeTranslation,
   assertSceneGraphNumberNear as assertNear,
   checkDevice as rokitCheckDevice,
+  isActiveMediaPlayerState as rokitIsActiveMediaPlayerState,
   isNamedNodeVisible,
   launchApp as rokitLaunchApp,
   pressKey as rokitPressKey,
   queryActiveApp as rokitQueryActiveApp,
-  queryEcp as rokitQueryEcp,
+  queryMediaPlayerXml as rokitQueryMediaPlayerXml,
   querySceneGraph as rokitQuerySceneGraph,
   readNamedNodeAttribute,
   readNamedNodeAttributes,
   readNamedNodeNumber,
   readNamedNodeTranslation,
+  readMediaPlayerContainer,
+  readMediaPlayerPositionMs as rokitReadMediaPlayerPositionMs,
+  readMediaPlayerState as rokitReadMediaPlayerState,
   readSceneGraphFailure,
   takeScreenshot as rokitTakeScreenshot,
   validateRemoteKey,
   waitForActiveApp as rokitWaitForActiveApp,
+  waitForMediaPlayerState as rokitWaitForMediaPlayerState,
   waitForSceneGraphAssertion as rokitWaitForSceneGraphAssertion,
   waitForSceneGraphNode as rokitWaitForSceneGraphNode,
   type ActiveApp,
@@ -444,9 +449,7 @@ async function querySceneGraph(target: string): Promise<string> {
 }
 
 async function queryMediaPlayerState(target: string): Promise<string | undefined> {
-  const xml = await rokitQueryEcp(rokitContext(target), "/query/media-player");
-  const match = /<player\b[^>]*\bstate="([^"]+)"/.exec(xml);
-  return match ? match[1] : undefined;
+  return rokitReadMediaPlayerState(await rokitQueryMediaPlayerXml(rokitContext(target)));
 }
 
 async function queryMediaPlayerStateSafe(target: string): Promise<string | undefined> {
@@ -459,27 +462,18 @@ async function queryMediaPlayerStateSafe(target: string): Promise<string | undef
 
 async function queryMediaPlayerXmlSafe(target: string): Promise<string | undefined> {
   try {
-    return await rokitQueryEcp(rokitContext(target), "/query/media-player");
+    return await rokitQueryMediaPlayerXml(rokitContext(target));
   } catch {
     return undefined;
   }
 }
 
 function readMediaPlayerPositionMs(xml: string | undefined): number | undefined {
-  if (xml === undefined) {
-    return undefined;
-  }
-
-  const match = /<position>(\d+) ms<\/position>/.exec(xml);
-  if (match === null) {
-    return undefined;
-  }
-
-  return Number(match[1]);
+  return xml === undefined ? undefined : rokitReadMediaPlayerPositionMs(xml);
 }
 
 function isActiveMediaPlayerState(state: string | undefined): boolean {
-  return state === "play" || state === "pause" || state === "buffer" || state === "buffering";
+  return rokitIsActiveMediaPlayerState(state) || state === "buffering";
 }
 
 async function hasActiveMediaPlayback(target: string): Promise<boolean> {
@@ -500,7 +494,7 @@ async function assertHlsPlaybackSurfaceOnDevice(
     if (
       hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
       mediaPlayerXml !== undefined &&
-      mediaPlayerXml.includes('container="hls"') &&
+      readMediaPlayerContainer(mediaPlayerXml) === "hls" &&
       isActiveMediaPlayerState(await queryMediaPlayerStateSafe(target))
     ) {
       return;
@@ -545,17 +539,12 @@ async function waitForMediaPlayerState(
   expectedState: string,
   timeoutMs = 4_000,
 ): Promise<boolean> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeoutMs) {
-    if ((await queryMediaPlayerStateSafe(target)) === expectedState) {
-      return true;
-    }
-
-    await sleep(500);
+  try {
+    await rokitWaitForMediaPlayerState(rokitContext(target), expectedState, timeoutMs);
+    return true;
+  } catch {
+    return false;
   }
-
-  return false;
 }
 
 async function ensureMediaPlaying(target: string): Promise<void> {

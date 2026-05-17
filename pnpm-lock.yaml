@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@putdotio/rokit':
-        specifier: 1.5.0
-        version: 1.5.0
+        specifier: 1.6.0
+        version: 1.6.0
       '@rokucommunity/bslint':
         specifier: 0.8.43
         version: 0.8.43(brighterscript@0.72.1)
@@ -195,8 +195,8 @@ packages:
   '@postman/tunnel-agent@0.6.8':
     resolution: {integrity: sha512-2U42SmZW5G+suEcS++zB94sBWNO4qD4bvETGFRFDTqSpYl5ksfjcPqzYpgQgXgUmb6dfz+fAGbkcRamounGm0w==}
 
-  '@putdotio/rokit@1.5.0':
-    resolution: {integrity: sha512-aijTbvu/58Cv4kD8pFuHb79rLmictArWYxzw0gnpX1gwU0nZEdLXIUalrm5Q3bh9vs2cNqpr/RdwFA2LrIweVQ==}
+  '@putdotio/rokit@1.6.0':
+    resolution: {integrity: sha512-73tYzl2/MI7Gu9JzkuZPSGFJx/WZgqucUMh0SI5jaI8Ik8phzLzrEFVD7nUFKgsGl8uGHIUMF9PhUAT97VRxwA==}
     engines: {node: '>=24.14.0 <25'}
     hasBin: true
 
@@ -1725,7 +1725,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  '@putdotio/rokit@1.5.0':
+  '@putdotio/rokit@1.6.0':
     dependencies:
       roku-deploy: 3.17.3
     transitivePeerDependencies:
