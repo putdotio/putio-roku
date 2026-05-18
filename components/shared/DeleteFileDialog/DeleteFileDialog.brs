@@ -7,6 +7,8 @@ sub init()
     m.panelBorderBottom = m.top.findNode("panelBorderBottom")
     m.panelBorderLeft = m.top.findNode("panelBorderLeft")
     m.title = m.top.findNode("title")
+    m.divider = m.top.findNode("divider")
+    m.message = m.top.findNode("message")
     m.fileName = m.top.findNode("fileName")
     m.buttons = m.top.findNode("buttons")
     m.deleteButtonBackground = m.top.findNode("deleteButtonBackground")
@@ -15,6 +17,12 @@ sub init()
     m.cancelButtonLabel = m.top.findNode("cancelButtonLabel")
     m.focusIndex = 1
     m.isDeleting = false
+    applyDialogScrim(m.scrim)
+    applyDialogPanelColors(m.panel, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
+    applyDialogTextColors(m.title, invalid)
+    setDialogNodeColor(m.divider, "border")
+    setDialogNodeColor(m.message, "textMuted")
+    setDialogNodeColor(m.fileName, "text")
     updateDeleteDialogLayout(1)
     updateButtonFocus()
 end sub
@@ -83,18 +91,18 @@ sub updateButtonFocus()
     cancelFocused = m.focusIndex = 1
 
     if deleteFocused
-        m.deleteButtonBackground.color = "0xE5484DFF"
+        setDialogNodeColor(m.deleteButtonBackground, "dangerFocused")
     else
-        m.deleteButtonBackground.color = "0xAA2429FF"
+        setDialogNodeColor(m.deleteButtonBackground, "danger")
     end if
-    m.deleteButtonLabel.color = "0xFFFFFFFF"
+    m.deleteButtonLabel.color = dialogSecondaryButtonTextColor()
 
     if cancelFocused
-        m.cancelButtonBackground.color = "0x303033FF"
-        m.cancelButtonLabel.color = "0xFFFFFFFF"
+        setDialogNodeColor(m.cancelButtonBackground, "focus")
+        m.cancelButtonLabel.color = dialogSecondaryButtonTextColor()
     else
-        m.cancelButtonBackground.color = "0x202023FF"
-        m.cancelButtonLabel.color = "0xE5E5E5FF"
+        setDialogNodeColor(m.cancelButtonBackground, "secondary")
+        m.cancelButtonLabel.color = dialogSecondaryButtonTextColor()
     end if
 end sub
 
@@ -116,10 +124,10 @@ sub deleteSelectedFile()
     m.isDeleting = true
     m.fileName.text = "Deleting..."
     updateDeleteDialogLayout(1)
-    m.deleteButtonBackground.color = "0x2A2A2AFF"
-    m.cancelButtonBackground.color = "0x202023FF"
-    m.deleteButtonLabel.color = "0x777777FF"
-    m.cancelButtonLabel.color = "0x777777FF"
+    setDialogNodeColor(m.deleteButtonBackground, "secondary")
+    setDialogNodeColor(m.cancelButtonBackground, "secondary")
+    m.deleteButtonLabel.color = dialogColor("disabledText")
+    m.cancelButtonLabel.color = dialogColor("disabledText")
 
     m.deleteFileTask = createObject("roSGNode", "HttpTask")
     m.deleteFileTask.observeField("response", "onDeleteFileResponse")

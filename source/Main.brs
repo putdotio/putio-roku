@@ -23,7 +23,7 @@ sub Main(args as object)
     })
 
     scene = screen.CreateScene("App")
-    scene.backgroundColor = "0x333333FF"
+    scene.backgroundColor = "0x161616FF"
     scene.backgroundUri = ""
     if args <> invalid
         scene.deepLink = args
@@ -88,7 +88,7 @@ end function
 
 sub launchLab(screen, args as object)
     scene = screen.CreateScene("Lab")
-    scene.backgroundColor = "0x202020FF"
+    scene.backgroundColor = "0x161616FF"
     scene.backgroundUri = ""
 
     story = readLaunchArg(args, "story")

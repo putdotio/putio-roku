@@ -911,7 +911,7 @@ sub updateControlFocus()
             if focused
                 control.valueLabel.color = "0xFDCE45FF"
             else
-                control.valueLabel.color = "0xD6D6D6FF"
+                control.valueLabel.color = "0xA0A0A0FF"
             end if
         end if
     end for
@@ -927,7 +927,7 @@ sub updateProgressFocusStyle(focused as boolean)
     if focused
         m.progressTrack.translation = [0, 23]
         m.progressTrack.height = 12
-        m.progressTrack.color = "0x8A8A8AFF"
+        m.progressTrack.color = "0x505050FF"
         m.progressFill.translation = [0, 23]
         m.progressFill.height = 12
         m.progressFill.color = "0xFDCE45FF"
@@ -942,10 +942,10 @@ sub updateProgressFocusStyle(focused as boolean)
     else
         m.progressTrack.translation = [0, 25]
         m.progressTrack.height = 8
-        m.progressTrack.color = "0x5B5B5BE0"
+        m.progressTrack.color = "0x343434E0"
         m.progressFill.translation = [0, 25]
         m.progressFill.height = 8
-        m.progressFill.color = "0xD2A923FF"
+        m.progressFill.color = "0xFDCE45FF"
         m.progressFocusTop.width = 0
         m.progressFocusTop.height = 0
         m.progressFocusBottom.width = 0

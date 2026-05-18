@@ -1,6 +1,7 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
     m.global.observeField("user", "modifyList")
+    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.list = m.top.findNode("list")
     m.list.observeField("itemSelected", "onListItemSelected")

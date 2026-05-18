@@ -4,6 +4,7 @@ end sub
 
 sub initAppDialog()
     m.top.focusable = true
+    m.scrim = m.top.findNode("scrim")
     m.panelGroup = m.top.findNode("panelGroup")
     m.panelShadow = m.top.findNode("panelShadow")
     m.panel = m.top.findNode("panel")
@@ -32,6 +33,13 @@ sub initAppDialog()
         },
     ]
     m.focusIndex = 0
+    applyDialogScrim(m.scrim)
+    applyDialogPanelColors(m.panel, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
+    applyDialogTextColors(m.titleLabel, invalid)
+    setDialogNodeColor(m.divider, "border")
+    for each label in m.messageLabels
+        setDialogNodeColor(label, "textMuted")
+    end for
     updateDialogContent()
     updateDialogButtons()
 end sub
@@ -185,18 +193,18 @@ sub updateDialogButtonFocus()
 
         if i = 0
             if focused
-                button.background.color = "0xFFD24AFF"
+                setDialogNodeColor(button.background, "primary")
             else
-                button.background.color = "0xE9BE35FF"
+                setDialogNodeColor(button.background, "primaryPressed")
             end if
-            button.label.color = "0x000000FF"
+            button.label.color = dialogPrimaryButtonTextColor()
         else
             if focused
-                button.background.color = "0x303033FF"
-                button.label.color = "0xFFFFFFFF"
+                setDialogNodeColor(button.background, "focus")
+                button.label.color = dialogSecondaryButtonTextColor()
             else
-                button.background.color = "0x202023FF"
-                button.label.color = "0xE5E5E5FF"
+                setDialogNodeColor(button.background, "secondary")
+                button.label.color = dialogSecondaryButtonTextColor()
             end if
         end if
     end for

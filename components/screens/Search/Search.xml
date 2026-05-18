@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SearchScreen" extends="Group">
+	<script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
 	<script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
 	<script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
 	<script type="text/brightscript" uri="pkg:/components/screens/Search/Search.brs" />
@@ -55,9 +56,10 @@
 						id="searchHistory"
 						itemSize="[960, 120]"
 						itemSpacing="[0, 30]"
-						focusedColor="0xddddddff"
-						focusBitmapBlendColor="0x00000FF"
-						vertFocusAnimationStyle="floatingFocus"
+						color="0xA0A0A0FF"
+						focusedColor="0xEDEDEDFF"
+						drawFocusFeedback="false"
+						vertFocusAnimationStyle="fixedFocus"
 						numRows="6"
 						visible="false"
 					/>
@@ -66,8 +68,8 @@
 						itemComponentName="FileListItem"
 						itemSize="[960, 120]"
 						itemSpacing="[0, 30]"
-						focusBitmapBlendColor="0x00000FF"
-						vertFocusAnimationStyle="floatingFocus"
+						drawFocusFeedback="false"
+						vertFocusAnimationStyle="fixedFocus"
 						numRows="6"
 					/>
 				</LayoutGroup>

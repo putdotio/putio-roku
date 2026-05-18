@@ -1,7 +1,9 @@
 function init()
+    m.focusBackground = m.top.findNode("focusBackground")
     m.icon = m.top.findNode("icon")
     m.title = m.top.findNode("title")
     m.description = m.top.findNode("description")
+    setDialogNodeColor(m.focusBackground, "focus")
 end function
 
 sub itemContentChanged()
@@ -22,4 +24,8 @@ sub configureDescription()
     if m.top.itemContent.description <> invalid
         m.description.text = m.top.itemContent.description
     end if
+end sub
+
+sub updateFocus()
+    m.focusBackground.visible = m.top.itemHasFocus
 end sub

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HistoryScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/History/History.brs" />
@@ -36,7 +37,8 @@
 			itemComponentName="HistoryListItem"
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
-			focusBitmapBlendColor="0x00000FF"
+			drawFocusFeedback="false"
+      vertFocusAnimationStyle="fixedFocus"
 			numRows="6"
 		/>
 	</children>

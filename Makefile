@@ -325,6 +325,11 @@ lab-launch: check-roku-dev-target
 			track-menu-subtitles) EXPECTED_TITLE="TrackMenu / subtitles" ;; \
 			track-menu-subtitles-scroll) EXPECTED_TITLE="TrackMenu / subtitles scroll" ;; \
 			track-menu-speed) EXPECTED_TITLE="TrackMenu / playback speed" ;; \
+			conversion-status-converting) EXPECTED_TITLE="VideoConversionStatus / converting" ;; \
+			conversion-status-error) EXPECTED_TITLE="VideoConversionStatus / error" ;; \
+			list-item-generic) EXPECTED_TITLE="ListItem" ;; \
+			list-item-files) EXPECTED_TITLE="FileListItem" ;; \
+			list-item-history) EXPECTED_TITLE="HistoryListItem" ;; \
 		esac; \
 		if [ -n "$$EXPECTED_TITLE" ]; then \
 			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node storyTitle text "$$EXPECTED_TITLE" --timeout-ms 10000; \

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="LabStoryListItem" extends="Group">
+  <interface>
+    <field id="itemContent" type="node" onChange="onItemContentChanged" />
+    <field id="itemHasFocus" type="bool" onChange="onItemFocusChanged" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lab/LabStoryListItem.brs" />
+
+  <children>
+    <Rectangle
+      id="focusBackground"
+      width="404"
+      height="58"
+      color="0x2E2E2EFF"
+      visible="false"
+    />
+
+    <Group id="sectionGroup" visible="false">
+      <Label
+        id="sectionLabel"
+        translation="[0,16]"
+        width="404"
+        height="28"
+        font="font:SmallBoldSystemFont"
+        color="0xA0A0A0FF"
+      />
+      <Rectangle
+        translation="[0,52]"
+        width="404"
+        height="2"
+        color="0x343434FF"
+      />
+    </Group>
+
+    <Group id="storyGroup" visible="true">
+      <Label
+        id="storyLabel"
+        translation="[24,14]"
+        width="356"
+        height="36"
+        font="font:MediumBoldSystemFont"
+        color="0xEDEDEDFF"
+      />
+    </Group>
+  </children>
+</component>

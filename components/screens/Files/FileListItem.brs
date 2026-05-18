@@ -1,10 +1,12 @@
 function init()
+    m.focusBackground = m.top.findNode("focusBackground")
     m.icon = m.top.findNode("icon")
     m.title = m.top.findNode("title")
     m.description = m.top.findNode("description")
     m.watchedEye = m.top.findNode("watchedEye")
     m.spinner = m.top.findNode("spinner")
     m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
+    setDialogNodeColor(m.focusBackground, "focus")
 end function
 
 sub itemContentChanged()
@@ -15,6 +17,10 @@ sub itemContentChanged()
     setDescription(file)
     setLoading(isLoading)
     setWatchedEye(file)
+end sub
+
+sub updateFocus()
+    m.focusBackground.visible = m.top.itemHasFocus
 end sub
 
 sub setTitle(file)

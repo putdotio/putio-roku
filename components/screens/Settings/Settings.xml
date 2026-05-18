@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SettingsScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
@@ -31,15 +32,15 @@
 			translation="[190, 190]"
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
-			focusBitmapBlendColor="0x00000FF"
-      		vertFocusAnimationStyle="floatingFocus"
+      drawFocusFeedback="false"
+      vertFocusAnimationStyle="fixedFocus"
 			numRows="6"
 		/>
 
 		<Label
 			id="version"
 			font="font:MediumBoldSystemFont"
-			color="0xFFFFFFFF"
+			color="0xEDEDEDFF"
 			text="Version "
 			width="512"
 			translation="[190, 1000]"

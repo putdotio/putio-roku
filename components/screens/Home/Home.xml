@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HomeScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Home/Home.brs" />
 
@@ -27,8 +28,8 @@
 			itemComponentName="ListItem"
 			itemSize="[1500, 120]"
 			itemSpacing="[0, 30]"
-			focusBitmapBlendColor="0x00000FF"
-      		vertFocusAnimationStyle="floatingFocus"
+      drawFocusFeedback="false"
+      vertFocusAnimationStyle="fixedFocus"
 			numRows="6"
 		/>
 	</children>

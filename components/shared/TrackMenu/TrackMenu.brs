@@ -14,6 +14,11 @@ sub init()
     m.visibleRowCount = 8
     m.rowHeight = 62
     m.rowGap = 8
+    applyDialogScrim(m.scrim)
+    applyDialogPanelColors(m.panelFill, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
+    applyDialogTextColors(m.titleLabel, invalid)
+    setDialogNodeColor(m.topSeparator, "border")
+    setDialogNodeColor(m.bottomSeparator, "border")
     m.rowNodes = createTrackMenuRows()
     renderTrackMenu()
 end sub
@@ -23,40 +28,14 @@ function createTrackMenuRows() as object
 
     for i = 0 to m.visibleRowCount - 1
         index = i.toStr()
-        row = createObject("roSGNode", "Group")
-        row.id = "trackMenuRow" + index
-        row.visible = false
+        row = m.rows.findNode("trackMenuRow" + index)
+        background = m.rows.findNode("trackMenuRow" + index + "Background")
+        label = m.rows.findNode("trackMenuRow" + index + "Label")
+        check = m.rows.findNode("trackMenuRow" + index + "Check")
+        setDialogNodeColor(background, "focus")
+        setDialogNodeColor(label, "text")
+        setDialogNodeColor(check, "primary")
 
-        background = createObject("roSGNode", "Rectangle")
-        background.id = "trackMenuRow" + index + "Background"
-        background.width = 724
-        background.height = m.rowHeight
-        background.color = "0x343438FF"
-        background.visible = false
-        row.appendChild(background)
-
-        label = createObject("roSGNode", "Label")
-        label.id = "trackMenuRow" + index + "Label"
-        label.translation = [22, 13]
-        label.width = 600
-        label.height = m.rowHeight
-        label.font = "font:MediumSystemFont"
-        label.color = "0xE7E7E7FF"
-        row.appendChild(label)
-
-        check = createObject("roSGNode", "Label")
-        check.id = "trackMenuRow" + index + "Check"
-        check.translation = [660, 8]
-        check.width = 44
-        check.height = m.rowHeight
-        check.font = "font:LargeBoldSystemFont"
-        check.horizAlign = "center"
-        check.color = "0xFFD24AFF"
-        check.text = "✓"
-        check.visible = false
-        row.appendChild(check)
-
-        m.rows.appendChild(row)
         rows.push({
             node: row,
             background: background,
@@ -109,12 +88,12 @@ sub renderTrackMenu()
 
             if focused
                 row.background.visible = true
-                row.label.color = "0xFFFFFFFF"
-                row.check.color = "0xFFD24AFF"
+                row.label.color = dialogColor("text")
+                row.check.color = dialogColor("primary")
             else
                 row.background.visible = false
-                row.label.color = "0xE7E7E7FF"
-                row.check.color = "0xFFD24AFF"
+                row.label.color = dialogColor("text")
+                row.check.color = dialogColor("primary")
             end if
         else
             row.node.visible = false

@@ -7,6 +7,7 @@
     <field id="wasClosed" type="bool" value="false" alwaysNotify="true" />
   </interface>
 
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DeleteFileDialog/DeleteFileDialog.brs" />
 
   <children>
@@ -14,7 +15,7 @@
       id="scrim"
       width="1920"
       height="1080"
-      color="0x0000004D"
+      color="0x000000B8"
     />
 
     <Rectangle
@@ -22,7 +23,7 @@
       translation="[450,280]"
       width="1040"
       height="570"
-      color="0x0000004D"
+      color="0x00000080"
     />
 
     <Rectangle
@@ -30,7 +31,7 @@
       translation="[440,270]"
       width="1040"
       height="570"
-      color="0x222225FA"
+      color="0x202020FF"
     />
 
     <Rectangle
@@ -38,7 +39,8 @@
       translation="[440,270]"
       width="1040"
       height="1"
-      color="0xFFFFFF24"
+      color="0x4A4A4AFF"
+      visible="false"
     />
 
     <Rectangle
@@ -46,7 +48,8 @@
       translation="[1479,270]"
       width="1"
       height="570"
-      color="0xFFFFFF18"
+      color="0x4A4A4AFF"
+      visible="false"
     />
 
     <Rectangle
@@ -54,7 +57,8 @@
       translation="[440,839]"
       width="1040"
       height="1"
-      color="0xFFFFFF18"
+      color="0x4A4A4AFF"
+      visible="false"
     />
 
     <Rectangle
@@ -62,7 +66,8 @@
       translation="[440,270]"
       width="1"
       height="570"
-      color="0xFFFFFF24"
+      color="0x4A4A4AFF"
+      visible="false"
     />
 
     <Label
@@ -71,7 +76,7 @@
       width="976"
       height="44"
       font="font:LargeBoldSystemFont"
-      color="0xFFFFFFFF"
+      color="0xEDEDEDFF"
       text="Delete file?"
       horizAlign="center"
     />
@@ -81,7 +86,7 @@
       translation="[492,372]"
       width="936"
       height="1"
-      color="0x505050FF"
+      color="0x343434FF"
       visible="false"
     />
 
@@ -92,7 +97,7 @@
       height="56"
       wrap="true"
       font="font:SmallSystemFont"
-      color="0xDDDDDDFF"
+      color="0xA0A0A0FF"
       text=""
       horizAlign="center"
       visible="false"
@@ -105,7 +110,7 @@
       height="140"
       wrap="true"
       font="font:SmallSystemFont"
-      color="0xFFFFFFFF"
+      color="0xEDEDEDFF"
       horizAlign="center"
     />
 
@@ -115,14 +120,14 @@
           id="deleteButtonBackground"
           width="936"
           height="76"
-          color="0xAA2429FF"
+          color="0xE5484DFF"
         />
         <Label
           id="deleteButtonLabel"
           width="936"
           height="76"
           font="font:MediumBoldSystemFont"
-          color="0xFFFFFFFF"
+          color="0xEDEDEDFF"
           text="Delete file"
           horizAlign="center"
           vertAlign="center"
@@ -134,14 +139,14 @@
           id="cancelButtonBackground"
           width="936"
           height="76"
-          color="0x303033FF"
+          color="0x2E2E2EFF"
         />
         <Label
           id="cancelButtonLabel"
           width="936"
           height="76"
           font="font:MediumBoldSystemFont"
-          color="0xFFFFFFFF"
+          color="0xEDEDEDFF"
           text="Cancel"
           horizAlign="center"
           vertAlign="center"

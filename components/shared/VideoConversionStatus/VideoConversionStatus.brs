@@ -7,13 +7,32 @@ sub init()
     m.timer.duration = 5
     m.timer.observeField("fire", "onTimerFired")
 
+    m.backdrop = m.top.findNode("backdrop")
+    m.panelFill = m.top.findNode("panelFill")
+    m.panelShadow = m.top.findNode("panelShadow")
+    m.panelBorderTop = m.top.findNode("panelBorderTop")
+    m.panelBorderRight = m.top.findNode("panelBorderRight")
+    m.panelBorderBottom = m.top.findNode("panelBorderBottom")
+    m.panelBorderLeft = m.top.findNode("panelBorderLeft")
+    m.title = m.top.findNode("title")
     m.fileNameLabel = m.top.findNode("fileNameLabel")
     m.spinner = m.top.findNode("spinner")
     m.progressGroup = m.top.findNode("progressGroup")
+    m.progressTrack = m.top.findNode("progressTrack")
     m.progressFill = m.top.findNode("progressFill")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.actionButton = m.top.findNode("actionButton")
+    m.actionBackground = m.top.findNode("actionBackground")
     m.actionLabel = m.top.findNode("actionLabel")
     m.hasError = false
+    applyDialogScrim(m.backdrop)
+    applyDialogPanelColors(m.panelFill, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
+    applyDialogTextColors(m.title, m.fileNameLabel)
+    setDialogNodeColor(m.progressTrack, "border")
+    setDialogNodeColor(m.progressFill, "primary")
+    setDialogNodeColor(m.statusLabel, "textMuted")
+    setDialogNodeColor(m.actionBackground, "focus")
+    setDialogNodeColor(m.actionLabel, "text")
 end sub
 
 sub onFileNameChange()
@@ -35,14 +54,43 @@ sub onControlChange()
     end if
 end sub
 
+sub onPreviewModeChange()
+    if m.statusLabel = invalid
+        return
+    end if
+
+    mode = LCase(m.top.previewMode)
+    if mode = ""
+        return
+    end if
+
+    stopTasks()
+    m.hasError = false
+    showSpinner()
+    hideProgress()
+    m.actionLabel.text = "Cancel"
+
+    if mode = "queued"
+        setStatus("Waiting to convert...")
+    else if mode = "converting"
+        updateProgress(62)
+        setStatus("Converting your video...")
+    else if mode = "error"
+        m.hasError = true
+        hideSpinner()
+        m.actionLabel.text = "Retry"
+        setStatus("Conversion failed.")
+    else
+        setStatus("Starting conversion...")
+    end if
+end sub
+
 sub resetState()
     stopTasks()
     m.hasError = false
     m.top.completedFile = {}
-    m.spinner.visible = true
-    m.spinner.control = "start"
-    m.progressGroup.visible = false
-    m.progressFill.width = 0
+    showSpinner()
+    hideProgress()
     m.actionLabel.text = "Cancel"
     setStatus("Starting conversion...")
 end sub
@@ -96,10 +144,12 @@ sub onCheckConversionStatusResponse(obj)
     if data.mp4.percent_done <> invalid
         updateProgress(data.mp4.percent_done)
     else
-        m.progressGroup.visible = false
+        showSpinner()
+        hideProgress()
     end if
 
     if status = "COMPLETED"
+        hideSpinner()
         setStatus("Conversion complete.")
         refetchConvertedFile()
     else if status = "ERROR"
@@ -151,8 +201,28 @@ sub updateProgress(percentDone)
         percent = 100
     end if
 
+    hideSpinner()
     m.progressGroup.visible = true
-    m.progressFill.width = int(628 * percent / 100)
+    m.progressFill.width = int(672 * percent / 100)
+    m.statusLabel.translation = [64, 244]
+    m.actionButton.translation = [240, 324]
+end sub
+
+sub showSpinner()
+    m.spinner.visible = true
+    m.spinner.control = "start"
+    m.statusLabel.translation = [64, 274]
+    m.actionButton.translation = [240, 328]
+end sub
+
+sub hideSpinner()
+    m.spinner.control = "stop"
+    m.spinner.visible = false
+end sub
+
+sub hideProgress()
+    m.progressGroup.visible = false
+    m.progressFill.width = 0
 end sub
 
 sub setStatus(status as string)
@@ -162,10 +232,11 @@ end sub
 sub showError(message as string)
     stopTasks()
     m.hasError = true
-    m.spinner.control = "stop"
-    m.spinner.visible = false
-    m.progressGroup.visible = false
+    hideSpinner()
+    hideProgress()
     m.actionLabel.text = "Retry"
+    m.statusLabel.translation = [64, 224]
+    m.actionButton.translation = [240, 304]
     setStatus(message)
 end sub
 

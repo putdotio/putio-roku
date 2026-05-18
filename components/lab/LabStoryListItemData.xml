@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="LabStoryListItemData" extends="ContentNode">
+  <interface>
+    <field id="title" type="string" />
+    <field id="section" type="string" />
+    <field id="isSection" type="boolean" value="false" />
+    <field id="storyId" type="string" />
+    <field id="storyIndex" type="integer" value="-1" />
+  </interface>
+</component>

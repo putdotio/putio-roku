@@ -1,9 +1,11 @@
 function init()
+    m.focusBackground = m.top.findNode("focusBackground")
     m.icon = m.top.findNode("icon")
     m.title = m.top.findNode("title")
     m.description = m.top.findNode("description")
     m.spinner = m.top.findNode("spinner")
     m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
+    setDialogNodeColor(m.focusBackground, "focus")
 end function
 
 sub itemContentChanged()
@@ -17,6 +19,10 @@ sub itemContentChanged()
         m.icon.uri = iconFolderPath + contentMap.icon + ".png" 'iconFileName
     end if
     setLoading(isLoading)
+end sub
+
+sub updateFocus()
+    m.focusBackground.visible = m.top.itemHasFocus
 end sub
 
 sub setLoading(isLoading)

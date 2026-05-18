@@ -1,6 +1,15 @@
 sub init()
     m.top.focusable = true
     m.focusIndex = 0
+    m.backdrop = m.top.findNode("backdrop")
+    m.panelFill = m.top.findNode("panelFill")
+    m.panelShadow = m.top.findNode("panelShadow")
+    m.panelBorderTop = m.top.findNode("panelBorderTop")
+    m.panelBorderRight = m.top.findNode("panelBorderRight")
+    m.panelBorderBottom = m.top.findNode("panelBorderBottom")
+    m.panelBorderLeft = m.top.findNode("panelBorderLeft")
+    m.title = m.top.findNode("title")
+    m.divider = m.top.findNode("divider")
     m.continueBackground = m.top.findNode("continueBackground")
     m.beginningBackground = m.top.findNode("beginningBackground")
     m.continueAccent = m.top.findNode("continueAccent")
@@ -8,7 +17,14 @@ sub init()
     m.continueLabel = m.top.findNode("continueLabel")
     m.beginningLabel = m.top.findNode("beginningLabel")
     m.fileName = m.top.findNode("fileName")
+    m.progressRemaining = m.top.findNode("progressRemaining")
     m.progressElapsed = m.top.findNode("progressElapsed")
+    applyDialogScrim(m.backdrop)
+    applyDialogPanelColors(m.panelFill, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
+    applyDialogTextColors(m.title, m.fileName)
+    setDialogNodeColor(m.divider, "border")
+    setDialogNodeColor(m.progressRemaining, "border")
+    setDialogNodeColor(m.progressElapsed, "primary")
     updateLabels()
     updateFocus()
 end sub
@@ -84,19 +100,19 @@ end function
 
 sub updateFocus()
     if m.focusIndex = 0
-        m.continueBackground.color = "0xFFD24AFF"
-        m.beginningBackground.color = "0x202023FF"
+        setDialogNodeColor(m.continueBackground, "primary")
+        setDialogNodeColor(m.beginningBackground, "secondary")
         m.continueAccent.visible = false
         m.beginningAccent.visible = false
-        m.continueLabel.color = "0x000000FF"
-        m.beginningLabel.color = "0xE5E5E5FF"
+        m.continueLabel.color = dialogPrimaryButtonTextColor()
+        m.beginningLabel.color = dialogSecondaryButtonTextColor()
     else
-        m.continueBackground.color = "0x202023FF"
-        m.beginningBackground.color = "0xFFD24AFF"
+        setDialogNodeColor(m.continueBackground, "secondary")
+        setDialogNodeColor(m.beginningBackground, "primary")
         m.continueAccent.visible = false
         m.beginningAccent.visible = false
-        m.continueLabel.color = "0xE5E5E5FF"
-        m.beginningLabel.color = "0x000000FF"
+        m.continueLabel.color = dialogSecondaryButtonTextColor()
+        m.beginningLabel.color = dialogPrimaryButtonTextColor()
     end if
 
     updateProgressPreview()

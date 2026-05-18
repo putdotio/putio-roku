@@ -8,6 +8,7 @@
     <field id="showScrim" type="bool" value="false" onChange="renderTrackMenu" />
   </interface>
 
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/TrackMenu/TrackMenu.brs" />
 
   <children>
@@ -15,7 +16,7 @@
       id="scrim"
       width="1920"
       height="1080"
-      color="0x0000004D"
+      color="0x000000B8"
       visible="false"
     />
 
@@ -25,21 +26,22 @@
         translation="[12,12]"
         width="820"
         height="580"
-        color="0x0000004D"
+        color="0x00000080"
       />
 
       <Rectangle
         id="panelFill"
         width="820"
         height="580"
-        color="0x222225FA"
+        color="0x202020FF"
       />
 
       <Rectangle
         id="panelBorderTop"
         width="820"
         height="1"
-        color="0xFFFFFF24"
+        color="0x4A4A4AFF"
+        visible="false"
       />
 
       <Rectangle
@@ -47,7 +49,8 @@
         translation="[819,0]"
         width="1"
         height="580"
-        color="0xFFFFFF18"
+        color="0x4A4A4AFF"
+        visible="false"
       />
 
       <Rectangle
@@ -55,14 +58,16 @@
         translation="[0,579]"
         width="820"
         height="1"
-        color="0xFFFFFF18"
+        color="0x4A4A4AFF"
+        visible="false"
       />
 
       <Rectangle
         id="panelBorderLeft"
         width="1"
         height="580"
-        color="0xFFFFFF24"
+        color="0x4A4A4AFF"
+        visible="false"
       />
 
       <Label
@@ -71,7 +76,7 @@
         width="724"
         height="44"
         font="font:LargeBoldSystemFont"
-        color="0xFFFFFFFF"
+        color="0xEDEDEDFF"
       />
 
       <Rectangle
@@ -79,18 +84,66 @@
         translation="[48,104]"
         width="724"
         height="3"
-        color="0xFFFFFF3D"
+        color="0x343434FF"
         visible="false"
       />
 
-      <Group id="rows" translation="[48,116]" />
+      <Group id="rows" translation="[48,116]">
+        <Group id="trackMenuRow0" visible="false">
+          <Rectangle id="trackMenuRow0Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow0Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow0Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow1" visible="false">
+          <Rectangle id="trackMenuRow1Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow1Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow1Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow2" visible="false">
+          <Rectangle id="trackMenuRow2Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow2Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow2Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow3" visible="false">
+          <Rectangle id="trackMenuRow3Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow3Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow3Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow4" visible="false">
+          <Rectangle id="trackMenuRow4Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow4Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow4Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow5" visible="false">
+          <Rectangle id="trackMenuRow5Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow5Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow5Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow6" visible="false">
+          <Rectangle id="trackMenuRow6Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow6Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow6Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow7" visible="false">
+          <Rectangle id="trackMenuRow7Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow7Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow7Check" translation="[660,8]" width="44" height="62" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+      </Group>
 
       <Rectangle
         id="bottomSeparator"
         translation="[48,536]"
         width="724"
         height="3"
-        color="0xFFFFFF3D"
+        color="0x343434FF"
         visible="false"
       />
     </Group>

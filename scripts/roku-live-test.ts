@@ -2437,8 +2437,8 @@ async function writePlayerUiReview(
     <title>Roku Player UI Review</title>
     <style>
       :root {
-        background: #050505;
-        color: #eeeeee;
+        background: #000000;
+        color: #ededed;
         color-scheme: dark;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
@@ -2459,7 +2459,7 @@ async function writePlayerUiReview(
       }
 
       .meta {
-        color: #b8b8b8;
+        color: #a0a0a0;
         display: grid;
         gap: 6px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2467,22 +2467,22 @@ async function writePlayerUiReview(
       }
 
       .meta div {
-        background: #101010;
-        border: 1px solid #242424;
+        background: #161616;
+        border: 1px solid #343434;
         padding: 10px 12px;
       }
 
       .meta strong {
-        color: #f0f0f0;
+        color: #ededed;
         display: block;
         font-size: 12px;
         margin-bottom: 3px;
       }
 
       .checklist {
-        background: #101010;
-        border: 1px solid #242424;
-        color: #d8d8d8;
+        background: #161616;
+        border: 1px solid #343434;
+        color: #ededed;
         margin-top: 18px;
         padding: 14px 16px;
       }
@@ -2503,9 +2503,9 @@ async function writePlayerUiReview(
       }
 
       .captures {
-        background: #101010;
-        border: 1px solid #242424;
-        color: #b8b8b8;
+        background: #161616;
+        border: 1px solid #343434;
+        color: #a0a0a0;
         margin-top: 10px;
         padding: 12px 16px;
       }
@@ -2520,14 +2520,14 @@ async function writePlayerUiReview(
       }
 
       code {
-        color: #dddddd;
+        color: #ededed;
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 12px;
         overflow-wrap: anywhere;
       }
 
       h2 {
-        color: #cfcfcf;
+        color: #a0a0a0;
         font-size: 15px;
         margin-bottom: 10px;
       }
@@ -2540,8 +2540,8 @@ async function writePlayerUiReview(
       }
 
       .panel {
-        background: #111111;
-        border: 1px solid #2a2a2a;
+        background: #161616;
+        border: 1px solid #343434;
         padding: 14px;
       }
 

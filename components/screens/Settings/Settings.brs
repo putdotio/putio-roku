@@ -2,6 +2,7 @@ function init()
     m.storage = CreateObject("roRegistrySection", "userConfig")
 
     m.top.observeField("visible", "onVisibleChange")
+    applyAppOverhangColors(m.top.findNode("overhang"))
     m.version = m.top.findNode("version")
     m.version.text = m.version.text + createObject("roAppInfo").GetVersion()
 

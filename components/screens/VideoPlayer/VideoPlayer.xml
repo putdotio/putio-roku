@@ -37,7 +37,7 @@
         translation="[0,800]"
         width="1920"
         height="280"
-        color="0x000000A8"
+        color="0x00000090"
       />
 
       <Label
@@ -45,7 +45,7 @@
         translation="[96,900]"
         width="1360"
         font="font:LargeBoldSystemFont"
-        color="0xDADADAFF"
+        color="0xEDEDEDFF"
       />
 
       <Label
@@ -53,7 +53,7 @@
         translation="[96,923]"
         width="1360"
         font="font:MediumSystemFont"
-        color="0xCCCCCCFF"
+        color="0xA0A0A0FF"
         visible="false"
       />
 
@@ -66,7 +66,7 @@
           translation="[0,52]"
           width="180"
           font="font:SmallSystemFont"
-          color="0xBDBDBDFF"
+          color="0xA0A0A0FF"
           text="..:.."
         />
         <Poster
@@ -91,14 +91,14 @@
             translation="[0,25]"
             width="1728"
             height="8"
-            color="0x5B5B5BE0"
+            color="0x343434E0"
           />
           <Rectangle
             id="playerProgressFill"
             translation="[0,25]"
             width="0"
             height="8"
-            color="0xD2A923FF"
+            color="0xFDCE45FF"
           />
           <Poster
             id="playerProgressThumb"
@@ -122,7 +122,7 @@
           translation="[1548,52]"
           width="180"
           font="font:SmallSystemFont"
-          color="0xBDBDBDFF"
+          color="0xA0A0A0FF"
           horizAlign="right"
           text="..:.."
         />
@@ -164,7 +164,7 @@
             translation="[0,0]"
             width="0"
             font="font:SmallBoldSystemFont"
-            color="0xFFFFFFFF"
+            color="0xEDEDEDFF"
             text="15"
             visible="false"
           />
@@ -231,7 +231,7 @@
             translation="[0,0]"
             width="0"
             font="font:SmallBoldSystemFont"
-            color="0xFFFFFFFF"
+            color="0xEDEDEDFF"
             text="15"
             visible="false"
           />
@@ -248,7 +248,7 @@
             width="260"
             height="36"
             font="font:SmallSystemFont"
-            color="0xBDBDBDFF"
+            color="0xA0A0A0FF"
             horizAlign="center"
             text="Language"
             visible="false"
@@ -288,7 +288,7 @@
             width="260"
             height="36"
             font="font:SmallSystemFont"
-            color="0xBDBDBDFF"
+            color="0xA0A0A0FF"
             horizAlign="center"
             text="Subtitles"
             visible="false"
@@ -328,7 +328,7 @@
             width="260"
             height="36"
             font="font:SmallSystemFont"
-            color="0xBDBDBDFF"
+            color="0xA0A0A0FF"
             horizAlign="center"
             text="Speed"
             visible="false"
@@ -366,7 +366,7 @@
       <Rectangle
         width="1920"
         height="1080"
-        color="0x00000040"
+        color="0x00000090"
       />
       <LoadingIndicator
         id="bufferingIndicator"

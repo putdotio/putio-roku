@@ -1,5 +1,6 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
+    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.audio = m.top.findNode("audio")
     m.overhang = m.top.findNode("overhang")
