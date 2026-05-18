@@ -69,6 +69,8 @@ make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id>
 make live-test-playback-error-dialog CONTENT_ID=<bad-file-id>
 make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
+make lab-install STORY=<story-id>
+make lab-screenshot STORY=<story-id>
 make live-test-launch
 make live-test-install
 make putio-auth-status
@@ -127,6 +129,16 @@ make console
   available. Set `PLAYER_UI_REFERENCE_IMAGE` to copy an extra reference image
   into the review page. It requires `ROKU_DEV_PASSWORD` because
   screenshots come from the Roku developer inspector.
+- `make lab-install [STORY=app-dialog-empty]` installs this checkout and opens
+  the Lab scene on a specific story. Available stories are
+  `app-dialog-empty`, `app-dialog-message`, `delete-dialog-short`,
+  `delete-dialog-long`, `continue-watching`, `continue-watching-beginning`,
+  `track-menu-audio`, `track-menu-subtitles`,
+  `track-menu-subtitles-scroll`, and `track-menu-speed`.
+- `make lab-screenshot [STORY=app-dialog-empty] [LAB_SCREENSHOT_DELAY=3]`
+  launches the same Lab story and writes
+  `dist/tmp/lab/<story>.jpg`. The delay gives Roku's developer
+  screenshot endpoint time to capture the first rendered app frame.
 - `make live-test-launch` opens the installed developer app and prints the
   active app state.
 - `make live-test-install` removes the existing developer app, installs this
@@ -165,9 +177,12 @@ make ROKU_DEV_PASSWORD=<developer-mode-password> live-test-install
    media-key seek behavior.
 6. Run `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    when a visual player UI change needs repeatable screenshot artifacts.
-7. Run `make live-test-install` after code changes that must be reproduced on
+7. Run `make lab-install STORY=<story-id>` or
+   `make lab-screenshot STORY=<story-id>` for modal/component visual changes
+   that can be isolated from authenticated app state.
+8. Run `make live-test-install` after code changes that must be reproduced on
    hardware.
-8. In another terminal, run `make console` before launching playback flows so
+9. In another terminal, run `make console` before launching playback flows so
    BrightScript compile/runtime/player logs are visible.
 
 If `make live-test` passes but install fails with repeated HTTP `401`, the

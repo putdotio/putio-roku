@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="AppDialog" extends="Group">
+  <interface>
+    <field id="title" type="string" onChange="onDialogContentChange" />
+    <field id="message" type="string" onChange="onDialogContentChange" />
+    <field id="buttons" type="array" onChange="onButtonsChange" />
+    <field id="defaultButton" type="integer" value="0" onChange="onDefaultButtonChange" />
+    <field id="focusedButton" type="integer" value="0" onChange="onFocusedButtonChange" />
+    <field id="buttonSelected" type="integer" alwaysNotify="true" />
+    <field id="wasClosed" type="bool" value="false" alwaysNotify="true" />
+    <field id="close" type="bool" value="false" onChange="onCloseChange" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/AppDialog/AppDialog.brs" />
+
+  <children>
+    <Rectangle
+      id="scrim"
+      width="1920"
+      height="1080"
+      color="0x0000004D"
+    />
+
+    <Group id="panelGroup">
+      <Rectangle
+        id="panelShadow"
+        translation="[12,12]"
+        width="900"
+        height="344"
+        color="0x0000004D"
+      />
+
+      <Rectangle
+        id="panel"
+        width="900"
+        height="344"
+        color="0x222225FA"
+      />
+
+      <Rectangle
+        id="panelBorderTop"
+        width="900"
+        height="1"
+        color="0xFFFFFF2E"
+      />
+
+      <Rectangle
+        id="panelBorderRight"
+        translation="[899,0]"
+        width="1"
+        height="344"
+        color="0xFFFFFF20"
+      />
+
+      <Rectangle
+        id="panelBorderBottom"
+        translation="[0,343]"
+        width="900"
+        height="1"
+        color="0xFFFFFF20"
+      />
+
+      <Rectangle
+        id="panelBorderLeft"
+        width="1"
+        height="344"
+        color="0xFFFFFF2E"
+      />
+
+      <Label
+        id="titleLabel"
+        translation="[48,46]"
+        width="804"
+        height="44"
+        font="font:LargeBoldSystemFont"
+        color="0xFFFFFFFF"
+        horizAlign="center"
+      />
+
+      <Rectangle
+        id="divider"
+        translation="[48,98]"
+        width="804"
+        height="1"
+        color="0x505050FF"
+        visible="false"
+      />
+
+      <Label
+        id="messageLine0"
+        translation="[48,108]"
+        width="804"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xD6D6D6FF"
+        horizAlign="center"
+      />
+
+      <Label
+        id="messageLine1"
+        translation="[48,156]"
+        width="804"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xD6D6D6FF"
+        horizAlign="center"
+        visible="false"
+      />
+
+      <Label
+        id="messageLine2"
+        translation="[48,204]"
+        width="804"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xD6D6D6FF"
+        horizAlign="center"
+        visible="false"
+      />
+
+      <Group id="buttonsGroup" translation="[48,196]">
+        <Group id="button0">
+          <Rectangle
+            id="button0Background"
+            width="804"
+            height="76"
+            color="0xFFD24AFF"
+            visible="false"
+          />
+          <Label
+            id="button0Label"
+            width="804"
+            height="76"
+            font="font:MediumBoldSystemFont"
+            color="0x000000FF"
+            horizAlign="center"
+            vertAlign="center"
+          />
+        </Group>
+
+        <Group id="button1" translation="[0,92]">
+          <Rectangle
+            id="button1Background"
+            width="804"
+            height="76"
+            color="0x202023FF"
+            visible="false"
+          />
+          <Label
+            id="button1Label"
+            width="804"
+            height="76"
+            font="font:MediumBoldSystemFont"
+            color="0xFFFFFFFF"
+            horizAlign="center"
+            vertAlign="center"
+          />
+        </Group>
+      </Group>
+    </Group>
+  </children>
+</component>

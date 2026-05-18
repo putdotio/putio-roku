@@ -1,4 +1,6 @@
 sub init()
+    initAppDialog()
+    m.top.buttons = ["Cancel"]
     m.startConversionTask = createObject("roSGNode", "HttpTask")
     m.checkConversionTask = createObject("roSGNode", "HttpTask")
     m.fetchFileTask = createObject("roSGNode", "HttpTask")

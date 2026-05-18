@@ -61,10 +61,16 @@ sub onCheckCodeMatchResponse(obj)
     end if
 end sub
 
-function onKeyEvent(key, press)
-    if m.top.visible and press and key = "back"
-        m.top.showExitAppDialog = true
-        return true
+function onKeyEvent(key as string, press as boolean) as boolean
+    if m.top.visible and press
+        normalizedKey = LCase(key)
+
+        if normalizedKey = "back"
+            m.top.showExitAppDialog = true
+            return true
+        else if isOptionsKey(normalizedKey)
+            return true
+        end if
     end if
 
     return false

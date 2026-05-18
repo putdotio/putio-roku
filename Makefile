@@ -301,6 +301,45 @@ live-test-launch: launch
 .PHONY: live-test-install
 live-test-install: run launch
 
+.PHONY: lab-launch
+lab-launch: check-roku-dev-target
+	@echo "Launching lab on $(ROKU_TARGET)..."
+	@QUERY="lab=1"; \
+		if [ -n "$(STORY)" ]; then \
+			QUERY="$$QUERY&story=$(STORY)"; \
+		fi; \
+		curl --connect-timeout 2 --max-time 10 --silent --show-error \
+			--request POST \
+			"http://$(ROKU_TARGET):8060/launch/dev?$$QUERY" \
+			>/dev/null
+	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node storyList visible --timeout-ms 10000
+	@EXPECTED_TITLE=""; \
+		case "$(STORY)" in \
+			app-dialog-empty) EXPECTED_TITLE="AppDialog / no message" ;; \
+			app-dialog-message) EXPECTED_TITLE="AppDialog / message" ;; \
+			delete-dialog-short) EXPECTED_TITLE="DeleteFileDialog / short file" ;; \
+			delete-dialog-long) EXPECTED_TITLE="DeleteFileDialog / long file" ;; \
+			continue-watching) EXPECTED_TITLE="ContinueWatchingPrompt" ;; \
+			continue-watching-beginning) EXPECTED_TITLE="ContinueWatchingPrompt / beginning" ;; \
+			track-menu-audio) EXPECTED_TITLE="TrackMenu / audio" ;; \
+			track-menu-subtitles) EXPECTED_TITLE="TrackMenu / subtitles" ;; \
+			track-menu-subtitles-scroll) EXPECTED_TITLE="TrackMenu / subtitles scroll" ;; \
+			track-menu-speed) EXPECTED_TITLE="TrackMenu / playback speed" ;; \
+		esac; \
+		if [ -n "$$EXPECTED_TITLE" ]; then \
+			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node storyTitle text "$$EXPECTED_TITLE" --timeout-ms 10000; \
+		fi
+
+.PHONY: lab-install
+lab-install: install lab-launch
+
+.PHONY: lab-screenshot
+lab-screenshot: lab-launch
+	@mkdir -p "$(TMP_DIR)/lab"
+	@STORY_NAME="$(or $(STORY),app-dialog-empty)"; \
+		sleep "$(or $(LAB_SCREENSHOT_DELAY),3)"; \
+		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$(TMP_DIR)/lab/$${STORY_NAME}.jpg"
+
 .PHONY: live-test-auth-reset
 live-test-auth-reset:
 	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live auth-reset

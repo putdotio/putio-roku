@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<component name="VideoConversionDialog" extends="Dialog">
+<component name="VideoConversionDialog" extends="AppDialog">
   <interface>
     <field id="fileId" type="integer" onChange="onFileIdChange" />
     <field id="convertedFile" type="assocarray" value="" />

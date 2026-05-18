@@ -170,25 +170,29 @@ sub updateFocusIcons(oldFocusIndex, newFocusIndex)
     m.focusOrder[newFocusIndex].component.uri = m.focusOrder[newFocusIndex].component.uri.replace(".png", "-focused.png")
 end sub
 
-function onKeyEvent(key, press)
+function onKeyEvent(key as string, press as boolean) as boolean
     if m.top.visible and press
-        if key = "back"
+        normalizedKey = LCase(key)
+
+        if normalizedKey = "back"
             m.top.navigateBack = "true"
-        else if key = "play"
+        else if normalizedKey = "play"
             playOrPause()
-        else if key = "rewind"
+        else if normalizedKey = "rewind"
             rewind()
-        else if key = "fastforward"
+        else if normalizedKey = "fastforward"
             fastforward()
-        else if key = "replay"
+        else if normalizedKey = "replay"
             m.audio.seek = 0
-        else if key = "OK"
+        else if normalizedKey = "ok"
             callback = m.focusOrder[m.focusIndex].callback
             callback()
-        else if key = "right"
+        else if normalizedKey = "right"
             setNextFocusIndex()
-        else if key = "left"
+        else if normalizedKey = "left"
             setPrevFocusIndex()
+        else if isOptionsKey(normalizedKey)
+            return true
         else
             return false
         end if

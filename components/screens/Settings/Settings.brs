@@ -158,7 +158,7 @@ sub updatePlaybackTypeValue(description = invalid)
 end sub
 
 sub showSettingsErrorDialog(message as string)
-    m.settingsErrorDialog = createObject("roSGNode", "Dialog")
+    m.settingsErrorDialog = createObject("roSGNode", "AppDialog")
     m.settingsErrorDialog.title = "Settings not saved"
     m.settingsErrorDialog.message = message
     m.settingsErrorDialog.buttons = ["OK"]
@@ -190,10 +190,16 @@ sub updateShowOnlyMediaValue()
     end if
 end sub
 
-function onKeyEvent(key, press)
-    if m.top.visible and key = "back" and press
-        m.top.navigateBack = "true"
-        return true
+function onKeyEvent(key as string, press as boolean) as boolean
+    if m.top.visible and press
+        normalizedKey = LCase(key)
+
+        if normalizedKey = "back"
+            m.top.navigateBack = "true"
+            return true
+        else if isOptionsKey(normalizedKey)
+            return true
+        end if
     end if
 
     return false

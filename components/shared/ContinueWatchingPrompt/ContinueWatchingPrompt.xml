@@ -5,6 +5,7 @@
     <field id="fileName" type="string" onChange="updateLabels" />
     <field id="startFrom" type="integer" onChange="updateLabels" />
     <field id="duration" type="integer" onChange="updateLabels" />
+    <field id="focusedButton" type="integer" value="0" onChange="onFocusedButtonChange" />
     <field id="selectedStartFrom" type="integer" alwaysNotify="true" />
     <field id="dismissed" type="bool" alwaysNotify="true" />
   </interface>
@@ -16,82 +17,160 @@
       id="backdrop"
       width="1920"
       height="1080"
-      color="0x000000CC"
+      color="0x0000004D"
     />
 
     <Group
       id="panel"
-      translation="[560,340]"
+      translation="[550,290]"
     >
       <Rectangle
-        width="800"
-        height="400"
-        color="0x141414F4"
+        id="panelShadow"
+        translation="[12,12]"
+        width="820"
+        height="500"
+        color="0x0000004D"
+      />
+
+      <Rectangle
+        id="panelFill"
+        width="820"
+        height="500"
+        color="0x222225FA"
+      />
+
+      <Rectangle
+        id="panelBorderTop"
+        width="820"
+        height="1"
+        color="0xFFFFFF24"
+      />
+
+      <Rectangle
+        id="panelBorderRight"
+        translation="[819,0]"
+        width="1"
+        height="500"
+        color="0xFFFFFF18"
+      />
+
+      <Rectangle
+        id="panelBorderBottom"
+        translation="[0,499]"
+        width="820"
+        height="1"
+        color="0xFFFFFF18"
+      />
+
+      <Rectangle
+        id="panelBorderLeft"
+        width="1"
+        height="500"
+        color="0xFFFFFF24"
       />
 
       <Label
         id="title"
-        translation="[56,54]"
-        width="688"
+        translation="[48,44]"
+        width="724"
+        height="44"
         font="font:LargeBoldSystemFont"
-        color="0xE8E8E8FF"
+        color="0xFFFFFFFF"
+        text="Continue watching"
+      />
+
+      <Rectangle
+        id="divider"
+        translation="[48,98]"
+        width="724"
+        height="1"
+        color="0x505050FF"
+        visible="false"
+      />
+
+      <Label
+        id="fileName"
+        translation="[48,112]"
+        width="724"
+        height="72"
+        wrap="true"
+        font="font:SmallSystemFont"
+        color="0xD6D6D6FF"
       />
 
       <Group
         id="progressTrack"
-        translation="[56,138]"
+        translation="[48,208]"
       >
         <Rectangle
           id="progressRemaining"
-          width="688"
-          height="12"
-          color="0x5F5F5FFF"
+          width="724"
+          height="10"
+          color="0x4A4A4AFF"
         />
 
         <Rectangle
           id="progressElapsed"
           width="0"
-          height="12"
-          color="0xB49A22FF"
+          height="10"
+          color="0xD0B52BFF"
         />
       </Group>
 
       <Group
         id="continueButton"
-        translation="[56,192]"
+        translation="[48,260]"
       >
         <Rectangle
           id="continueBackground"
-          width="688"
-          height="74"
-          color="0x3A3A3AFF"
+          width="724"
+          height="76"
+          color="0xFFD24AFF"
+        />
+        <Rectangle
+          id="continueAccent"
+          width="4"
+          height="76"
+          color="0xD0B52BFF"
+          visible="false"
         />
         <Label
           id="continueLabel"
-          translation="[28,18]"
-          width="632"
+          width="724"
+          height="76"
           font="font:MediumBoldSystemFont"
-          color="0xFFFFFFFF"
+          color="0x000000FF"
+          horizAlign="center"
+          vertAlign="center"
         />
       </Group>
 
       <Group
         id="beginningButton"
-        translation="[56,282]"
+        translation="[48,352]"
       >
         <Rectangle
           id="beginningBackground"
-          width="688"
-          height="74"
-          color="0x14141400"
+          width="724"
+          height="76"
+          color="0x202023FF"
+        />
+        <Rectangle
+          id="beginningAccent"
+          width="4"
+          height="76"
+          color="0xD0B52BFF"
+          visible="false"
         />
         <Label
           id="beginningLabel"
-          translation="[28,18]"
-          width="632"
+          width="724"
+          height="76"
           font="font:MediumBoldSystemFont"
-          color="0xD6D6D6FF"
+          color="0xE5E5E5FF"
           text="Start from the beginning"
+          horizAlign="center"
+          vertAlign="center"
         />
       </Group>
     </Group>

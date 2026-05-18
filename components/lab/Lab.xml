@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="Lab" extends="Scene" initialFocus="storyList">
+  <interface>
+    <field id="story" type="string" onChange="onStoryLaunchArgChange" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/lab/Lab.brs" />
+
+  <children>
+    <Rectangle
+      id="background"
+      width="1920"
+      height="1080"
+      color="0x181818FF"
+    />
+
+    <Rectangle
+      id="sidebar"
+      width="500"
+      height="1080"
+      color="0x101010FF"
+    />
+
+    <Rectangle
+      id="sidebarDivider"
+      translation="[500,0]"
+      width="2"
+      height="1080"
+      color="0x2A2A2AFF"
+    />
+
+    <Rectangle
+      id="previewWash"
+      translation="[502,0]"
+      width="1418"
+      height="1080"
+      color="0x0000001A"
+    />
+
+    <Label
+      id="title"
+      translation="[64,56]"
+      width="392"
+      height="44"
+      font="font:LargeBoldSystemFont"
+      color="0xFFFFFFFF"
+      text="Lab"
+    />
+
+    <Label
+      id="subtitle"
+      translation="[64,108]"
+      width="392"
+      height="80"
+      wrap="true"
+      font="font:SmallSystemFont"
+      color="0xBDBDBDFF"
+      text="Up/Down. OK reset."
+    />
+
+    <LabelList
+      id="storyList"
+      translation="[48,212]"
+      itemSize="[404,64]"
+      itemSpacing="[0,8]"
+      numRows="8"
+      focusBitmapBlendColor="0x2B2B2BFF"
+      color="0xD6D6D6FF"
+      focusedColor="0xFFFFFFFF"
+    />
+
+    <Label
+      id="storyTitle"
+      translation="[560,56]"
+      width="1160"
+      height="44"
+      font="font:LargeBoldSystemFont"
+      color="0xFFFFFFFF"
+    />
+
+    <Label
+      id="storyDescription"
+      translation="[560,108]"
+      width="1160"
+      height="72"
+      wrap="true"
+      font="font:SmallSystemFont"
+      color="0xBDBDBDFF"
+    />
+
+    <Rectangle
+      id="previewBounds"
+      translation="[560,208]"
+      width="1280"
+      height="720"
+      color="0x00000000"
+      opacity="0"
+    />
+
+    <AppDialog
+      id="appDialogStory"
+      visible="false"
+    />
+
+    <DeleteFileDialog
+      id="deleteDialogStory"
+      visible="false"
+    />
+
+    <ContinueWatchingPrompt
+      id="continueWatchingStory"
+      visible="false"
+    />
+
+    <TrackMenu
+      id="trackMenuStory"
+      visible="false"
+    />
+  </children>
+</component>

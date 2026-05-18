@@ -24,6 +24,8 @@
 - `make live-test-playback-remote CONTENT_ID=<file-id>`
 - `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
 - `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+- `make lab-install STORY=<story-id>`
+- `make lab-screenshot STORY=<story-id>`
 - `make live-test-launch`
 - `make live-test-install`
 - `make console`
@@ -49,6 +51,7 @@
 - `make verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
 - Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
+- `make lab-install STORY=<story-id>` and `make lab-screenshot STORY=<story-id>` open isolated Lab stories for modal/component UI work; use them before broader authenticated flows when the change can be proven in Lab
 
 ## CI
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="FilesScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Files/Files.brs" />
 
 	<interface>
@@ -37,5 +38,10 @@
 			focusBitmapBlendColor="0x00000FF"
 			numRows="6"
 		/>
+
+    <DeleteFileDialog
+      id="deleteFileDialog"
+      visible="false"
+    />
 	</children>
 </component>

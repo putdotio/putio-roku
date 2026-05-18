@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="TrackMenu" extends="Group">
+  <interface>
+    <field id="title" type="string" onChange="renderTrackMenu" />
+    <field id="items" type="array" onChange="renderTrackMenu" />
+    <field id="focusedIndex" type="integer" value="0" onChange="renderTrackMenu" />
+    <field id="showScrim" type="bool" value="false" onChange="renderTrackMenu" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/TrackMenu/TrackMenu.brs" />
+
+  <children>
+    <Rectangle
+      id="scrim"
+      width="1920"
+      height="1080"
+      color="0x0000004D"
+      visible="false"
+    />
+
+    <Group id="panel" translation="[550,250]">
+      <Rectangle
+        id="panelShadow"
+        translation="[12,12]"
+        width="820"
+        height="580"
+        color="0x0000004D"
+      />
+
+      <Rectangle
+        id="panelFill"
+        width="820"
+        height="580"
+        color="0x222225FA"
+      />
+
+      <Rectangle
+        id="panelBorderTop"
+        width="820"
+        height="1"
+        color="0xFFFFFF24"
+      />
+
+      <Rectangle
+        id="panelBorderRight"
+        translation="[819,0]"
+        width="1"
+        height="580"
+        color="0xFFFFFF18"
+      />
+
+      <Rectangle
+        id="panelBorderBottom"
+        translation="[0,579]"
+        width="820"
+        height="1"
+        color="0xFFFFFF18"
+      />
+
+      <Rectangle
+        id="panelBorderLeft"
+        width="1"
+        height="580"
+        color="0xFFFFFF24"
+      />
+
+      <Label
+        id="titleLabel"
+        translation="[48,44]"
+        width="724"
+        height="44"
+        font="font:LargeBoldSystemFont"
+        color="0xFFFFFFFF"
+      />
+
+      <Rectangle
+        id="topSeparator"
+        translation="[48,104]"
+        width="724"
+        height="3"
+        color="0xFFFFFF3D"
+        visible="false"
+      />
+
+      <Group id="rows" translation="[48,116]" />
+
+      <Rectangle
+        id="bottomSeparator"
+        translation="[48,536]"
+        width="724"
+        height="3"
+        color="0xFFFFFF3D"
+        visible="false"
+      />
+    </Group>
+  </children>
+</component>

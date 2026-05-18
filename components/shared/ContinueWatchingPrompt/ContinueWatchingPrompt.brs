@@ -3,9 +3,11 @@ sub init()
     m.focusIndex = 0
     m.continueBackground = m.top.findNode("continueBackground")
     m.beginningBackground = m.top.findNode("beginningBackground")
+    m.continueAccent = m.top.findNode("continueAccent")
+    m.beginningAccent = m.top.findNode("beginningAccent")
     m.continueLabel = m.top.findNode("continueLabel")
     m.beginningLabel = m.top.findNode("beginningLabel")
-    m.title = m.top.findNode("title")
+    m.fileName = m.top.findNode("fileName")
     m.progressElapsed = m.top.findNode("progressElapsed")
     updateLabels()
     updateFocus()
@@ -15,43 +17,89 @@ sub updateLabels()
     startFromLabel = getDurationString(m.top.startFrom)
 
     if m.top.fileName <> invalid and m.top.fileName <> ""
-        m.title.text = m.top.fileName
+        m.fileName.text = wrapPromptFileName(m.top.fileName)
     else
-        m.title.text = "Continue playing"
+        m.fileName.text = ""
     end if
 
     m.continueLabel.text = "Continue playing from " + startFromLabel
-    updateProgress()
+    updateProgressPreview()
 end sub
 
-sub updateProgress()
+sub updateProgressPreview()
+    previewStartFrom = getFocusedStartFrom()
     progressWidth = 0
+    progressTrackWidth = 724
 
-    if m.top.duration > 0 and m.top.startFrom > 0
-        progressWidth = fix((m.top.startFrom / m.top.duration) * 688)
+    if m.top.duration > 0 and previewStartFrom > 0
+        progressWidth = fix((previewStartFrom / m.top.duration) * progressTrackWidth)
     end if
 
     if progressWidth < 0
         progressWidth = 0
-    else if progressWidth > 688
-        progressWidth = 688
+    else if progressWidth > progressTrackWidth
+        progressWidth = progressTrackWidth
     end if
 
     m.progressElapsed.width = progressWidth
 end sub
 
+function getFocusedStartFrom() as integer
+    if m.focusIndex = 0
+        return m.top.startFrom
+    end if
+
+    return 0
+end function
+
+sub onFocusedButtonChange()
+    if m.top.focusedButton = invalid
+        return
+    end if
+
+    if m.top.focusedButton = 1
+        m.focusIndex = 1
+    else
+        m.focusIndex = 0
+    end if
+
+    updateFocus()
+end sub
+
+function wrapPromptFileName(fileName as string) as string
+    maxLineLength = 58
+    wrapped = ""
+
+    for i = 1 to Len(fileName)
+        char = Mid(fileName, i, 1)
+        wrapped = wrapped + char
+
+        if i mod maxLineLength = 0 and i < Len(fileName)
+            wrapped = wrapped + Chr(10)
+        end if
+    end for
+
+    return wrapped
+end function
+
 sub updateFocus()
     if m.focusIndex = 0
-        m.continueBackground.color = "0x3A3A3AFF"
-        m.beginningBackground.color = "0x14141400"
-        m.continueLabel.color = "0xFFFFFFFF"
-        m.beginningLabel.color = "0xD6D6D6FF"
+        m.continueBackground.color = "0xFFD24AFF"
+        m.beginningBackground.color = "0x202023FF"
+        m.continueAccent.visible = false
+        m.beginningAccent.visible = false
+        m.continueLabel.color = "0x000000FF"
+        m.beginningLabel.color = "0xE5E5E5FF"
     else
-        m.continueBackground.color = "0x14141400"
-        m.beginningBackground.color = "0x3A3A3AFF"
-        m.continueLabel.color = "0xD6D6D6FF"
-        m.beginningLabel.color = "0xFFFFFFFF"
+        m.continueBackground.color = "0x202023FF"
+        m.beginningBackground.color = "0xFFD24AFF"
+        m.continueAccent.visible = false
+        m.beginningAccent.visible = false
+        m.continueLabel.color = "0xE5E5E5FF"
+        m.beginningLabel.color = "0x000000FF"
     end if
+
+    updateProgressPreview()
 end sub
 
 sub selectFocusedButton()
@@ -74,6 +122,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             else
                 m.focusIndex = 0
             end if
+            m.top.focusedButton = m.focusIndex
             updateFocus()
         else if normalizedKey = "ok" or normalizedKey = "select"
             selectFocusedButton()

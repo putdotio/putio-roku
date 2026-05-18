@@ -60,6 +60,8 @@ Useful device-debug commands:
 - `make live-test-deeplink CONTENT_ID=<file-id> [MEDIA_TYPE=movie]` launches the sideloaded app through Roku deep linking
 - `make live-test-playback CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]` launches through Roku deep linking, accepts the start-from prompt when it appears, and waits for `videoPlayerScreen`
 - `make live-test-playback-remote CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]` launches through Roku deep linking, drives the start-from prompt with remote keypresses, avoids startup SceneGraph polling, and then confirms playback
+- `make lab-install STORY=<story-id>` installs this checkout and opens an isolated Lab story for modal/component UI work
+- `make lab-screenshot STORY=<story-id>` captures the current Lab story to `dist/tmp/lab/<story-id>.jpg`
 - `make live-test-launch` opens the installed developer app and reports active app state
 - `make live-test-install` builds, reinstalls, and launches this checkout on the device
 - `make launch` opens the sideloaded developer app on the configured Roku

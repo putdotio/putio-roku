@@ -56,7 +56,7 @@ const playbackLaunchRetryMs = 10_000;
 const appSceneGraphReadyTimeoutMs = 45_000;
 const maxPlaybackLaunchAttempts = 4;
 const screenshotCaptureAttempts = 5;
-const trackMenuRowPoolSize = 12;
+const trackMenuRowPoolSize = 8;
 
 type TrackMenuTitle = "Audio tracks" | "Subtitles" | "Playback speed";
 type PlayerControlId =

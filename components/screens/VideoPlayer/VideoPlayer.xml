@@ -2,6 +2,7 @@
 <component name="VideoPlayerScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerTrackMenu.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayer.brs" />
 
@@ -377,42 +378,11 @@
       />
     </Group>
 
-    <Group
+    <TrackMenu
       id="trackMenu"
       visible="false"
-    >
-      <Rectangle
-        width="1920"
-        height="1080"
-        color="0x0000004D"
-      />
-      <Rectangle
-        id="trackMenuPanel"
-        translation="[320,348]"
-        width="1280"
-        height="384"
-        color="0x151515F8"
-      />
-      <Label
-        id="trackMenuTitle"
-        translation="[380,406]"
-        width="1160"
-        font="font:LargeBoldSystemFont"
-        color="0xBDBDBDFF"
-      />
-
-      <Group id="trackRows" translation="[360,496]" />
-
-      <Label
-        id="trackMenuHint"
-        translation="[748,678]"
-        width="424"
-        font="font:SmallSystemFont"
-        color="0xAAAAAAFF"
-        text="OK selects. Back closes."
-        visible="false"
-      />
-    </Group>
+      showScrim="true"
+    />
 
     <Timer
       id="osdTimer"

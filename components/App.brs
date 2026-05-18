@@ -2,6 +2,11 @@ function init()
     m.storage = CreateObject("roRegistrySection", "userConfig")
     m.pendingDeepLink = invalid
     m.replaceRoute = false
+    m.activeDialog = invalid
+    m.hostedDialog = invalid
+    m.appDialog = m.top.findNode("appDialog")
+    m.appDialog.observeField("buttonSelected", "onAppDialogButtonSelected")
+    m.appDialog.observeField("wasClosed", "onAppDialogClosed")
     m.top.observeField("deepLink", "onDeepLink")
     configureRouter()
     queueDeepLink(m.top.deepLink)
@@ -263,25 +268,79 @@ sub onShowDialog(obj)
     if dialog = invalid
         clearActiveDialog()
     else
-        clearActiveDialog()
-        m.top.dialog = dialog
+        showAppDialog(dialog)
     end if
 end sub
 
+sub showAppDialog(dialog)
+    clearActiveDialog()
+
+    m.hostedDialog = dialog
+    m.hostedDialog.observeField("title", "onHostedDialogChanged")
+    m.hostedDialog.observeField("message", "onHostedDialogChanged")
+    m.hostedDialog.observeField("buttons", "onHostedDialogChanged")
+    syncHostedDialog()
+
+    m.activeDialog = m.appDialog
+    m.appDialog.visible = true
+    m.appDialog.setFocus(true)
+end sub
+
+sub onHostedDialogChanged()
+    syncHostedDialog()
+end sub
+
+sub syncHostedDialog()
+    if m.hostedDialog = invalid
+        return
+    end if
+
+    m.appDialog.title = m.hostedDialog.title
+    m.appDialog.message = m.hostedDialog.message
+    m.appDialog.buttons = m.hostedDialog.buttons
+    m.appDialog.defaultButton = m.hostedDialog.defaultButton
+end sub
+
 sub clearActiveDialog()
+    if m.hostedDialog <> invalid
+        m.hostedDialog.unobserveField("title")
+        m.hostedDialog.unobserveField("message")
+        m.hostedDialog.unobserveField("buttons")
+        m.hostedDialog = invalid
+    end if
+
+    m.activeDialog = invalid
+    m.appDialog.visible = false
+
     if m.top.dialog <> invalid
         m.top.dialog.close = true
         m.top.dialog = invalid
     end if
 end sub
 
+sub onAppDialogButtonSelected(obj)
+    if m.hostedDialog <> invalid
+        m.hostedDialog.buttonSelected = obj.getData()
+    end if
+end sub
+
+sub onAppDialogClosed()
+    if m.hostedDialog <> invalid
+        hostedDialog = m.hostedDialog
+        clearActiveDialog()
+        hostedDialog.wasClosed = true
+    end if
+end sub
+
 sub onShowExitAppDialog(obj)
     if obj.getData() = true
-        m.dialog = createObject("roSGNode", "Dialog")
+        m.dialog = createObject("roSGNode", "AppDialog")
         m.dialog.title = "Exit put.io?"
         m.dialog.buttons = ["OK", "Cancel"]
+        m.dialog.defaultButton = 1
         m.dialog.observeField("buttonSelected", "onExitAppDialogButtonSelected")
-        m.top.dialog = m.dialog
+        m.dialog.observeField("wasClosed", "onExitAppDialogClosed")
+        showAppDialog(m.dialog)
     end if
 end sub
 
@@ -289,6 +348,50 @@ sub onExitAppDialogButtonSelected(obj)
     if obj.getData() = 0
         m.top.exitApp = true
     else
-        m.dialog.close = true
+        clearExitAppDialog()
     end if
 end sub
+
+sub onExitAppDialogClosed()
+    clearExitAppDialog()
+end sub
+
+sub clearExitAppDialog()
+    if m.dialog <> invalid
+        m.dialog.unobserveField("buttonSelected")
+        m.dialog.unobserveField("wasClosed")
+        if m.hostedDialog = m.dialog
+            clearActiveDialog()
+        end if
+        m.dialog = invalid
+    end if
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false or m.activeDialog = invalid
+        return false
+    end if
+
+    normalizedKey = LCase(key)
+
+    if normalizedKey = "back"
+        m.activeDialog.close = true
+        return true
+    else if normalizedKey = "up" or normalizedKey = "down"
+        buttons = m.activeDialog.buttons
+        if buttons <> invalid and buttons.count() > 1
+            if m.activeDialog.focusedButton = 0
+                m.activeDialog.focusedButton = 1
+            else
+                m.activeDialog.focusedButton = 0
+            end if
+        end if
+        return true
+    else if normalizedKey = "ok" or normalizedKey = "select"
+        m.activeDialog.buttonSelected = m.activeDialog.focusedButton
+        m.activeDialog.close = true
+        return true
+    end if
+
+    return true
+end function

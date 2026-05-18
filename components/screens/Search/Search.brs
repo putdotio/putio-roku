@@ -240,12 +240,16 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 end if
             end if
             return false
-        else if normalizedKey = "options" or normalizedKey = "info" or normalizedKey = "search"
+        else if isOptionsKey(normalizedKey) or normalizedKey = "search"
             if m.searchFileList.visible
                 m.searchFileList.setFocus(true)
                 return true
             else if m.searchHistory.visible
                 m.searchHistory.setFocus(true)
+                return true
+            end if
+
+            if isOptionsKey(normalizedKey)
                 return true
             end if
 

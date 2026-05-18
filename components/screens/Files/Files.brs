@@ -6,9 +6,15 @@ function init()
     m.parent = {}
     m.files = []
     m.breadcrumbs = []
+    m.focusedFileIndex = 0
 
     m.fileList = m.top.findNode("fileList")
     m.fileList.observeField("itemSelected", "onFileSelected")
+    m.fileList.observeField("itemFocused", "onFileFocused")
+
+    m.deleteFileDialog = m.top.findNode("deleteFileDialog")
+    m.deleteFileDialog.observeField("completed", "onFileDeleted")
+    m.deleteFileDialog.observeField("wasClosed", "onDeleteFileDialogClosed")
 
     m.fetchFilesTask = createObject("roSGNode", "HttpTask")
 end function
@@ -86,6 +92,7 @@ sub showFileList()
 
     m.fileList.visible = "true"
     m.fileList.content = content
+    m.focusedFileIndex = focusIndex
 
     if not focusIndex = 0
         m.fileList.jumpToItem = focusIndex
@@ -99,6 +106,7 @@ sub hideFileList()
 end sub
 
 sub onFileSelected(obj)
+    m.focusedFileIndex = obj.getData()
     fileListItem = m.fileList.content.getChild(obj.getData())
     file = fileListItem.file
 
@@ -120,6 +128,41 @@ sub onFileSelected(obj)
     end if
 end sub
 
+sub onFileFocused(obj)
+    focusedIndex = normalizeFocusedIndex(obj.getData())
+
+    if focusedIndex = invalid
+        return
+    end if
+
+    if focusedIndex < 0
+        return
+    end if
+
+    if focusedIndex >= m.files.count()
+        return
+    end if
+
+    m.focusedFileIndex = focusedIndex
+end sub
+
+function normalizeFocusedIndex(value)
+    focusedIndex = value
+
+    if type(focusedIndex) = "roArray"
+        if focusedIndex.count() > 0
+            focusedIndex = focusedIndex[0]
+        end if
+    end if
+
+    focusedIndexType = type(focusedIndex)
+    if focusedIndexType = "Integer" or focusedIndexType = "roInt"
+        return focusedIndex
+    end if
+
+    return invalid
+end function
+
 ''' Error Dialog
 sub showFetchFilesErrorDialog(data)
     m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
@@ -139,24 +182,57 @@ end sub
 
 ''' Delete File Dialog
 sub showDeleteFileDialog()
-    focusedFile = m.files[m.fileList.itemFocused]
+    focusedFile = getFocusedFile()
 
     if focusedFile <> invalid
-        m.deleteFileDialog = createObject("roSGNode", "DeleteFileDialog")
         m.deleteFileDialog.file = focusedFile
-        m.deleteFileDialog.observeField("completed", "onFileDeleted")
-        m.top.showDialog = m.deleteFileDialog
+        m.deleteFileDialog.visible = true
+        m.deleteFileDialog.setFocus(true)
     end if
 end sub
+
+function getFocusedFile()
+    focusedIndex = normalizeFocusedIndex(m.focusedFileIndex)
+
+    if focusedIndex = invalid
+        focusedIndex = normalizeFocusedIndex(m.fileList.focusItem)
+    end if
+
+    if focusedIndex = invalid
+        focusedIndex = normalizeFocusedIndex(m.fileList.itemFocused)
+    end if
+
+    if focusedIndex = invalid
+        return invalid
+    end if
+
+    if focusedIndex < 0
+        return invalid
+    end if
+
+    if focusedIndex >= m.files.count()
+        return invalid
+    end if
+
+    return m.files[focusedIndex]
+end function
 
 sub onFileDeleted()
     fetchWithLoader(m.parent.id)
 end sub
 
+sub onDeleteFileDialogClosed()
+    m.fileList.setFocus(true)
+end sub
+
 ''' Key Handler
-function onKeyEvent(key, press)
+function onKeyEvent(key as string, press as boolean) as boolean
     if m.top.visible and press
-        if key = "back"
+        normalizedKey = LCase(key)
+
+        if m.deleteFileDialog.visible
+            return false
+        else if normalizedKey = "back"
             if m.top.params.immediateBackFileId = m.parent.id or m.breadcrumbs.count() = 0
                 m.top.navigateBack = "true"
             else
@@ -167,7 +243,7 @@ function onKeyEvent(key, press)
 
             return true
 
-        else if key = "options"
+        else if isOptionsKey(normalizedKey)
             showDeleteFileDialog()
             return true
         end if

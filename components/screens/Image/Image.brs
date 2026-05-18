@@ -40,10 +40,14 @@ sub showImageErrorDialog()
     m.top.showDialog = m.imageLoadErrorDialog
 end sub
 
-function onKeyEvent(key, press)
+function onKeyEvent(key as string, press as boolean) as boolean
     if m.top.visible and press
-        if key = "back"
+        normalizedKey = LCase(key)
+
+        if normalizedKey = "back"
             m.top.navigateBack = "true"
+            return true
+        else if isOptionsKey(normalizedKey)
             return true
         end if
     end if
