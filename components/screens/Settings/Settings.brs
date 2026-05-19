@@ -3,14 +3,13 @@ function init()
 
     m.top.observeField("visible", "onVisibleChange")
     applyAppOverhangColors(m.top.findNode("overhang"))
-    m.version = m.top.findNode("version")
-    m.version.text = m.version.text + createObject("roAppInfo").GetVersion()
 
     m.list = m.top.findNode("settingsList")
     m.list.observeField("itemSelected", "onListItemSelected")
     m.playbackTypeUpdateInFlight = false
     m.pendingPlaybackType = invalid
     m.settingsErrorDialog = invalid
+    m.appVersion = createObject("roAppInfo").GetVersion()
 
     m.items = {
         show_only_media_files: {
@@ -28,9 +27,14 @@ function init()
         logout: {
             title: "Log out",
             iconName: "logout"
+        },
+        version: {
+            title: "Version",
+            iconName: "info",
+            description: m.appVersion
         }
     }
-    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "logout"]
+    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "logout", "version"]
 
     renderList()
 end function
@@ -55,7 +59,6 @@ sub renderList()
         listItemData.title = item.title
         listItemData.iconName = item.iconName
         listItemData.valueAlign = "right"
-        listItemData.rowWidth = 1360
         if item.description <> invalid
             listItemData.description = item.description
         end if
@@ -82,6 +85,8 @@ sub onListItemSelected(obj)
         updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
     else if key = "playback_type"
         setPlaybackType(getNextPlaybackType())
+    else if key = "version"
+        return
     end if
 end sub
 

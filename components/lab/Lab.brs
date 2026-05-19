@@ -313,6 +313,7 @@ sub renderStory(index as integer)
     end if
 
     story = m.stories[index]
+    m.currentStoryId = story.id
     m.storySection.text = UCase(story.section)
     m.storyTitle.text = story.title
     m.storyDescription.text = story.description
@@ -507,12 +508,14 @@ sub addFileListItem(content as object, name as string, fileType as string, size 
         start_from: startFrom,
     }
     item.isLoading = isLoading
+    item.rowWidth = 1240
 end sub
 
 sub addHistoryListItem(content as object, event as object, isLoading as boolean)
     item = content.createChild("HistoryListItemData")
     item.event = event
     item.isLoading = isLoading
+    item.rowWidth = 1240
 end sub
 
 function getAudioTrackMenuItems() as object
@@ -576,8 +579,32 @@ function onKeyEvent(key as string, press as boolean) as boolean
         m.storyList.setFocus(true)
         renderStory(m.storyList.itemFocused)
         return true
+    else if normalizedKey = "right"
+        return focusStoryPreview()
+    else if normalizedKey = "left"
+        m.storyList.setFocus(true)
+        return true
     else if normalizedKey = "info" or normalizedKey = "options"
         m.storyList.setFocus(true)
+        return true
+    end if
+
+    return false
+end function
+
+function focusStoryPreview() as boolean
+    if m.currentStoryId = invalid or m.currentStoryId = ""
+        return false
+    end if
+
+    if m.currentStoryId = "list-item-generic"
+        m.genericListItemList.setFocus(true)
+        return true
+    else if m.currentStoryId = "list-item-files"
+        m.fileListItemList.setFocus(true)
+        return true
+    else if m.currentStoryId = "list-item-history"
+        m.historyListItemList.setFocus(true)
         return true
     end if
 

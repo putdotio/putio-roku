@@ -1,36 +1,51 @@
 function init()
-    m.focusBackground = m.top.findNode("focusBackground")
-    m.icon = m.top.findNode("icon")
-    m.title = m.top.findNode("title")
-    m.description = m.top.findNode("description")
-    m.spinner = m.top.findNode("spinner")
-    m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
-    setDialogNodeColor(m.focusBackground, "focus")
+    ensureHistoryListItemNodes()
 end function
 
+sub ensureHistoryListItemNodes()
+    if m.focusBackground = invalid
+        m.focusBackground = m.top.findNode("focusBackground")
+        m.icon = m.top.findNode("icon")
+        m.title = m.top.findNode("title")
+        m.description = m.top.findNode("description")
+        m.spinner = m.top.findNode("spinner")
+        m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
+    end if
+
+    applyListItemFocusBackground(m.focusBackground)
+end sub
+
 sub itemContentChanged()
+    ensureHistoryListItemNodes()
+    if m.top.itemContent = invalid
+        return
+    end if
+
     event = m.top.itemContent.event
     isLoading = m.top.itemContent.isLoading
     contentMap = GetMapFromHistoryEventType(event.type)
+    configureLayout()
     m.title.text = contentMap.title(event)
     m.description.text = contentMap.description(event)
     if contentMap.icon <> invalid
         iconFolderPath = "pkg:/images/icons/"
         m.icon.uri = iconFolderPath + contentMap.icon + ".png" 'iconFileName
     end if
-    setLoading(isLoading)
+    applyListItemLoading(m.spinner, m.spinnerAnimation, isLoading)
 end sub
 
 sub updateFocus()
-    m.focusBackground.visible = m.top.itemHasFocus
+    ensureHistoryListItemNodes()
+    if m.focusBackground <> invalid
+        m.focusBackground.visible = m.top.itemHasFocus
+    end if
 end sub
 
-sub setLoading(isLoading)
-    if isLoading = true
-        m.spinner.visible = "true"
-        m.spinnerAnimation.control = "start"
-    else
-        m.spinner.visible = "false"
-        m.spinnerAnimation.control = "stop"
-    end if
+sub configureLayout()
+    ensureHistoryListItemNodes()
+
+    rowWidth = normalizeListItemRowWidth(m.top.itemContent.rowWidth)
+    applyListItemFocusBackground(m.focusBackground, rowWidth)
+
+    m.title.width = listItemMainTextWidth(rowWidth)
 end sub

@@ -100,19 +100,15 @@ end function
 
 sub updateFocus()
     if m.focusIndex = 0
-        setDialogNodeColor(m.continueBackground, "primary")
-        setDialogNodeColor(m.beginningBackground, "secondary")
         m.continueAccent.visible = false
         m.beginningAccent.visible = false
-        m.continueLabel.color = dialogPrimaryButtonTextColor()
-        m.beginningLabel.color = dialogSecondaryButtonTextColor()
+        applyDialogButtonState(m.continueBackground, m.continueLabel, true, "primary")
+        applyDialogButtonState(m.beginningBackground, m.beginningLabel, false, "primary")
     else
-        setDialogNodeColor(m.continueBackground, "secondary")
-        setDialogNodeColor(m.beginningBackground, "primary")
         m.continueAccent.visible = false
         m.beginningAccent.visible = false
-        m.continueLabel.color = dialogSecondaryButtonTextColor()
-        m.beginningLabel.color = dialogPrimaryButtonTextColor()
+        applyDialogButtonState(m.continueBackground, m.continueLabel, false, "primary")
+        applyDialogButtonState(m.beginningBackground, m.beginningLabel, true, "primary")
     end if
 
     updateProgressPreview()

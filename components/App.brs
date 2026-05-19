@@ -479,6 +479,7 @@ sub showAppDialog(dialog)
     syncHostedDialog()
 
     m.activeDialog = m.appDialog
+    m.appDialog.close = false
     m.appDialog.visible = true
     m.appDialog.setFocus(true)
 end sub
@@ -548,6 +549,7 @@ end sub
 sub onExitAppDialogButtonSelected(obj)
     if obj.getData() = 0
         m.top.exitApp = true
+        clearExitAppDialog()
     else
         clearExitAppDialog()
     end if
@@ -593,8 +595,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
         end if
         return true
     else if normalizedKey = "ok" or normalizedKey = "select"
-        m.activeDialog.buttonSelected = m.activeDialog.focusedButton
-        m.activeDialog.close = true
+        dialog = m.activeDialog
+        dialog.buttonSelected = dialog.focusedButton
+        if m.activeDialog = dialog
+            dialog.close = true
+        end if
         return true
     end if
 

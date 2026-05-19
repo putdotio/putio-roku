@@ -10,19 +10,16 @@
 	</interface>
 
 	<children>
-		<Rectangle
+		<FocusBackground
 			id="focusBackground"
-			width="1500"
-			height="120"
-			color="0x2E2E2EFF"
 			visible="false"
 		/>
 
 		<LayoutGroup
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[0, 60]"
-			itemSpacings="32"
+			translation="[48, 60]"
+			itemSpacings="28"
 		>
 			<Poster
 				id="icon"
@@ -33,9 +30,10 @@
 			/>
 
 			<LayoutGroup
+				id="textContent"
 				layoutDirection="vert"
 				horizAlignment="left"
-				itemSpacings="16"
+				itemSpacings="10"
 			>
 				<Label
 					id="title"

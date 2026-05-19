@@ -31,8 +31,7 @@ sub init()
     setDialogNodeColor(m.progressTrack, "border")
     setDialogNodeColor(m.progressFill, "primary")
     setDialogNodeColor(m.statusLabel, "textMuted")
-    setDialogNodeColor(m.actionBackground, "focus")
-    setDialogNodeColor(m.actionLabel, "text")
+    applyDialogButtonState(m.actionBackground, m.actionLabel, true, "secondary")
 end sub
 
 sub onFileNameChange()

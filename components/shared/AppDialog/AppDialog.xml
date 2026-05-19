@@ -9,7 +9,7 @@
     <field id="focusedButton" type="integer" value="0" onChange="onFocusedButtonChange" />
     <field id="buttonSelected" type="integer" alwaysNotify="true" />
     <field id="wasClosed" type="bool" value="false" alwaysNotify="true" />
-    <field id="close" type="bool" value="false" onChange="onCloseChange" />
+    <field id="close" type="bool" value="false" alwaysNotify="true" onChange="onCloseChange" />
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />

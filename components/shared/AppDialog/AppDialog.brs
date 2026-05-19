@@ -192,26 +192,16 @@ sub updateDialogButtonFocus()
         button.background.visible = button.node.visible
 
         if i = 0
-            if focused
-                setDialogNodeColor(button.background, "primary")
-            else
-                setDialogNodeColor(button.background, "primaryPressed")
-            end if
-            button.label.color = dialogPrimaryButtonTextColor()
+            applyDialogButtonState(button.background, button.label, focused, "primary")
         else
-            if focused
-                setDialogNodeColor(button.background, "focus")
-                button.label.color = dialogSecondaryButtonTextColor()
-            else
-                setDialogNodeColor(button.background, "secondary")
-                button.label.color = dialogSecondaryButtonTextColor()
-            end if
+            applyDialogButtonState(button.background, button.label, focused, "secondary")
         end if
     end for
 end sub
 
 sub closeAppDialog()
     m.top.visible = false
+    m.top.close = false
     m.top.wasClosed = true
 end sub
 

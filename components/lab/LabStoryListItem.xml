@@ -10,11 +10,8 @@
   <script type="text/brightscript" uri="pkg:/components/lab/LabStoryListItem.brs" />
 
   <children>
-    <Rectangle
+    <FocusBackground
       id="focusBackground"
-      width="404"
-      height="58"
-      color="0x2E2E2EFF"
       visible="false"
     />
 

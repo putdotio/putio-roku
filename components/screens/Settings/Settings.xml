@@ -36,16 +36,7 @@
 			itemSpacing="[0, 30]"
       drawFocusFeedback="false"
       vertFocusAnimationStyle="fixedFocus"
-			numRows="6"
-		/>
-
-		<Label
-			id="version"
-			font="font:MediumBoldSystemFont"
-			color="0xEDEDEDFF"
-			text="Version "
-			width="512"
-			translation="[190, 1000]"
+			numRows="5"
 		/>
 	</children>
 </component>

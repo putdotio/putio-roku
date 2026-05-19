@@ -9,46 +9,17 @@
 	</interface>
 
 	<children>
-		<Group
+		<FocusBackground
 			id="focusBackground"
 			visible="false"
-		>
-			<Rectangle
-				id="focusBackgroundOuter"
-				translation="[24,0]"
-				width="1452"
-				height="120"
-				color="0x2E2E2EFF"
-			/>
-			<Rectangle
-				id="focusBackgroundWide"
-				translation="[12,6]"
-				width="1476"
-				height="108"
-				color="0x2E2E2EFF"
-			/>
-			<Rectangle
-				id="focusBackgroundMiddle"
-				translation="[6,12]"
-				width="1488"
-				height="96"
-				color="0x2E2E2EFF"
-			/>
-			<Rectangle
-				id="focusBackgroundCore"
-				translation="[0,24]"
-				width="1500"
-				height="72"
-				color="0x2E2E2EFF"
-			/>
-		</Group>
+		/>
 
 		<LayoutGroup
 			id="inlineContent"
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[48,55]"
-			itemSpacings="32"
+			translation="[48,60]"
+			itemSpacings="28"
 		>
 			<Poster
 				id="icon"

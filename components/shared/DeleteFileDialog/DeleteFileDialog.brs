@@ -90,20 +90,8 @@ sub updateButtonFocus()
     deleteFocused = m.focusIndex = 0
     cancelFocused = m.focusIndex = 1
 
-    if deleteFocused
-        setDialogNodeColor(m.deleteButtonBackground, "dangerFocused")
-    else
-        setDialogNodeColor(m.deleteButtonBackground, "danger")
-    end if
-    m.deleteButtonLabel.color = dialogSecondaryButtonTextColor()
-
-    if cancelFocused
-        setDialogNodeColor(m.cancelButtonBackground, "focus")
-        m.cancelButtonLabel.color = dialogSecondaryButtonTextColor()
-    else
-        setDialogNodeColor(m.cancelButtonBackground, "secondary")
-        m.cancelButtonLabel.color = dialogSecondaryButtonTextColor()
-    end if
+    applyDialogButtonState(m.deleteButtonBackground, m.deleteButtonLabel, deleteFocused, "danger")
+    applyDialogButtonState(m.cancelButtonBackground, m.cancelButtonLabel, cancelFocused, "secondary")
 end sub
 
 sub closeDialog()
@@ -124,10 +112,8 @@ sub deleteSelectedFile()
     m.isDeleting = true
     m.fileName.text = "Deleting..."
     updateDeleteDialogLayout(1)
-    setDialogNodeColor(m.deleteButtonBackground, "secondary")
-    setDialogNodeColor(m.cancelButtonBackground, "secondary")
-    m.deleteButtonLabel.color = dialogColor("disabledText")
-    m.cancelButtonLabel.color = dialogColor("disabledText")
+    applyDialogButtonDisabled(m.deleteButtonBackground, m.deleteButtonLabel)
+    applyDialogButtonDisabled(m.cancelButtonBackground, m.cancelButtonLabel)
 
     m.deleteFileTask = createObject("roSGNode", "HttpTask")
     m.deleteFileTask.observeField("response", "onDeleteFileResponse")
