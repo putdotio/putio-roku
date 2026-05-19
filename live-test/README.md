@@ -120,8 +120,10 @@ make console
   media seek keys move playback.
   It uses SceneGraph state because Roku developer screenshots capture the app UI
   plane but not always the video plane.
-- `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=dist/tmp/player-ui]`
-  drives the same playback path and saves `play-focus.jpg`,
+- `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  drives the same playback path and saves screenshots under a timestamped
+  `dist/tmp/player-ui/<run>/` directory unless `OUTPUT_DIR` is set:
+  `play-focus.jpg`,
   `subtitle-button-focus.jpg`, `subtitle-menu.jpg`, `progress-focus.jpg`, and
   optional `audio-button-focus.jpg`, `audio-menu.jpg`,
   `speed-button-focus.jpg`, `speed-menu.jpg`, plus `review.html` for visual
@@ -138,8 +140,9 @@ make console
   `track-menu-subtitles-scroll`, and `track-menu-speed`.
 - `make lab-screenshot [STORY=app-dialog-empty] [LAB_SCREENSHOT_DELAY=3]`
   launches the same Lab story and writes
-  `dist/tmp/lab/<story>.jpg`. The delay gives Roku's developer
-  screenshot endpoint time to capture the first rendered app frame.
+  a timestamped screenshot based on `dist/tmp/lab/<story>.jpg`, for example
+  `dist/tmp/lab/<story>-YYYYMMDD-HHMMSS-mmm.jpg`. The delay gives Roku's
+  developer screenshot endpoint time to capture the first rendered app frame.
 - `make live-test-launch` opens the installed developer app and prints the
   active app state.
 - `make live-test-install` removes the existing developer app, installs this

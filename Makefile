@@ -293,7 +293,12 @@ live-test-player-ui-screenshots:
 		echo "ERROR: SUBTITLE_CONTENT_ID is not set. Example: make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
 		exit 1; \
 	fi
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" PLAYER_UI_REFERENCE_IMAGE="$(PLAYER_UI_REFERENCE_IMAGE)" pnpm roku:live player-ui-screenshots $(AUDIO_CONTENT_ID) $(SUBTITLE_CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue) $(or $(OUTPUT_DIR),dist/tmp/player-ui)
+	@OUTPUT_ARG="$(OUTPUT_DIR)"; \
+		if [ -n "$$OUTPUT_ARG" ]; then \
+			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" PLAYER_UI_REFERENCE_IMAGE="$(PLAYER_UI_REFERENCE_IMAGE)" pnpm roku:live player-ui-screenshots $(AUDIO_CONTENT_ID) $(SUBTITLE_CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue) "$$OUTPUT_ARG"; \
+		else \
+			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" PLAYER_UI_REFERENCE_IMAGE="$(PLAYER_UI_REFERENCE_IMAGE)" pnpm roku:live player-ui-screenshots $(AUDIO_CONTENT_ID) $(SUBTITLE_CONTENT_ID) $(or $(MEDIA_TYPE),movie) $(or $(START_FROM),continue); \
+		fi
 
 .PHONY: live-test-launch
 live-test-launch: launch

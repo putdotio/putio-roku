@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 import { execFile as execFileCallback } from "node:child_process";
-import { access, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, dirname, extname, join } from "node:path";
+import { access, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { extname, join } from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import {
@@ -12,6 +11,7 @@ import {
   assertNamedNodeText,
   assertNamedNodeTranslation as assertNodeTranslation,
   assertSceneGraphNumberNear as assertNear,
+  captureScreenshot as rokitCaptureScreenshot,
   checkDevice as rokitCheckDevice,
   isActiveMediaPlayerState as rokitIsActiveMediaPlayerState,
   isNamedNodeVisible,
@@ -31,7 +31,6 @@ import {
   readMediaPlayerState as rokitReadMediaPlayerState,
   readSceneGraphFailure,
   sceneGraphContainsText,
-  takeScreenshot as rokitTakeScreenshot,
   validateRemoteKey,
   waitForActiveApp as rokitWaitForActiveApp,
   waitForMediaPlayerState as rokitWaitForMediaPlayerState,
@@ -57,6 +56,28 @@ const appSceneGraphReadyTimeoutMs = 45_000;
 const maxPlaybackLaunchAttempts = 4;
 const screenshotCaptureAttempts = 5;
 const trackMenuRowPoolSize = 8;
+
+function defaultPlayerUiOutputDir(): string {
+  return join("dist/tmp/player-ui", formatArtifactTimestamp(new Date()));
+}
+
+function formatArtifactTimestamp(date: Date): string {
+  return [
+    date.getFullYear().toString(),
+    padDatePart(date.getMonth() + 1),
+    padDatePart(date.getDate()),
+    "-",
+    padDatePart(date.getHours()),
+    padDatePart(date.getMinutes()),
+    padDatePart(date.getSeconds()),
+    "-",
+    padDatePart(date.getMilliseconds(), 3),
+  ].join("");
+}
+
+function padDatePart(value: number, width = 2): string {
+  return value.toString().padStart(width, "0");
+}
 
 type TrackMenuTitle = "Audio tracks" | "Subtitles" | "Playback speed";
 type PlayerControlId =
@@ -2364,60 +2385,10 @@ async function captureDeveloperScreenshot(
   password: string,
   outputPath: string,
 ): Promise<string> {
-  await mkdir(dirname(outputPath), { recursive: true });
-  let lastError = "unknown";
-
-  for (let attempt = 1; attempt <= screenshotCaptureAttempts; attempt += 1) {
-    const captureDir = await mkdtemp(
-      join(tmpdir(), `putio-roku-${basename(outputPath, extname(outputPath))}-`),
-    );
-    const capturePath = join(captureDir, basename(outputPath));
-
-    try {
-      const capturedPath = await rokitTakeScreenshot(
-        { ...rokitContext(target), password },
-        capturePath,
-      );
-      if (await fileExists(capturedPath)) {
-        await copyFile(capturedPath, outputPath);
-        return outputPath;
-      }
-
-      if (await fileExists(capturePath)) {
-        await copyFile(capturePath, outputPath);
-        return outputPath;
-      }
-
-      const directCapturedPath = await rokitTakeScreenshot(
-        { ...rokitContext(target), password },
-        outputPath,
-      );
-      if (await fileExists(outputPath)) {
-        return outputPath;
-      }
-
-      if (await fileExists(directCapturedPath)) {
-        await copyFile(directCapturedPath, outputPath);
-        return outputPath;
-      }
-
-      throw new Error("screenshot capture succeeded without writing an image file");
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-      if (attempt === screenshotCaptureAttempts) {
-        break;
-      }
-
-      console.log(
-        `screenshot retry ${attempt}/${screenshotCaptureAttempts} for ${basename(outputPath)}: ${lastError}`,
-      );
-      await sleep(1_500);
-    } finally {
-      await rm(captureDir, { force: true, recursive: true });
-    }
-  }
-
-  throw new Error(`failed to capture ${basename(outputPath)}: ${lastError}`);
+  return await rokitCaptureScreenshot({ ...rokitContext(target), password }, outputPath, {
+    attempts: screenshotCaptureAttempts,
+    tempDirPrefix: "putio-roku-screenshot",
+  });
 }
 
 async function playerUiScreenshots(
@@ -3179,7 +3150,7 @@ async function main(): Promise<void> {
       subtitleContentId,
       mediaType = "movie",
       rawStartFromChoice = "continue",
-      outputDir = "dist/tmp/player-ui",
+      rawOutputDir,
     ] = args;
 
     if (!audioContentId || !subtitleContentId) {
@@ -3199,7 +3170,7 @@ async function main(): Promise<void> {
       subtitleContentId,
       mediaType,
       rawStartFromChoice,
-      outputDir,
+      rawOutputDir ?? defaultPlayerUiOutputDir(),
     );
   } else if (command === "press") {
     if (args.length === 0) {
