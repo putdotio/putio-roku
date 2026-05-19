@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "title": "put.io Roku visual reference",
+  "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
+  "updatedAt": "2026-05-19T13:35:00.000Z",
+  "screenshots": [
+    {
+      "id": "home",
+      "title": "Home",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/home.jpg",
+      "capturedAt": "2026-05-19T13:34:00.000Z",
+      "sizeBytes": 22788,
+      "tags": [
+        "home",
+        "navigation"
+      ],
+      "notes": [
+        "Home menu with Files, Search, and Settings visible.",
+        "History is hidden because the live account has history disabled in the home menu."
+      ]
+    },
+    {
+      "id": "files",
+      "title": "Files",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/files.jpg",
+      "capturedAt": "2026-05-19T13:34:00.000Z",
+      "sizeBytes": 48429,
+      "tags": [
+        "files",
+        "list",
+        "focus"
+      ],
+      "notes": [
+        "Files root list with the first item focused.",
+        "Uses synthetic test-account filenames."
+      ]
+    },
+    {
+      "id": "file-delete-dialog",
+      "title": "File delete dialog",
+      "group": "Dialogs",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/file-delete-dialog.jpg",
+      "capturedAt": "2026-05-19T13:34:00.000Z",
+      "sizeBytes": 34720,
+      "tags": [
+        "files",
+        "dialog",
+        "destructive"
+      ],
+      "notes": [
+        "Delete confirmation dialog opened from the Files page.",
+        "The capture dismisses the dialog without deleting the focused item."
+      ]
+    },
+    {
+      "id": "search-empty",
+      "title": "Search empty",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/search-empty.jpg",
+      "capturedAt": "2026-05-19T13:34:00.000Z",
+      "sizeBytes": 27592,
+      "tags": [
+        "search",
+        "keyboard"
+      ],
+      "notes": [
+        "Search screen before entering a query.",
+        "MiniKeyboard has focus."
+      ]
+    },
+    {
+      "id": "search-results",
+      "title": "Search results",
+      "group": "Search",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/search-results.jpg",
+      "capturedAt": "2026-05-19T12:34:39.556Z",
+      "sizeBytes": 47205,
+      "tags": [
+        "search",
+        "keyboard"
+      ],
+      "notes": [
+        "Query entered through the Roku MiniKeyboard.",
+        "Search results are visible while the keyboard still has focus."
+      ]
+    },
+    {
+      "id": "search-result-focused",
+      "title": "Search result focused",
+      "group": "Search",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/search-result-focused.jpg",
+      "capturedAt": "2026-05-19T12:45:55.923Z",
+      "sizeBytes": 47977,
+      "tags": [
+        "search",
+        "focus"
+      ],
+      "notes": [
+        "First result is focused after moving focus from the MiniKeyboard to the results list.",
+        "The query uses synthetic public-safe filenames."
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Settings",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/settings.jpg",
+      "capturedAt": "2026-05-19T13:35:00.000Z",
+      "sizeBytes": 39716,
+      "tags": [
+        "settings",
+        "list",
+        "device"
+      ],
+      "notes": [
+        "Settings page with version, device, and logout rows visible.",
+        "Logout remains the last row."
+      ]
+    }
+  ]
+}

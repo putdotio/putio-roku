@@ -350,6 +350,22 @@ lab-screenshot: lab-launch
 		sleep "$(or $(LAB_SCREENSHOT_DELAY),3)"; \
 		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$(TMP_DIR)/lab/$${STORY_NAME}.jpg"
 
+.PHONY: visual-capture
+visual-capture: check-roku-dev-target
+	@if [ -z "$(NAME)" ]; then \
+		echo "ERROR: NAME is not set. Example: make visual-capture NAME=search-results"; \
+		exit 1; \
+	fi
+	@RUN_ID=$$(date -u +%Y%m%d-%H%M%S); \
+		OUTPUT_PATH="$(TMP_DIR)/visual/captures/$$RUN_ID/$(NAME).jpg"; \
+		mkdir -p "$$(dirname "$$OUTPUT_PATH")"; \
+		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$$OUTPUT_PATH"; \
+		echo "$$OUTPUT_PATH"
+
+.PHONY: visual-gallery
+visual-gallery:
+	pnpm visual:gallery
+
 .PHONY: live-test-auth-reset
 live-test-auth-reset:
 	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live auth-reset

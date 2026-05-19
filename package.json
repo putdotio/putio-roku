@@ -13,6 +13,7 @@
     "format:roku:write": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --write",
     "roku:live": "node scripts/roku-live-test.ts",
     "roku:auth": "node scripts/putio-auth-harness.ts",
+    "visual:gallery": "node scripts/live-test/visual-gallery.ts",
     "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"
   },

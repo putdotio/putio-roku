@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#09090B">
+<title>put.io Roku visual reference</title>
+<style>
+  @import url('https://static.put.io/fonts/gt-america/standard/font.css');
+  @import url('https://static.put.io/fonts/gt-america/mono/font.css');
+  @import url('https://static.put.io/fonts/gt-america/extended/font.css');
+  @import url('https://static.put.io/fonts/berkeley-mono/variable/font.css');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #09090B;
+    --bg-2: #111113;
+    --bg-3: #19191B;
+    --bg-4: #222225;
+    --line: #27272A;
+    --border: #3F3F46;
+    --solid: #71717A;
+    --text-2: #A1A1AA;
+    --text: #FAFAFA;
+    --yellow: #FDCE45;
+    --blue: #60A5FA;
+    --green: #34D399;
+    --pink: #F472B6;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  body {
+    font-family: 'GT America', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 64px 24px; }
+  .hero { margin-bottom: 40px; }
+  .hero h1 { font-size: 32px; font-weight: 700; letter-spacing: 0; margin-bottom: 8px; }
+  .hero h1 span { color: var(--yellow); }
+  .hero p { font-size: 16px; color: var(--text-2); max-width: 680px; line-height: 1.6; margin-bottom: 20px; }
+  .stats { display: flex; gap: 24px; flex-wrap: wrap; }
+  .stat { font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace; }
+  .stat-value { font-size: 20px; font-weight: 700; color: var(--yellow); }
+  .stat-label { font-size: 11px; color: var(--solid); text-transform: uppercase; letter-spacing: 0.08em; }
+  .filters {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    padding: 12px 0 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-row { display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-label {
+    font-size: 10px;
+    color: var(--solid);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 6px;
+    font-weight: 600;
+    width: 68px;
+    flex: 0 0 auto;
+  }
+  .filter-group { display: flex; gap: 2px; align-items: center; }
+  .nav-btn {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--solid);
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 28px;
+    transition: transform 140ms var(--ease-out);
+  }
+  .nav-btn:active { transform: scale(0.97); }
+  .nav-btn:focus-visible, .modal-btn:focus-visible, .card:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+  }
+  .nav-btn.active { color: var(--bg); background: var(--yellow); font-weight: 600; }
+  .results-count {
+    font-size: 11px;
+    color: var(--solid);
+    margin-bottom: 12px;
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; }
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 160ms var(--ease-out);
+  }
+  .card:active { transform: scale(0.995); }
+  .preview {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #000;
+    outline: 1px solid rgba(255,255,255,0.08);
+    outline-offset: -1px;
+  }
+  .card-body { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+  .item-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(244,114,182,0.12);
+    color: var(--pink);
+    text-transform: uppercase;
+  }
+  .item-icon.web, .item-icon.desktop { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .item-icon.ios, .item-icon.android { background: rgba(52,211,153,0.12); color: var(--green); }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-meta {
+    font-size: 10px;
+    color: var(--solid);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    margin-top: 2px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 500;
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    background: rgba(253, 206, 69, 0.1);
+    color: var(--yellow);
+  }
+  .item-arrow { color: var(--border); font-size: 12px; flex: 0 0 auto; }
+  .footer { text-align: center; padding: 48px 0 0; font-size: 12px; color: var(--solid); }
+  .footer code { color: var(--text-2); font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace; }
+  .modal-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(12px);
+    padding: 32px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms var(--ease-out);
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal-panel {
+    width: min(1400px, 100%);
+    opacity: 0.96;
+    transform: scale(0.98);
+    transform-origin: center;
+    transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+  }
+  .modal-overlay.open .modal-panel { opacity: 1; transform: scale(1); }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .modal-title {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-2);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .modal-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text-2);
+    cursor: pointer;
+    text-decoration: none;
+    min-height: 28px;
+    transition: transform 140ms var(--ease-out);
+  }
+  .modal-btn:active { transform: scale(0.97); }
+  .modal-frame {
+    overflow: hidden;
+    background: #000;
+    border-radius: 4px;
+    border: 10px solid #1A1A1A;
+    box-shadow: 0 32px 100px rgba(0,0,0,0.6);
+  }
+  .modal-frame img { display: block; width: 100%; height: auto; max-height: calc(100vh - 132px); object-fit: contain; }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-btn:hover { color: var(--text-2); background: var(--bg-3); }
+    .card:hover { border-color: var(--border); background: var(--bg-3); transform: translateY(-1px); }
+    .card:hover .item-arrow { color: var(--yellow); }
+    .modal-btn:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+  }
+  @media (min-width: 721px) {
+    .hero p { font-size: 15px; }
+  }
+  @media (max-width: 720px) {
+    .container { padding: 40px 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 28px; }
+    .stats { gap: 18px; }
+    .nav-btn { min-height: 34px; padding: 4px 9px; }
+    .modal-overlay { padding: 14px; }
+    .modal-header { flex-wrap: wrap; }
+    .modal-title { flex-basis: 100%; }
+    .modal-btn { min-height: 34px; padding: 6px 10px; }
+    .modal-frame { border-width: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-btn, .card, .modal-overlay, .modal-panel, .modal-btn {
+      transition-duration: 0.01ms;
+    }
+    .nav-btn:active, .card:active, .card:hover, .modal-panel, .modal-overlay.open .modal-panel, .modal-btn:active {
+      transform: none;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>put<span>.</span>io Roku visual reference</h1>
+    <p>Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-value">7</div><div class="stat-label">Screens</div></div>
+      <div class="stat"><div class="stat-value">3</div><div class="stat-label">Groups</div></div>
+      <div class="stat"><div class="stat-value">1</div><div class="stat-label">Devices</div></div>
+    </div>
+  </div>
+  <div class="filters">
+    <div class="filter-row">
+      <span class="filter-label">Platform</span>
+      <div class="filter-group"><button class="nav-btn active" type="button" aria-pressed="true" data-filter-group="platform" data-filter-value="all">All</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="platform" data-filter-value="roku">Roku</button></div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Group</span>
+      <div class="filter-group"><button class="nav-btn active" type="button" aria-pressed="true" data-filter-group="group" data-filter-value="all">All</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="group" data-filter-value="dialogs">Dialogs</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="group" data-filter-value="main-pages">Main pages</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="group" data-filter-value="search">Search</button></div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Tag</span>
+      <div class="filter-group"><button class="nav-btn active" type="button" aria-pressed="true" data-filter-group="tag" data-filter-value="all">All</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="destructive">destructive</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="device">device</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="dialog">dialog</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="files">files</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="focus">focus</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="home">home</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="keyboard">keyboard</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="list">list</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="navigation">navigation</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="search">search</button><button class="nav-btn" type="button" aria-pressed="false" data-filter-group="tag" data-filter-value="settings">settings</button></div>
+    </div>
+  </div>
+  <div class="results-count"><span id="results-count">7</span> visible &middot; updated 2026-05-19T13:35:00.000Z</div>
+  <div class="grid" id="gallery">
+    <a class="card" href="screenshots/roku-720p/home.jpg" aria-label="Home screenshot" data-card data-title="Home" data-platform="roku" data-group="main-pages" data-tags="home navigation">
+      <img class="preview" src="screenshots/roku-720p/home.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">Home</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 22 KB</span><span class="tag">home</span><span class="tag">navigation</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/files.jpg" aria-label="Files screenshot" data-card data-title="Files" data-platform="roku" data-group="main-pages" data-tags="files list focus">
+      <img class="preview" src="screenshots/roku-720p/files.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">Files</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 47 KB</span><span class="tag">files</span><span class="tag">list</span><span class="tag">focus</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/file-delete-dialog.jpg" aria-label="File delete dialog screenshot" data-card data-title="File delete dialog" data-platform="roku" data-group="dialogs" data-tags="files dialog destructive">
+      <img class="preview" src="screenshots/roku-720p/file-delete-dialog.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">File delete dialog</div>
+          <div class="item-meta"><span>Dialogs</span><span>1280x720 / 34 KB</span><span class="tag">files</span><span class="tag">dialog</span><span class="tag">destructive</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-empty.jpg" aria-label="Search empty screenshot" data-card data-title="Search empty" data-platform="roku" data-group="main-pages" data-tags="search keyboard">
+      <img class="preview" src="screenshots/roku-720p/search-empty.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">Search empty</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 27 KB</span><span class="tag">search</span><span class="tag">keyboard</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-results.jpg" aria-label="Search results screenshot" data-card data-title="Search results" data-platform="roku" data-group="search" data-tags="search keyboard">
+      <img class="preview" src="screenshots/roku-720p/search-results.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">Search results</div>
+          <div class="item-meta"><span>Search</span><span>1280x720 / 46 KB</span><span class="tag">search</span><span class="tag">keyboard</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-result-focused.jpg" aria-label="Search result focused screenshot" data-card data-title="Search result focused" data-platform="roku" data-group="search" data-tags="search focus">
+      <img class="preview" src="screenshots/roku-720p/search-result-focused.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">Search result focused</div>
+          <div class="item-meta"><span>Search</span><span>1280x720 / 47 KB</span><span class="tag">search</span><span class="tag">focus</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/settings.jpg" aria-label="Settings screenshot" data-card data-title="Settings" data-platform="roku" data-group="main-pages" data-tags="settings list device">
+      <img class="preview" src="screenshots/roku-720p/settings.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-icon roku">TV</div>
+        <div class="item-info">
+          <div class="item-name">Settings</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 39 KB</span><span class="tag">settings</span><span class="tag">list</span><span class="tag">device</span></div>
+        </div>
+        <div class="item-arrow">&rarr;</div>
+      </div>
+    </a>
+  </div>
+  <div class="footer">Generated from <code>docs/visual/manifest.json</code> with <code>vref build</code></div>
+</div>
+
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <a class="modal-btn" id="modal-open" href="">Open image</a>
+      <button class="modal-btn" id="modal-close" type="button">Close</button>
+    </div>
+    <div class="modal-frame"><img id="modal-image" src="" alt=""></div>
+  </div>
+</div>
+<script>
+  const state = { platform: 'all', group: 'all', tag: 'all' };
+  const cards = Array.from(document.querySelectorAll('[data-card]'));
+  const resultCount = document.getElementById('results-count');
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalImage = document.getElementById('modal-image');
+  const modalOpen = document.getElementById('modal-open');
+  const modalClose = document.getElementById('modal-close');
+  let lastFocusedElement = null;
+
+  document.querySelectorAll('[data-filter-group]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const group = button.dataset.filterGroup;
+      const value = button.dataset.filterValue;
+      state[group] = value;
+      document.querySelectorAll('[data-filter-group="' + group + '"]').forEach((other) => {
+        const active = other === button;
+        other.classList.toggle('active', active);
+        other.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      applyFilters();
+    });
+  });
+
+  cards.forEach((card) => {
+    card.addEventListener('click', (event) => {
+      event.preventDefault();
+      lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      modalTitle.textContent = card.dataset.title;
+      modalImage.src = card.getAttribute('href');
+      modalImage.alt = card.dataset.title;
+      modalOpen.href = card.getAttribute('href');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      modalClose.focus({ preventScroll: true });
+    });
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  function closeModal() {
+    if (!modal.classList.contains('open')) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    modalImage.removeAttribute('src');
+    if (lastFocusedElement) {
+      lastFocusedElement.focus({ preventScroll: true });
+      lastFocusedElement = null;
+    }
+  }
+
+  function applyFilters() {
+    let visible = 0;
+    cards.forEach((card) => {
+      const platformMatch = state.platform === 'all' || card.dataset.platform === state.platform;
+      const groupMatch = state.group === 'all' || card.dataset.group === state.group;
+      const tagMatch = state.tag === 'all' || card.dataset.tags.split(' ').includes(state.tag);
+      const show = platformMatch && groupMatch && tagMatch;
+      card.hidden = !show;
+      if (show) visible += 1;
+    });
+    resultCount.textContent = String(visible);
+  }
+</script>
+</body>
+</html>
