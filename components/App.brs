@@ -4,6 +4,7 @@ function init()
     m.replaceRoute = false
     m.activeDialog = invalid
     m.hostedDialog = invalid
+    m.screenHost = m.top.findNode("screenHost")
     m.appDialog = m.top.findNode("appDialog")
     m.appDialog.observeField("buttonSelected", "onAppDialogButtonSelected")
     m.appDialog.observeField("wasClosed", "onAppDialogClosed")
@@ -15,38 +16,35 @@ end function
 
 sub configureRouter()
     m.routeHistory = []
-    m.activeRoute = m.global.route
+    m.activeRoute = invalid
+    m.activeRouteScreen = invalid
     m.global.observeField("route", "onNavigateToRoute")
+    mountRoute(m.global.route)
 end sub
 
 sub onNavigateToRoute(obj)
     nextRoute = obj.getData()
 
+    navigateToRoute(nextRoute)
+end sub
+
+sub navigateToRoute(nextRoute)
+    if nextRoute = invalid or nextRoute.id = invalid
+        return
+    end if
+
     clearActiveDialog()
 
-    currentRouteScreen = m.top.findNode(m.activeRoute.id)
-    currentRouteScreen.unobserveField("navigate")
-    currentRouteScreen.unobserveField("navigateBack")
-    currentRouteScreen.unobserveField("showExitAppDialog")
-    currentRouteScreen.unobserveField("showDialog")
-    currentRouteScreen.visible = false
+    if m.activeRouteScreen <> invalid and not shouldReplaceRoute(nextRoute)
+        m.routeHistory.push(snapshotActiveRoute())
+    end if
 
     if m.replaceRoute or nextRoute.replace = true
         m.replaceRoute = false
-    else
-        m.activeRoute.params = currentRouteScreen.params
-        m.routeHistory.push(m.activeRoute)
     end if
-    m.activeRoute = nextRoute
 
-    nextRouteScreen = m.top.findNode(nextRoute.id)
-    nextRouteScreen.params = nextRoute.params
-    nextRouteScreen.observeField("navigate", "onNavigateToRoute")
-    nextRouteScreen.observeField("navigateBack", "onNavigateBack")
-    nextRouteScreen.observeField("showExitAppDialog", "onShowExitAppDialog")
-    nextRouteScreen.observeField("showDialog", "onShowDialog")
-    nextRouteScreen.visible = true
-    nextRouteScreen.setFocus(true)
+    unmountActiveRoute()
+    mountRoute(nextRoute)
 end sub
 
 sub onNavigateBack()
@@ -55,23 +53,135 @@ sub onNavigateBack()
     if prevRoute <> invalid
         clearActiveDialog()
 
-        currentRouteScreen = m.top.findNode(m.activeRoute.id)
-        currentRouteScreen.unobserveField("navigate")
-        currentRouteScreen.unobserveField("navigateBack")
-        currentRouteScreen.unobserveField("showExitAppDialog")
-        currentRouteScreen.unobserveField("showDialog")
-        currentRouteScreen.visible = false
+        unmountActiveRoute()
+        mountRoute(prevRoute)
+    end if
+end sub
 
-        m.activeRoute = prevRoute
+function shouldReplaceRoute(route)
+    return m.replaceRoute = true or route.replace = true
+end function
 
-        prevRouteScreenScreen = m.top.findNode(prevRoute.id)
-        prevRouteScreenScreen.params = prevRoute.params
-        prevRouteScreenScreen.observeField("navigate", "onNavigateToRoute")
-        prevRouteScreenScreen.observeField("navigateBack", "onNavigateBack")
-        prevRouteScreenScreen.observeField("showExitAppDialog", "onShowExitAppDialog")
-        prevRouteScreenScreen.observeField("showDialog", "onShowDialog")
-        prevRouteScreenScreen.visible = true
-        prevRouteScreenScreen.setFocus(true)
+function snapshotActiveRoute()
+    params = {}
+    if m.activeRouteScreen <> invalid and m.activeRouteScreen.hasField("params")
+        params = m.activeRouteScreen.params
+    end if
+
+    return {
+        id: m.activeRoute.id,
+        params: params,
+    }
+end function
+
+sub mountRoute(route)
+    if route = invalid or route.id = invalid
+        return
+    end if
+
+    screen = createRouteScreen(route.id)
+    if screen = invalid
+        return
+    end if
+
+    screen.visible = false
+    screen.translation = [0, 0]
+    if screen.hasField("params")
+        screen.params = route.params
+    end if
+
+    observeRouteScreen(route.id, screen)
+    m.screenHost.insertChild(screen, m.screenHost.getChildCount())
+    m.activeRoute = route
+    m.activeRouteScreen = screen
+    screen.visible = true
+    screen.setFocus(true)
+end sub
+
+sub unmountActiveRoute()
+    if m.activeRouteScreen = invalid
+        return
+    end if
+
+    screen = m.activeRouteScreen
+    unobserveRouteScreen(m.activeRoute.id, screen)
+    screen.visible = false
+
+    if screen.getParent() <> invalid
+        m.screenHost.removeChild(screen)
+    end if
+
+    m.activeRouteScreen = invalid
+end sub
+
+function createRouteScreen(routeId as string)
+    componentName = getRouteComponentName(routeId)
+    if componentName = ""
+        return invalid
+    end if
+
+    return createObject("roSGNode", componentName)
+end function
+
+function getRouteComponentName(routeId as string) as string
+    if routeId = "splashScreen"
+        return "SplashScreen"
+    else if routeId = "authScreen"
+        return "AuthScreen"
+    else if routeId = "homeScreen"
+        return "HomeScreen"
+    else if routeId = "searchScreen"
+        return "SearchScreen"
+    else if routeId = "historyScreen"
+        return "HistoryScreen"
+    else if routeId = "filesScreen"
+        return "FilesScreen"
+    else if routeId = "videoScreen"
+        return "VideoScreen"
+    else if routeId = "videoPlayerScreen"
+        return "VideoPlayerScreen"
+    else if routeId = "audioScreen"
+        return "AudioScreen"
+    else if routeId = "imageScreen"
+        return "ImageScreen"
+    else if routeId = "settingsScreen"
+        return "SettingsScreen"
+    end if
+
+    return ""
+end function
+
+sub observeRouteScreen(routeId as string, screen)
+    observeScreenField(screen, "navigate", "onNavigateToRoute")
+    observeScreenField(screen, "navigateBack", "onNavigateBack")
+    observeScreenField(screen, "showExitAppDialog", "onShowExitAppDialog")
+    observeScreenField(screen, "showDialog", "onShowDialog")
+
+    if routeId = "authScreen"
+        observeScreenField(screen, "token", "onTokenRetrieved")
+    end if
+end sub
+
+sub unobserveRouteScreen(routeId as string, screen)
+    unobserveScreenField(screen, "navigate")
+    unobserveScreenField(screen, "navigateBack")
+    unobserveScreenField(screen, "showExitAppDialog")
+    unobserveScreenField(screen, "showDialog")
+
+    if routeId = "authScreen"
+        unobserveScreenField(screen, "token")
+    end if
+end sub
+
+sub observeScreenField(screen, fieldName as string, callbackName as string)
+    if screen <> invalid and screen.hasField(fieldName)
+        screen.observeField(fieldName, callbackName)
+    end if
+end sub
+
+sub unobserveScreenField(screen, fieldName as string)
+    if screen <> invalid and screen.hasField(fieldName)
+        screen.unobserveField(fieldName)
     end if
 end sub
 
@@ -80,8 +190,6 @@ sub goToAuthScreen()
         id: "authScreen",
         params: {},
     }
-    authScreen = m.top.findNode("authScreen")
-    authScreen.observeField("token", "onTokenRetrieved")
 end sub
 
 sub checkToken()

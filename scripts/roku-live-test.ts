@@ -592,7 +592,7 @@ async function assertHlsPlaybackSurfaceOnDevice(
 
     const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
     if (
-      hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
+      hasVisibleRouteScreen(xml, "videoPlayerScreen") &&
       mediaPlayerXml !== undefined &&
       readMediaPlayerContainer(mediaPlayerXml) === "hls" &&
       isActiveMediaPlayerState(await queryMediaPlayerStateSafe(target))
@@ -674,6 +674,67 @@ function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean
   return match !== null && !match[1]?.includes('visible="false"');
 }
 
+function hasVisibleComponent(xml: string, tagName: string): boolean {
+  const nodePattern = new RegExp(`<${tagName}\\b([^>]*)>`);
+  const match = nodePattern.exec(xml);
+
+  return match !== null && !match[1]?.includes('visible="false"');
+}
+
+function routeScreenTagName(screenName: string): string | undefined {
+  const screenTagNames: Record<string, string> = {
+    splashScreen: "SplashScreen",
+    authScreen: "AuthScreen",
+    homeScreen: "HomeScreen",
+    searchScreen: "SearchScreen",
+    historyScreen: "HistoryScreen",
+    filesScreen: "FilesScreen",
+    videoScreen: "VideoScreen",
+    videoPlayerScreen: "VideoPlayerScreen",
+    audioScreen: "AudioScreen",
+    imageScreen: "ImageScreen",
+    settingsScreen: "SettingsScreen",
+  };
+
+  return screenTagNames[screenName];
+}
+
+function hasVisibleRouteScreen(xml: string, screenName: string): boolean {
+  const tagName = routeScreenTagName(screenName);
+
+  return (
+    tagName !== undefined &&
+    (hasVisibleNode(xml, tagName, screenName) || hasVisibleComponent(xml, tagName))
+  );
+}
+
+async function waitForRouteScreenVisible(
+  target: string,
+  screenName: string,
+  timeoutMs = 30_000,
+): Promise<void> {
+  const startedAt = Date.now();
+  let lastState = `${screenName} not visible`;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const xml = await querySceneGraph(target);
+
+      if (hasVisibleRouteScreen(xml, screenName)) {
+        return;
+      }
+
+      lastState = readSceneGraphFailure(xml) ?? `${screenName} not visible`;
+    } catch (error) {
+      lastState = formatErrorMessage(error);
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  throw new Error(`expected ${screenName} to be visible: ${lastState}`);
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -683,7 +744,7 @@ function hasStartFromPrompt(xml: string): boolean {
 }
 
 function readAuthCode(xml: string): string | undefined {
-  if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+  if (!hasVisibleRouteScreen(xml, "authScreen")) {
     return undefined;
   }
 
@@ -712,7 +773,7 @@ async function waitForAuthCode(target: string, timeoutMs = 30_000): Promise<stri
         return code;
       }
 
-      lastState = hasVisibleNode(xml, "AuthScreen", "authScreen")
+      lastState = hasVisibleRouteScreen(xml, "authScreen")
         ? "auth screen visible without code"
         : "auth screen not visible";
     } catch (error) {
@@ -746,7 +807,7 @@ async function waitForBootstrapScreen(target: string, timeoutMs = 30_000): Promi
       const xml = await querySceneGraph(target);
 
       for (const screenName of screenNames) {
-        if (isNamedNodeVisible(xml, screenName)) {
+        if (hasVisibleRouteScreen(xml, screenName)) {
           return screenName;
         }
       }
@@ -814,7 +875,7 @@ async function waitForAuthReady(target: string, profile: string): Promise<void> 
     try {
       const xml = await querySceneGraph(target);
 
-      if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+      if (!hasVisibleRouteScreen(xml, "authScreen")) {
         console.log(`auth ready: profile=${profile}`);
         return;
       }
@@ -844,18 +905,18 @@ async function resetAuthState(target: string): Promise<void> {
 
   let xml = await querySceneGraph(target);
 
-  if (hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+  if (hasVisibleRouteScreen(xml, "authScreen")) {
     console.log("auth reset: already signed out");
     return;
   }
 
-  if (!isNamedNodeVisible(xml, "homeScreen")) {
+  if (!hasVisibleRouteScreen(xml, "homeScreen")) {
     for (let attempt = 0; attempt < 6; attempt += 1) {
       await pressKey(target, "Back");
       await sleep(500);
       xml = await querySceneGraph(target);
 
-      if (isNamedNodeVisible(xml, "homeScreen") || hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+      if (hasVisibleRouteScreen(xml, "homeScreen") || hasVisibleRouteScreen(xml, "authScreen")) {
         break;
       }
     }
@@ -863,12 +924,14 @@ async function resetAuthState(target: string): Promise<void> {
 
   xml = await querySceneGraph(target);
 
-  if (hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+  if (hasVisibleRouteScreen(xml, "authScreen")) {
     console.log("auth reset: already signed out");
     return;
   }
 
-  assertNamedNodeVisible(xml, "homeScreen");
+  if (!hasVisibleRouteScreen(xml, "homeScreen")) {
+    throw new Error("expected homeScreen to be visible");
+  };
 
   for (let step = 0; step < 5; step += 1) {
     await pressKey(target, "Down");
@@ -884,12 +947,12 @@ async function resetAuthState(target: string): Promise<void> {
   }
 
   await pressKey(target, "Select");
-  await waitForNamedNodeVisible(target, "authScreen", 15_000);
+  await waitForRouteScreenVisible(target, "authScreen", 15_000);
   console.log("auth reset: signed out");
 }
 
 function assertNotAuthScreen(xml: string): void {
-  if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
+  if (!hasVisibleRouteScreen(xml, "authScreen")) {
     return;
   }
 
@@ -1005,7 +1068,7 @@ async function launchPlayback(
         lastStartFromChoiceAt = Date.now();
         await chooseStartFrom(target, startFromChoice);
       }
-    } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "videoPlayerScreen")) {
       try {
         assertDirectPlaybackSurface(xml, contentId);
         return retry.app;
@@ -1019,12 +1082,12 @@ async function launchPlayback(
           retry.setLastState(formatErrorMessage(error));
         }
       }
-    } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "videoScreen")) {
       retry.setLastState("videoScreen");
-    } else if (hasVisibleNode(xml, "SearchScreen", "searchScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "searchScreen")) {
       retry.setLastState("searchScreen");
       await retry.maybeRetry(retry.lastState);
-    } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "homeScreen")) {
       retry.setLastState("homeScreen");
       await retry.maybeRetry(retry.lastState);
     }
@@ -1116,7 +1179,7 @@ async function launchPlaybackWithRemoteStart(
         await chooseStartFrom(target, startFromChoice);
         await sleep(playbackLaunchPostPromptSettleMs);
       }
-    } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "videoPlayerScreen")) {
       try {
         assertDirectPlaybackSurface(xml, contentId);
         return retry.app;
@@ -1130,11 +1193,11 @@ async function launchPlaybackWithRemoteStart(
           retry.setLastState(formatErrorMessage(error));
         }
       }
-    } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "videoScreen")) {
       retry.setLastState("videoScreen");
-    } else if (hasVisibleNode(xml, "SearchScreen", "searchScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "searchScreen")) {
       retry.setLastState("searchScreen");
-    } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
+    } else if (hasVisibleRouteScreen(xml, "homeScreen")) {
       retry.setLastState("homeScreen");
 
       if (Date.now() - start >= playbackLaunchRetryMs) {
@@ -1161,7 +1224,7 @@ async function findExistingPlaybackSurface(
 
   try {
     const xml = await querySceneGraph(target);
-    if (!hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
+    if (!hasVisibleRouteScreen(xml, "videoPlayerScreen")) {
       return undefined;
     }
 
