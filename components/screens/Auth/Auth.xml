@@ -48,27 +48,27 @@
 						itemSpacings="16"
 					>
 						<Group id="codeTile0">
-							<Rectangle width="96" height="96" color="0xEDEDEDFF" />
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
 							<Label id="codeChar0" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile1">
-							<Rectangle width="96" height="96" color="0xEDEDEDFF" />
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
 							<Label id="codeChar1" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile2">
-							<Rectangle width="96" height="96" color="0xEDEDEDFF" />
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
 							<Label id="codeChar2" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile3">
-							<Rectangle width="96" height="96" color="0xEDEDEDFF" />
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
 							<Label id="codeChar3" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile4">
-							<Rectangle width="96" height="96" color="0xEDEDEDFF" />
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
 							<Label id="codeChar4" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile5">
-							<Rectangle width="96" height="96" color="0xEDEDEDFF" />
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
 							<Label id="codeChar5" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
 						</Group>
 					</LayoutGroup>
@@ -128,12 +128,7 @@
 				</LayoutGroup>
 
 				<Group id="refreshButton">
-					<Rectangle
-						id="refreshButtonBackground"
-						width="400"
-						height="72"
-						color="0x2E2E2EFF"
-					/>
+					<Poster id="refreshButtonBackground" width="400" height="72" uri="pkg:/images/auth-refresh-button.png" loadDisplayMode="scaleToFit" />
 
 					<Poster
 						id="refreshButtonIcon"

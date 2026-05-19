@@ -349,6 +349,10 @@ lab-screenshot: lab-launch
 live-test-auth-reset:
 	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live auth-reset
 
+.PHONY: live-test-auth-refresh
+live-test-auth-refresh:
+	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm roku:live auth-refresh-smoke
+
 .PHONY: live-test-auth-prepare
 live-test-auth-prepare: putio-auth-prepare
 	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live auth-prepare "$(PUTIO_CLI_PROFILE)"

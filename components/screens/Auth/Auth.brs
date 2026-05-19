@@ -1,4 +1,5 @@
 function init()
+    m.top.focusable = true
     m.top.observeField("visible", "onVisibleChange")
 
     m.codeLabel = m.top.findNode("code")
@@ -8,7 +9,10 @@ function init()
         m.codeChars.push(m.top.findNode("codeChar" + i.toStr()))
     end for
     m.messageLabel = m.top.findNode("message")
+    m.refreshButtonBackground = m.top.findNode("refreshButtonBackground")
+    m.refreshButtonLabel = m.top.findNode("refreshButtonLabel")
     m.code = ""
+    m.isCodeLoading = false
 
     m.timer = createObject("roSGNode", "Timer")
     m.timer.duration = 2
@@ -17,12 +21,18 @@ end function
 
 sub onVisibleChange()
     if m.top.visible
+        m.top.setFocus(true)
         getAuthCode()
     end if
 end sub
 
 sub getAuthCode()
+    if m.isCodeLoading
+        return
+    end if
+
     deviceInfo = createObject("roDeviceInfo")
+    m.isCodeLoading = true
     m.code = ""
     m.timer.control = "stop"
     m.codeLabel.text = "Loading..."
@@ -31,6 +41,7 @@ sub getAuthCode()
     m.messageLabel.text = ""
     m.messageLabel.visible = false
     m.messageLabel.height = 0
+    setRefreshButtonLoading(true)
     m.getCodeTask = createObject("roSGNode", "HttpTask")
     m.getCodeTask.observeField("response", "onAuthCodeResponse")
     m.getCodeTask.url = "/oauth2/oob/code?app_id=" + m.global.appId + "&client_name=" + deviceInfo.getFriendlyName().EncodeUri()
@@ -39,10 +50,13 @@ end sub
 
 sub onAuthCodeResponse(obj)
     m.getCodeTask.unobserveField("response")
+    m.isCodeLoading = false
+    setRefreshButtonLoading(false)
     data = parseJSON(obj.getData())
 
-    if data.code <> invalid
+    if data <> invalid and data.code <> invalid
         m.code = data.code
+        m.codeLabel.text = data.code
         renderAuthCode(data.code)
         checkCodeMatch()
     else
@@ -70,11 +84,39 @@ sub renderAuthCode(code as string)
     end for
 end sub
 
+sub setRefreshButtonLoading(isLoading as boolean)
+    if m.refreshButtonLabel <> invalid
+        if isLoading
+            m.refreshButtonLabel.text = "Getting code..."
+        else
+            m.refreshButtonLabel.text = "Get new code"
+        end if
+    end if
+
+    setRefreshButtonBackgroundColor(isLoading)
+end sub
+
+sub setRefreshButtonBackgroundColor(isLoading as boolean)
+    if m.refreshButtonBackground = invalid
+        return
+    end if
+
+    if isLoading
+        m.refreshButtonBackground.uri = "pkg:/images/auth-refresh-button-loading.png"
+    else
+        m.refreshButtonBackground.uri = "pkg:/images/auth-refresh-button.png"
+    end if
+end sub
+
 sub onTimerFired()
     checkCodeMatch()
 end sub
 
 sub checkCodeMatch()
+    if m.code = ""
+        return
+    end if
+
     m.checkCodeTask = createObject("roSGNode", "HttpTask")
     m.checkCodeTask.observeField("response", "onCheckCodeMatchResponse")
     m.checkCodeTask.url = ("/oauth2/oob/code/" + m.code)
@@ -85,7 +127,7 @@ sub onCheckCodeMatchResponse(obj)
     m.checkCodeTask.unobserveField("response")
     data = parseJSON(obj.getData())
 
-    if data.oauth_token <> invalid
+    if data <> invalid and data.oauth_token <> invalid
         m.top.token = data.oauth_token
     else
         m.timer.control = "start"

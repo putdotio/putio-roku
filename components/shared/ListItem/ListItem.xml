@@ -9,18 +9,45 @@
 	</interface>
 
 	<children>
-		<Rectangle
+		<Group
 			id="focusBackground"
-			width="1500"
-			height="120"
-			color="0x2E2E2EFF"
 			visible="false"
-		/>
+		>
+			<Rectangle
+				id="focusBackgroundOuter"
+				translation="[24,0]"
+				width="1452"
+				height="120"
+				color="0x2E2E2EFF"
+			/>
+			<Rectangle
+				id="focusBackgroundWide"
+				translation="[12,6]"
+				width="1476"
+				height="108"
+				color="0x2E2E2EFF"
+			/>
+			<Rectangle
+				id="focusBackgroundMiddle"
+				translation="[6,12]"
+				width="1488"
+				height="96"
+				color="0x2E2E2EFF"
+			/>
+			<Rectangle
+				id="focusBackgroundCore"
+				translation="[0,24]"
+				width="1500"
+				height="72"
+				color="0x2E2E2EFF"
+			/>
+		</Group>
 
 		<LayoutGroup
+			id="inlineContent"
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[0, 55]"
+			translation="[48,55]"
 			itemSpacings="32"
 		>
 			<Poster
@@ -43,5 +70,16 @@
 				color="0xA0A0A0FF"
 			/>
 		</LayoutGroup>
+
+		<Label
+			id="value"
+			translation="[1040,0]"
+			width="412"
+			height="120"
+			font="font:SmallSystemFont"
+			color="0xA0A0A0FF"
+			horizAlign="right"
+			vertAlign="center"
+		/>
 	</children>
 </component>

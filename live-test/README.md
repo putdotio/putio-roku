@@ -76,6 +76,7 @@ make live-test-install
 make putio-auth-status
 make putio-auth-prepare
 make live-test-auth-reset
+make live-test-auth-refresh
 make live-test-auth-prepare
 make console
 ```
@@ -151,6 +152,9 @@ make console
   approved 1Password-backed `devs-fe-auto` setup.
 - `make live-test-auth-reset` launches the Roku developer app, drives Settings >
   Log out through remote keypresses, and waits for the auth screen.
+- `make live-test-auth-refresh` signs the app out when needed, waits for the
+  auth screen device code, presses Select on Get new code, and asserts a new
+  code is rendered.
 - `make live-test-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` launches the
   Roku developer app, reads the visible device code from SceneGraph when the app
   is signed out, approves it with the prepared testing account, and waits until

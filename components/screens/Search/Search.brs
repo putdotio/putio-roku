@@ -4,7 +4,6 @@ function init()
     applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.keyboard = m.top.findNode("keyboard")
-    m.keyboard.setFocus(true)
     m.keyboard.observeField("text", "onKeywordChange")
 
     m.loading = m.top.findNode("loading")

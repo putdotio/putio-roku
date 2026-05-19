@@ -101,6 +101,7 @@ function usage(): never {
   node scripts/roku-live-test.ts check
   node scripts/roku-live-test.ts active-app
   node scripts/roku-live-test.ts auth-reset
+  node scripts/roku-live-test.ts auth-refresh-smoke
   node scripts/roku-live-test.ts auth-prepare [profile]
   node scripts/roku-live-test.ts set-playback-type <hls|mp4> [profile]
   node scripts/roku-live-test.ts playback-type-smoke <hls|mp4> <content-id> [media-type] [continue|beginning]
@@ -686,12 +687,104 @@ function readAuthCode(xml: string): string | undefined {
     return undefined;
   }
 
-  const code = readNamedNodeAttribute(xml, "code", "text")?.trim();
+  const tileCode = Array.from({ length: 6 }, (_, index) =>
+    readNamedNodeAttribute(xml, `codeChar${index}`, "text")?.trim() ?? "",
+  ).join("");
+  const code = tileCode.length === 6 ? tileCode : readNamedNodeAttribute(xml, "code", "text")?.trim();
+
   if (code === undefined || code === "" || code === "Loading..." || code === "Error!") {
     return undefined;
   }
 
   return code;
+}
+
+async function waitForAuthCode(target: string, timeoutMs = 30_000): Promise<string> {
+  const startedAt = Date.now();
+  let lastState = "waiting for auth code";
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const xml = await querySceneGraph(target);
+      const code = readAuthCode(xml);
+
+      if (code !== undefined) {
+        return code;
+      }
+
+      lastState = hasVisibleNode(xml, "AuthScreen", "authScreen")
+        ? "auth screen visible without code"
+        : "auth screen not visible";
+    } catch (error) {
+      lastState = formatErrorMessage(error);
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  throw new Error(`expected auth code to load: ${lastState}`);
+}
+
+async function waitForBootstrapScreen(target: string, timeoutMs = 30_000): Promise<string> {
+  const startedAt = Date.now();
+  const screenNames = [
+    "authScreen",
+    "homeScreen",
+    "searchScreen",
+    "historyScreen",
+    "filesScreen",
+    "videoScreen",
+    "videoPlayerScreen",
+    "audioScreen",
+    "imageScreen",
+    "settingsScreen",
+  ];
+  let lastState = "waiting for app screen";
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const xml = await querySceneGraph(target);
+
+      for (const screenName of screenNames) {
+        if (isNamedNodeVisible(xml, screenName)) {
+          return screenName;
+        }
+      }
+
+      lastState = readSceneGraphFailure(xml) ?? "no app screen visible";
+    } catch (error) {
+      lastState = formatErrorMessage(error);
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  throw new Error(`expected app bootstrap screen: ${lastState}`);
+}
+
+async function authRefreshSmoke(target: string): Promise<void> {
+  await resetAuthState(target);
+  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
+
+  const firstCode = await waitForAuthCode(target);
+  await pressKey(target, "Select");
+
+  const startedAt = Date.now();
+  let lastCode = firstCode;
+
+  while (Date.now() - startedAt < 30_000) {
+    const nextCode = await waitForAuthCode(target, 10_000);
+    lastCode = nextCode;
+
+    if (nextCode !== firstCode) {
+      console.log(`auth refresh smoke: ${firstCode} -> ${nextCode}`);
+      return;
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  throw new Error(`expected Select on auth screen to refresh code; code stayed ${lastCode}`);
 }
 
 async function approveAuthCodeWithHarness(code: string, profile: string): Promise<void> {
@@ -747,6 +840,7 @@ async function waitForAuthReady(target: string, profile: string): Promise<void> 
 async function resetAuthState(target: string): Promise<void> {
   await launchApp(target, "dev");
   await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
+  await waitForBootstrapScreen(target, appSceneGraphReadyTimeoutMs);
 
   let xml = await querySceneGraph(target);
 
@@ -2100,6 +2194,8 @@ async function playbackTypeSmoke(
   startFromChoice: "continue" | "beginning",
 ): Promise<void> {
   await setPlaybackTypeConfig(playbackType);
+  await leaveActivePlaybackSurface(target);
+
   const app = await launchPlaybackWithRemoteStart(
     target,
     contentId,
@@ -2810,6 +2906,8 @@ async function main(): Promise<void> {
     await printActiveApp(target);
   } else if (command === "auth-reset") {
     await resetAuthState(target);
+  } else if (command === "auth-refresh-smoke") {
+    await authRefreshSmoke(target);
   } else if (command === "auth-prepare") {
     const [profile = process.env.PUTIO_CLI_PROFILE ?? "devs-fe-auto"] = args;
     await waitForAuthReady(target, profile);

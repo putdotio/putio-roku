@@ -434,10 +434,10 @@ end sub
 
 sub renderGenericListItemStory()
     content = createObject("roSGNode", "ContentNode")
-    addGenericListItem(content, "media-gallery-1", "Files", "Browse your put.io files")
-    addGenericListItem(content, "search", "Search", "Find media by name")
-    addGenericListItem(content, "history-1", "History", "Enabled")
-    addGenericListItem(content, "settings", "Settings", "Playback type: Direct")
+    addGenericListItem(content, "media-gallery-1", "Files", "Browse your put.io files", "")
+    addGenericListItem(content, "search", "Search", "Find media by name", "")
+    addGenericListItem(content, "history-1", "History", "Enabled", "right")
+    addGenericListItem(content, "settings", "Settings", "Playback type: Direct", "right")
 
     m.genericListItemList.content = content
     m.genericListItemList.jumpToItem = 0
@@ -487,11 +487,13 @@ sub renderHistoryListItemStory()
     m.historyListItemList.visible = true
 end sub
 
-sub addGenericListItem(content as object, iconName as string, title as string, description as string)
+sub addGenericListItem(content as object, iconName as string, title as string, description as string, valueAlign as string)
     item = content.createChild("ListItemData")
     item.iconName = iconName
     item.title = title
     item.description = description
+    item.valueAlign = valueAlign
+    item.rowWidth = 1240
 end sub
 
 sub addFileListItem(content as object, name as string, fileType as string, size as integer, createdAt as string, startFrom as integer, isLoading as boolean)

@@ -54,6 +54,8 @@ sub renderList()
         listItemData.key = key
         listItemData.title = item.title
         listItemData.iconName = item.iconName
+        listItemData.valueAlign = "right"
+        listItemData.rowWidth = 1360
         if item.description <> invalid
             listItemData.description = item.description
         end if

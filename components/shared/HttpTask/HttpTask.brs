@@ -14,7 +14,7 @@ function request()
 
     ' Inject Token
     storage = CreateObject("roRegistrySection", "userConfig")
-    if storage.Exists("token")
+    if storage.Exists("token") and shouldAddAuthorizationHeader(m.top.url)
         m.http.AddHeader("Authorization", "token " + storage.Read("token"))
     end if
 
@@ -48,6 +48,10 @@ function request()
 
 end function
 
+function shouldAddAuthorizationHeader(url as string) as boolean
+    return Left(url, 16) <> "/oauth2/oob/code"
+end function
+
 sub onResponse(msg)
     ' ? "HttpTask Message: "; msg.getstring()
     ' ? "HttpTask ResponseCode: "; msg.getresponsecode()
@@ -61,7 +65,7 @@ sub onResponse(msg)
         end if
     else if (msg = invalid)
         ? "HttpTask Failed (Response Code): "; msg
-        m.top.response = "{ error_type: 'NETWORK_ERROR', error_message: 'Network Error' }"
+        m.top.response = "{""error_type"":""NETWORK_ERROR"",""error_message"":""Network Error""}"
     end if
 
     m.http.asynccancel()
