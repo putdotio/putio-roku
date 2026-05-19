@@ -933,20 +933,15 @@ async function resetAuthState(target: string): Promise<void> {
     throw new Error("expected homeScreen to be visible");
   };
 
-  for (let step = 0; step < 5; step += 1) {
-    await pressKey(target, "Down");
-    await sleep(200);
-  }
-
+  await focusLastListItem(target, "list");
   await pressKey(target, "Select");
-  await waitForNamedNodeVisible(target, "settingsScreen", 15_000);
+  await sleep(3_000);
+  await waitForRouteScreenVisible(target, "settingsScreen", 15_000);
+  await waitForNamedNodeVisible(target, "settingsList", 15_000);
 
-  for (let step = 0; step < 5; step += 1) {
-    await pressKey(target, "Down");
-    await sleep(200);
-  }
-
+  await focusLastListItem(target, "settingsList");
   await pressKey(target, "Select");
+  await sleep(5_000);
   await waitForRouteScreenVisible(target, "authScreen", 15_000);
   console.log("auth reset: signed out");
 }
@@ -1302,6 +1297,24 @@ function formatErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function readNamedNodeIntegerAttribute(
+  xml: string,
+  nodeName: string,
+  attributeName: string,
+): number {
+  const nodePattern = new RegExp(`<[^>]+\\bname="${escapeRegExp(nodeName)}"[^>]*>`);
+  const nodeTag = nodePattern.exec(xml)?.[0];
+  const attributePattern = new RegExp(`\\b${escapeRegExp(attributeName)}="([^"]*)"`);
+  const rawValue = nodeTag === undefined ? undefined : attributePattern.exec(nodeTag)?.[1];
+  const value = Number.parseInt(rawValue ?? "", 10);
+
+  if (!Number.isInteger(value)) {
+    throw new Error(`expected ${nodeName}.${attributeName} to be an integer`);
+  }
+
+  return value;
+}
+
 async function waitForActiveApp(
   target: string,
   appId: string,
@@ -1313,6 +1326,50 @@ async function pressKey(target: string, key: string): Promise<void> {
   validateRemoteKey(key);
   await rokitPressKey(rokitContext(target), key);
   console.log(`pressed: ${key}`);
+}
+
+async function focusLastListItem(target: string, nodeName: string): Promise<void> {
+  const startedAt = Date.now();
+  let count = 0;
+  let focusItem = 0;
+  let lastState = `${nodeName} has no items`;
+
+  while (Date.now() - startedAt < 15_000) {
+    try {
+      const xml = await querySceneGraph(target);
+      count = readNamedNodeIntegerAttribute(xml, nodeName, "count");
+      focusItem = readNamedNodeIntegerAttribute(xml, nodeName, "focusItem");
+
+      if (count > 0) {
+        break;
+      }
+
+      lastState = `${nodeName} count is ${count}`;
+    } catch (error) {
+      lastState = formatErrorMessage(error);
+    }
+
+    await sleep(sceneGraphPollIntervalMs);
+  }
+
+  if (count < 1) {
+    throw new Error(`expected ${nodeName} to contain at least one item: ${lastState}`);
+  }
+
+  const targetIndex = count - 1;
+  if (focusItem < 0 || focusItem >= count) {
+    throw new Error(`expected ${nodeName}.focusItem to be inside 0..${targetIndex}`);
+  }
+
+  for (let step = focusItem; step < targetIndex; step += 1) {
+    await pressKey(target, "Down");
+    await sleep(900);
+  }
+
+  for (let step = focusItem; step > targetIndex; step -= 1) {
+    await pressKey(target, "Up");
+    await sleep(900);
+  }
 }
 
 async function controlSmoke(target: string): Promise<void> {

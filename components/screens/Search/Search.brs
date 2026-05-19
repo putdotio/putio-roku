@@ -218,7 +218,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
         if normalizedKey = "back"
             m.keyboard.text = ""
-            m.top.navigateBack = "true"
+            m.top.navigateBack = true
             return true
         else if normalizedKey = "left"
             if m.searchHistory.isInFocusChain()

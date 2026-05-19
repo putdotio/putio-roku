@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SplashScreen" extends="Group">
+  <interface>
+    <field id="params" type="assocarray" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
+  </interface>
+
   <children>
     <LoadingIndicator
       id="loading"

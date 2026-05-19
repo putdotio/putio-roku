@@ -16,8 +16,7 @@ end function
 
 sub configureRouter()
     m.routeHistory = []
-    m.activeRoute = invalid
-    m.activeRouteScreen = invalid
+    m.activeRouteEntry = invalid
     m.global.observeField("route", "onNavigateToRoute")
     mountRoute(m.global.route)
 end sub
@@ -35,16 +34,22 @@ sub navigateToRoute(nextRoute)
 
     clearActiveDialog()
 
-    if m.activeRouteScreen <> invalid and not shouldReplaceRoute(nextRoute)
-        m.routeHistory.push(snapshotActiveRoute())
+    replaceRoute = shouldReplaceRoute(nextRoute)
+    if nextRoute.id = "authScreen"
+        replaceRoute = true
+        m.routeHistory = []
     end if
 
-    if m.replaceRoute or nextRoute.replace = true
-        m.replaceRoute = false
+    previousEntry = m.activeRouteEntry
+    if previousEntry <> invalid
+        hideRouteEntry(previousEntry)
+        if not replaceRoute
+            m.routeHistory.push(previousEntry)
+        end if
     end if
 
-    unmountActiveRoute()
-    mountRoute(nextRoute)
+    m.replaceRoute = false
+    showRouteEntry(createRouteEntry(nextRoute))
 end sub
 
 sub onNavigateBack()
@@ -53,8 +58,8 @@ sub onNavigateBack()
     if prevRoute <> invalid
         clearActiveDialog()
 
-        unmountActiveRoute()
-        mountRoute(prevRoute)
+        hideRouteEntry(m.activeRouteEntry)
+        showRouteEntry(ensureRouteEntry(prevRoute))
     end if
 end sub
 
@@ -62,56 +67,137 @@ function shouldReplaceRoute(route)
     return m.replaceRoute = true or route.replace = true
 end function
 
-function snapshotActiveRoute()
-    params = {}
-    if m.activeRouteScreen <> invalid and m.activeRouteScreen.hasField("params")
-        params = m.activeRouteScreen.params
-    end if
-
-    return {
-        id: m.activeRoute.id,
-        params: params,
-    }
-end function
-
 sub mountRoute(route)
+    showRouteEntry(createRouteEntry(route))
+end sub
+
+function createRouteEntry(route)
     if route = invalid or route.id = invalid
-        return
+        return invalid
     end if
 
     screen = createRouteScreen(route.id)
     if screen = invalid
-        return
+        return invalid
     end if
 
+    screen.id = route.id
     screen.visible = false
     screen.translation = [0, 0]
     if screen.hasField("params")
         screen.params = route.params
     end if
 
-    observeRouteScreen(route.id, screen)
-    m.screenHost.insertChild(screen, m.screenHost.getChildCount())
-    m.activeRoute = route
-    m.activeRouteScreen = screen
-    screen.visible = true
-    screen.setFocus(true)
-end sub
+    return {
+        route: route,
+        screen: screen,
+        lastFocus: invalid,
+    }
+end function
 
-sub unmountActiveRoute()
-    if m.activeRouteScreen = invalid
+function ensureRouteEntry(routeOrEntry)
+    if routeOrEntry = invalid
+        return invalid
+    end if
+
+    if routeOrEntry.screen <> invalid
+        return routeOrEntry
+    end if
+
+    return createRouteEntry(routeOrEntry)
+end function
+
+sub showRouteEntry(entry)
+    entry = ensureRouteEntry(entry)
+    if entry = invalid
         return
     end if
 
-    screen = m.activeRouteScreen
-    unobserveRouteScreen(m.activeRoute.id, screen)
-    screen.visible = false
-
-    if screen.getParent() <> invalid
-        m.screenHost.removeChild(screen)
+    screen = entry.screen
+    if screen = invalid
+        return
     end if
 
-    m.activeRouteScreen = invalid
+    observeRouteScreen(entry.route.id, screen)
+    setHostedScreen(screen)
+    m.activeRouteEntry = entry
+    screen.visible = true
+    notifyRouteLifecycle(screen, "routeShown")
+    restoreRouteFocus(entry)
+end sub
+
+sub hideRouteEntry(entry)
+    if entry = invalid or entry.screen = invalid
+        return
+    end if
+
+    screen = entry.screen
+    entry.lastFocus = getDeepFocusedNode(screen)
+    unobserveRouteScreen(entry.route.id, screen)
+    if screen.isInFocusChain()
+        screen.setFocus(false)
+    end if
+    notifyRouteLifecycle(screen, "routeHidden")
+    screen.visible = false
+    clearHostedScreen(screen)
+
+    m.activeRouteEntry = invalid
+end sub
+
+sub setHostedScreen(screen)
+    if screen = invalid
+        return
+    end if
+
+    if m.screenHost.getChildCount() > 0
+        m.screenHost.replaceChild(screen, 0)
+    else
+        m.screenHost.appendChild(screen)
+    end if
+end sub
+
+sub clearHostedScreen(screen)
+    if screen <> invalid and screen.getParent() <> invalid
+        m.screenHost.removeChild(screen)
+    end if
+end sub
+
+sub restoreRouteFocus(entry)
+    screen = entry.screen
+    if entry.lastFocus <> invalid
+        entry.lastFocus.setFocus(true)
+    else if screen.isInFocusChain() = false
+        screen.setFocus(true)
+    end if
+end sub
+
+function getDeepFocusedNode(screen)
+    if screen = invalid or screen.isInFocusChain() = false
+        return invalid
+    end if
+
+    focusedNode = screen
+    while focusedNode <> invalid and focusedNode.hasFocus() = false and focusedNode.focusedChild <> invalid
+        focusedNode = focusedNode.focusedChild
+    end while
+
+    if focusedNode <> invalid and focusedNode.hasFocus()
+        return focusedNode
+    end if
+
+    return invalid
+end function
+
+sub notifyRouteLifecycle(screen, fieldName as string)
+    if screen = invalid
+        return
+    end if
+
+    if fieldName = "routeShown" and screen.hasField("routeShown")
+        screen.routeShown = true
+    else if fieldName = "routeHidden" and screen.hasField("routeHidden")
+        screen.routeHidden = true
+    end if
 end sub
 
 function createRouteScreen(routeId as string)
@@ -186,6 +272,8 @@ sub unobserveScreenField(screen, fieldName as string)
 end sub
 
 sub goToAuthScreen()
+    m.routeHistory = []
+    m.replaceRoute = true
     m.global.route = {
         id: "authScreen",
         params: {},
@@ -265,6 +353,7 @@ sub routeAfterBootstrap()
     if m.pendingDeepLink <> invalid
         routePendingDeepLink()
     else
+        m.replaceRoute = true
         m.global.route = {
             id: "homeScreen",
             params: {}
@@ -442,14 +531,18 @@ end sub
 
 sub onShowExitAppDialog(obj)
     if obj.getData() = true
-        m.dialog = createObject("roSGNode", "AppDialog")
-        m.dialog.title = "Exit put.io?"
-        m.dialog.buttons = ["OK", "Cancel"]
-        m.dialog.defaultButton = 1
-        m.dialog.observeField("buttonSelected", "onExitAppDialogButtonSelected")
-        m.dialog.observeField("wasClosed", "onExitAppDialogClosed")
-        showAppDialog(m.dialog)
+        showExitAppDialog()
     end if
+end sub
+
+sub showExitAppDialog()
+    m.dialog = createObject("roSGNode", "AppDialog")
+    m.dialog.title = "Exit put.io?"
+    m.dialog.buttons = ["OK", "Cancel"]
+    m.dialog.defaultButton = 1
+    m.dialog.observeField("buttonSelected", "onExitAppDialogButtonSelected")
+    m.dialog.observeField("wasClosed", "onExitAppDialogClosed")
+    showAppDialog(m.dialog)
 end sub
 
 sub onExitAppDialogButtonSelected(obj)
@@ -476,11 +569,15 @@ sub clearExitAppDialog()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    if press = false or m.activeDialog = invalid
+    if press = false
         return false
     end if
 
     normalizedKey = LCase(key)
+
+    if m.activeDialog = invalid
+        return handleRouteKey(normalizedKey)
+    end if
 
     if normalizedKey = "back"
         m.activeDialog.close = true
@@ -501,5 +598,32 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
 
+    return true
+end function
+
+function handleRouteKey(normalizedKey as string) as boolean
+    if normalizedKey <> "back"
+        return false
+    end if
+
+    return navigateBackOrExit()
+end function
+
+function navigateBackOrExit() as boolean
+    if m.appDialog.visible
+        return false
+    end if
+
+    if m.activeRouteEntry = invalid or m.activeRouteEntry.route = invalid
+        return false
+    end if
+
+    routeId = m.activeRouteEntry.route.id
+    if routeId = "authScreen" or routeId = "homeScreen"
+        showExitAppDialog()
+        return true
+    end if
+
+    onNavigateBack()
     return true
 end function

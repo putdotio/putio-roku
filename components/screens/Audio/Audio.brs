@@ -103,7 +103,7 @@ sub showAudioErrorDialog()
 end sub
 
 sub onAudioLoadErrorDialogClosed()
-    m.top.navigateBack = "true"
+    m.top.navigateBack = true
 end sub
 
 sub onPositionChange()
@@ -176,7 +176,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         normalizedKey = LCase(key)
 
         if normalizedKey = "back"
-            m.top.navigateBack = "true"
+            m.top.navigateBack = true
         else if normalizedKey = "play"
             playOrPause()
         else if normalizedKey = "rewind"

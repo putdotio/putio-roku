@@ -235,7 +235,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             return false
         else if normalizedKey = "back"
             if m.top.params.immediateBackFileId = m.parent.id or m.breadcrumbs.count() = 0
-                m.top.navigateBack = "true"
+                m.top.navigateBack = true
             else
                 m.focusFileId = m.parent.id
                 breadcrumb = m.breadcrumbs.pop()

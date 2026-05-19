@@ -30,7 +30,7 @@ sub onImageLoad()
 end sub
 
 sub onImageLoadErrorDialogClosed()
-    m.top.navigateBack = "true"
+    m.top.navigateBack = true
 end sub
 
 sub showImageErrorDialog()
@@ -46,7 +46,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         normalizedKey = LCase(key)
 
         if normalizedKey = "back"
-            m.top.navigateBack = "true"
+            m.top.navigateBack = true
             return true
         else if isOptionsKey(normalizedKey)
             return true
