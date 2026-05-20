@@ -21,8 +21,10 @@ ROKU_ZIP_FILES := LC_ALL=C find manifest source components images \( -path 'comp
 endif
 
 ROKU_DEV_CONSOLE_PORT ?= 8085
+ROKU_ECP_WAIT_ATTEMPTS ?= 12
 ROKU_TARGET := $(or $(ROKU_DEV_TARGET),$(ROKIT_TARGET))
 ROKU_PASSWORD := $(or $(ROKU_DEV_PASSWORD),$(ROKIT_PASSWORD))
+ROKU_DEBUG_ARTIFACT_DIR ?= $(CURDIR)/.local/roku-debug
 PUTIO_CLI_PROFILE ?= devs-fe-auto
 PUTIO_CLI_CONFIG_PATH ?= $(CURDIR)/.putio-cli/$(PUTIO_CLI_PROFILE).json
 
@@ -122,9 +124,19 @@ check-roku-dev-target:
 	fi
 	@echo "Checking dev server at $(ROKU_TARGET)..."
 	@mkdir -p "$(TMP_DIR)"
-	@curl --connect-timeout 2 --max-time 4 --silent --show-error \
-		--output "$(ROKU_RESPONSE_FILE)" \
-		http://$(ROKU_TARGET):8060/query/device-info
+	@for attempt in $$(seq 1 "$(ROKU_ECP_WAIT_ATTEMPTS)"); do \
+		if curl --connect-timeout 2 --max-time 4 --silent --show-error \
+			--output "$(ROKU_RESPONSE_FILE)" \
+			http://$(ROKU_TARGET):8060/query/device-info; then \
+			exit 0; \
+		fi; \
+		if [ "$$attempt" = "$(ROKU_ECP_WAIT_ATTEMPTS)" ]; then \
+			echo "ERROR: Roku ECP did not become ready after $$attempt attempt(s)."; \
+			exit 1; \
+		fi; \
+		echo "Roku ECP is not ready yet; retrying ($$attempt/$(ROKU_ECP_WAIT_ATTEMPTS))..."; \
+		sleep 5; \
+	done
 	@ROKU_DEV_NAME=$$(sed -n 's:.*<friendly-device-name>\(.*\)</friendly-device-name>.*:\1:p' "$(ROKU_RESPONSE_FILE)"); \
 		if [ -z "$$ROKU_DEV_NAME" ]; then \
 			ROKU_DEV_NAME=$$(sed -n 's:.*<friendlyName>\(.*\)</friendlyName>.*:\1:p' "$(ROKU_RESPONSE_FILE)"); \
@@ -215,6 +227,12 @@ launch: check-roku-dev-target
 console: check-roku-dev-target
 	@echo "Attaching to BrightScript console at $(ROKU_TARGET):$(ROKU_DEV_CONSOLE_PORT). Press Ctrl-C to detach."
 	@nc $(ROKU_TARGET) $(ROKU_DEV_CONSOLE_PORT)
+
+.PHONY: debug-snapshot
+debug-snapshot: check-roku-dev-target
+	@RUN_ID=$$(date -u +%Y%m%d-%H%M%S); \
+		OUTPUT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)/snapshot-$$RUN_ID"; \
+		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm roku:live debug-snapshot "$$OUTPUT_DIR"
 
 .PHONY: live-test
 live-test: check-roku-dev-target active-app device-info
@@ -329,7 +347,11 @@ lab-launch: check-roku-dev-target
 			--request POST \
 			"http://$(ROKU_TARGET):8060/launch/dev?$$QUERY" \
 			>/dev/null
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node storyList visible --timeout-ms 10000
+	@if [ -n "$(STORY)" ]; then \
+		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node detailView visible --timeout-ms 30000; \
+	else \
+		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node listView visible --timeout-ms 30000; \
+	fi
 	@EXPECTED_TITLE=""; \
 		case "$(STORY)" in \
 			app-dialog-empty) EXPECTED_TITLE="AppDialog / no message" ;; \
@@ -392,9 +414,9 @@ visual-capture-pages: putio-auth-prepare
 visual-capture-lab: lab-install
 	@OUTPUT_ARG="$(OUTPUT_DIR)"; \
 		if [ -n "$$OUTPUT_ARG" ]; then \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm roku:live visual-lab "$$OUTPUT_ARG" $(STORIES) $(if $(ALL),--all,); \
+			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)" pnpm roku:live visual-lab "$$OUTPUT_ARG" $(STORIES) $(if $(ALL),--all,); \
 		else \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm roku:live visual-lab $(STORIES) $(if $(ALL),--all,); \
+			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)" pnpm roku:live visual-lab $(STORIES) $(if $(ALL),--all,); \
 		fi
 
 .PHONY: visual-validate

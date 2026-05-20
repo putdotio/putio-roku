@@ -82,6 +82,7 @@ make visual-validate
 make visual-gallery
 make live-test-launch
 make live-test-install
+make debug-snapshot
 make putio-auth-status
 make putio-auth-prepare
 make live-test-auth-reset
@@ -187,7 +188,9 @@ make console
   drives Lab stories and saves raw screenshots under `dist/tmp/visual/lab/`.
   Without `STORIES` or `ALL=1`, it captures the stable shared AppDialog
   stories. Use `ALL=1` deliberately because broad Lab sweeps are heavier than
-  targeted story captures.
+  targeted story captures. On failure, the harness writes a debug snapshot
+  under `.local/roku-debug/` with active-app, SceneGraph, debug-server, and
+  screenshot artifacts when the device is reachable.
 - `make visual-validate` validates `.vref/manifest.json` and committed
   screenshot assets without rewriting the gallery.
 - `make visual-gallery` rebuilds the static visual reference gallery from
@@ -197,6 +200,9 @@ make console
 - `make live-test-install` removes the existing developer app, installs this
   checkout, launches it, and prints the active app state. It requires
   `ROKU_DEV_PASSWORD`.
+- `make debug-snapshot [ROKU_DEBUG_ARTIFACT_DIR=<dir>]` captures the current
+  active app, SceneGraph, Roku debug-server snapshots (`chanperf`, memory,
+  textures, bitmaps), and a screenshot into ignored local artifacts.
 - `make putio-auth-status [PUTIO_CLI_PROFILE=devs-fe-auto]` checks the local
   put.io CLI auth state without exposing token material.
 - `make putio-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` materializes local
@@ -245,6 +251,9 @@ make ROKU_DEV_PASSWORD=<developer-mode-password> live-test-install
    hardware.
 11. In another terminal, run `make console` before launching playback flows so
    BrightScript compile/runtime/player logs are visible.
+12. Run `make debug-snapshot` immediately after a crash, ECP timeout, or visual
+   capture failure. For long visual Lab sweeps, prefer targeted `STORIES=...`
+   slices first, then `ALL=1` only when the device is stable.
 
 If `make live-test` passes but install fails with repeated HTTP `401`, the
 device is reachable but Developer Mode auth failed. Check `ROKU_DEV_PASSWORD`

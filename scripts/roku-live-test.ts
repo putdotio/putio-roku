@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import process from "node:process";
 import {
   assertNamedNodeSize as assertNodeSize,
@@ -22,10 +23,15 @@ import {
 } from "./live-test/auth.ts";
 import {
   defaultFlowOutputDir,
+  formatArtifactTimestamp,
   defaultPlayerUiOutputDir,
   defaultVisualLabOutputDir,
   defaultVisualPagesOutputDir,
 } from "./live-test/artifacts.ts";
+import {
+  captureRokuDebugSnapshot,
+  defaultDebugArtifactDir,
+} from "./live-test/diagnostics.ts";
 import {
   sceneGraphPollIntervalMs,
   trackMenuRowPoolSize,
@@ -1315,6 +1321,11 @@ async function main(): Promise<void> {
     await checkDevice(target);
   } else if (command === "active-app") {
     await printActiveApp(target);
+  } else if (command === "debug-snapshot") {
+    const [rawOutputDir] = args;
+    const outputDir = rawOutputDir ?? defaultDebugArtifactDir("snapshot");
+    await captureRokuDebugSnapshot(target, outputDir);
+    console.log(`debug snapshot: ${outputDir}`);
   } else if (command === "auth-reset") {
     await resetAuthState(target);
   } else if (command === "auth-refresh-smoke") {
@@ -1600,7 +1611,23 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
+main().catch(async (error: unknown) => {
   console.error(`ERROR: ${formatErrorMessage(error)}`);
+
+  const debugArtifactDir = process.env.ROKU_DEBUG_ARTIFACT_DIR;
+  if (debugArtifactDir !== undefined && debugArtifactDir.trim() !== "") {
+    try {
+      const target = requireTarget();
+      const outputDir = join(
+        debugArtifactDir,
+        `failure-${formatArtifactTimestamp(new Date())}`,
+      );
+      await captureRokuDebugSnapshot(target, outputDir);
+      console.error(`debug snapshot: ${outputDir}`);
+    } catch (diagnosticError) {
+      console.error(`debug snapshot failed: ${formatErrorMessage(diagnosticError)}`);
+    }
+  }
+
   process.exit(1);
 });

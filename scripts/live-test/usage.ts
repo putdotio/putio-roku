@@ -4,6 +4,7 @@ export function usage(): never {
   console.error(`usage:
   node scripts/roku-live-test.ts check
   node scripts/roku-live-test.ts active-app
+  node scripts/roku-live-test.ts debug-snapshot [artifact-dir]
   node scripts/roku-live-test.ts auth-reset
   node scripts/roku-live-test.ts auth-refresh-smoke
   node scripts/roku-live-test.ts auth-prepare [profile]

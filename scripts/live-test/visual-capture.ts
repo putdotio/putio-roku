@@ -194,10 +194,13 @@ export async function captureVisualLabStories(
 
   for (const [storyId, expectedTitle] of selectedStories) {
     const storyIndex = visualLabStories.findIndex(([knownStoryId]) => knownStoryId === storyId);
+
     if (currentStoryIndex < 0) {
       await launchLabStory(target, storyId, expectedTitle);
     } else {
-      await navigateLabStory(target, currentStoryIndex, storyIndex, storyId, expectedTitle);
+      await returnToLabStoryList(target);
+      await navigateLabStoryList(target, currentStoryIndex, storyIndex, storyId, expectedTitle);
+      await openFocusedLabStory(target, storyId, expectedTitle);
     }
 
     currentStoryIndex = storyIndex;
@@ -205,6 +208,7 @@ export async function captureVisualLabStories(
     const outputPath = join(outputDir, `${storyId}.jpg`);
     const capturedPath = await captureDeveloperScreenshot(target, password, outputPath);
     console.log(`visual lab captured: ${storyId} ${capturedPath}`);
+    await sleep(2_000);
   }
 }
 
@@ -301,7 +305,7 @@ async function launchLabStory(target: string, storyId: string, expectedTitle: st
   );
   await rokitWaitForSceneGraphNode(
     rokitContext(target, sceneGraphRequestTimeoutMs),
-    "storyList",
+    "detailView",
     { state: "visible" },
     15_000,
   );
@@ -315,7 +319,17 @@ async function launchLabStory(target: string, storyId: string, expectedTitle: st
   );
 }
 
-async function navigateLabStory(
+async function returnToLabStoryList(target: string): Promise<void> {
+  await pressKey(target, "Left");
+  await rokitWaitForSceneGraphNode(
+    rokitContext(target, sceneGraphRequestTimeoutMs),
+    "listView",
+    { state: "visible" },
+    15_000,
+  );
+}
+
+async function navigateLabStoryList(
   target: string,
   currentStoryIndex: number,
   nextStoryIndex: number,
@@ -334,6 +348,24 @@ async function navigateLabStory(
     await sleep(250);
   }
 
+  await waitForSceneGraphAssertion(
+    target,
+    `expected lab list story ${storyId}`,
+    (xml) => {
+      assertNamedNodeText(xml, "listStoryTitle", expectedTitle);
+    },
+    15_000,
+  );
+}
+
+async function openFocusedLabStory(target: string, storyId: string, expectedTitle: string): Promise<void> {
+  await pressKey(target, "Select");
+  await rokitWaitForSceneGraphNode(
+    rokitContext(target, sceneGraphRequestTimeoutMs),
+    "detailView",
+    { state: "visible" },
+    15_000,
+  );
   await waitForSceneGraphAssertion(
     target,
     `expected lab story ${storyId}`,

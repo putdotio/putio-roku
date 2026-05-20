@@ -1,19 +1,25 @@
 sub init()
     m.storyList = m.top.findNode("storyList")
     m.background = m.top.findNode("background")
-    m.sidebar = m.top.findNode("sidebar")
-    m.sidebarDivider = m.top.findNode("sidebarDivider")
-    m.previewWash = m.top.findNode("previewWash")
+    m.listView = m.top.findNode("listView")
+    m.detailView = m.top.findNode("detailView")
     m.title = m.top.findNode("title")
     m.subtitle = m.top.findNode("subtitle")
+    m.listDivider = m.top.findNode("listDivider")
+    m.listStorySection = m.top.findNode("listStorySection")
+    m.listStoryTitle = m.top.findNode("listStoryTitle")
+    m.listStoryDescription = m.top.findNode("listStoryDescription")
     m.storySection = m.top.findNode("storySection")
     m.storyTitle = m.top.findNode("storyTitle")
     m.storyDescription = m.top.findNode("storyDescription")
     m.previewHost = m.top.findNode("previewHost")
     m.pendingStoryId = ""
     m.focusedStoryRowIndex = -1
+    m.currentStoryIndex = 0
     m.currentPreview = invalid
-    m.storyPreviewTranslation = [250, 0]
+    m.viewMode = "list"
+    m.dialogPreviewTranslation = [0, 0]
+    m.rowPreviewTranslation = [340, 240]
     applyLabStyle()
 
     m.stories = [
@@ -158,17 +164,21 @@ sub init()
     m.storyList.observeField("itemFocused", "onStoryFocused")
     m.storyList.observeField("itemSelected", "onStorySelected")
     renderStoryList()
-    selectStoryById(m.top.story)
-    m.storyList.setFocus(true)
+    if m.top.story <> invalid and m.top.story <> ""
+        selectStoryById(m.top.story, true)
+    else
+        selectStoryById("", false)
+    end if
 end sub
 
 sub applyLabStyle()
     setDialogNodeColor(m.background, "appBackground")
-    setDialogNodeColor(m.sidebar, "appBackground")
-    setDialogNodeColor(m.sidebarDivider, "border")
-    setDialogNodeColor(m.previewWash, "appBackgroundWash")
     setDialogNodeColor(m.title, "text")
     setDialogNodeColor(m.subtitle, "textMuted")
+    setDialogNodeColor(m.listDivider, "border")
+    setDialogNodeColor(m.listStorySection, "textMuted")
+    setDialogNodeColor(m.listStoryTitle, "text")
+    setDialogNodeColor(m.listStoryDescription, "textMuted")
     setDialogNodeColor(m.storySection, "textMuted")
     setDialogNodeColor(m.storyTitle, "text")
     setDialogNodeColor(m.storyDescription, "textMuted")
@@ -180,7 +190,7 @@ sub onStoryLaunchArgChange()
         return
     end if
 
-    selectStoryById(m.top.story)
+    selectStoryById(m.top.story, true)
 end sub
 
 sub renderStoryList()
@@ -219,7 +229,7 @@ sub renderStoryList()
     m.storyList.content = content
 end sub
 
-sub selectStoryById(storyId as string)
+sub selectStoryById(storyId as string, openDetail = false)
     if storyId = invalid or storyId = ""
         storyId = m.pendingStoryId
     end if
@@ -236,19 +246,26 @@ sub selectStoryById(storyId as string)
 
     selectedRowIndex = findRowIndexForStoryIndex(selectedStoryIndex)
     m.focusedStoryRowIndex = selectedRowIndex
+    m.currentStoryIndex = selectedStoryIndex
     m.storyList.jumpToItem = selectedRowIndex
-    renderStory(selectedStoryIndex)
+
+    if openDetail
+        renderStory(selectedStoryIndex)
+    else
+        updateListStoryDetails(selectedStoryIndex)
+        showListMode()
+    end if
 end sub
 
 sub onStoryFocused(obj)
-    renderStoryForRow(obj.getData())
+    renderStoryForRow(obj.getData(), false)
 end sub
 
 sub onStorySelected(obj)
-    renderStoryForRow(obj.getData())
+    renderStoryForRow(obj.getData(), true)
 end sub
 
-sub renderStoryForRow(rowIndex as integer)
+sub renderStoryForRow(rowIndex as integer, openDetail = false)
     if m.storyRows = invalid or rowIndex < 0 or rowIndex >= m.storyRows.count()
         return
     end if
@@ -258,13 +275,18 @@ sub renderStoryForRow(rowIndex as integer)
         nextRowIndex = getNearestStoryRowIndex(rowIndex)
         if nextRowIndex <> rowIndex
             m.storyList.jumpToItem = nextRowIndex
-            renderStoryForRow(nextRowIndex)
+            renderStoryForRow(nextRowIndex, openDetail)
         end if
         return
     end if
 
     m.focusedStoryRowIndex = rowIndex
-    renderStory(row.storyIndex)
+    m.currentStoryIndex = row.storyIndex
+    updateListStoryDetails(row.storyIndex)
+
+    if openDetail
+        renderStory(row.storyIndex)
+    end if
 end sub
 
 function getNearestStoryRowIndex(rowIndex as integer) as integer
@@ -313,17 +335,45 @@ function findRowIndexForStoryIndex(storyIndex as integer) as integer
     return 0
 end function
 
-sub renderStory(index as integer)
+sub updateListStoryDetails(index as integer)
     if index < 0 or index >= m.stories.count()
         return
     end if
 
     story = m.stories[index]
-    m.currentStoryId = story.id
+    m.listStorySection.text = UCase(story.section)
+    m.listStoryTitle.text = story.title
+    m.listStoryDescription.text = story.description
     m.storySection.text = UCase(story.section)
     m.storyTitle.text = story.title
     m.storyDescription.text = story.description
+end sub
 
+sub showListMode()
+    m.viewMode = "list"
+    m.listView.visible = true
+    m.detailView.visible = false
+    clearPreviewHost()
+    m.storyList.setFocus(true)
+end sub
+
+sub showDetailMode()
+    m.viewMode = "detail"
+    m.listView.visible = false
+    m.detailView.visible = true
+    m.top.setFocus(true)
+end sub
+
+sub renderStory(index as integer)
+    if index < 0 or index >= m.stories.count()
+        return
+    end if
+
+    m.currentStoryIndex = index
+    updateListStoryDetails(index)
+    story = m.stories[index]
+    m.currentStoryId = story.id
+    showDetailMode()
     hideStories()
 
     if story.id = "app-dialog-empty"
@@ -361,6 +411,7 @@ sub renderStory(index as integer)
     else if story.id = "list-item-history"
         renderHistoryListItemStory()
     end if
+
 end sub
 
 sub hideStories()
@@ -376,7 +427,7 @@ sub clearPreviewHost()
     m.currentPreview = invalid
 end sub
 
-sub addPreviewNode(node as object, translation as object)
+sub addPreviewNode(node as object, translation as object, allowFocus = false)
     if translation <> invalid
         node.translation = translation
     end if
@@ -385,15 +436,14 @@ sub addPreviewNode(node as object, translation as object)
     m.previewHost.appendChild(node)
     m.currentPreview = node
 
-    if m.storyList <> invalid
-        m.storyList.setFocus(true)
+    if not allowFocus
+        disablePreviewFocus(node)
     end if
 end sub
 
-sub hidePreviewBackdrop(node as object, fieldId as string)
-    backdrop = node.findNode(fieldId)
-    if backdrop <> invalid
-        backdrop.visible = false
+sub disablePreviewFocus(node as object)
+    if node <> invalid and node.hasField("focusable")
+        node.focusable = false
     end if
 end sub
 
@@ -404,8 +454,7 @@ sub renderAppDialogStory(title as string, message as string, buttons as object, 
     dialog.message = message
     dialog.buttons = buttons
     dialog.defaultButton = defaultButton
-    hidePreviewBackdrop(dialog, "scrim")
-    addPreviewNode(dialog, m.storyPreviewTranslation)
+    addPreviewNode(dialog, m.dialogPreviewTranslation)
 end sub
 
 sub renderDeleteDialogStory(fileName as string)
@@ -414,8 +463,7 @@ sub renderDeleteDialogStory(fileName as string)
         id: 1001,
         name: fileName,
     }
-    hidePreviewBackdrop(dialog, "scrim")
-    addPreviewNode(dialog, m.storyPreviewTranslation)
+    addPreviewNode(dialog, m.dialogPreviewTranslation)
 end sub
 
 sub renderContinueWatchingStory(focusedButton as integer)
@@ -424,8 +472,7 @@ sub renderContinueWatchingStory(focusedButton as integer)
     prompt.duration = 888
     prompt.startFrom = 366
     prompt.focusedButton = focusedButton
-    hidePreviewBackdrop(prompt, "backdrop")
-    addPreviewNode(prompt, m.storyPreviewTranslation)
+    addPreviewNode(prompt, m.dialogPreviewTranslation)
 end sub
 
 sub renderTrackMenuStory(title as string, items as object, focusedIndex as integer)
@@ -433,17 +480,16 @@ sub renderTrackMenuStory(title as string, items as object, focusedIndex as integ
     trackMenu.title = title
     trackMenu.items = items
     trackMenu.focusedIndex = focusedIndex
-    addPreviewNode(trackMenu, m.storyPreviewTranslation)
+    addPreviewNode(trackMenu, m.dialogPreviewTranslation)
 end sub
 
 sub renderConversionStatusStory(previewMode as string)
     conversionStatus = createObject("roSGNode", "VideoConversionStatus")
-    addPreviewNode(conversionStatus, m.storyPreviewTranslation)
+    addPreviewNode(conversionStatus, m.dialogPreviewTranslation)
     conversionStatus.control = "stop"
     conversionStatus.fileId = 1001
     conversionStatus.fileName = "Sintel.2010.1080p.BluRay.x264.mp4"
     conversionStatus.previewMode = previewMode
-    hidePreviewBackdrop(conversionStatus, "backdrop")
 end sub
 
 sub renderGenericListItemStory()
@@ -456,7 +502,7 @@ sub renderGenericListItemStory()
     list = createPreviewMarkupList("ListItem")
     list.content = content
     list.jumpToItem = 0
-    addPreviewNode(list, invalid)
+    addPreviewNode(list, invalid, true)
 end sub
 
 sub renderFileListItemStory()
@@ -469,7 +515,7 @@ sub renderFileListItemStory()
     list = createPreviewMarkupList("FileListItem")
     list.content = content
     list.jumpToItem = 0
-    addPreviewNode(list, invalid)
+    addPreviewNode(list, invalid, true)
 end sub
 
 sub renderFocusedFileListItemStory(state as string)
@@ -495,8 +541,8 @@ sub renderFocusedFileListItemStory(state as string)
     item.rowWidth = 1240
 
     fileListItem = createObject("roSGNode", "FileListItem")
-    fileListItem.translation = [560, 240]
-    addPreviewNode(fileListItem, invalid)
+    fileListItem.translation = m.rowPreviewTranslation
+    addPreviewNode(fileListItem, invalid, true)
     fileListItem.itemContent = item
     fileListItem.itemHasFocus = true
 end sub
@@ -530,13 +576,13 @@ sub renderHistoryListItemStory()
     list = createPreviewMarkupList("HistoryListItem")
     list.content = content
     list.jumpToItem = 0
-    addPreviewNode(list, invalid)
+    addPreviewNode(list, invalid, true)
 end sub
 
 function createPreviewMarkupList(itemComponentName as string) as object
     list = createObject("roSGNode", "MarkupList")
     list.itemComponentName = itemComponentName
-    list.translation = [560, 240]
+    list.translation = m.rowPreviewTranslation
     list.itemSize = [1240, 120]
     list.itemSpacing = [0, 30]
     list.drawFocusFeedback = false
@@ -624,27 +670,30 @@ function getPlaybackSpeedMenuItems() as object
 end function
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    if press = false
+    normalizedKey = normalizeKey(key)
+
+    if m.viewMode = "list"
+        if press = false
+            return normalizedKey = "ok" or normalizedKey = "select" or normalizedKey = "right"
+        end if
+
+        if normalizedKey = "ok" or normalizedKey = "select" or normalizedKey = "right"
+            renderStoryForRow(m.storyList.itemFocused, true)
+            return true
+        end if
+
         return false
     end if
 
-    normalizedKey = normalizeKey(key)
+    if press = false
+        return normalizedKey = "back" or normalizedKey = "left" or normalizedKey = "info" or normalizedKey = "options" or normalizedKey = "ok" or normalizedKey = "select" or normalizedKey = "right"
+    end if
 
-    if normalizedKey = "ok" or normalizedKey = "select"
-        renderStory(m.storyList.itemFocused)
+    if normalizedKey = "back" or normalizedKey = "left" or normalizedKey = "info" or normalizedKey = "options"
+        showListMode()
         return true
-    else if normalizedKey = "back"
-        m.storyList.setFocus(true)
-        renderStory(m.storyList.itemFocused)
-        return true
-    else if normalizedKey = "right"
+    else if normalizedKey = "ok" or normalizedKey = "select" or normalizedKey = "right"
         return focusStoryPreview()
-    else if normalizedKey = "left"
-        m.storyList.setFocus(true)
-        return true
-    else if normalizedKey = "info" or normalizedKey = "options"
-        m.storyList.setFocus(true)
-        return true
     end if
 
     return false
