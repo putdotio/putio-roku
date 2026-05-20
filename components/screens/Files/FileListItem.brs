@@ -35,7 +35,7 @@ end sub
 sub updateFocus()
     ensureFileListItemNodes()
     if m.focusBackground <> invalid
-        m.focusBackground.visible = m.top.itemHasFocus
+        m.focusBackground.visible = false
     end if
 end sub
 

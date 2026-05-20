@@ -39,7 +39,10 @@
       itemComponentName="HistoryListItem"
       itemSize="[1500, 120]"
       itemSpacing="[0, 30]"
-      drawFocusFeedback="false"
+      drawFocusFeedback="true"
+      drawFocusFeedbackOnTop="false"
+      focusBitmapUri="pkg:/images/list-item-focus.9.png"
+      focusBitmapBlendColor="0x2E2E2EFF"
       vertFocusAnimationStyle="fixedFocus"
       numRows="6"
     />

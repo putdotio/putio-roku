@@ -37,7 +37,7 @@ end sub
 sub updateFocus()
     ensureHistoryListItemNodes()
     if m.focusBackground <> invalid
-        m.focusBackground.visible = m.top.itemHasFocus
+        m.focusBackground.visible = false
     end if
 end sub
 
