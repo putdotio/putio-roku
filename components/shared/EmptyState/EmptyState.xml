@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="EmptyState" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/EmptyState/EmptyState.brs" />
+
+  <interface>
+    <field id="headingText" type="string" onChange="render" />
+    <field id="bodyText" type="string" onChange="render" />
+    <field id="contentWidth" type="integer" value="900" onChange="render" />
+  </interface>
+
+  <children>
+    <LayoutGroup
+      id="layout"
+      layoutDirection="vert"
+      horizAlignment="center"
+      itemSpacings="16"
+    >
+      <Label
+        id="heading"
+        height="48"
+        font="font:LargeBoldSystemFont"
+        horizAlign="center"
+      />
+
+      <Label
+        id="body"
+        height="40"
+        font="font:MediumSystemFont"
+        horizAlign="center"
+      />
+    </LayoutGroup>
+  </children>
+</component>

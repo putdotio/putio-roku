@@ -12,6 +12,7 @@ function init()
     m.fileList = m.top.findNode("fileList")
     m.fileList.observeField("itemSelected", "onFileSelected")
     m.fileList.observeField("itemFocused", "onFileFocused")
+    m.emptyState = m.top.findNode("emptyState")
 
     m.deleteFileDialog = m.top.findNode("deleteFileDialog")
     m.deleteFileDialog.observeField("completed", "onFileDeleted")
@@ -34,6 +35,7 @@ end sub
 
 sub fetchWithLoader(fileId)
     hideFileList()
+    hideEmptyState()
     showLoading()
     fetchFiles(fileId)
 end sub
@@ -65,6 +67,7 @@ end sub
 
 ''' UI
 sub showLoading()
+    hideEmptyState()
     m.top.findNode("loading").visible = "true"
 end sub
 
@@ -91,9 +94,17 @@ sub showFileList()
         forIndex = forIndex + 1
     end for
 
-    m.fileList.visible = "true"
     m.fileList.content = content
     m.focusedFileIndex = focusIndex
+    if forIndex = 0
+        hideFileList()
+        showEmptyState()
+        hideLoading()
+        return
+    end if
+
+    hideEmptyState()
+    m.fileList.visible = "true"
 
     if not focusIndex = 0
         m.fileList.jumpToItem = focusIndex
@@ -108,6 +119,22 @@ end sub
 
 sub hideFileList()
     m.fileList.visible = "false"
+end sub
+
+sub showEmptyState()
+    if toBool(m.storage.read("show_only_media_files"))
+        m.emptyState.headingText = "No media files here"
+        m.emptyState.bodyText = "Turn off the media-only filter in Settings to see every file."
+    else
+        m.emptyState.headingText = "This folder is empty."
+        m.emptyState.bodyText = "Upload files to this folder from put.io and they will appear here."
+    end if
+
+    m.emptyState.visible = "true"
+end sub
+
+sub hideEmptyState()
+    m.emptyState.visible = "false"
 end sub
 
 sub onFileSelected(obj)

@@ -1,80 +1,85 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SearchScreen" extends="Group">
-	<script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
-	<script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
-	<script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
-	<script type="text/brightscript" uri="pkg:/components/screens/Search/Search.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/Search/Search.brs" />
 
-	<interface>
-	<field id="params" type="assocarray" />
+  <interface>
+    <field id="params" type="assocarray" />
     <field id="routeShown" type="boolean" alwaysNotify="true" />
     <field id="routeHidden" type="boolean" alwaysNotify="true" />
-		<field id="navigate" type="assocarray" />
-		<field id="navigateBack" type="bool" alwaysNotify="true" />
-		<field id="showDialog" type="node" alwaysNotify="true" />
+    <field id="navigate" type="assocarray" />
+    <field id="navigateBack" type="bool" alwaysNotify="true" />
+    <field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
 
-	<children>
-		<Overhang
-			id="overhang"
-			showClock="false"
-			logoUri="pkg:/images/OverhangLogo.png"
-			logoBaselineOffset="9"
-			title="Search"
-			showOptions="true"
-			optionsAvailable="false"
-			optionsDimColor="0x00000000"
-			optionsIconDimColor="0x00000000"
-		/>
+  <children>
+    <Overhang
+      id="overhang"
+      showClock="false"
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      title="Search"
+      showOptions="true"
+      optionsAvailable="false"
+      optionsDimColor="0x00000000"
+      optionsIconDimColor="0x00000000"
+    />
 
-		<LayoutGroup
-			translation="[180, 180]"
-			layoutDirection="horiz"
-			vertAlignment="top"
-			itemSpacings="20"
-		>
-				<LayoutGroup
-					layoutDirection="vert"
-					horizAlignment="center"
-					itemSpacings="20"
-				>
-					<MiniKeyboard id="keyboard" />
-					<LoadingIndicator
-						id="loading"
-						imageWidth="50"
-						imageHeight="50"
-						width="280"
-						height="70"
-						visible="false"
-					/>
-				</LayoutGroup>
-				<LayoutGroup
-					id="searchResultGroup"
-					layoutDirection="vert"
-					horizAlignment="center"
-					itemSpacings="20"
-				>
-					<LabelList
-						id="searchHistory"
-						itemSize="[960, 120]"
-						itemSpacing="[0, 30]"
-						color="0xA0A0A0FF"
-						focusedColor="0xEDEDEDFF"
-						drawFocusFeedback="false"
-						vertFocusAnimationStyle="fixedFocus"
-						numRows="6"
-						visible="false"
-					/>
-					<MarkupList
-						id="searchFileList"
-						itemComponentName="FileListItem"
-						itemSize="[960, 120]"
-						itemSpacing="[0, 30]"
-						drawFocusFeedback="false"
-						vertFocusAnimationStyle="fixedFocus"
-						numRows="6"
-					/>
-				</LayoutGroup>
-		</LayoutGroup>
-	</children>
+    <LayoutGroup
+      translation="[180, 180]"
+      layoutDirection="horiz"
+      vertAlignment="top"
+      itemSpacings="20"
+    >
+      <LayoutGroup
+        layoutDirection="vert"
+        horizAlignment="center"
+        itemSpacings="20"
+      >
+        <MiniKeyboard id="keyboard" />
+        <LoadingIndicator
+          id="loading"
+          imageWidth="50"
+          imageHeight="50"
+          width="280"
+          height="70"
+          visible="false"
+        />
+      </LayoutGroup>
+      <LayoutGroup
+        id="searchResultGroup"
+        layoutDirection="vert"
+        horizAlignment="center"
+        itemSpacings="20"
+      >
+        <LabelList
+          id="searchHistory"
+          itemSize="[960, 120]"
+          itemSpacing="[0, 30]"
+          color="0xA0A0A0FF"
+          focusedColor="0xEDEDEDFF"
+          drawFocusFeedback="false"
+          vertFocusAnimationStyle="fixedFocus"
+          numRows="6"
+          visible="false"
+        />
+        <MarkupList
+          id="searchFileList"
+          itemComponentName="FileListItem"
+          itemSize="[960, 120]"
+          itemSpacing="[0, 30]"
+          drawFocusFeedback="false"
+          vertFocusAnimationStyle="fixedFocus"
+          numRows="6"
+        />
+        <EmptyState
+          id="emptyState"
+          contentWidth="960"
+          visible="false"
+        />
+      </LayoutGroup>
+    </LayoutGroup>
+  </children>
 </component>

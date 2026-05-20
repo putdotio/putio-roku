@@ -117,6 +117,7 @@
   .container:has(#filter-group-search:checked) #gallery .card:not([data-group="search"]) { display: none; }
   .container:has(#filter-tag-app-dialog:checked) #gallery .card:not([data-tags~="app-dialog"]) { display: none; }
   .container:has(#filter-tag-dialog:checked) #gallery .card:not([data-tags~="dialog"]) { display: none; }
+  .container:has(#filter-tag-empty:checked) #gallery .card:not([data-tags~="empty"]) { display: none; }
   .container:has(#filter-tag-files:checked) #gallery .card:not([data-tags~="files"]) { display: none; }
   .container:has(#filter-tag-focus:checked) #gallery .card:not([data-tags~="focus"]) { display: none; }
   .container:has(#filter-tag-home:checked) #gallery .card:not([data-tags~="home"]) { display: none; }
@@ -285,7 +286,7 @@
 <div class="container">
   <div class="hero">
     <h1>put<span>.</span>io Roku visual reference</h1>
-    <p>17 curated Roku references for quick visual review.</p>
+    <p>18 curated Roku references for quick visual review.</p>
   </div>
   <div class="filters">
     <div class="filter-row">
@@ -294,10 +295,10 @@
     </div>
     <div class="filter-row">
       <span class="filter-label">Tag</span>
-      <div class="filter-group"><label class="nav-btn" data-filter-group="tag" data-filter-value="all"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-all" checked><span>All</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="app-dialog"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-app-dialog"><span>app-dialog</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="dialog"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-dialog"><span>dialog</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="files"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-files"><span>files</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="focus"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-focus"><span>focus</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="home"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-home"><span>home</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="keyboard"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-keyboard"><span>keyboard</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="lab"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-lab"><span>lab</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="list"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-list"><span>list</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="player"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-player"><span>player</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="progress"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-progress"><span>progress</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="search"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-search"><span>search</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="subtitles"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-subtitles"><span>subtitles</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="track-menu"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-track-menu"><span>track-menu</span></label></div>
+      <div class="filter-group"><label class="nav-btn" data-filter-group="tag" data-filter-value="all"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-all" checked><span>All</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="app-dialog"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-app-dialog"><span>app-dialog</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="dialog"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-dialog"><span>dialog</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="empty"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-empty"><span>empty</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="files"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-files"><span>files</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="focus"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-focus"><span>focus</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="home"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-home"><span>home</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="keyboard"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-keyboard"><span>keyboard</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="lab"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-lab"><span>lab</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="list"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-list"><span>list</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="player"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-player"><span>player</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="progress"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-progress"><span>progress</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="search"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-search"><span>search</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="subtitles"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-subtitles"><span>subtitles</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="track-menu"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-track-menu"><span>track-menu</span></label></div>
     </div>
   </div>
-  <div class="results-count">17 references &middot; Updated May 20, 2026</div>
+  <div class="results-count">18 references &middot; Updated May 20, 2026</div>
   <div class="grid" id="gallery">
     <a class="card" href="screenshots/roku-720p/home.jpg" aria-label="Home screenshot" data-card data-title="Home" data-platform="roku" data-group="main-pages" data-tags="home navigation">
       <img class="preview" src="screenshots/roku-720p/home.jpg" alt="" loading="lazy">
@@ -349,13 +350,23 @@
         </div>
       </div>
     </a>
-    <a class="card" href="screenshots/roku-720p/search-empty.jpg" aria-label="Search empty screenshot" data-card data-title="Search empty" data-platform="roku" data-group="main-pages" data-tags="search keyboard">
+    <a class="card" href="screenshots/roku-720p/search-empty.jpg" aria-label="Search empty screenshot" data-card data-title="Search empty" data-platform="roku" data-group="main-pages" data-tags="search keyboard empty">
       <img class="preview" src="screenshots/roku-720p/search-empty.jpg" alt="" loading="lazy">
       <div class="card-body">
         <div class="item-info">
           <div class="item-name">Search empty</div>
-          <div class="item-meta"><span>Main pages</span><span>1280x720 / 27 KB</span></div>
-          <div class="item-tags"><span class="tag">search</span><span class="tag">keyboard</span></div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 33 KB</span></div>
+          <div class="item-tags"><span class="tag">search</span><span class="tag">keyboard</span><span class="tag">empty</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-no-results.jpg" aria-label="Search no results screenshot" data-card data-title="Search no results" data-platform="roku" data-group="search" data-tags="search keyboard empty">
+      <img class="preview" src="screenshots/roku-720p/search-no-results.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Search no results</div>
+          <div class="item-meta"><span>Search</span><span>1280x720 / 32 KB</span></div>
+          <div class="item-tags"><span class="tag">search</span><span class="tag">keyboard</span><span class="tag">empty</span></div>
         </div>
       </div>
     </a>

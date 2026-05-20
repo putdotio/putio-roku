@@ -44,16 +44,13 @@
       numRows="6"
     />
 
-    <Label
+    <EmptyState
       id="emptyState"
       translation="[190, 300]"
-      width="1500"
-      height="60"
+      contentWidth="1500"
       visible="false"
-      font="font:MediumBoldSystemFont"
-      color="0xA0A0A0FF"
-      horizAlign="center"
-      text="This is your history. It's currently empty."
+      headingText="This is your history. It's currently empty."
+      bodyText="You will see information here once things start happening."
     />
   </children>
 </component>
