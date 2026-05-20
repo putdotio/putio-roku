@@ -9,24 +9,12 @@ sub init()
     m.storySection = m.top.findNode("storySection")
     m.storyTitle = m.top.findNode("storyTitle")
     m.storyDescription = m.top.findNode("storyDescription")
-    m.appDialog = m.top.findNode("appDialogStory")
-    m.deleteDialog = m.top.findNode("deleteDialogStory")
-    m.continueWatchingPrompt = m.top.findNode("continueWatchingStory")
-    m.trackMenu = m.top.findNode("trackMenuStory")
-    m.conversionStatus = m.top.findNode("conversionStatusStory")
-    m.genericListItemList = m.top.findNode("genericListItemStory")
-    m.fileListItemList = m.top.findNode("fileListItemStory")
-    m.fileListItemFocused = m.top.findNode("fileListItemFocusedStory")
-    m.historyListItemList = m.top.findNode("historyListItemStory")
-    m.appDialogScrim = m.appDialog.findNode("scrim")
-    m.deleteDialogScrim = m.deleteDialog.findNode("scrim")
-    m.continueWatchingBackdrop = m.continueWatchingPrompt.findNode("backdrop")
-    m.conversionStatusBackdrop = m.conversionStatus.findNode("backdrop")
+    m.previewHost = m.top.findNode("previewHost")
     m.pendingStoryId = ""
     m.focusedStoryRowIndex = -1
+    m.currentPreview = invalid
     m.storyPreviewTranslation = [250, 0]
     applyLabStyle()
-    hideStoryBackdrops()
 
     m.stories = [
         {
@@ -375,85 +363,82 @@ sub renderStory(index as integer)
 end sub
 
 sub hideStories()
-    m.appDialog.visible = false
-    m.deleteDialog.visible = false
-    m.continueWatchingPrompt.visible = false
-    m.trackMenu.visible = false
-    m.conversionStatus.visible = false
-    m.conversionStatus.control = "stop"
-    m.genericListItemList.visible = false
-    m.fileListItemList.visible = false
-    m.fileListItemFocused.visible = false
-    m.historyListItemList.visible = false
-    resetStoryTranslations()
+    clearPreviewHost()
 end sub
 
-sub resetStoryTranslations()
-    m.appDialog.translation = m.storyPreviewTranslation
-    m.deleteDialog.translation = m.storyPreviewTranslation
-    m.continueWatchingPrompt.translation = m.storyPreviewTranslation
-    m.trackMenu.translation = m.storyPreviewTranslation
-    m.conversionStatus.translation = m.storyPreviewTranslation
-    m.fileListItemFocused.translation = [560, 240]
-    hideStoryBackdrops()
+sub clearPreviewHost()
+    while m.previewHost.getChildCount() > 0
+        child = m.previewHost.getChild(0)
+        m.previewHost.removeChild(child)
+    end while
+
+    m.currentPreview = invalid
 end sub
 
-sub hideStoryBackdrops()
-    if m.appDialogScrim <> invalid
-        m.appDialogScrim.visible = false
+sub addPreviewNode(node as object, translation as object)
+    if translation <> invalid
+        node.translation = translation
     end if
 
-    if m.deleteDialogScrim <> invalid
-        m.deleteDialogScrim.visible = false
-    end if
+    node.visible = true
+    m.previewHost.appendChild(node)
+    m.currentPreview = node
+end sub
 
-    if m.continueWatchingBackdrop <> invalid
-        m.continueWatchingBackdrop.visible = false
-    end if
-
-    if m.conversionStatusBackdrop <> invalid
-        m.conversionStatusBackdrop.visible = false
+sub hidePreviewBackdrop(node as object, fieldId as string)
+    backdrop = node.findNode(fieldId)
+    if backdrop <> invalid
+        backdrop.visible = false
     end if
 end sub
 
 sub renderAppDialogStory(title as string, message as string, buttons as object, defaultButton as integer)
-    m.appDialog.close = false
-    m.appDialog.title = title
-    m.appDialog.message = message
-    m.appDialog.buttons = buttons
-    m.appDialog.defaultButton = defaultButton
-    m.appDialog.visible = true
+    dialog = createObject("roSGNode", "AppDialog")
+    dialog.close = false
+    dialog.title = title
+    dialog.message = message
+    dialog.buttons = buttons
+    dialog.defaultButton = defaultButton
+    hidePreviewBackdrop(dialog, "scrim")
+    addPreviewNode(dialog, m.storyPreviewTranslation)
 end sub
 
 sub renderDeleteDialogStory(fileName as string)
-    m.deleteDialog.file = {
+    dialog = createObject("roSGNode", "DeleteFileDialog")
+    dialog.file = {
         id: 1001,
         name: fileName,
     }
-    m.deleteDialog.visible = true
+    hidePreviewBackdrop(dialog, "scrim")
+    addPreviewNode(dialog, m.storyPreviewTranslation)
 end sub
 
 sub renderContinueWatchingStory(focusedButton as integer)
-    m.continueWatchingPrompt.fileName = "Sintel.mp4"
-    m.continueWatchingPrompt.duration = 888
-    m.continueWatchingPrompt.startFrom = 366
-    m.continueWatchingPrompt.focusedButton = focusedButton
-    m.continueWatchingPrompt.visible = true
+    prompt = createObject("roSGNode", "ContinueWatchingPrompt")
+    prompt.fileName = "Sintel.mp4"
+    prompt.duration = 888
+    prompt.startFrom = 366
+    prompt.focusedButton = focusedButton
+    hidePreviewBackdrop(prompt, "backdrop")
+    addPreviewNode(prompt, m.storyPreviewTranslation)
 end sub
 
 sub renderTrackMenuStory(title as string, items as object, focusedIndex as integer)
-    m.trackMenu.title = title
-    m.trackMenu.items = items
-    m.trackMenu.focusedIndex = focusedIndex
-    m.trackMenu.visible = true
+    trackMenu = createObject("roSGNode", "TrackMenu")
+    trackMenu.title = title
+    trackMenu.items = items
+    trackMenu.focusedIndex = focusedIndex
+    addPreviewNode(trackMenu, m.storyPreviewTranslation)
 end sub
 
 sub renderConversionStatusStory(previewMode as string)
-    m.conversionStatus.control = "stop"
-    m.conversionStatus.fileId = 1001
-    m.conversionStatus.fileName = "Sintel.2010.1080p.BluRay.x264.mp4"
-    m.conversionStatus.previewMode = previewMode
-    m.conversionStatus.visible = true
+    conversionStatus = createObject("roSGNode", "VideoConversionStatus")
+    addPreviewNode(conversionStatus, m.storyPreviewTranslation)
+    conversionStatus.control = "stop"
+    conversionStatus.fileId = 1001
+    conversionStatus.fileName = "Sintel.2010.1080p.BluRay.x264.mp4"
+    conversionStatus.previewMode = previewMode
+    hidePreviewBackdrop(conversionStatus, "backdrop")
 end sub
 
 sub renderGenericListItemStory()
@@ -463,9 +448,10 @@ sub renderGenericListItemStory()
     addGenericListItem(content, "history-1", "History", "Enabled", "right")
     addGenericListItem(content, "settings", "Settings", "Playback type: Direct", "right")
 
-    m.genericListItemList.content = content
-    m.genericListItemList.jumpToItem = 0
-    m.genericListItemList.visible = true
+    list = createPreviewMarkupList("ListItem")
+    list.content = content
+    list.jumpToItem = 0
+    addPreviewNode(list, invalid)
 end sub
 
 sub renderFileListItemStory()
@@ -475,9 +461,10 @@ sub renderFileListItemStory()
     addFileListItem(content, "Roadtrip Mix.flac", "AUDIO", 119537664, "2026-05-15T09:05:00Z", 0, false)
     addFileListItem(content, "Still loading metadata.mkv", "VIDEO", 0, "2026-05-12T21:30:00Z", 0, true)
 
-    m.fileListItemList.content = content
-    m.fileListItemList.jumpToItem = 0
-    m.fileListItemList.visible = true
+    list = createPreviewMarkupList("FileListItem")
+    list.content = content
+    list.jumpToItem = 0
+    addPreviewNode(list, invalid)
 end sub
 
 sub renderFocusedFileListItemStory(state as string)
@@ -502,9 +489,11 @@ sub renderFocusedFileListItemStory(state as string)
     item.isLoading = isLoading
     item.rowWidth = 1240
 
-    m.fileListItemFocused.itemContent = item
-    m.fileListItemFocused.itemHasFocus = true
-    m.fileListItemFocused.visible = true
+    fileListItem = createObject("roSGNode", "FileListItem")
+    fileListItem.translation = [560, 240]
+    addPreviewNode(fileListItem, invalid)
+    fileListItem.itemContent = item
+    fileListItem.itemHasFocus = true
 end sub
 
 sub renderHistoryListItemStory()
@@ -533,10 +522,24 @@ sub renderHistoryListItemStory()
         created_at: "2026-05-15T22:30:00Z",
     }, true)
 
-    m.historyListItemList.content = content
-    m.historyListItemList.jumpToItem = 0
-    m.historyListItemList.visible = true
+    list = createPreviewMarkupList("HistoryListItem")
+    list.content = content
+    list.jumpToItem = 0
+    addPreviewNode(list, invalid)
 end sub
+
+function createPreviewMarkupList(itemComponentName as string) as object
+    list = createObject("roSGNode", "MarkupList")
+    list.itemComponentName = itemComponentName
+    list.translation = [560, 240]
+    list.itemSize = [1240, 120]
+    list.itemSpacing = [0, 30]
+    list.drawFocusFeedback = false
+    list.vertFocusAnimationStyle = "fixedFocus"
+    list.numRows = 4
+
+    return list
+end function
 
 sub addGenericListItem(content as object, iconName as string, title as string, description as string, valueAlign as string)
     item = content.createChild("ListItemData")
@@ -647,17 +650,21 @@ function focusStoryPreview() as boolean
         return false
     end if
 
+    if m.currentPreview = invalid
+        return false
+    end if
+
     if m.currentStoryId = "list-item-generic"
-        m.genericListItemList.setFocus(true)
+        m.currentPreview.setFocus(true)
         return true
     else if m.currentStoryId = "list-item-files"
-        m.fileListItemList.setFocus(true)
+        m.currentPreview.setFocus(true)
         return true
     else if m.currentStoryId = "list-item-file-watched-focused" or m.currentStoryId = "list-item-file-loading-focused"
-        m.fileListItemFocused.itemHasFocus = true
+        m.currentPreview.itemHasFocus = true
         return true
     else if m.currentStoryId = "list-item-history"
-        m.historyListItemList.setFocus(true)
+        m.currentPreview.setFocus(true)
         return true
     end if
 
