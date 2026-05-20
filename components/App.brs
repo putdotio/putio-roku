@@ -16,7 +16,7 @@ function init()
 end function
 
 sub configureRouter()
-    m.routeHistory = []
+    m.routeStack = []
     m.activeRouteEntry = invalid
     m.global.observeField("route", "onNavigateToRoute")
     mountRoute(m.global.route)
@@ -38,30 +38,33 @@ sub navigateToRoute(nextRoute)
     replaceRoute = shouldReplaceRoute(nextRoute)
     if nextRoute.id = "authScreen"
         replaceRoute = true
-        m.routeHistory = []
     end if
 
     previousEntry = m.activeRouteEntry
     if previousEntry <> invalid
-        hideRouteEntry(previousEntry)
-        if not replaceRoute
-            m.routeHistory.push(previousEntry.route)
+        if replaceRoute
+            clearRouteStack()
+        else
+            hideRouteEntry(previousEntry)
         end if
     end if
 
     m.replaceRoute = false
-    showRouteEntry(createRouteEntry(nextRoute))
+    pushRouteEntry(createRouteEntry(nextRoute))
 end sub
 
 sub onNavigateBack()
-    prevRoute = m.routeHistory.pop()
-
-    if prevRoute <> invalid
-        clearActiveDialog()
-
-        hideRouteEntry(m.activeRouteEntry)
-        showRouteEntry(createRouteEntry(prevRoute))
+    if m.routeStack.count() <= 1
+        return
     end if
+
+    clearActiveDialog(false)
+
+    currentEntry = m.routeStack.pop()
+    disposeRouteEntry(currentEntry)
+
+    previousEntry = m.routeStack.peek()
+    showRouteEntry(previousEntry)
 end sub
 
 function shouldReplaceRoute(route)
@@ -69,7 +72,7 @@ function shouldReplaceRoute(route)
 end function
 
 sub mountRoute(route)
-    showRouteEntry(createRouteEntry(route))
+    pushRouteEntry(createRouteEntry(route))
 end sub
 
 function createRouteEntry(route)
@@ -88,6 +91,7 @@ function createRouteEntry(route)
     if screen.hasField("params")
         screen.params = route.params
     end if
+    observeRouteScreen(route.id, screen)
 
     return {
         route: route,
@@ -119,7 +123,6 @@ sub showRouteEntry(entry)
         return
     end if
 
-    observeRouteScreen(entry.route.id, screen)
     setHostedScreen(screen)
     m.activeRouteEntry = entry
     screen.visible = true
@@ -134,6 +137,31 @@ sub hideRouteEntry(entry)
 
     screen = entry.screen
     entry.lastFocus = getDeepFocusedNode(screen)
+    if screen.isInFocusChain()
+        screen.setFocus(false)
+    end if
+    notifyRouteLifecycle(screen, "routeHidden")
+    screen.visible = false
+    clearHostedScreen(screen)
+
+    m.activeRouteEntry = invalid
+end sub
+
+sub pushRouteEntry(entry)
+    if entry = invalid
+        return
+    end if
+
+    m.routeStack.push(entry)
+    showRouteEntry(entry)
+end sub
+
+sub disposeRouteEntry(entry)
+    if entry = invalid or entry.screen = invalid
+        return
+    end if
+
+    screen = entry.screen
     unobserveRouteScreen(entry.route.id, screen)
     if screen.isInFocusChain()
         screen.setFocus(false)
@@ -142,6 +170,17 @@ sub hideRouteEntry(entry)
     screen.visible = false
     clearHostedScreen(screen)
 
+    if isActiveRouteEntry(entry)
+        m.activeRouteEntry = invalid
+    end if
+end sub
+
+sub clearRouteStack()
+    for each entry in m.routeStack
+        disposeRouteEntry(entry)
+    end for
+
+    m.routeStack = []
     m.activeRouteEntry = invalid
 end sub
 
@@ -158,8 +197,11 @@ sub setHostedScreen(screen)
 end sub
 
 sub clearHostedScreen(screen)
-    if screen <> invalid and screen.getParent() <> invalid
-        m.screenHost.removeChild(screen)
+    if screen <> invalid
+        parent = screen.getParent()
+        if parent <> invalid
+            parent.removeChild(screen)
+        end if
     end if
 end sub
 
@@ -195,7 +237,7 @@ function canRestoreRouteFocus(node, screen) as boolean
             return false
         end if
 
-        if currentNode = screen
+        if isSameRouteNode(currentNode, screen)
             return true
         end if
 
@@ -220,6 +262,26 @@ function getDeepFocusedNode(screen)
     end if
 
     return invalid
+end function
+
+function isActiveRouteEntry(entry) as boolean
+    if m.activeRouteEntry = invalid or entry = invalid
+        return false
+    end if
+
+    return isSameRouteNode(m.activeRouteEntry.screen, entry.screen)
+end function
+
+function isSameRouteNode(leftNode, rightNode) as boolean
+    if leftNode = invalid or rightNode = invalid
+        return false
+    end if
+
+    if leftNode.hasField("id") = false or rightNode.hasField("id") = false
+        return false
+    end if
+
+    return leftNode.id <> "" and leftNode.id = rightNode.id
 end function
 
 sub notifyRouteLifecycle(screen, fieldName as string)
@@ -306,7 +368,6 @@ sub unobserveScreenField(screen, fieldName as string)
 end sub
 
 sub goToAuthScreen()
-    m.routeHistory = []
     m.replaceRoute = true
     m.global.route = {
         id: "authScreen",
@@ -347,7 +408,6 @@ sub onUserInfoResponse(obj)
     data = parseJSON(obj.getData())
 
     if data <> invalid and data.info <> invalid
-        m.routeHistory = []
         m.global.user = data.info
         getUserConfig()
     else
@@ -479,13 +539,15 @@ sub routePendingDeepLink()
     end if
 
     clearActiveDialog()
-    m.routeHistory = [
-        {
-            id: "homeScreen",
-            params: {}
-        }
-    ]
-    m.replaceRoute = true
+    clearRouteStack()
+    homeEntry = createRouteEntry({
+        id: "homeScreen",
+        params: {}
+    })
+    if homeEntry <> invalid
+        pushRouteEntry(homeEntry)
+    end if
+    m.replaceRoute = false
     m.global.route = {
         id: "videoScreen",
         params: {

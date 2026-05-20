@@ -1,7 +1,6 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
     m.top.observeField("routeShown", "onRouteShown")
-    m.top.observeField("routeHidden", "onRouteHidden")
     m.global.observeField("user", "modifyList")
     applyAppOverhangColors(m.top.findNode("overhang"))
 
@@ -44,12 +43,6 @@ sub onRouteShown()
     focusHomeList()
 end sub
 
-sub onRouteHidden()
-    if m.list <> invalid and m.list.isInFocusChain()
-        m.list.setFocus(false)
-    end if
-end sub
-
 sub focusHomeList()
     if m.list = invalid
         return
@@ -87,15 +80,7 @@ sub renderList()
 end sub
 
 sub onListItemSelected(obj)
-    navigateHomeItem(obj.getData())
-end sub
-
-sub navigateHomeItem(index as integer)
-    if m.list.content = invalid or index < 0 or index >= m.list.content.getChildCount()
-        return
-    end if
-
-    key = m.list.content.getChild(index).key
+    key = m.list.content.getChild(obj.getData()).key
 
     if key = "search"
         m.top.navigate = {
@@ -126,48 +111,6 @@ sub navigateHomeItem(index as integer)
     end if
 end sub
 
-function getHomeFocusedIndex() as integer
-    if m.list = invalid or m.list.content = invalid or m.list.content.getChildCount() = 0
-        return -1
-    end if
-
-    focusedIndex = m.list.itemFocused
-    if focusedIndex = invalid or focusedIndex < 0 or focusedIndex >= m.list.content.getChildCount()
-        return 0
-    end if
-
-    return focusedIndex
-end function
-
-function moveHomeFocus(normalizedKey as string) as boolean
-    focusedIndex = getHomeFocusedIndex()
-    if focusedIndex < 0
-        return true
-    end if
-
-    nextIndex = focusedIndex
-    if normalizedKey = "down"
-        nextIndex = focusedIndex + 1
-    else if normalizedKey = "up"
-        nextIndex = focusedIndex - 1
-    end if
-
-    if nextIndex < 0
-        nextIndex = 0
-    end if
-
-    lastIndex = m.list.content.getChildCount() - 1
-    if nextIndex > lastIndex
-        nextIndex = lastIndex
-    end if
-
-    if nextIndex <> focusedIndex
-        m.list.jumpToItem = nextIndex
-    end if
-
-    return true
-end function
-
 function onKeyEvent(key as string, press as boolean) as boolean
     if shouldTrapModalInput(m.top)
         return true
@@ -178,11 +121,6 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
         if normalizedKey = "back"
             m.top.showExitAppDialog = true
-            return true
-        else if isVerticalNavigationKey(normalizedKey)
-            return moveHomeFocus(normalizedKey)
-        else if isSelectKey(normalizedKey)
-            navigateHomeItem(getHomeFocusedIndex())
             return true
         else if isOptionsKey(normalizedKey)
             return true
