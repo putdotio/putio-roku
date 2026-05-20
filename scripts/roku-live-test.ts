@@ -50,6 +50,7 @@ import {
   type FlowId,
   type FlowRunContext,
 } from "./live-test/flow-suite.ts";
+import { imageRenderSmoke } from "./live-test/image.ts";
 import {
   assertDirectPlaybackSurfaceOnDevice,
   assertPlaybackTypeSurfaceOnDevice,
@@ -1277,6 +1278,7 @@ function createAppFlowDriver(): AppFlowDriver {
     focusListItemByIndex,
     openHomeItem,
     playbackTypeSmoke,
+    imageRenderSmoke,
     playerUiSmoke,
     resetAuthState,
     returnToHomeScreen,
@@ -1350,6 +1352,7 @@ async function main(): Promise<void> {
       {
         profile: putioProfileFromArg(),
         playbackContentId,
+        imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
         audioContentId,
         subtitleContentId,
         mediaType,
@@ -1381,6 +1384,7 @@ async function main(): Promise<void> {
       emptyStringAsUndefined(rawArtifactDir) ?? defaultVisualPagesOutputDir(),
       {
         includeAuth,
+        imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
         profile: putioProfileFromArg(),
       },
       createVisualCaptureDriver(),
@@ -1409,6 +1413,14 @@ async function main(): Promise<void> {
     }
 
     await setPlaybackTypeConfig(playbackTypeFromArg(rawPlaybackType), rawProfile);
+  } else if (command === "image-render-smoke") {
+    const [contentId] = args;
+
+    if (!contentId) {
+      usage();
+    }
+
+    await imageRenderSmoke(target, contentId);
   } else if (command === "playback-type-smoke") {
     const [
       rawPlaybackType,

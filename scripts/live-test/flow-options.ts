@@ -6,6 +6,7 @@ export type StartFromChoice = "continue" | "beginning";
 export type AppFlowOptions = {
   readonly profile: string;
   readonly playbackContentId?: string;
+  readonly imageContentId?: string;
   readonly audioContentId?: string;
   readonly subtitleContentId?: string;
   readonly mediaType: string;
@@ -24,6 +25,7 @@ export function appFlowOptionsFromArgs(args: readonly string[]): AppFlowOptions 
   return {
     profile: putioProfileFromArg(),
     playbackContentId: emptyStringAsUndefined(rawPlaybackContentId),
+    imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
     audioContentId: emptyStringAsUndefined(rawAudioContentId),
     subtitleContentId: emptyStringAsUndefined(rawSubtitleContentId),
     mediaType,

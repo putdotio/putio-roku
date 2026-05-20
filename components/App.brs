@@ -485,14 +485,14 @@ sub onDeepLink(obj)
 end sub
 
 sub queueDeepLink(args)
-    deepLink = normalizeVideoDeepLink(args)
+    deepLink = normalizeMediaDeepLink(args)
 
     if deepLink <> invalid
         m.pendingDeepLink = deepLink
     end if
 end sub
 
-function normalizeVideoDeepLink(args)
+function normalizeMediaDeepLink(args)
     if args = invalid
         return invalid
     end if
@@ -508,7 +508,7 @@ function normalizeVideoDeepLink(args)
     end if
 
     normalizedMediaType = LCase(mediaType.toStr())
-    if normalizedMediaType <> "movie" and normalizedMediaType <> "episode" and normalizedMediaType <> "video" and normalizedMediaType <> "shortformvideo"
+    if normalizedMediaType <> "movie" and normalizedMediaType <> "episode" and normalizedMediaType <> "video" and normalizedMediaType <> "shortformvideo" and normalizedMediaType <> "image"
         return invalid
     end if
 
@@ -532,6 +532,7 @@ function normalizeVideoDeepLink(args)
 
     return {
         fileId: fileId,
+        mediaType: normalizedMediaType,
         startFromChoice: startFromChoice,
     }
 end function
@@ -566,7 +567,21 @@ sub routePendingDeepLink()
         pushRouteEntry(homeEntry)
     end if
     m.replaceRoute = false
-    m.global.route = {
+    m.global.route = createDeepLinkRoute(deepLink)
+end sub
+
+function createDeepLinkRoute(deepLink)
+    if deepLink.mediaType = "image"
+        return {
+            id: "imageScreen",
+            params: {
+                fileId: deepLink.fileId,
+                fileName: "",
+            },
+        }
+    end if
+
+    return {
         id: "videoScreen",
         params: {
             fileId: deepLink.fileId,
@@ -574,7 +589,7 @@ sub routePendingDeepLink()
             startFromChoice: deepLink.startFromChoice,
         },
     }
-end sub
+end function
 
 sub onShowDialog(obj)
     dialog = obj.getData()

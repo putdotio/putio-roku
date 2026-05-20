@@ -9,10 +9,11 @@ export function usage(): never {
   node scripts/roku-live-test.ts auth-prepare [profile]
   node scripts/roku-live-test.ts flow-smoke [artifact-dir]
   node scripts/roku-live-test.ts flow-full <playback-content-id> <audio-content-id> <subtitle-content-id> [media-type] [continue|beginning] [artifact-dir]
-  node scripts/roku-live-test.ts flow <auth,get-new-code,files,dialogs,settings,logout,playback,tracks> [playback-content-id] [audio-content-id] [subtitle-content-id] [media-type] [continue|beginning] [artifact-dir]
+  node scripts/roku-live-test.ts flow <auth,get-new-code,files,dialogs,settings,logout,playback,image,tracks> [playback-content-id] [audio-content-id] [subtitle-content-id] [media-type] [continue|beginning] [artifact-dir]
   node scripts/roku-live-test.ts visual-pages [artifact-dir] [--include-auth]
   node scripts/roku-live-test.ts visual-lab [artifact-dir] [story-id...]
   node scripts/roku-live-test.ts set-playback-type <hls|mp4> [profile]
+  node scripts/roku-live-test.ts image-render-smoke <content-id>
   node scripts/roku-live-test.ts playback-type-smoke <hls|mp4> <content-id> [media-type] [continue|beginning]
   node scripts/roku-live-test.ts playback-error-dialog-smoke <content-id> [media-type] [expected-title] [expected-message-fragment]
   node scripts/roku-live-test.ts launch [app-id]
@@ -29,6 +30,7 @@ environment:
   ROKU_DEV_PASSWORD=<developer-mode-password> or ROKIT_PASSWORD=<developer-mode-password>
   PUTIO_CLI_PROFILE=devs-fe-auto
   PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
+  IMAGE_CONTENT_ID=<optional-image-file-id-for-image-flow-and-visual-pages>
   PLAYER_UI_REFERENCE_IMAGE=<optional-reference-image-path>`);
   process.exit(1);
 }

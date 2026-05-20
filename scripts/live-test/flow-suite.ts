@@ -6,6 +6,7 @@ export type FlowId =
   | "settings"
   | "logout"
   | "playback"
+  | "image"
   | "tracks";
 
 export type FlowStepResult = {
@@ -46,6 +47,7 @@ const flowIdSet = new Set<FlowId>([
   "settings",
   "logout",
   "playback",
+  "image",
   "tracks",
 ]);
 

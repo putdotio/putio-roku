@@ -11,6 +11,7 @@ import {
   exitAppDialogTitle,
   sceneGraphRequestTimeoutMs,
 } from "./constants.ts";
+import { imageRenderSmoke } from "./image.ts";
 import {
   captureDeveloperScreenshot,
   pressKey,
@@ -47,6 +48,7 @@ export const defaultVisualLabStoryIds = new Set<string>([
 
 export type VisualPageCaptureOptions = {
   readonly includeAuth: boolean;
+  readonly imageContentId?: string;
   readonly profile: string;
 };
 
@@ -122,6 +124,13 @@ export async function captureVisualPages(
     },
     10_000,
   );
+
+  if (options.imageContentId !== undefined) {
+    await imageRenderSmoke(target, options.imageContentId);
+    await capturePage("image");
+  } else {
+    console.log("visual page skipped: IMAGE_CONTENT_ID is not set");
+  }
 
   await captureSearchStates(target, capturePage, driver);
 

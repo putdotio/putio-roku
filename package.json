@@ -13,8 +13,8 @@
     "format:roku:write": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --write",
     "roku:live": "node scripts/roku-live-test.ts",
     "roku:auth": "node scripts/putio-auth-harness.ts",
-    "visual:validate": "vref validate --output json",
-    "visual:gallery": "vref build --output json",
+    "visual:validate": "node scripts/vref.ts validate --output json",
+    "visual:gallery": "node scripts/vref.ts build --output json",
     "visual:serve": "vref serve",
     "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"

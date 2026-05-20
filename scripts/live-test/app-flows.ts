@@ -32,6 +32,7 @@ export type AppFlowDriver = {
     mediaType: string,
     startFromChoice: "continue" | "beginning",
   ) => Promise<void>;
+  readonly imageRenderSmoke: (target: string, contentId: string) => Promise<void>;
   readonly playerUiSmoke: (
     target: string,
     audioContentId: string,
@@ -94,6 +95,13 @@ export async function runAppFlow(
         options.mediaType,
         options.startFromChoice,
       );
+      return;
+    case "image":
+      if (options.imageContentId === undefined) {
+        throw new Error("image flow requires IMAGE_CONTENT_ID");
+      }
+
+      await driver.imageRenderSmoke(context.target, options.imageContentId);
       return;
     case "tracks":
       if (options.audioContentId === undefined || options.subtitleContentId === undefined) {

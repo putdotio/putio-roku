@@ -25,6 +25,13 @@ Capture stable shared AppDialog Lab stories into ignored raw artifacts:
 make visual-capture-lab
 ```
 
+Capture the curated app pages plus the image viewer when an image fixture is
+available:
+
+```sh
+make visual-capture-pages IMAGE_CONTENT_ID=<image-file-id>
+```
+
 Lab components are development-only; the default production ZIP excludes
 `components/lab/`. Lab capture and install commands rebuild with
 `ROKU_INCLUDE_LAB=1`.

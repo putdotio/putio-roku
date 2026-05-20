@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-05-20T12:12:40.467Z",
+  "updatedAt": "2026-05-20T19:37:45.000Z",
   "screenshots": [
     {
       "id": "home",
@@ -47,6 +47,29 @@
       "notes": [
         "Files root list with the first item focused.",
         "Uses synthetic test-account filenames."
+      ]
+    },
+    {
+      "id": "image",
+      "title": "Image viewer",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/image.jpg",
+      "capturedAt": "2026-05-20T19:37:45.000Z",
+      "sizeBytes": 55184,
+      "tags": [
+        "image",
+        "viewer",
+        "scale-to-fit"
+      ],
+      "notes": [
+        "Image screen rendering a synthetic test-account poster.",
+        "The rendered image uses a viewport-sized Poster with scaleToFit."
       ]
     },
     {
