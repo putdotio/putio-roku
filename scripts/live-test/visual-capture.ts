@@ -38,6 +38,8 @@ export const visualLabStories = [
   ["conversion-status-error", "VideoConversionStatus / error"],
   ["list-item-generic", "ListItem"],
   ["list-item-files", "FileListItem"],
+  ["list-item-file-watched-focused", "FileListItem / watched focused"],
+  ["list-item-file-loading-focused", "FileListItem / loading focused"],
   ["list-item-history", "HistoryListItem"],
 ] as const;
 

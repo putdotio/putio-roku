@@ -2,8 +2,31 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-05-20T20:56:58.000Z",
+  "updatedAt": "2026-05-20T21:36:44.000Z",
   "screenshots": [
+    {
+      "id": "auth",
+      "title": "Auth",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/auth.jpg",
+      "capturedAt": "2026-05-20T21:36:44.000Z",
+      "sizeBytes": 21748,
+      "tags": [
+        "auth",
+        "activation-code",
+        "redacted"
+      ],
+      "notes": [
+        "Auth screen with the activation code tiles redacted for public-safe review.",
+        "Captured from the live device before restoring the test account."
+      ]
+    },
     {
       "id": "home",
       "title": "Home",

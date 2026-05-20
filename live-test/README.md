@@ -71,7 +71,7 @@ make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-flow-smoke
 make live-test-flow FLOWS=auth,files,dialogs
-make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
+make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make lab-install STORY=<story-id>
 make lab-screenshot STORY=<story-id>
 make visual-capture NAME=<short-screen-name>
@@ -145,13 +145,13 @@ make console
   dialog open/dismiss, Settings navigation, Get new code, and auth restoration.
   It writes flow run output under a timestamped `dist/tmp/flows/app-smoke-*`
   directory unless `OUTPUT_DIR` is set.
-- `make live-test-flow FLOWS=auth,files,dialogs [PLAYBACK_CONTENT_ID=<file-id>] [AUDIO_CONTENT_ID=<file-id>] [SUBTITLE_CONTENT_ID=<file-id>] [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+- `make live-test-flow FLOWS=auth,files,dialogs [PLAYBACK_CONTENT_ID=<file-id>] [IMAGE_CONTENT_ID=<file-id>] [AUDIO_CONTENT_ID=<file-id>] [SUBTITLE_CONTENT_ID=<file-id>] [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
   runs a custom comma-separated flow list. Available flows are `auth`,
-  `get-new-code`, `files`, `dialogs`, `settings`, `logout`, `playback`, and
-  `tracks`.
-- `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
-  runs the broader regression sweep: app smoke flows plus HLS playback, track
-  selection/player controls, logout, and auth restoration.
+  `get-new-code`, `files`, `history`, `dialogs`, `settings`, `logout`,
+  `playback`, `image`, and `tracks`.
+- `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  runs the broader regression sweep: app smoke flows plus HLS playback, image
+  rendering, track selection/player controls, logout, and auth restoration.
 - The app-specific command entrypoint is `scripts/roku-live-test.ts`; shared
   flow definitions, CLI option parsing, put.io config helpers, artifact paths,
   auth/session handling, rokit device wrappers, navigation/focus helpers,
@@ -163,11 +163,14 @@ make console
   `app-dialog-empty`, `app-dialog-message`, `delete-dialog-short`,
   `delete-dialog-long`, `continue-watching`, `continue-watching-beginning`,
   `track-menu-audio`, `track-menu-subtitles`,
-  `track-menu-subtitles-scroll`, and `track-menu-speed`.
+  `track-menu-subtitles-scroll`, `track-menu-speed`,
+  `conversion-status-converting`, `conversion-status-error`,
+  `list-item-generic`, `list-item-files`, `list-item-file-watched-focused`,
+  `list-item-file-loading-focused`, and `list-item-history`.
 - `make lab-screenshot [STORY=app-dialog-empty] [LAB_SCREENSHOT_DELAY=3]`
   launches the same Lab story and writes
-  a timestamped screenshot based on `dist/tmp/lab/<story>.jpg`, for example
-  `dist/tmp/lab/<story>-YYYYMMDD-HHMMSS-mmm.jpg`. The delay gives Roku's
+  a timestamped screenshot such as
+  `dist/tmp/lab/<story>-YYYYMMDD-HHMMSS.jpg`. The delay gives Roku's
   developer screenshot endpoint time to capture the first rendered app frame.
 - `make visual-capture NAME=<short-screen-name>` captures the current Roku app
   state into `dist/tmp/visual/captures/<timestamp>/<short-screen-name>.jpg`.
@@ -226,9 +229,9 @@ make ROKU_DEV_PASSWORD=<developer-mode-password> live-test-install
    media-key seek behavior.
 6. Run `make live-test-flow-smoke` after navigation/auth/dialog/router changes
    to cover the regular app shell flows before touching playback-heavy checks.
-7. Run `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+7. Run `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    before shipping broad refactors that could affect auth, routing, files,
-   dialogs, settings, logout, playback, or track selection.
+   dialogs, settings, logout, playback, image rendering, or track selection.
 8. Run `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    when a visual player UI change needs repeatable screenshot artifacts.
 9. Run `make lab-install STORY=<story-id>` or

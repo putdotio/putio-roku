@@ -14,11 +14,10 @@ sub initAppDialog()
     m.panelBorderLeft = m.top.findNode("panelBorderLeft")
     m.titleLabel = m.top.findNode("titleLabel")
     m.divider = m.top.findNode("divider")
-    m.messageLabels = [
-        m.top.findNode("messageLine0"),
-        m.top.findNode("messageLine1"),
-        m.top.findNode("messageLine2"),
-    ]
+    m.messageLabels = []
+    for i = 0 to 5
+        m.messageLabels.push(m.top.findNode("messageLine" + i.toStr()))
+    end for
     m.buttonsGroup = m.top.findNode("buttonsGroup")
     m.buttonNodes = [
         {
@@ -140,7 +139,10 @@ sub updateDialogLayout(buttonCount as integer)
 
         messageLines = wrapAppDialogMessageLines(m.top.message, messageLineLength)
         messageLineCount = messageLines.count()
-        messageHeight = (messageLineCount * 44) + ((messageLineCount - 1) * 4)
+        messageHeight = messageLineCount * 44
+        if messageLineCount > 1
+            messageHeight = messageHeight + ((messageLineCount - 1) * 4)
+        end if
         buttonsY = bodyY + messageHeight + bodyButtonGap
     else
         panelWidth = 900
@@ -278,37 +280,85 @@ end sub
 
 function wrapAppDialogMessageLines(message as string, maxLineLength as integer) as object
     lines = []
+    maxLines = 6
 
     if message = invalid or message = ""
         return lines
     end if
 
-    remaining = message
+    remainingMessage = message
 
-    while Len(remaining) > maxLineLength and lines.count() < 2
-        wrapIndex = maxLineLength
-        wrapAtSpace = false
-
-        for i = maxLineLength to 1 step -1
-            if Mid(remaining, i, 1) = " "
-                wrapIndex = i
-                wrapAtSpace = true
-                exit for
-            end if
-        end for
-
-        if wrapAtSpace and wrapIndex >= 24
-            lines.push(Left(remaining, wrapIndex - 1))
-            remaining = Mid(remaining, wrapIndex + 1)
+    while remainingMessage <> "" and lines.count() < maxLines
+        newlineIndex = Instr(1, remainingMessage, chr(10))
+        if newlineIndex > 0
+            paragraph = Left(remainingMessage, newlineIndex - 1)
+            remainingMessage = Mid(remainingMessage, newlineIndex + 1)
         else
-            lines.push(Left(remaining, maxLineLength))
-            remaining = Mid(remaining, maxLineLength + 1)
+            paragraph = remainingMessage
+            remainingMessage = ""
+        end if
+
+        appendWrappedAppDialogLines(lines, paragraph, maxLineLength, maxLines, remainingMessage <> "")
+    end while
+
+    if remainingMessage <> "" and lines.count() > 0
+        lines[lines.count() - 1] = abbreviateAppDialogLine(lines[lines.count() - 1], maxLineLength)
+    end if
+
+    return lines
+end function
+
+sub appendWrappedAppDialogLines(lines as object, text as string, maxLineLength as integer, maxLines as integer, hasMoreText as boolean)
+    remaining = text
+
+    if remaining = ""
+        lines.push("")
+        return
+    end if
+
+    while remaining <> "" and lines.count() < maxLines
+        if Len(remaining) <= maxLineLength
+            lines.push(remaining)
+            remaining = ""
+        else
+            wrapIndex = maxLineLength
+            wrapAtSpace = false
+
+            for i = maxLineLength to 1 step -1
+                if Mid(remaining, i, 1) = " "
+                    wrapIndex = i
+                    wrapAtSpace = true
+                    exit for
+                end if
+            end for
+
+            if wrapAtSpace and wrapIndex >= 24
+                lines.push(Left(remaining, wrapIndex - 1))
+                remaining = Mid(remaining, wrapIndex + 1)
+            else
+                lines.push(Left(remaining, maxLineLength))
+                remaining = Mid(remaining, maxLineLength + 1)
+            end if
         end if
     end while
 
-    lines.push(remaining)
+    if (remaining <> "" or hasMoreText) and lines.count() > 0
+        lines[lines.count() - 1] = abbreviateAppDialogLine(lines[lines.count() - 1], maxLineLength)
+    end if
+end sub
 
-    return lines
+function abbreviateAppDialogLine(line as string, maxLineLength as integer) as string
+    suffix = "..."
+    maxBodyLength = maxLineLength - Len(suffix)
+    if maxBodyLength < 1
+        return suffix
+    end if
+
+    if Len(line) > maxBodyLength
+        return Left(line, maxBodyLength) + suffix
+    end if
+
+    return line + suffix
 end function
 
 function getVisibleDialogButtonCount() as integer

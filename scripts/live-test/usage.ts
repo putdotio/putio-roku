@@ -8,7 +8,7 @@ export function usage(): never {
   node scripts/roku-live-test.ts auth-refresh-smoke
   node scripts/roku-live-test.ts auth-prepare [profile]
   node scripts/roku-live-test.ts flow-smoke [artifact-dir]
-  node scripts/roku-live-test.ts flow-full <playback-content-id> <audio-content-id> <subtitle-content-id> [media-type] [continue|beginning] [artifact-dir]
+  node scripts/roku-live-test.ts flow-full <playback-content-id> <image-content-id> <audio-content-id> <subtitle-content-id> [media-type] [continue|beginning] [artifact-dir]
   node scripts/roku-live-test.ts flow <auth,get-new-code,files,history,dialogs,settings,logout,playback,image,tracks> [playback-content-id] [audio-content-id] [subtitle-content-id] [media-type] [continue|beginning] [artifact-dir]
   node scripts/roku-live-test.ts visual-pages [artifact-dir] [--include-auth]
   node scripts/roku-live-test.ts visual-lab [artifact-dir] [story-id...]

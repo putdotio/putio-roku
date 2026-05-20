@@ -52,6 +52,9 @@ $(APP_ZIP_FILE): $(ROKU_APP_FILES)
 		mkdir -p "$(ZIP_STAGING_DIR)/$$(dirname "$$file")"; \
 		cp "$$file" "$(ZIP_STAGING_DIR)/$$file"; \
 	done
+	@if [ "$(ROKU_INCLUDE_LAB)" = "1" ]; then \
+		perl -0pi -e 's/function isLabLaunchEnabled\(\) as boolean\n    return false\nend function/function isLabLaunchEnabled() as boolean\n    return true\nend function/' "$(ZIP_STAGING_DIR)/source/Main.brs"; \
+	fi
 	@find "$(ZIP_STAGING_DIR)" -type f -exec touch -t 202001010000 {} +
 	@(cd "$(ZIP_STAGING_DIR)" && $(ROKU_ZIP_FILES) | grep '\.png$$' | zip -X -0 "$(APP_ZIP_ABS)" -@)
 	@(cd "$(ZIP_STAGING_DIR)" && $(ROKU_ZIP_FILES) | grep -v '\.png$$' | zip -X -9 "$(APP_ZIP_ABS)" -@)
@@ -339,6 +342,8 @@ lab-launch: check-roku-dev-target
 			conversion-status-error) EXPECTED_TITLE="VideoConversionStatus / error" ;; \
 			list-item-generic) EXPECTED_TITLE="ListItem" ;; \
 			list-item-files) EXPECTED_TITLE="FileListItem" ;; \
+			list-item-file-watched-focused) EXPECTED_TITLE="FileListItem / watched focused" ;; \
+			list-item-file-loading-focused) EXPECTED_TITLE="FileListItem / loading focused" ;; \
 			list-item-history) EXPECTED_TITLE="HistoryListItem" ;; \
 		esac; \
 		if [ -n "$$EXPECTED_TITLE" ]; then \
@@ -354,8 +359,9 @@ lab-install:
 lab-screenshot: lab-install
 	@mkdir -p "$(TMP_DIR)/lab"
 	@STORY_NAME="$(or $(STORY),app-dialog-empty)"; \
+		RUN_ID=$$(date -u +%Y%m%d-%H%M%S); \
 		sleep "$(or $(LAB_SCREENSHOT_DELAY),3)"; \
-		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$(TMP_DIR)/lab/$${STORY_NAME}.jpg"
+		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$(TMP_DIR)/lab/$${STORY_NAME}-$${RUN_ID}.jpg"
 
 .PHONY: visual-capture
 visual-capture: check-roku-dev-target
@@ -422,15 +428,19 @@ live-test-flow: putio-auth-prepare
 .PHONY: live-test-flow-full
 live-test-flow-full: putio-auth-prepare
 	@if [ -z "$(PLAYBACK_CONTENT_ID)" ]; then \
-		echo "ERROR: PLAYBACK_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		echo "ERROR: PLAYBACK_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		exit 1; \
+	fi
+	@if [ -z "$(IMAGE_CONTENT_ID)" ]; then \
+		echo "ERROR: IMAGE_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
 		exit 1; \
 	fi
 	@if [ -z "$(AUDIO_CONTENT_ID)" ]; then \
-		echo "ERROR: AUDIO_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		echo "ERROR: AUDIO_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
 		exit 1; \
 	fi
 	@if [ -z "$(SUBTITLE_CONTENT_ID)" ]; then \
-		echo "ERROR: SUBTITLE_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
+		echo "ERROR: SUBTITLE_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
 		exit 1; \
 	fi
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live flow-full "$(PLAYBACK_CONTENT_ID)" "$(AUDIO_CONTENT_ID)" "$(SUBTITLE_CONTENT_ID)" "$(or $(MEDIA_TYPE),movie)" "$(or $(START_FROM),continue)" "$(OUTPUT_DIR)"
+	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live flow-full "$(PLAYBACK_CONTENT_ID)" "$(IMAGE_CONTENT_ID)" "$(AUDIO_CONTENT_ID)" "$(SUBTITLE_CONTENT_ID)" "$(or $(MEDIA_TYPE),movie)" "$(or $(START_FROM),continue)" "$(OUTPUT_DIR)"

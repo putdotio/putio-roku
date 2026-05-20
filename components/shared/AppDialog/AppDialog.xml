@@ -125,6 +125,39 @@
         visible="false"
       />
 
+      <Label
+        id="messageLine3"
+        translation="[48,252]"
+        width="804"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xA0A0A0FF"
+        horizAlign="center"
+        visible="false"
+      />
+
+      <Label
+        id="messageLine4"
+        translation="[48,300]"
+        width="804"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xA0A0A0FF"
+        horizAlign="center"
+        visible="false"
+      />
+
+      <Label
+        id="messageLine5"
+        translation="[48,348]"
+        width="804"
+        height="44"
+        font="font:MediumSystemFont"
+        color="0xA0A0A0FF"
+        horizAlign="center"
+        visible="false"
+      />
+
       <Group id="buttonsGroup" translation="[48,196]">
         <Group id="button0">
           <Rectangle

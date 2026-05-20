@@ -36,6 +36,7 @@ export const appFlowSmokeSuite: readonly FlowId[] = [
 export const fullAppFlowSuite: readonly FlowId[] = [
   ...appFlowSmokeSuite,
   "playback",
+  "image",
   "tracks",
   "logout",
   "auth",

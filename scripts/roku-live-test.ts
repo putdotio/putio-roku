@@ -1334,6 +1334,7 @@ async function main(): Promise<void> {
   } else if (command === "flow-full") {
     const [
       playbackContentId,
+      imageContentId,
       audioContentId,
       subtitleContentId,
       mediaType = "movie",
@@ -1341,7 +1342,7 @@ async function main(): Promise<void> {
       rawArtifactDir,
     ] = args;
 
-    if (!playbackContentId || !audioContentId || !subtitleContentId) {
+    if (!playbackContentId || !imageContentId || !audioContentId || !subtitleContentId) {
       usage();
     }
 
@@ -1352,7 +1353,7 @@ async function main(): Promise<void> {
       {
         profile: putioProfileFromArg(),
         playbackContentId,
-        imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
+        imageContentId,
         audioContentId,
         subtitleContentId,
         mediaType,

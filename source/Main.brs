@@ -59,6 +59,10 @@ sub Main(args as object)
 end sub
 
 function shouldLaunchLab(args as object) as boolean
+    if isLabLaunchEnabled() = false
+        return false
+    end if
+
     if args = invalid
         return false
     end if
@@ -67,6 +71,10 @@ function shouldLaunchLab(args as object) as boolean
     story = readLaunchArg(args, "story")
 
     return isTruthyLaunchArg(lab) or story <> invalid
+end function
+
+function isLabLaunchEnabled() as boolean
+    return false
 end function
 
 function readLaunchArg(args as object, key as string)
