@@ -177,6 +177,8 @@ export async function waitForAuthReady(target: string, profile: string): Promise
 }
 
 export async function resetAuthState(target: string, driver: AuthDriver): Promise<void> {
+  await pressKey(target, "Home");
+  await sleep(1_500);
   await launchApp(target, "dev");
   await driver.waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
   await waitForBootstrapScreen(target, appSceneGraphReadyTimeoutMs);

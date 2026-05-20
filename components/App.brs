@@ -18,6 +18,7 @@ end function
 sub configureRouter()
     m.routeStack = []
     m.activeRouteEntry = invalid
+    m.routeEntrySequence = 0
     m.global.observeField("route", "onNavigateToRoute")
     mountRoute(m.global.route)
 end sub
@@ -35,15 +36,16 @@ sub navigateToRoute(nextRoute)
 
     clearActiveDialog(false)
 
+    resetStack = shouldResetRouteStack(nextRoute)
     replaceRoute = shouldReplaceRoute(nextRoute)
-    if nextRoute.id = "authScreen"
-        replaceRoute = true
-    end if
 
     previousEntry = m.activeRouteEntry
     if previousEntry <> invalid
-        if replaceRoute
+        if resetStack
             clearRouteStack()
+        else if replaceRoute
+            m.routeStack.pop()
+            disposeRouteEntry(previousEntry)
         else
             hideRouteEntry(previousEntry)
         end if
@@ -68,7 +70,11 @@ sub onNavigateBack()
 end sub
 
 function shouldReplaceRoute(route)
-    return m.replaceRoute = true or route.replace = true
+    return route.replace = true
+end function
+
+function shouldResetRouteStack(route)
+    return m.replaceRoute = true or route.id = "authScreen"
 end function
 
 sub mountRoute(route)
@@ -86,6 +92,13 @@ function createRouteEntry(route)
     end if
 
     screen.id = route.id
+    m.routeEntrySequence = m.routeEntrySequence + 1
+    if screen.hasField("routeEntryId") = false
+        screen.addFields({
+            routeEntryId: 0
+        })
+    end if
+    screen.routeEntryId = m.routeEntrySequence
     screen.visible = false
     screen.translation = [0, 0]
     if screen.hasField("params")
@@ -94,6 +107,7 @@ function createRouteEntry(route)
     observeRouteScreen(route.id, screen)
 
     return {
+        entryId: m.routeEntrySequence,
         route: route,
         screen: screen,
         lastFocus: invalid,
@@ -269,12 +283,16 @@ function isActiveRouteEntry(entry) as boolean
         return false
     end if
 
-    return isSameRouteNode(m.activeRouteEntry.screen, entry.screen)
+    return m.activeRouteEntry.entryId = entry.entryId
 end function
 
 function isSameRouteNode(leftNode, rightNode) as boolean
     if leftNode = invalid or rightNode = invalid
         return false
+    end if
+
+    if leftNode.hasField("routeEntryId") and rightNode.hasField("routeEntryId")
+        return leftNode.routeEntryId <> 0 and leftNode.routeEntryId = rightNode.routeEntryId
     end if
 
     if leftNode.hasField("id") = false or rightNode.hasField("id") = false

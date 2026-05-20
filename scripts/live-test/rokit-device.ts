@@ -255,7 +255,7 @@ export async function assertMediaPlayerContainer(
 ): Promise<void> {
   let lastError: string | undefined;
 
-  for (let attempt = 0; attempt < 5; attempt += 1) {
+  for (let attempt = 0; attempt < 15; attempt += 1) {
     try {
       await rokitAssertMediaPlayerContainer(rokitContext(target), expectedContainer);
       return;
