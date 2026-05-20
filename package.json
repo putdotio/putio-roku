@@ -19,7 +19,7 @@
   "devDependencies": {
     "@putdotio/rokit": "2.2.0",
     "@rokucommunity/bslint": "0.8.43",
-    "@types/node": "^24.12.2",
+    "@types/node": "^25.9.1",
     "brighterscript": "0.72.2",
     "brighterscript-formatter": "1.7.26",
     "sst": "^4.14.3",
