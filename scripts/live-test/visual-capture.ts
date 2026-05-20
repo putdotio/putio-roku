@@ -190,8 +190,17 @@ export async function captureVisualLabStories(
   console.log(`visual lab captures: ${outputDir}`);
   await driver.leaveActivePlaybackSurface(target);
 
+  let currentStoryIndex = -1;
+
   for (const [storyId, expectedTitle] of selectedStories) {
-    await launchLabStory(target, storyId, expectedTitle);
+    const storyIndex = visualLabStories.findIndex(([knownStoryId]) => knownStoryId === storyId);
+    if (currentStoryIndex < 0) {
+      await launchLabStory(target, storyId, expectedTitle);
+    } else {
+      await navigateLabStory(target, currentStoryIndex, storyIndex, storyId, expectedTitle);
+    }
+
+    currentStoryIndex = storyIndex;
     await sleep(1_500);
     const outputPath = join(outputDir, `${storyId}.jpg`);
     const capturedPath = await captureDeveloperScreenshot(target, password, outputPath);
@@ -296,6 +305,35 @@ async function launchLabStory(target: string, storyId: string, expectedTitle: st
     { state: "visible" },
     15_000,
   );
+  await waitForSceneGraphAssertion(
+    target,
+    `expected lab story ${storyId}`,
+    (xml) => {
+      assertNamedNodeText(xml, "storyTitle", expectedTitle);
+    },
+    15_000,
+  );
+}
+
+async function navigateLabStory(
+  target: string,
+  currentStoryIndex: number,
+  nextStoryIndex: number,
+  storyId: string,
+  expectedTitle: string,
+): Promise<void> {
+  if (nextStoryIndex < 0) {
+    throw new Error(`unknown lab story id: ${storyId}`);
+  }
+
+  const direction = nextStoryIndex > currentStoryIndex ? "Down" : "Up";
+  const pressCount = Math.abs(nextStoryIndex - currentStoryIndex);
+
+  for (let i = 0; i < pressCount; i += 1) {
+    await pressKey(target, direction);
+    await sleep(250);
+  }
+
   await waitForSceneGraphAssertion(
     target,
     `expected lab story ${storyId}`,

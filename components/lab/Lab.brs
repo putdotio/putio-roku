@@ -258,6 +258,7 @@ sub renderStoryForRow(rowIndex as integer)
         nextRowIndex = getNearestStoryRowIndex(rowIndex)
         if nextRowIndex <> rowIndex
             m.storyList.jumpToItem = nextRowIndex
+            renderStoryForRow(nextRowIndex)
         end if
         return
     end if
@@ -383,6 +384,10 @@ sub addPreviewNode(node as object, translation as object)
     node.visible = true
     m.previewHost.appendChild(node)
     m.currentPreview = node
+
+    if m.storyList <> invalid
+        m.storyList.setFocus(true)
+    end if
 end sub
 
 sub hidePreviewBackdrop(node as object, fieldId as string)

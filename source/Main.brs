@@ -104,6 +104,9 @@ sub launchLab(screen, args as object)
         scene.story = story.toStr()
     end if
 
+    input = CreateObject("roInput")
+    input.setMessagePort(m.port)
+
     screen.show()
     scene.signalBeacon("AppLaunchComplete")
 
@@ -113,6 +116,14 @@ sub launchLab(screen, args as object)
 
         if msgType = "roSGScreenEvent" and msg.isScreenClosed()
             return
+        else if msgType = "roInputEvent" then
+            if msg.isInput()
+                launchInfo = msg.getInfo()
+                story = readLaunchArg(launchInfo, "story")
+                if story <> invalid
+                    scene.story = story.toStr()
+                end if
+            end if
         end if
     end while
 end sub
