@@ -28,6 +28,7 @@
 - `make live-test-flow-smoke`
 - `make live-test-flow FLOWS=auth,files,dialogs`
 - `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+- `make test-live`
 - `make lab-install STORY=<story-id>`
 - `make lab-screenshot STORY=<story-id>`
 - `make visual-capture NAME=<short-screen-name>`
@@ -58,6 +59,7 @@
 - Local overrides flow through optional `.env`
 - `.env.example` must stay sanitized and safe to publish
 - `make verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP
+- `make test-live` runs the Vitest contract tests for live-test flow wiring, fixture argument parsing, and Lab visual-capture registry drift
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
 - Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
 - Live app regressions are grouped as flow suites: use `make live-test-flow-smoke` for auth/files/dialogs/settings/get-new-code coverage and `make live-test-flow-full` before shipping broad routing/player/image refactors

@@ -72,6 +72,7 @@ make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBT
 make live-test-flow-smoke
 make live-test-flow FLOWS=auth,files,dialogs
 make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
+make test-live
 make lab-install STORY=<story-id>
 make lab-screenshot STORY=<story-id>
 make visual-capture NAME=<short-screen-name>
@@ -152,6 +153,9 @@ make console
 - `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
   runs the broader regression sweep: app smoke flows plus HLS playback, image
   rendering, track selection/player controls, logout, and auth restoration.
+- `make test-live` runs the Vitest contract tests around the TypeScript
+  harness. These catch flow-suite drift, fixture argument parsing regressions,
+  and Lab story/capture registry mismatches without touching the Roku.
 - The app-specific command entrypoint is `scripts/roku-live-test.ts`; shared
   flow definitions, CLI option parsing, put.io config helpers, artifact paths,
   auth/session handling, rokit device wrappers, navigation/focus helpers,

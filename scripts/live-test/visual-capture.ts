@@ -43,10 +43,28 @@ export const visualLabStories = [
   ["list-item-history", "HistoryListItem"],
 ] as const;
 
+type VisualLabStory = (typeof visualLabStories)[number];
+
 export const defaultVisualLabStoryIds = new Set<string>([
   "app-dialog-empty",
   "app-dialog-message",
 ]);
+
+export function selectVisualLabStories(storyIds: readonly string[]): readonly VisualLabStory[] {
+  if (storyIds.length === 0) {
+    return visualLabStories.filter(([storyId]) => defaultVisualLabStoryIds.has(storyId));
+  }
+
+  const storiesById = new Map<string, VisualLabStory>(visualLabStories.map((story) => [story[0], story]));
+  const selectedStories = storyIds.map((storyId) => storiesById.get(storyId));
+  const unknownStoryIds = storyIds.filter((storyId, index) => selectedStories[index] === undefined);
+
+  if (unknownStoryIds.length > 0) {
+    throw new Error(`unknown lab story id(s): ${unknownStoryIds.join(", ")}`);
+  }
+
+  return selectedStories.filter((story): story is VisualLabStory => story !== undefined);
+}
 
 export type VisualPageCaptureOptions = {
   readonly includeAuth: boolean;
@@ -166,21 +184,11 @@ export async function captureVisualLabStories(
   storyIds: readonly string[],
   driver: Pick<VisualCaptureDriver, "leaveActivePlaybackSurface">,
 ): Promise<void> {
+  const selectedStories = selectVisualLabStories(storyIds);
   const password = requireDeveloperPassword();
   await mkdir(outputDir, { recursive: true });
   console.log(`visual lab captures: ${outputDir}`);
   await driver.leaveActivePlaybackSurface(target);
-
-  const requestedStoryIds = new Set<string>(storyIds);
-  const selectedStories = storyIds.length > 0
-    ? visualLabStories.filter(([storyId]) => requestedStoryIds.has(storyId))
-    : visualLabStories.filter(([storyId]) => defaultVisualLabStoryIds.has(storyId));
-
-  if (storyIds.length > 0 && selectedStories.length !== storyIds.length) {
-    const knownStoryIds = new Set<string>(visualLabStories.map(([storyId]) => storyId));
-    const unknownStoryIds = storyIds.filter((storyId) => !knownStoryIds.has(storyId));
-    throw new Error(`unknown lab story id(s): ${unknownStoryIds.join(", ")}`);
-  }
 
   for (const [storyId, expectedTitle] of selectedStories) {
     await launchLabStory(target, storyId, expectedTitle);

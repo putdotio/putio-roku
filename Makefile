@@ -82,6 +82,10 @@ check-roku-format:
 check-roku-live:
 	pnpm run check:live
 
+.PHONY: test-live
+test-live:
+	pnpm run test:live
+
 .PHONY: putio-auth-status
 putio-auth-status:
 	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-status "$(PUTIO_CLI_PROFILE)"
@@ -99,7 +103,7 @@ putio-auth-approve-device:
 	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-approve-device "$(CODE)" "$(PUTIO_CLI_PROFILE)"
 
 .PHONY: verify
-verify: clean check-roku-live check-roku-format check-roku-static visual-validate build
+verify: clean check-roku-live test-live check-roku-format check-roku-static visual-validate build
 	@test -f "$(APP_ZIP_FILE)"
 
 .PHONY: smoke
