@@ -164,6 +164,7 @@ sub configureFileList()
     for each file in m.files
         listItemData = content.createChild("FileListItemData")
         listItemData.file = file
+        listItemData.rowWidth = 960
     end for
 
     m.searchFileList.visible = m.files.Count() > 0
