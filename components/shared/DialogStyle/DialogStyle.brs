@@ -155,6 +155,16 @@ sub applyListItemFocusBackground(background, rowWidth = invalid, rowHeight = inv
 
     width = normalizeListItemRowWidth(rowWidth)
     height = normalizeListItemRowHeight(rowHeight)
+
+    patch = background.findNode("focusPatch")
+    if patch <> invalid
+        patch.width = width
+        patch.height = height
+        patch.uri = "pkg:/images/list-item-focus.9.png"
+        setDialogNodeColor(patch, "focus")
+        return
+    end if
+
     radius = listItemFocusCornerRadius(height)
     insetStep = Int(radius / 2)
     if insetStep < 2

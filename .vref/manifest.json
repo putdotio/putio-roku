@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-05-20T20:17:36.000Z",
+  "updatedAt": "2026-05-20T20:44:44.000Z",
   "screenshots": [
     {
       "id": "home",
@@ -15,8 +15,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/home.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 22788,
+      "capturedAt": "2026-05-20T20:44:44.000Z",
+      "sizeBytes": 24367,
       "tags": [
         "home",
         "navigation"
@@ -37,8 +37,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/files.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 48500,
+      "capturedAt": "2026-05-20T20:44:44.000Z",
+      "sizeBytes": 47437,
       "tags": [
         "files",
         "list",
@@ -60,8 +60,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/history.jpg",
-      "capturedAt": "2026-05-20T20:09:50.103Z",
-      "sizeBytes": 22324,
+      "capturedAt": "2026-05-20T20:44:44.000Z",
+      "sizeBytes": 22303,
       "tags": [
         "history",
         "list",
@@ -197,8 +197,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-result-focused.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 44319,
+      "capturedAt": "2026-05-20T20:44:44.000Z",
+      "sizeBytes": 44330,
       "tags": [
         "search",
         "focus"
@@ -219,8 +219,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/settings.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 39716,
+      "capturedAt": "2026-05-20T20:44:44.000Z",
+      "sizeBytes": 39662,
       "tags": [
         "settings",
         "list",
