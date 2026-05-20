@@ -31,12 +31,12 @@
 		<MarkupList
 			id="settingsList"
 			itemComponentName="ListItem"
-			translation="[190, 190]"
+			translation="[190, 170]"
 			itemSize="[1500, 120]"
-			itemSpacing="[0, 30]"
+			itemSpacing="[0, 12]"
       drawFocusFeedback="false"
       vertFocusAnimationStyle="fixedFocus"
-			numRows="5"
+			numRows="6"
 		/>
 	</children>
 </component>

@@ -1,0 +1,15 @@
+export const requestTimeoutMs = 15_000;
+export const sceneGraphRequestTimeoutMs = 10_000;
+export const sceneGraphPollIntervalMs = 1_500;
+export const playbackLaunchSceneGraphPollIntervalMs = 3_000;
+export const playbackLaunchInitialSettleMs = 5_000;
+export const playbackLaunchPostPromptSettleMs = 10_000;
+export const launchTimeoutMs = 30_000;
+export const authPrepareTimeoutMs = 90_000;
+export const playbackLaunchTimeoutMs = 300_000;
+export const playbackLaunchRetryMs = 10_000;
+export const appSceneGraphReadyTimeoutMs = 45_000;
+export const maxPlaybackLaunchAttempts = 4;
+export const screenshotCaptureAttempts = 5;
+export const trackMenuRowPoolSize = 8;
+export const exitAppDialogTitle = "Exit put.io?";

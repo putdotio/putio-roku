@@ -10,6 +10,7 @@ function init()
     m.pendingPlaybackType = invalid
     m.settingsErrorDialog = invalid
     m.appVersion = createObject("roAppInfo").GetVersion()
+    m.deviceDescription = getDeviceDescription()
 
     m.items = {
         show_only_media_files: {
@@ -32,11 +33,42 @@ function init()
             title: "Version",
             iconName: "info",
             description: m.appVersion
+        },
+        device_info: {
+            title: "Device",
+            iconName: "settings",
+            description: m.deviceDescription
         }
     }
-    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "logout", "version"]
+    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "version", "device_info", "logout"]
 
     renderList()
+end function
+
+function getDeviceDescription() as string
+    deviceInfo = CreateObject("roDeviceInfo")
+    modelName = deviceInfo.GetModelDisplayName()
+    model = deviceInfo.GetModel()
+    osVersion = formatOsVersion(deviceInfo.GetOSVersion())
+
+    if modelName = invalid or modelName = ""
+        modelName = model
+    end if
+
+    return modelName + " (" + model + ")  |  Roku OS " + osVersion
+end function
+
+function formatOsVersion(osVersion as object) as string
+    if osVersion = invalid
+        return "Unknown"
+    end if
+
+    version = osVersion.major + "." + osVersion.minor + "." + osVersion.revision
+    if osVersion.build <> invalid and osVersion.build <> ""
+        version = version + " build " + osVersion.build
+    end if
+
+    return version
 end function
 
 sub onVisibleChange()
@@ -51,7 +83,7 @@ end sub
 sub renderList()
     content = createObject("roSGNode", "ContentNode")
 
-    for i = 0 to m.items.count() - 1
+    for i = 0 to m.itemsOrder.count() - 1
         key = m.itemsOrder[i]
         item = m.items[key]
         listItemData = content.createChild("ListItemData")
@@ -85,7 +117,7 @@ sub onListItemSelected(obj)
         updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
     else if key = "playback_type"
         setPlaybackType(getNextPlaybackType())
-    else if key = "version"
+    else if key = "version" or key = "device_info"
         return
     end if
 end sub

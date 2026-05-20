@@ -69,8 +69,16 @@ make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id>
 make live-test-playback-error-dialog CONTENT_ID=<bad-file-id>
 make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
+make live-test-flow-smoke
+make live-test-flow FLOWS=auth,files,dialogs
+make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make lab-install STORY=<story-id>
 make lab-screenshot STORY=<story-id>
+make visual-capture NAME=<short-screen-name>
+make visual-capture-pages
+make visual-capture-lab
+make visual-validate
+make visual-gallery
 make live-test-launch
 make live-test-install
 make putio-auth-status
@@ -101,13 +109,13 @@ make console
   confirms `videoPlayerScreen` is visible. Use it when repeated relaunches make
   the device unstable during HLS startup.
 - `make live-test-playback-type TYPE=<hls|mp4>` updates the `playbackType`
-  config value for the prepared `PUTIO_CLI_PROFILE`. The player UI smoke sets
-  this to HLS before running so persisted MP4 preference does not change
-  player-control assertions.
+  config value for the prepared `PUTIO_CLI_PROFILE`. This is useful for direct
+  API config checks, but the live playback smoke uses the Roku Settings UI so
+  it exercises the app token and the real persisted app preference.
 - `make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
-  updates the playback preference, opens the requested file, asserts the
-  requested file id in the player SceneGraph, and checks the Roku media-player
-  container matches the selected type.
+  opens Settings on the Roku app, sets the playback preference, opens the
+  requested file, asserts the requested file id in the player SceneGraph, and
+  checks the Roku media-player container matches the selected type.
 - `make live-test-playback-error-dialog CONTENT_ID=<bad-file-id> [MEDIA_TYPE=movie] [EXPECTED_TITLE=Oops] [EXPECTED_MESSAGE="File not found"]`
   opens a negative playback route and asserts the error dialog stays visible
   with readable title/message text before dismissing it.
@@ -132,6 +140,24 @@ make console
   available. Set `PLAYER_UI_REFERENCE_IMAGE` to copy an extra reference image
   into the review page. It requires `ROKU_DEV_PASSWORD` because
   screenshots come from the Roku developer inspector.
+- `make live-test-flow-smoke [OUTPUT_DIR=<dir>]` runs the app-level e2e smoke
+  suite against a signed-in device: auth readiness, Files navigation, delete
+  dialog open/dismiss, Settings navigation, Get new code, and auth restoration.
+  It writes flow run output under a timestamped `dist/tmp/flows/app-smoke-*`
+  directory unless `OUTPUT_DIR` is set.
+- `make live-test-flow FLOWS=auth,files,dialogs [PLAYBACK_CONTENT_ID=<file-id>] [AUDIO_CONTENT_ID=<file-id>] [SUBTITLE_CONTENT_ID=<file-id>] [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  runs a custom comma-separated flow list. Available flows are `auth`,
+  `get-new-code`, `files`, `dialogs`, `settings`, `logout`, `playback`, and
+  `tracks`.
+- `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  runs the broader regression sweep: app smoke flows plus HLS playback, track
+  selection/player controls, logout, and auth restoration.
+- The app-specific command entrypoint is `scripts/roku-live-test.ts`; shared
+  flow definitions, CLI option parsing, put.io config helpers, artifact paths,
+  auth/session handling, rokit device wrappers, navigation/focus helpers,
+  playback launch assertions, SceneGraph parsing/assertions, visual capture
+  drivers, usage text, and player UI review artifact generation live under
+  `scripts/live-test/`.
 - `make lab-install [STORY=app-dialog-empty]` installs this checkout and opens
   the Lab scene on a specific story. Available stories are
   `app-dialog-empty`, `app-dialog-message`, `delete-dialog-short`,
@@ -143,6 +169,22 @@ make console
   a timestamped screenshot based on `dist/tmp/lab/<story>.jpg`, for example
   `dist/tmp/lab/<story>-YYYYMMDD-HHMMSS-mmm.jpg`. The delay gives Roku's
   developer screenshot endpoint time to capture the first rendered app frame.
+- `make visual-capture NAME=<short-screen-name>` captures the current Roku app
+  state into `dist/tmp/visual/captures/<timestamp>/<short-screen-name>.jpg`.
+- `make visual-capture-pages [OUTPUT_DIR=<dir>] [INCLUDE_AUTH=1]` drives the
+  main Roku pages and saves raw screenshots under `dist/tmp/visual/pages/`.
+  `INCLUDE_AUTH=1` signs out, captures Auth, then restores the testing account;
+  do not commit Auth captures unless the activation code is redacted or
+  otherwise public-safe.
+- `make visual-capture-lab [OUTPUT_DIR=<dir>] [STORIES="story-id ..."] [ALL=1]`
+  drives Lab stories and saves raw screenshots under `dist/tmp/visual/lab/`.
+  Without `STORIES` or `ALL=1`, it captures the stable shared AppDialog
+  stories. Use `ALL=1` deliberately because broad Lab sweeps are heavier than
+  targeted story captures.
+- `make visual-validate` validates `.vref/manifest.json` and committed
+  screenshot assets without rewriting the gallery.
+- `make visual-gallery` rebuilds the static visual reference gallery from
+  `.vref/manifest.json` with `@putdotio/vref`.
 - `make live-test-launch` opens the installed developer app and prints the
   active app state.
 - `make live-test-install` removes the existing developer app, installs this
@@ -182,14 +224,19 @@ make ROKU_DEV_PASSWORD=<developer-mode-password> live-test-install
 5. Run `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    for custom player UI changes that affect track menus, scrubber focus, or
    media-key seek behavior.
-6. Run `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+6. Run `make live-test-flow-smoke` after navigation/auth/dialog/router changes
+   to cover the regular app shell flows before touching playback-heavy checks.
+7. Run `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+   before shipping broad refactors that could affect auth, routing, files,
+   dialogs, settings, logout, playback, or track selection.
+8. Run `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    when a visual player UI change needs repeatable screenshot artifacts.
-7. Run `make lab-install STORY=<story-id>` or
+9. Run `make lab-install STORY=<story-id>` or
    `make lab-screenshot STORY=<story-id>` for modal/component visual changes
    that can be isolated from authenticated app state.
-8. Run `make live-test-install` after code changes that must be reproduced on
+10. Run `make live-test-install` after code changes that must be reproduced on
    hardware.
-9. In another terminal, run `make console` before launching playback flows so
+11. In another terminal, run `make console` before launching playback flows so
    BrightScript compile/runtime/player logs are visible.
 
 If `make live-test` passes but install fails with repeated HTTP `401`, the

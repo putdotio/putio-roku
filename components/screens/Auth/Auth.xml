@@ -80,8 +80,8 @@
 						text="Loading..."
 						font="font:LargeBoldSystemFont"
 						color="0xEDEDEDFF"
-						width="596"
-						height="86"
+						width="656"
+						height="96"
 						horizAlign="center"
 						vertAlign="center"
 					/>

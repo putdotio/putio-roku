@@ -20,7 +20,7 @@
       visible="false"
     />
 
-    <Group id="panel" translation="[550,250]">
+    <Group id="trackMenuPanel" translation="[550,250]">
       <Rectangle
         id="panelShadow"
         translation="[12,12]"
@@ -71,7 +71,7 @@
       />
 
       <Label
-        id="titleLabel"
+        id="trackMenuTitle"
         translation="[48,44]"
         width="724"
         height="44"
@@ -88,7 +88,7 @@
         visible="false"
       />
 
-      <Group id="rows" translation="[48,116]">
+      <Group id="trackRows" translation="[48,116]">
         <Group id="trackMenuRow0" visible="false">
           <Rectangle id="trackMenuRow0Background" width="724" height="62" color="0x2E2E2EFF" visible="false" />
           <Label id="trackMenuRow0Label" translation="[22,13]" width="600" height="62" font="font:MediumSystemFont" color="0xEDEDEDFF" />

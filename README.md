@@ -37,6 +37,7 @@ After installation, sign in with your put.io account to:
 
 - [Sideloading guide](./docs/SIDELOADING.md) for device setup and ZIP installation
 - [Live Test](./live-test/README.md) for hardware-backed debugging, Lab stories, and agent readiness checks
+- [Roku visual reference](./.vref/README.md) for curated screenshots and the generated gallery
 - [Release workflow](./docs/RELEASE.md) for [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and [roku.put.io](https://roku.put.io/v2.zip) publishing
 - [Security](./SECURITY.md) for private vulnerability reporting
 

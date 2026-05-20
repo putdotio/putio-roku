@@ -10,6 +10,7 @@
 - [Overview](./README.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Live Test](./live-test/README.md)
+- [Roku Visual Reference](./.vref/README.md)
 - [Security](./SECURITY.md)
 
 ## Commands
@@ -24,8 +25,16 @@
 - `make live-test-playback-remote CONTENT_ID=<file-id>`
 - `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
 - `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+- `make live-test-flow-smoke`
+- `make live-test-flow FLOWS=auth,files,dialogs`
+- `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
 - `make lab-install STORY=<story-id>`
 - `make lab-screenshot STORY=<story-id>`
+- `make visual-capture NAME=<short-screen-name>`
+- `make visual-capture-pages`
+- `make visual-capture-lab`
+- `make visual-validate`
+- `make visual-gallery`
 - `make live-test-launch`
 - `make live-test-install`
 - `make console`
@@ -51,7 +60,9 @@
 - `make verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
 - Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
+- Live app regressions are grouped as flow suites: use `make live-test-flow-smoke` for auth/files/dialogs/settings/get-new-code coverage and `make live-test-flow-full` before shipping broad routing/player refactors
 - `make lab-install STORY=<story-id>` and `make lab-screenshot STORY=<story-id>` open isolated Lab stories for modal/component UI work; use them before broader authenticated flows when the change can be proven in Lab
+- Curated Roku screenshots live in `.vref/`; use `make visual-capture`, `make visual-capture-pages`, or `make visual-capture-lab`, update public-safe references manually, validate with `make visual-validate`, and rebuild the gallery with `make visual-gallery`. `make visual-capture-lab` captures stable AppDialog stories by default; pass explicit `STORIES` or `ALL=1` only when probing heavier Lab components deliberately.
 
 ## CI
 

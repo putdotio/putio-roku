@@ -13,12 +13,15 @@
     "format:roku:write": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --write",
     "roku:live": "node scripts/roku-live-test.ts",
     "roku:auth": "node scripts/putio-auth-harness.ts",
-    "visual:gallery": "node scripts/live-test/visual-gallery.ts",
+    "visual:validate": "vref validate --output json",
+    "visual:gallery": "vref build --output json",
+    "visual:serve": "vref serve",
     "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
     "@putdotio/rokit": "2.2.0",
+    "@putdotio/vref": "1.0.1",
     "@rokucommunity/bslint": "0.8.43",
     "@types/node": "^25.9.1",
     "brighterscript": "0.72.2",
