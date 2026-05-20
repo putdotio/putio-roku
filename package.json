@@ -17,12 +17,12 @@
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
-    "@putdotio/rokit": "2.0.1",
+    "@putdotio/rokit": "2.2.0",
     "@rokucommunity/bslint": "0.8.43",
     "@types/node": "^24.12.2",
-    "brighterscript": "0.72.1",
-    "brighterscript-formatter": "1.7.25",
-    "sst": "^4.13.1",
+    "brighterscript": "0.72.2",
+    "brighterscript-formatter": "1.7.26",
+    "sst": "^4.14.3",
     "typescript": "^6.0.2"
   },
   "packageManager": "pnpm@11.0.0"
