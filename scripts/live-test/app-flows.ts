@@ -1,5 +1,6 @@
 import {
   assertNamedNodeText,
+  readNamedNodeAttribute,
   sceneGraphContainsText,
 } from "@putdotio/rokit";
 import { appSceneGraphReadyTimeoutMs } from "./constants.ts";
@@ -199,6 +200,16 @@ async function deleteDialogFlowSmoke(
     },
     10_000,
   );
+  await pressKey(target, "Up");
+  await waitForSceneGraphAssertion(
+    target,
+    "expected destructive delete action to receive focus",
+    (xml) => {
+      assertNamedNodeVisible(xml, "deleteFileDialog");
+      assertSceneGraphNodeColor(xml, "deleteButtonBackground", "0xF2555AFF");
+    },
+    10_000,
+  );
   await pressKey(target, "Back");
   await waitForSceneGraphAssertion(
     target,
@@ -209,7 +220,30 @@ async function deleteDialogFlowSmoke(
     },
     10_000,
   );
-  console.log("asserted delete dialog opens from Files and dismisses without deleting");
+  await driver.returnToHomeScreen(target);
+  await pressKey(target, "Back");
+  await waitForSceneGraphAssertion(
+    target,
+    "expected exit app dialog",
+    (xml) => {
+      assertNamedNodeVisible(xml, "appDialog");
+      assertNamedNodeText(xml, "titleLabel", "Exit put.io?");
+      assertNamedNodeText(xml, "button0Label", "OK");
+      assertNamedNodeText(xml, "button1Label", "Cancel");
+    },
+    10_000,
+  );
+  await pressKey(target, "Select");
+  await waitForSceneGraphAssertion(
+    target,
+    "expected exit app dialog cancel to return to home",
+    (xml) => {
+      assertNamedNodeHidden(xml, "appDialog");
+      assertNamedNodeVisible(xml, "homeScreen");
+    },
+    10_000,
+  );
+  console.log("asserted delete and exit dialogs trap focus and dismiss safely");
 }
 
 async function settingsFlowSmoke(
@@ -312,4 +346,23 @@ function readSettingsPlaybackType(xml: string): "hls" | "mp4" | undefined {
   }
 
   return undefined;
+}
+
+function assertSceneGraphNodeColor(
+  xml: string,
+  nodeName: string,
+  expectedColor: string,
+): void {
+  const color = readNamedNodeAttribute(xml, nodeName, "color");
+  if (normalizeSceneGraphColor(color) !== normalizeSceneGraphColor(expectedColor)) {
+    throw new Error(`expected ${nodeName} color ${expectedColor}, got ${color ?? "missing"}`);
+  }
+}
+
+function normalizeSceneGraphColor(color: string | undefined): string | undefined {
+  if (color === undefined) {
+    return undefined;
+  }
+
+  return color.trim().toLowerCase();
 }

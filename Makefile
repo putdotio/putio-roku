@@ -12,8 +12,13 @@ APP_ZIP_FILE := $(ZIP_DIR)/$(APP_NAME).zip
 APP_ZIP_ABS := $(abspath $(APP_ZIP_FILE))
 ARTIFACT_ZIP_FILE := $(ZIP_DIR)/$(ARTIFACT_NAME)
 ROKU_RESPONSE_FILE := $(TMP_DIR)/roku-response.html
+ifeq ($(ROKU_INCLUDE_LAB),1)
 ROKU_APP_FILES := $(shell LC_ALL=C find manifest source components images -type f ! -name '.*' ! -name '*~' 2>/dev/null | sort)
 ROKU_ZIP_FILES := LC_ALL=C find manifest source components images -type f ! -name '.*' ! -name '*~' | sort
+else
+ROKU_APP_FILES := $(shell LC_ALL=C find manifest source components images \( -path 'components/lab' -o -path 'components/lab/*' \) -prune -o -type f ! -name '.*' ! -name '*~' -print 2>/dev/null | sort)
+ROKU_ZIP_FILES := LC_ALL=C find manifest source components images \( -path 'components/lab' -o -path 'components/lab/*' \) -prune -o -type f ! -name '.*' ! -name '*~' -print | sort
+endif
 
 ROKU_DEV_CONSOLE_PORT ?= 8085
 ROKU_TARGET := $(or $(ROKU_DEV_TARGET),$(ROKIT_TARGET))
@@ -91,7 +96,7 @@ putio-auth-approve-device:
 	@PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:auth auth-approve-device "$(CODE)" "$(PUTIO_CLI_PROFILE)"
 
 .PHONY: verify
-verify: clean check-roku-live check-roku-format check-roku-static build
+verify: clean check-roku-live check-roku-format check-roku-static visual-validate build
 	@test -f "$(APP_ZIP_FILE)"
 
 .PHONY: smoke
@@ -341,10 +346,12 @@ lab-launch: check-roku-dev-target
 		fi
 
 .PHONY: lab-install
-lab-install: install lab-launch
+lab-install:
+	@$(MAKE) ROKU_INCLUDE_LAB=1 install
+	@$(MAKE) lab-launch
 
 .PHONY: lab-screenshot
-lab-screenshot: lab-launch
+lab-screenshot: lab-install
 	@mkdir -p "$(TMP_DIR)/lab"
 	@STORY_NAME="$(or $(STORY),app-dialog-empty)"; \
 		sleep "$(or $(LAB_SCREENSHOT_DELAY),3)"; \
@@ -372,7 +379,7 @@ visual-capture-pages: putio-auth-prepare
 		fi
 
 .PHONY: visual-capture-lab
-visual-capture-lab: check-roku-dev-target
+visual-capture-lab: lab-install
 	@OUTPUT_ARG="$(OUTPUT_DIR)"; \
 		if [ -n "$$OUTPUT_ARG" ]; then \
 			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm roku:live visual-lab "$$OUTPUT_ARG" $(STORIES) $(if $(ALL),--all,); \

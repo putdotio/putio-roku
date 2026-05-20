@@ -3,6 +3,7 @@ function init()
     m.pendingDeepLink = invalid
     m.replaceRoute = false
     m.activeDialog = invalid
+    m.activeDialogKind = ""
     m.hostedDialog = invalid
     m.screenHost = m.top.findNode("screenHost")
     m.appDialog = m.top.findNode("appDialog")
@@ -164,12 +165,33 @@ end sub
 
 sub restoreRouteFocus(entry)
     screen = entry.screen
-    if entry.lastFocus <> invalid
+    if canRestoreRouteFocus(entry.lastFocus, screen)
         entry.lastFocus.setFocus(true)
     else if screen.isInFocusChain() = false
         screen.setFocus(true)
     end if
 end sub
+
+function canRestoreRouteFocus(node, screen) as boolean
+    if node = invalid or screen = invalid
+        return false
+    end if
+
+    currentNode = node
+    while currentNode <> invalid
+        if currentNode.hasField("visible") and currentNode.visible = false
+            return false
+        end if
+
+        if currentNode = screen
+            return true
+        end if
+
+        currentNode = currentNode.getParent()
+    end while
+
+    return false
+end function
 
 function getDeepFocusedNode(screen)
     if screen = invalid or screen.isInFocusChain() = false
@@ -334,6 +356,9 @@ sub onUserConfigResponse(obj)
 
     if data <> invalid and data.config <> invalid
         m.global.config = normalizeAppConfig(data.config)
+    else
+        print "App config unavailable; using default playback config"
+        m.global.config = normalizeAppConfig(invalid)
     end if
 
     routeAfterBootstrap()
@@ -472,12 +497,16 @@ end sub
 sub showAppDialog(dialog)
     clearActiveDialog(false)
 
+    m.activeDialogKind = "hosted"
     m.hostedDialog = dialog
     m.hostedDialog.observeField("title", "onHostedDialogChanged")
     m.hostedDialog.observeField("message", "onHostedDialogChanged")
     m.hostedDialog.observeField("buttons", "onHostedDialogChanged")
     syncHostedDialog()
+    openAppDialog()
+end sub
 
+sub openAppDialog()
     m.activeDialog = m.appDialog
     m.appDialog.close = false
     attachAppDialogToActiveRoute()
@@ -548,6 +577,7 @@ sub clearActiveDialog(restoreFocusAfterClose = true)
     end if
 
     m.activeDialog = invalid
+    m.activeDialogKind = ""
     m.appDialog.visible = false
     parkAppDialog()
 
@@ -572,13 +602,17 @@ sub parkAppDialog()
 end sub
 
 sub onAppDialogButtonSelected(obj)
-    if m.hostedDialog <> invalid
+    if m.activeDialogKind = "exitApp"
+        onExitAppDialogButtonSelected(obj.getData())
+    else if m.hostedDialog <> invalid
         m.hostedDialog.buttonSelected = obj.getData()
     end if
 end sub
 
 sub onAppDialogClosed()
-    if m.hostedDialog <> invalid
+    if m.activeDialogKind = "exitApp"
+        clearActiveDialog()
+    else if m.hostedDialog <> invalid
         hostedDialog = m.hostedDialog
         clearActiveDialog()
         hostedDialog.wasClosed = true
@@ -592,36 +626,21 @@ sub onShowExitAppDialog(obj)
 end sub
 
 sub showExitAppDialog()
-    m.dialog = createObject("roSGNode", "AppDialog")
-    m.dialog.title = "Exit put.io?"
-    m.dialog.buttons = ["OK", "Cancel"]
-    m.dialog.defaultButton = 1
-    m.dialog.observeField("buttonSelected", "onExitAppDialogButtonSelected")
-    m.dialog.observeField("wasClosed", "onExitAppDialogClosed")
-    showAppDialog(m.dialog)
+    clearActiveDialog(false)
+    m.activeDialogKind = "exitApp"
+    m.appDialog.title = "Exit put.io?"
+    m.appDialog.message = ""
+    m.appDialog.buttons = ["OK", "Cancel"]
+    m.appDialog.defaultButton = 1
+    openAppDialog()
 end sub
 
-sub onExitAppDialogButtonSelected(obj)
-    if obj.getData() = 0
+sub onExitAppDialogButtonSelected(buttonIndex as integer)
+    if buttonIndex = 0
         m.top.exitApp = true
-        clearExitAppDialog()
+        clearActiveDialog()
     else
-        clearExitAppDialog()
-    end if
-end sub
-
-sub onExitAppDialogClosed()
-    clearExitAppDialog()
-end sub
-
-sub clearExitAppDialog()
-    if m.dialog <> invalid
-        m.dialog.unobserveField("buttonSelected")
-        m.dialog.unobserveField("wasClosed")
-        if m.hostedDialog <> invalid
-            clearActiveDialog()
-        end if
-        m.dialog = invalid
+        clearActiveDialog()
     end if
 end sub
 

@@ -307,7 +307,7 @@ export async function waitForDevAppSceneGraphReady(
     await sleep(sceneGraphPollIntervalMs);
   }
 
-  console.log(`continuing before dev app SceneGraph settled: ${lastState}`);
+  throw new Error(`dev app SceneGraph did not settle within ${timeoutMs}ms: ${lastState}`);
 }
 
 export async function waitForMediaPlayerState(

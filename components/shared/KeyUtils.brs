@@ -48,10 +48,29 @@ function isAppDialogOpen(screen) as boolean
         return false
     end if
 
-    dialog = screen.findNode("appDialog")
+    dialog = findNodeInTree(screen, "appDialog")
     return isVisibleNode(dialog)
 end function
 
 function shouldTrapModalInput(screen, localModals = invalid) as boolean
     return isAppDialogOpen(screen) or hasAnyVisibleNode(localModals)
+end function
+
+function findNodeInTree(root, nodeId as string)
+    if root = invalid
+        return invalid
+    end if
+
+    if root.id = nodeId
+        return root
+    end if
+
+    for i = 0 to root.getChildCount() - 1
+        foundNode = findNodeInTree(root.getChild(i), nodeId)
+        if foundNode <> invalid
+            return foundNode
+        end if
+    end for
+
+    return invalid
 end function

@@ -25,6 +25,10 @@ Capture stable shared AppDialog Lab stories into ignored raw artifacts:
 make visual-capture-lab
 ```
 
+Lab components are development-only; the default production ZIP excludes
+`components/lab/`. Lab capture and install commands rebuild with
+`ROKU_INCLUDE_LAB=1`.
+
 Rebuild the static gallery:
 
 ```sh
