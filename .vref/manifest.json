@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-05-20T19:37:45.000Z",
+  "updatedAt": "2026-05-20T20:09:50.000Z",
   "screenshots": [
     {
       "id": "home",
@@ -22,8 +22,8 @@
         "navigation"
       ],
       "notes": [
-        "Home menu with Files, Search, and Settings visible.",
-        "History is hidden because the live account has history disabled in the home menu."
+        "Home menu with Files, Search, History, and Settings visible.",
+        "Captured against the live test account after seeding a TV-visible history event."
       ]
     },
     {
@@ -47,6 +47,29 @@
       "notes": [
         "Files root list with the first item focused.",
         "Uses synthetic test-account filenames."
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History",
+      "group": "Main pages",
+      "platform": "Roku",
+      "device": "Roku 720p",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "file": "screenshots/roku-720p/history.jpg",
+      "capturedAt": "2026-05-20T20:09:50.103Z",
+      "sizeBytes": 22324,
+      "tags": [
+        "history",
+        "list",
+        "focus"
+      ],
+      "notes": [
+        "History page with a seeded transfer_completed event visible.",
+        "The TV filter matches tv-native: file_shared and transfer_completed events only."
       ]
     },
     {

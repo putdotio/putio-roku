@@ -2,6 +2,7 @@ export type FlowId =
   | "auth"
   | "get-new-code"
   | "files"
+  | "history"
   | "dialogs"
   | "settings"
   | "logout"
@@ -25,6 +26,7 @@ export type FlowRunner = (flowId: FlowId, context: FlowRunContext) => Promise<vo
 export const appFlowSmokeSuite: readonly FlowId[] = [
   "auth",
   "files",
+  "history",
   "dialogs",
   "settings",
   "get-new-code",
@@ -43,6 +45,7 @@ const flowIdSet = new Set<FlowId>([
   "auth",
   "get-new-code",
   "files",
+  "history",
   "dialogs",
   "settings",
   "logout",

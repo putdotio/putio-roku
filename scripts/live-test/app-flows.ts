@@ -1,4 +1,5 @@
 import {
+  isNamedNodeVisible,
   assertNamedNodeText,
   readNamedNodeAttribute,
   sceneGraphContainsText,
@@ -13,6 +14,7 @@ import {
 import {
   assertNamedNodeHidden,
   assertNamedNodeVisible,
+  hasVisibleComponent,
 } from "./scenegraph.ts";
 
 export type AppFlowDriver = {
@@ -72,6 +74,9 @@ export async function runAppFlow(
       return;
     case "files":
       await filesNavigationFlowSmoke(context.target, driver);
+      return;
+    case "history":
+      await historyFlowSmoke(context.target, options.historyExpectedText, driver);
       return;
     case "dialogs":
       await deleteDialogFlowSmoke(context.target, driver);
@@ -186,6 +191,57 @@ async function filesNavigationFlowSmoke(
   await pressKey(target, "Back");
   await driver.waitForAnyRouteScreenVisible(target, ["filesScreen", "homeScreen"], 30_000);
   console.log("asserted first files item opens and Back returns to a stable route");
+}
+
+async function historyFlowSmoke(
+  target: string,
+  expectedText: string | undefined,
+  driver: Pick<
+    AppFlowDriver,
+    "assertListHasItems" | "openHomeItem" | "returnToHomeScreen" | "waitForRouteScreenVisible"
+  >,
+): Promise<void> {
+  await driver.returnToHomeScreen(target);
+  const homeItemCount = await driver.assertListHasItems(target, "list");
+  if (homeItemCount <= 3) {
+    console.log("history flow skipped: History home item is disabled for this account");
+    return;
+  }
+
+  await driver.openHomeItem(target, 2, "historyScreen");
+  await driver.waitForRouteScreenVisible(target, "historyScreen", 15_000);
+  if (expectedText !== undefined) {
+    await waitForSceneGraphAssertion(
+      target,
+      `expected history to render ${expectedText}`,
+      (xml) => {
+        if (!sceneGraphContainsText(xml, expectedText)) {
+          throw new Error(`expected History screen to show ${expectedText}`);
+        }
+      },
+      15_000,
+    );
+    await pressKey(target, "Back");
+    await driver.waitForRouteScreenVisible(target, "homeScreen", 15_000);
+    console.log(`asserted history renders ${expectedText}`);
+    return;
+  }
+
+  await waitForSceneGraphAssertion(
+    target,
+    "expected history to render rows or an empty state",
+    (xml) => {
+      if (isNamedNodeVisible(xml, "emptyState") || hasVisibleComponent(xml, "HistoryListItem")) {
+        return;
+      }
+
+      throw new Error("expected History screen to show rows or the empty history state");
+    },
+    15_000,
+  );
+  await pressKey(target, "Back");
+  await driver.waitForRouteScreenVisible(target, "homeScreen", 15_000);
+  console.log("asserted history renders rows or an empty state");
 }
 
 async function deleteDialogFlowSmoke(

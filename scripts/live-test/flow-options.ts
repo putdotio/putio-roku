@@ -9,6 +9,7 @@ export type AppFlowOptions = {
   readonly imageContentId?: string;
   readonly audioContentId?: string;
   readonly subtitleContentId?: string;
+  readonly historyExpectedText?: string;
   readonly mediaType: string;
   readonly startFromChoice: StartFromChoice;
 };
@@ -28,6 +29,7 @@ export function appFlowOptionsFromArgs(args: readonly string[]): AppFlowOptions 
     imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
     audioContentId: emptyStringAsUndefined(rawAudioContentId),
     subtitleContentId: emptyStringAsUndefined(rawSubtitleContentId),
+    historyExpectedText: emptyStringAsUndefined(process.env.HISTORY_EXPECTED_TEXT),
     mediaType,
     startFromChoice: startFromChoiceFromArg(rawStartFromChoice),
   };

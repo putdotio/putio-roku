@@ -5,43 +5,55 @@
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/History/History.brs" />
 
-	<interface>
-    	<field id="params" type="assocarray" />
+  <interface>
+    <field id="params" type="assocarray" />
     <field id="routeShown" type="boolean" alwaysNotify="true" />
     <field id="routeHidden" type="boolean" alwaysNotify="true" />
-		<field id="navigate" type="assocarray" />
-		<field id="navigateBack" type="bool" alwaysNotify="true" />
-		<field id="showDialog" type="node" alwaysNotify="true" />
+    <field id="navigate" type="assocarray" />
+    <field id="navigateBack" type="bool" alwaysNotify="true" />
+    <field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
 
-	<children>
-		<Overhang
-			id="overhang"
-			showClock="false"
-            title="History"
-			logoUri="pkg:/images/OverhangLogo.png"
-			logoBaselineOffset="9"
-			showOptions="true"
-			optionsAvailable="false"
-			optionsDimColor="0x00000000"
-			optionsIconDimColor="0x00000000"
-		/>
+  <children>
+    <Overhang
+      id="overhang"
+      showClock="false"
+      title="History"
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      showOptions="true"
+      optionsAvailable="false"
+      optionsDimColor="0x00000000"
+      optionsIconDimColor="0x00000000"
+    />
 
-		<LoadingIndicator
-            id="loading"
-            imageWidth="120"
-            imageHeight="120"
-        />
+    <LoadingIndicator
+      id="loading"
+      imageWidth="120"
+      imageHeight="120"
+    />
 
-		<MarkupList
-			id="historyList"
-			translation="[190, 190]"
-			itemComponentName="HistoryListItem"
-			itemSize="[1500, 120]"
-			itemSpacing="[0, 30]"
-			drawFocusFeedback="false"
+    <MarkupList
+      id="historyList"
+      translation="[190, 190]"
+      itemComponentName="HistoryListItem"
+      itemSize="[1500, 120]"
+      itemSpacing="[0, 30]"
+      drawFocusFeedback="false"
       vertFocusAnimationStyle="fixedFocus"
-			numRows="6"
-		/>
-	</children>
+      numRows="6"
+    />
+
+    <Label
+      id="emptyState"
+      translation="[190, 300]"
+      width="1500"
+      height="60"
+      visible="false"
+      font="font:MediumBoldSystemFont"
+      color="0xA0A0A0FF"
+      horizAlign="center"
+      text="This is your history. It's currently empty."
+    />
+  </children>
 </component>
