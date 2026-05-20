@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-05-20T06:10:00.000Z",
+  "updatedAt": "2026-05-20T12:12:40.467Z",
   "screenshots": [
     {
       "id": "home",
@@ -15,7 +15,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/home.jpg",
-      "capturedAt": "2026-05-20T05:46:00.000Z",
+      "capturedAt": "2026-05-20T12:12:40.467Z",
       "sizeBytes": 22788,
       "tags": [
         "home",
@@ -37,8 +37,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/files.jpg",
-      "capturedAt": "2026-05-20T05:46:00.000Z",
-      "sizeBytes": 48429,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 48500,
       "tags": [
         "files",
         "list",
@@ -60,8 +60,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/file-delete-dialog.jpg",
-      "capturedAt": "2026-05-20T05:46:00.000Z",
-      "sizeBytes": 34720,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 37173,
       "tags": [
         "files",
         "dialog",
@@ -83,7 +83,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-empty.jpg",
-      "capturedAt": "2026-05-20T05:46:00.000Z",
+      "capturedAt": "2026-05-20T12:12:40.467Z",
       "sizeBytes": 27592,
       "tags": [
         "search",
@@ -105,7 +105,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-results.jpg",
-      "capturedAt": "2026-05-20T05:46:00.000Z",
+      "capturedAt": "2026-05-20T12:12:40.467Z",
       "sizeBytes": 43879,
       "tags": [
         "search",
@@ -127,8 +127,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-result-focused.jpg",
-      "capturedAt": "2026-05-20T05:46:00.000Z",
-      "sizeBytes": 43901,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 44319,
       "tags": [
         "search",
         "focus"
@@ -149,7 +149,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/settings.jpg",
-      "capturedAt": "2026-05-20T05:47:00.000Z",
+      "capturedAt": "2026-05-20T12:12:40.467Z",
       "sizeBytes": 39716,
       "tags": [
         "settings",
@@ -172,8 +172,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/exit-app-dialog.jpg",
-      "capturedAt": "2026-05-20T05:47:00.000Z",
-      "sizeBytes": 22447,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 24711,
       "tags": [
         "home",
         "dialog",
@@ -195,7 +195,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/lab-app-dialog-empty.jpg",
-      "capturedAt": "2026-05-20T05:50:00.000Z",
+      "capturedAt": "2026-05-20T12:12:40.467Z",
       "sizeBytes": 53760,
       "tags": [
         "lab",
@@ -218,7 +218,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/lab-app-dialog-message.jpg",
-      "capturedAt": "2026-05-20T05:51:00.000Z",
+      "capturedAt": "2026-05-20T12:12:40.467Z",
       "sizeBytes": 57846,
       "tags": [
         "lab",
@@ -241,8 +241,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-audio-menu.jpg",
-      "capturedAt": "2026-05-20T06:01:00.000Z",
-      "sizeBytes": 27011,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 27072,
       "tags": [
         "player",
         "track-menu",
@@ -264,8 +264,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-progress.jpg",
-      "capturedAt": "2026-05-20T06:10:00.000Z",
-      "sizeBytes": 22627,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 23119,
       "tags": [
         "player",
         "progress",
@@ -287,8 +287,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-subtitle-button.jpg",
-      "capturedAt": "2026-05-20T06:10:00.000Z",
-      "sizeBytes": 20514,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 20955,
       "tags": [
         "player",
         "subtitles",
@@ -310,8 +310,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-subtitle-menu.jpg",
-      "capturedAt": "2026-05-20T06:10:00.000Z",
-      "sizeBytes": 34819,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 35106,
       "tags": [
         "player",
         "track-menu",
@@ -333,8 +333,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-progress-focus.jpg",
-      "capturedAt": "2026-05-20T06:10:00.000Z",
-      "sizeBytes": 22176,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 22593,
       "tags": [
         "player",
         "progress",

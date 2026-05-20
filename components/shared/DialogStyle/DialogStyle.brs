@@ -126,7 +126,7 @@ function normalizeListItemRowWidth(rowWidth) as integer
 end function
 
 function listItemMainTextWidth(rowWidth) as integer
-    textWidth = normalizeListItemRowWidth(rowWidth) - 204
+    textWidth = normalizeListItemRowWidth(rowWidth) - 276
     if textWidth < 400
         return 400
     end if

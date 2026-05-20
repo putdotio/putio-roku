@@ -6,6 +6,7 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/lab/Lab.brs" />
 
   <children>
@@ -154,6 +155,12 @@
       drawFocusFeedback="false"
       vertFocusAnimationStyle="fixedFocus"
       numRows="4"
+      visible="false"
+    />
+
+    <FileListItem
+      id="fileListItemFocusedStory"
+      translation="[560,240]"
       visible="false"
     />
 

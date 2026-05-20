@@ -207,7 +207,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
 
-    normalizedKey = LCase(key)
+    normalizedKey = normalizeKey(key)
 
     if normalizedKey = "back"
         closeDialog()

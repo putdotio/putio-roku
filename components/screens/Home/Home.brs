@@ -29,7 +29,7 @@ function init()
             iconName: "settings",
         }
     ]
-    renderList()
+    modifyList()
 end function
 
 sub onVisibleChange()
@@ -39,10 +39,11 @@ sub onVisibleChange()
 end sub
 
 sub modifyList()
-    if m.global.user.settings.doesExist("history_enabled")
+    if m.global.user <> invalid and m.global.user.settings <> invalid and m.global.user.settings.doesExist("history_enabled")
         m.items[2].isEnabled = m.global.user.settings.history_enabled
-        renderList()
     end if
+
+    renderList()
 end sub
 
 sub renderList()
@@ -94,8 +95,12 @@ sub onListItemSelected(obj)
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top)
+        return true
+    end if
+
     if m.top.visible and press
-        normalizedKey = LCase(key)
+        normalizedKey = normalizeKey(key)
 
         if normalizedKey = "back"
             m.top.showExitAppDialog = true

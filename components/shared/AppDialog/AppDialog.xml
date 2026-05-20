@@ -13,6 +13,7 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/AppDialog/AppDialog.brs" />
 
   <children>

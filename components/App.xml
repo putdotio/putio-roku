@@ -2,6 +2,7 @@
 
 <component name="App" extends="Scene" initialFocus="screenHost">
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/App.brs" />
 
   <interface>

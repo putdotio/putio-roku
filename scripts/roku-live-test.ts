@@ -120,6 +120,15 @@ type PlayerControlId =
   | "captions"
   | "speed";
 
+const playerControlBackgroundNodes: Record<PlayerControlId, string> = {
+  rewind: "rewindBackground",
+  play: "playBackground",
+  fastForward: "fastForwardBackground",
+  audio: "audioBackground",
+  captions: "captionsBackground",
+  speed: "speedBackground",
+};
+
 async function authRefreshSmoke(target: string): Promise<void> {
   await authRefreshSmokeWithDriver(target, createAuthDriver());
 }
@@ -795,6 +804,7 @@ async function focusPlaybackControl(
     await sleep(200);
     xml = await querySceneGraph(target);
     if (readFocusedPlaybackControl(xml) === controlId) {
+      await waitForPlaybackControlFocusReady(target, controlId);
       return;
     }
 
@@ -803,6 +813,31 @@ async function focusPlaybackControl(
 
   throw new Error(
     `expected ${controlId} control to be focused, got ${lastFocusedControl ?? "none"}`,
+  );
+}
+
+async function waitForPlaybackControlFocusReady(
+  target: string,
+  controlId: PlayerControlId,
+): Promise<void> {
+  const backgroundNodeName = playerControlBackgroundNodes[controlId];
+
+  await waitForSceneGraphAssertion(
+    target,
+    `expected ${controlId} focus background`,
+    (xml) => {
+      assertPlaybackControlFocused(xml, controlId);
+
+      if (!isNamedNodeVisible(xml, backgroundNodeName)) {
+        throw new Error(`expected ${backgroundNodeName} to be visible`);
+      }
+
+      const loadStatus = readNamedNodeAttribute(xml, backgroundNodeName, "loadStatus");
+      if (loadStatus !== "3") {
+        throw new Error(`expected ${backgroundNodeName} to load, got ${loadStatus ?? "none"}`);
+      }
+    },
+    3_000,
   );
 }
 

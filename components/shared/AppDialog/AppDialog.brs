@@ -33,6 +33,8 @@ sub initAppDialog()
         },
     ]
     m.focusIndex = 0
+    m.closeOnKeyRelease = false
+    m.pendingButtonSelected = invalid
     applyDialogScrim(m.scrim)
     applyDialogPanelColors(m.panel, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
     applyDialogTextColors(m.titleLabel, invalid)
@@ -206,16 +208,37 @@ sub closeAppDialog()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    if press = false or m.top.visible = false
+    if m.top.visible = false
         return false
     end if
 
-    normalizedKey = LCase(key)
+    if press = false
+        if m.closeOnKeyRelease
+            m.closeOnKeyRelease = false
 
-    if normalizedKey = "back"
-        closeAppDialog()
+            if m.pendingButtonSelected <> invalid
+                pendingButtonSelected = m.pendingButtonSelected
+                m.pendingButtonSelected = invalid
+                m.top.buttonSelected = pendingButtonSelected
+
+                if m.top.visible
+                    closeAppDialog()
+                end if
+            else
+                closeAppDialog()
+            end if
+
+            return true
+        end if
+
+        return false
+    end if
+
+    if isBackKey(key)
+        m.pendingButtonSelected = invalid
+        m.closeOnKeyRelease = true
         return true
-    else if normalizedKey = "up" or normalizedKey = "down"
+    else if isVerticalNavigationKey(key)
         buttonCount = getVisibleDialogButtonCount()
         if buttonCount > 1
             if m.focusIndex = 0
@@ -227,9 +250,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
             updateDialogButtonFocus()
         end if
         return true
-    else if normalizedKey = "ok" or normalizedKey = "select"
-        m.top.buttonSelected = m.focusIndex
-        closeAppDialog()
+    else if isSelectKey(key)
+        m.pendingButtonSelected = m.focusIndex
+        m.closeOnKeyRelease = true
         return true
     end if
 

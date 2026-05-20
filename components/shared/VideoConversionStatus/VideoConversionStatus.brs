@@ -241,7 +241,7 @@ end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     if m.top.visible and press
-        normalizedKey = LCase(key)
+        normalizedKey = normalizeKey(key)
 
         if normalizedKey = "back"
             stopTasks()

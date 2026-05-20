@@ -4,6 +4,7 @@ import {
   assertNamedNodeState,
   assertNamedNodeText,
   launchApp as rokitLaunchApp,
+  readNamedNodeAttribute,
   waitForSceneGraphNode as rokitWaitForSceneGraphNode,
 } from "@putdotio/rokit";
 import {
@@ -108,6 +109,8 @@ export async function captureVisualPages(
 
   await pressKey(target, "Info");
   await waitForNamedNodeVisible(target, "deleteFileDialog", 10_000);
+  await pressKey(target, "Up");
+  await waitForNamedNodeColor(target, "deleteButtonBackground", "0xF2555AFF", 10_000);
   await capturePage("file-delete-dialog");
   await pressKey(target, "Back");
   await waitForSceneGraphAssertion(
@@ -193,6 +196,8 @@ async function captureExitDialog(
     },
     10_000,
   );
+  await pressKey(target, "Up");
+  await waitForNamedNodeColor(target, "button0Background", "0xFDCE45FF", 10_000);
   await capturePage("exit-app-dialog");
   await driver.dismissExitDialogIfVisible(target);
 }
@@ -214,7 +219,7 @@ async function captureSearchStates(
   await driver.assertListHasItems(target, "searchFileList", 20_000);
   await capturePage("search-results");
 
-  await pressKey(target, "Right");
+  await pressKey(target, "Info");
   await waitForSceneGraphAssertion(
     target,
     "expected first search result to receive focus",
@@ -228,6 +233,33 @@ async function captureSearchStates(
     10_000,
   );
   await capturePage("search-result-focused");
+}
+
+async function waitForNamedNodeColor(
+  target: string,
+  nodeName: string,
+  expectedColor: string,
+  timeoutMs: number,
+): Promise<void> {
+  await waitForSceneGraphAssertion(
+    target,
+    `expected ${nodeName} color ${expectedColor}`,
+    (xml) => {
+      const color = readNamedNodeAttribute(xml, nodeName, "color");
+      if (normalizeSceneGraphColor(color) !== normalizeSceneGraphColor(expectedColor)) {
+        throw new Error(`expected ${nodeName} color ${expectedColor}, got ${color ?? "missing"}`);
+      }
+    },
+    timeoutMs,
+  );
+}
+
+function normalizeSceneGraphColor(color: string | undefined): string | undefined {
+  if (color === undefined) {
+    return undefined;
+  }
+
+  return color.replace(/^#/, "").replace(/^0x/i, "").toUpperCase();
 }
 
 async function launchLabStory(target: string, storyId: string, expectedTitle: string): Promise<void> {

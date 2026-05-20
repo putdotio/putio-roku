@@ -1436,8 +1436,16 @@ sub onGoBack()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top)
+        return true
+    end if
+
+    if m.trackMenu.visible and press = false
+        return true
+    end if
+
     if m.top.visible and press
-        normalizedKey = LCase(key)
+        normalizedKey = normalizeKey(key)
 
         if normalizedKey = "back"
             if m.trackMenu.visible
@@ -1460,7 +1468,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             else if normalizedKey = "ok" or normalizedKey = "select"
                 selectFocusedTrackMenuItem()
             else
-                return false
+                return true
             end if
 
             return true

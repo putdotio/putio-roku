@@ -16,6 +16,7 @@ sub init()
     m.conversionStatus = m.top.findNode("conversionStatusStory")
     m.genericListItemList = m.top.findNode("genericListItemStory")
     m.fileListItemList = m.top.findNode("fileListItemStory")
+    m.fileListItemFocused = m.top.findNode("fileListItemFocusedStory")
     m.historyListItemList = m.top.findNode("historyListItemStory")
     m.appDialogScrim = m.appDialog.findNode("scrim")
     m.deleteDialogScrim = m.deleteDialog.findNode("scrim")
@@ -138,6 +139,22 @@ sub init()
             listTitle: "Rows / files",
             section: "Rows",
             description: "Files list rows with file type icons, metadata, watched state, and loading state.",
+            component: "listItem",
+        },
+        {
+            id: "list-item-file-watched-focused",
+            title: "FileListItem / watched focused",
+            listTitle: "Rows / watched",
+            section: "Rows",
+            description: "Focused file row with the watched eye inset from the trailing edge.",
+            component: "listItem",
+        },
+        {
+            id: "list-item-file-loading-focused",
+            title: "FileListItem / loading focused",
+            listTitle: "Rows / loading",
+            section: "Rows",
+            description: "Focused file row with the loading spinner inset from the trailing edge.",
             component: "listItem",
         },
         {
@@ -348,6 +365,10 @@ sub renderStory(index as integer)
         renderGenericListItemStory()
     else if story.id = "list-item-files"
         renderFileListItemStory()
+    else if story.id = "list-item-file-watched-focused"
+        renderFocusedFileListItemStory("watched")
+    else if story.id = "list-item-file-loading-focused"
+        renderFocusedFileListItemStory("loading")
     else if story.id = "list-item-history"
         renderHistoryListItemStory()
     end if
@@ -362,6 +383,7 @@ sub hideStories()
     m.conversionStatus.control = "stop"
     m.genericListItemList.visible = false
     m.fileListItemList.visible = false
+    m.fileListItemFocused.visible = false
     m.historyListItemList.visible = false
     resetStoryTranslations()
 end sub
@@ -372,6 +394,7 @@ sub resetStoryTranslations()
     m.continueWatchingPrompt.translation = m.storyPreviewTranslation
     m.trackMenu.translation = m.storyPreviewTranslation
     m.conversionStatus.translation = m.storyPreviewTranslation
+    m.fileListItemFocused.translation = [560, 240]
     hideStoryBackdrops()
 end sub
 
@@ -455,6 +478,33 @@ sub renderFileListItemStory()
     m.fileListItemList.content = content
     m.fileListItemList.jumpToItem = 0
     m.fileListItemList.visible = true
+end sub
+
+sub renderFocusedFileListItemStory(state as string)
+    isLoading = state = "loading"
+    startFrom = 366
+    fileName = "Sintel.mp4"
+
+    if isLoading
+        startFrom = 0
+        fileName = "Still loading metadata.mkv"
+    end if
+
+    item = createObject("roSGNode", "FileListItemData")
+    item.file = {
+        id: 1001,
+        name: fileName,
+        file_type: "VIDEO",
+        size: 734003200,
+        created_at: "2026-05-18T18:42:00Z",
+        start_from: startFrom,
+    }
+    item.isLoading = isLoading
+    item.rowWidth = 1240
+
+    m.fileListItemFocused.itemContent = item
+    m.fileListItemFocused.itemHasFocus = true
+    m.fileListItemFocused.visible = true
 end sub
 
 sub renderHistoryListItemStory()
@@ -570,7 +620,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return false
     end if
 
-    normalizedKey = LCase(key)
+    normalizedKey = normalizeKey(key)
 
     if normalizedKey = "ok" or normalizedKey = "select"
         renderStory(m.storyList.itemFocused)
@@ -602,6 +652,9 @@ function focusStoryPreview() as boolean
         return true
     else if m.currentStoryId = "list-item-files"
         m.fileListItemList.setFocus(true)
+        return true
+    else if m.currentStoryId = "list-item-file-watched-focused" or m.currentStoryId = "list-item-file-loading-focused"
+        m.fileListItemFocused.itemHasFocus = true
         return true
     else if m.currentStoryId = "list-item-history"
         m.historyListItemList.setFocus(true)

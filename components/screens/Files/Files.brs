@@ -228,12 +228,14 @@ end sub
 
 ''' Key Handler
 function onKeyEvent(key as string, press as boolean) as boolean
-    if m.top.visible and press
-        normalizedKey = LCase(key)
+    if shouldTrapModalInput(m.top, [m.deleteFileDialog])
+        return true
+    end if
 
-        if m.deleteFileDialog.visible
-            return false
-        else if normalizedKey = "back"
+    if m.top.visible and press
+        normalizedKey = normalizeKey(key)
+
+        if normalizedKey = "back"
             if m.top.params.immediateBackFileId = m.parent.id or m.breadcrumbs.count() = 0
                 m.top.navigateBack = true
             else

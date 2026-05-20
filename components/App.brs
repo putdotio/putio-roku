@@ -32,7 +32,7 @@ sub navigateToRoute(nextRoute)
         return
     end if
 
-    clearActiveDialog()
+    clearActiveDialog(false)
 
     replaceRoute = shouldReplaceRoute(nextRoute)
     if nextRoute.id = "authScreen"
@@ -470,7 +470,7 @@ sub onShowDialog(obj)
 end sub
 
 sub showAppDialog(dialog)
-    clearActiveDialog()
+    clearActiveDialog(false)
 
     m.hostedDialog = dialog
     m.hostedDialog.observeField("title", "onHostedDialogChanged")
@@ -480,8 +480,46 @@ sub showAppDialog(dialog)
 
     m.activeDialog = m.appDialog
     m.appDialog.close = false
+    attachAppDialogToActiveRoute()
     m.appDialog.visible = true
+    suspendRouteFocus()
     m.appDialog.setFocus(true)
+end sub
+
+sub attachAppDialogToActiveRoute()
+    if m.activeRouteEntry = invalid or m.activeRouteEntry.screen = invalid
+        return
+    end if
+
+    targetParent = m.activeRouteEntry.screen
+    currentParent = m.appDialog.getParent()
+
+    if currentParent <> invalid
+        currentParent.removeChild(m.appDialog)
+    end if
+
+    targetParent.appendChild(m.appDialog)
+end sub
+
+sub suspendRouteFocus()
+    if m.activeRouteEntry = invalid or m.activeRouteEntry.screen = invalid
+        return
+    end if
+
+    screen = m.activeRouteEntry.screen
+    m.activeRouteEntry.lastFocus = getDeepFocusedNode(screen)
+
+    if m.activeRouteEntry.lastFocus <> invalid
+        m.activeRouteEntry.lastFocus.setFocus(false)
+    end if
+
+    if screen.isInFocusChain()
+        screen.setFocus(false)
+    end if
+
+    if m.screenHost.isInFocusChain()
+        m.screenHost.setFocus(false)
+    end if
 end sub
 
 sub onHostedDialogChanged()
@@ -499,7 +537,9 @@ sub syncHostedDialog()
     m.appDialog.defaultButton = m.hostedDialog.defaultButton
 end sub
 
-sub clearActiveDialog()
+sub clearActiveDialog(restoreFocusAfterClose = true)
+    hadActiveDialog = m.activeDialog <> invalid or m.appDialog.visible
+
     if m.hostedDialog <> invalid
         m.hostedDialog.unobserveField("title")
         m.hostedDialog.unobserveField("message")
@@ -509,11 +549,26 @@ sub clearActiveDialog()
 
     m.activeDialog = invalid
     m.appDialog.visible = false
+    parkAppDialog()
 
     if m.top.dialog <> invalid
         m.top.dialog.close = true
         m.top.dialog = invalid
     end if
+
+    if restoreFocusAfterClose and hadActiveDialog and m.activeRouteEntry <> invalid and m.activeRouteEntry.screen <> invalid and m.activeRouteEntry.screen.visible
+        restoreRouteFocus(m.activeRouteEntry)
+    end if
+end sub
+
+sub parkAppDialog()
+    currentParent = m.appDialog.getParent()
+
+    if currentParent <> invalid
+        currentParent.removeChild(m.appDialog)
+    end if
+
+    m.top.appendChild(m.appDialog)
 end sub
 
 sub onAppDialogButtonSelected(obj)
@@ -563,7 +618,7 @@ sub clearExitAppDialog()
     if m.dialog <> invalid
         m.dialog.unobserveField("buttonSelected")
         m.dialog.unobserveField("wasClosed")
-        if m.hostedDialog = m.dialog
+        if m.hostedDialog <> invalid
             clearActiveDialog()
         end if
         m.dialog = invalid
@@ -571,36 +626,20 @@ sub clearExitAppDialog()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    if press = false
-        return false
-    end if
-
-    normalizedKey = LCase(key)
-
     if m.activeDialog = invalid
-        return handleRouteKey(normalizedKey)
+        if press = false
+            return false
+        end if
+
+        return handleRouteKey(normalizeKey(key))
     end if
 
-    if normalizedKey = "back"
-        m.activeDialog.close = true
+    if press = false
         return true
-    else if normalizedKey = "up" or normalizedKey = "down"
-        buttons = m.activeDialog.buttons
-        if buttons <> invalid and buttons.count() > 1
-            if m.activeDialog.focusedButton = 0
-                m.activeDialog.focusedButton = 1
-            else
-                m.activeDialog.focusedButton = 0
-            end if
-        end if
-        return true
-    else if normalizedKey = "ok" or normalizedKey = "select"
-        dialog = m.activeDialog
-        dialog.buttonSelected = dialog.focusedButton
-        if m.activeDialog = dialog
-            dialog.close = true
-        end if
-        return true
+    end if
+
+    if m.activeDialog.isInFocusChain() = false
+        m.activeDialog.setFocus(true)
     end if
 
     return true

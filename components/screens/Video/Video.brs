@@ -278,17 +278,14 @@ sub navigateToVideoPlayer(startFrom)
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top, [m.continueWatchingPrompt, m.conversionStatus])
+        return true
+    end if
+
     if m.top.visible and press
-        normalizedKey = LCase(key)
+        normalizedKey = normalizeKey(key)
 
         if normalizedKey = "back"
-            if m.continueWatchingPrompt.visible
-                m.continueWatchingPrompt.visible = false
-            else if m.conversionStatus.visible
-                m.conversionStatus.control = "stop"
-                m.conversionStatus.visible = false
-            end if
-
             m.top.navigateBack = true
             return true
         else if isOptionsKey(normalizedKey)
