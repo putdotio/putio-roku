@@ -364,5 +364,10 @@ function normalizeSceneGraphColor(color: string | undefined): string | undefined
     return undefined;
   }
 
-  return color.trim().toLowerCase();
+  const normalizedColor = color.trim().toLowerCase();
+  if (normalizedColor.startsWith("#")) {
+    return `0x${normalizedColor.slice(1)}`;
+  }
+
+  return normalizedColor;
 }

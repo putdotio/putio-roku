@@ -45,7 +45,7 @@ sub navigateToRoute(nextRoute)
     if previousEntry <> invalid
         hideRouteEntry(previousEntry)
         if not replaceRoute
-            m.routeHistory.push(previousEntry)
+            m.routeHistory.push(previousEntry.route)
         end if
     end if
 
@@ -60,7 +60,7 @@ sub onNavigateBack()
         clearActiveDialog()
 
         hideRouteEntry(m.activeRouteEntry)
-        showRouteEntry(ensureRouteEntry(prevRoute))
+        showRouteEntry(createRouteEntry(prevRoute))
     end if
 end sub
 
@@ -166,10 +166,22 @@ end sub
 sub restoreRouteFocus(entry)
     screen = entry.screen
     if canRestoreRouteFocus(entry.lastFocus, screen)
-        entry.lastFocus.setFocus(true)
+        focusRouteNode(entry.lastFocus)
     else if screen.isInFocusChain() = false
-        screen.setFocus(true)
+        focusRouteNode(screen)
     end if
+end sub
+
+sub focusRouteNode(node)
+    if node = invalid
+        return
+    end if
+
+    if node.isInFocusChain()
+        node.setFocus(false)
+    end if
+
+    node.setFocus(true)
 end sub
 
 function canRestoreRouteFocus(node, screen) as boolean
