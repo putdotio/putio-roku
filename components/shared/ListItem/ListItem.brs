@@ -9,9 +9,8 @@ sub ensureListItemNodes()
         m.title = m.top.findNode("title")
         m.description = m.top.findNode("description")
         m.value = m.top.findNode("value")
+        applyListItemFocusBackground(m.focusBackground)
     end if
-
-    applyListItemFocusBackground(m.focusBackground)
 end sub
 
 sub itemContentChanged()

@@ -287,20 +287,23 @@ function wrapAppDialogMessageLines(message as string, maxLineLength as integer) 
 
     while Len(remaining) > maxLineLength and lines.count() < 2
         wrapIndex = maxLineLength
+        wrapAtSpace = false
 
         for i = maxLineLength to 1 step -1
             if Mid(remaining, i, 1) = " "
                 wrapIndex = i
+                wrapAtSpace = true
                 exit for
             end if
         end for
 
-        if wrapIndex < 24
-            wrapIndex = maxLineLength
+        if wrapAtSpace and wrapIndex >= 24
+            lines.push(Left(remaining, wrapIndex - 1))
+            remaining = Mid(remaining, wrapIndex + 1)
+        else
+            lines.push(Left(remaining, maxLineLength))
+            remaining = Mid(remaining, maxLineLength + 1)
         end if
-
-        lines.push(Left(remaining, wrapIndex - 1))
-        remaining = Mid(remaining, wrapIndex + 1)
     end while
 
     lines.push(remaining)

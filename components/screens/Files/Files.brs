@@ -100,6 +100,10 @@ sub showFileList()
     end if
 
     hideLoading()
+
+    if m.top.visible
+        m.fileList.setFocus(true)
+    end if
 end sub
 
 sub hideFileList()
@@ -196,10 +200,6 @@ function getFocusedFile()
     focusedIndex = normalizeFocusedIndex(m.focusedFileIndex)
 
     if focusedIndex = invalid
-        focusedIndex = normalizeFocusedIndex(m.fileList.focusItem)
-    end if
-
-    if focusedIndex = invalid
         focusedIndex = normalizeFocusedIndex(m.fileList.itemFocused)
     end if
 
@@ -223,7 +223,9 @@ sub onFileDeleted()
 end sub
 
 sub onDeleteFileDialogClosed()
-    m.fileList.setFocus(true)
+    if m.fileList.visible
+        m.fileList.setFocus(true)
+    end if
 end sub
 
 ''' Key Handler
