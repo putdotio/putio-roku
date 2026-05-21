@@ -111,6 +111,7 @@ jobs:
           name: putio-roku-hosted-${{ steps.semantic.outputs.new_release_version }}
           path: dist/public
           if-no-files-found: error
+          retention-days: 1
 
   deploy:
     if: ${{ needs.release.outputs.new_release_published == 'true' }}
