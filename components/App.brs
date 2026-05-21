@@ -596,9 +596,19 @@ sub onShowDialog(obj)
 
     if dialog = invalid
         clearActiveDialog()
-    else
-        showAppDialog(dialog)
+        return
     end if
+
+    if m.hostedDialog <> invalid and m.hostedDialog.isSameNode(dialog)
+        return
+    end if
+
+    if m.lastHandledDialog <> invalid and m.lastHandledDialog.isSameNode(dialog)
+        return
+    end if
+
+    m.lastHandledDialog = dialog
+    showAppDialog(dialog)
 end sub
 
 sub showAppDialog(dialog)

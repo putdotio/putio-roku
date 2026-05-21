@@ -170,6 +170,11 @@ sub showFetchFilesErrorDialog(data)
     m.top.showDialog = m.fetchFilesErrorDialog
 end sub
 
+sub onFetchFilesErrorDialogClosed()
+    m.fetchFilesErrorDialog.unobserveField("wasClosed")
+    m.historyList.setFocus(true)
+end sub
+
 
 sub canNavigateToEvent(event) as boolean
     return shouldShowHistoryEvent(event)
