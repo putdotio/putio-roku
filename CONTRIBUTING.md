@@ -12,7 +12,20 @@ Prerequisites:
 - Node.js from `.node-version`
 - `pnpm`
 
-Optional local overrides live in `.env`:
+Optional local overrides live in `.env` or `.env.local`. Put.io team members
+with 1Password access should render the shared testing-account values first:
+
+```bash
+make secrets-setup
+```
+
+That reads the `putio-roku` secure note and writes an ignored `.env.local`
+with the shared put.io test account, OAuth item names, and live-test fixture
+IDs. Keep using that same account for hardware-backed Roku checks so
+screenshots, file navigation, playback, and track-selection flows exercise
+stable fixtures.
+
+For non-put.io contributors or one-off local setups, copy the sample file:
 
 ```bash
 cp .env.example .env
@@ -22,6 +35,9 @@ Supported variables:
 
 - `ROKU_DEV_TARGET` or `ROKIT_TARGET` for the IP address of a developer-enabled Roku device
 - `ROKU_DEV_PASSWORD` or `ROKIT_PASSWORD` for the Roku Developer Mode password when authenticated installs are required
+- `PUTIO_ROKU_1PASSWORD_ACCOUNT`, `PUTIO_ROKU_1PASSWORD_VAULT`, and `PUTIO_ROKU_ENV_ITEM` to override the 1Password source for `make secrets-setup`
+- `PLAYBACK_CONTENT_ID`, `IMAGE_CONTENT_ID`, `AUDIO_CONTENT_ID`, and `SUBTITLE_CONTENT_ID` for the full hardware-backed live-test sweep
+- `PUTIO_CLI_PROFILE`, `PUTIO_CLI_CONFIG_PATH`, `PUTIO_HARNESS_ACCOUNT_ITEM`, `PUTIO_HARNESS_ACCOUNT_VAULT`, `PUTIO_HARNESS_OAUTH_ITEM`, and `PUTIO_HARNESS_OAUTH_VAULT` for the 1Password-backed put.io CLI harness
 
 If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/SIDELOADING.md)
 

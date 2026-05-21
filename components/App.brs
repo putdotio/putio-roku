@@ -5,6 +5,8 @@ function init()
     m.activeDialog = invalid
     m.activeDialogKind = ""
     m.hostedDialog = invalid
+    m.hostedDialogSourceScreen = invalid
+    m.clearingHostedDialogField = false
     m.screenHost = m.top.findNode("screenHost")
     m.appDialog = m.top.findNode("appDialog")
     m.appDialog.observeField("buttonSelected", "onAppDialogButtonSelected")
@@ -595,6 +597,11 @@ sub onShowDialog(obj)
     dialog = obj.getData()
 
     if dialog = invalid
+        if m.clearingHostedDialogField
+            m.clearingHostedDialogField = false
+            return
+        end if
+
         clearActiveDialog()
         return
     end if
@@ -604,23 +611,44 @@ sub onShowDialog(obj)
     end if
 
     if m.lastHandledDialog <> invalid and m.lastHandledDialog.isSameNode(dialog)
-        return
+        if activeRouteShowDialogIs(dialog) = false
+            return
+        end if
     end if
 
     m.lastHandledDialog = dialog
-    showAppDialog(dialog)
+    showAppDialog(dialog, activeRouteScreen())
 end sub
 
-sub showAppDialog(dialog)
+function activeRouteScreen()
+    if m.activeRouteEntry = invalid
+        return invalid
+    end if
+
+    return m.activeRouteEntry.screen
+end function
+
+function activeRouteShowDialogIs(dialog) as boolean
+    screen = activeRouteScreen()
+    if screen = invalid or screen.hasField("showDialog") = false or screen.showDialog = invalid
+        return false
+    end if
+
+    return screen.showDialog.isSameNode(dialog)
+end function
+
+sub showAppDialog(dialog, sourceScreen)
     clearActiveDialog(false)
 
     m.activeDialogKind = "hosted"
     m.hostedDialog = dialog
+    m.hostedDialogSourceScreen = sourceScreen
     m.hostedDialog.observeField("title", "onHostedDialogChanged")
     m.hostedDialog.observeField("message", "onHostedDialogChanged")
     m.hostedDialog.observeField("buttons", "onHostedDialogChanged")
     syncHostedDialog()
     openAppDialog()
+    clearHostedDialogSourceField()
 end sub
 
 sub openAppDialog()
@@ -692,6 +720,7 @@ sub clearActiveDialog(restoreFocusAfterClose = true)
         m.hostedDialog.unobserveField("buttons")
         m.hostedDialog = invalid
     end if
+    m.hostedDialogSourceScreen = invalid
 
     m.activeDialog = invalid
     m.activeDialogKind = ""
@@ -706,6 +735,19 @@ sub clearActiveDialog(restoreFocusAfterClose = true)
     if restoreFocusAfterClose and hadActiveDialog and m.activeRouteEntry <> invalid and m.activeRouteEntry.screen <> invalid and m.activeRouteEntry.screen.visible
         restoreRouteFocus(m.activeRouteEntry)
     end if
+end sub
+
+sub clearHostedDialogSourceField()
+    if m.hostedDialogSourceScreen = invalid or m.hostedDialogSourceScreen.hasField("showDialog") = false
+        return
+    end if
+
+    if m.hostedDialogSourceScreen.showDialog = invalid
+        return
+    end if
+
+    m.clearingHostedDialogField = true
+    m.hostedDialogSourceScreen.showDialog = invalid
 end sub
 
 sub parkAppDialog()

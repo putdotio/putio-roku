@@ -164,7 +164,7 @@ end sub
 
 ''' UI
 sub setTitle(title)
-    m.top.findNode("customTitle").text = title
+    m.top.findNode("overhang").title = title
 end sub
 
 sub showLoading()

@@ -1,4 +1,5 @@
 .env
+.env.local
 .putio-cli/
 .local/
 node_modules/

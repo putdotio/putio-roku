@@ -47,7 +47,7 @@ end function
 
 sub onVisibleChange()
     if m.top.visible
-        m.top.findNode("customTitle").text = m.top.params.fileName
+        m.overhang.title = m.top.params.fileName
         m.audio.observeField("state", "onAudioStateChange")
         m.audio.observeField("position", "onPositionChange")
         m.audio.observeField("duration", "onDurationChange")

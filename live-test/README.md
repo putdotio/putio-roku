@@ -5,7 +5,19 @@ proof from a real Roku device instead of only a ZIP build.
 
 ## Setup
 
-Copy the sample environment file and fill in the local device values:
+Put.io team members should render the shared testing-account and fixture values
+from 1Password, then fill in the local device values in the generated file:
+
+```bash
+make secrets-setup
+```
+
+`make secrets-setup` writes `.env.local` from the `putio-roku` secure note.
+The generated file includes the approved put.io CLI profile, harness item
+names, and the file IDs used by `make live-test-flow-full`.
+
+For non-put.io contributors or one-off local setups, copy the sample
+environment file:
 
 ```bash
 cp .env.example .env
@@ -37,11 +49,14 @@ Optional for authenticated harness setup:
 PUTIO_CLI_PROFILE=devs-fe-auto
 PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
 PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
+PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
+PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
+PUTIO_HARNESS_OAUTH_VAULT=frontend-ci
 ```
 
-Keep `.env` local. Device IPs, Developer Mode passwords, signing keys, and
-download tokens do not belong in git. `.putio-cli/` is ignored and may contain
-local put.io CLI auth state for the testing account.
+Keep `.env` and `.env.local` local. Device IPs, Developer Mode passwords,
+signing keys, and download tokens do not belong in git. `.putio-cli/` is
+ignored and may contain local put.io CLI auth state for the testing account.
 
 Install the repo toolchain before running smoke or install checks:
 
@@ -49,10 +64,11 @@ Install the repo toolchain before running smoke or install checks:
 pnpm install --frozen-lockfile
 ```
 
-The Make targets load `.env` automatically. If you call `pnpm roku:live`
-directly, export `ROKU_DEV_TARGET` or `ROKIT_TARGET` in the shell first. The
-scenario script uses `@putdotio/rokit` for generic Roku device control and keeps
-put.io-specific playback assertions in this repo.
+The Make targets load `.env` and `.env.local` automatically, with `.env.local`
+winning when both are present. If you call `pnpm roku:live` directly, export
+`ROKU_DEV_TARGET` or `ROKIT_TARGET` in the shell first. The scenario script uses
+`@putdotio/rokit` for generic Roku device control and keeps put.io-specific
+playback assertions in this repo.
 
 ## Commands
 

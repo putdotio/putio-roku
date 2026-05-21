@@ -15,7 +15,6 @@
 	<children>
 		<Overhang
 			id="overhang"
-			translation="[0, 8]"
 			showClock="false"
 			logoUri="pkg:/images/OverhangLogo.png"
 			logoBaselineOffset="9"

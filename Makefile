@@ -1,4 +1,5 @@
 -include .env
+-include .env.local
 
 APP_NAME := put.io
 VERSION = 2.10.2
@@ -25,6 +26,9 @@ ROKU_ECP_WAIT_ATTEMPTS ?= 24
 ROKU_TARGET := $(or $(ROKU_DEV_TARGET),$(ROKIT_TARGET))
 ROKU_PASSWORD := $(or $(ROKU_DEV_PASSWORD),$(ROKIT_PASSWORD))
 ROKU_DEBUG_ARTIFACT_DIR ?= $(CURDIR)/.local/roku-debug
+PUTIO_ROKU_1PASSWORD_ACCOUNT ?= putdotio.1password.com
+PUTIO_ROKU_1PASSWORD_VAULT ?= frontend-dev
+PUTIO_ROKU_ENV_ITEM ?= putio-roku
 PUTIO_CLI_PROFILE ?= devs-fe-auto
 PUTIO_CLI_CONFIG_PATH ?= $(CURDIR)/.putio-cli/$(PUTIO_CLI_PROFILE).json
 ROKU_LIVE_ENV := ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET)
@@ -91,6 +95,10 @@ check-roku-live:
 .PHONY: test-live
 test-live:
 	pnpm run test:live
+
+.PHONY: secrets-setup
+secrets-setup:
+	PUTIO_ROKU_1PASSWORD_ACCOUNT="$(PUTIO_ROKU_1PASSWORD_ACCOUNT)" PUTIO_ROKU_1PASSWORD_VAULT="$(PUTIO_ROKU_1PASSWORD_VAULT)" PUTIO_ROKU_ENV_ITEM="$(PUTIO_ROKU_ENV_ITEM)" node scripts/render-env-local.ts
 
 .PHONY: putio-auth-status
 putio-auth-status:
