@@ -16,7 +16,7 @@ sub onVisibleChange()
         m.image.visible = "false"
         m.loading.visible = "true"
         m.image.uri = (m.global.apiURL + "/files/" + m.top.params.fileId.toStr() + "/download?oauth_token=" + m.global.user.download_token.toStr() + "")
-        m.overhang.title = m.top.params.fileName
+        m.top.findNode("customTitle").text = m.top.params.fileName
     else
         m.image.uri = ""
     end if

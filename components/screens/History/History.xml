@@ -17,14 +17,31 @@
   <children>
     <Overhang
       id="overhang"
+      translation="[0, 8]"
       showClock="false"
-      title="History"
+      title=""
       logoUri="pkg:/images/OverhangLogo.png"
       logoBaselineOffset="9"
       showOptions="true"
       optionsAvailable="false"
       optionsDimColor="0x00000000"
       optionsIconDimColor="0x00000000"
+    />
+
+    <Poster
+      id="customTitleDot"
+      translation="[314, 69]"
+      width="12"
+      height="51"
+      uri="/RokuOS/Artwork/SceneGraph/GenevaTheme/Base/FHD/divider_vertical.webp"
+    />
+
+    <Label
+      id="customTitle"
+      translation="[350, 69]"
+      text="History"
+      font="font:LargeBoldSystemFont"
+      color="0xEDEDEDFF"
     />
 
     <LoadingIndicator
@@ -35,9 +52,9 @@
 
     <MarkupList
       id="historyList"
-      translation="[190, 190]"
+      translation="[102, 190]"
       itemComponentName="HistoryListItem"
-      itemSize="[1500, 120]"
+      itemSize="[1720, 120]"
       itemSpacing="[0, 30]"
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"

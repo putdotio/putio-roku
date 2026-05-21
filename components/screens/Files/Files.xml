@@ -17,13 +17,30 @@
   <children>
     <Overhang
       id="overhang"
+      translation="[0, 8]"
       showClock="false"
-      title="Your Files"
+      title=""
       logoUri="pkg:/images/OverhangLogo.png"
       logoBaselineOffset="9"
       showOptions="true"
       optionsAvailable="true"
       optionsText="Delete"
+    />
+
+    <Poster
+      id="customTitleDot"
+      translation="[314, 69]"
+      width="12"
+      height="51"
+      uri="/RokuOS/Artwork/SceneGraph/GenevaTheme/Base/FHD/divider_vertical.webp"
+    />
+
+    <Label
+      id="customTitle"
+      translation="[350, 69]"
+      text="Your Files"
+      font="font:LargeBoldSystemFont"
+      color="0xEDEDEDFF"
     />
 
     <LoadingIndicator
@@ -34,9 +51,9 @@
 
     <MarkupList
       id="fileList"
-      translation="[190, 190]"
+      translation="[102, 190]"
       itemComponentName="FileListItem"
-      itemSize="[1500, 120]"
+      itemSize="[1720, 120]"
       itemSpacing="[0, 30]"
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"

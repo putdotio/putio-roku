@@ -18,7 +18,7 @@
 			id="inlineContent"
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[48,60]"
+			translation="[35,60]"
 			itemSpacings="28"
 		>
 			<Poster
@@ -44,7 +44,7 @@
 
 		<Label
 			id="value"
-			translation="[1040,0]"
+			translation="[1260,0]"
 			width="412"
 			height="120"
 			font="font:SmallSystemFont"

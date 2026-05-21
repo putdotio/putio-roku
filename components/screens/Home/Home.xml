@@ -15,6 +15,7 @@
 	<children>
 		<Overhang
 			id="overhang"
+			translation="[0, 8]"
 			showClock="false"
 			logoUri="pkg:/images/OverhangLogo.png"
 			logoBaselineOffset="9"
@@ -26,9 +27,9 @@
 
 		<MarkupList
 			id="list"
-			translation="[190, 190]"
+			translation="[102, 190]"
 			itemComponentName="ListItem"
-			itemSize="[1500, 120]"
+			itemSize="[1720, 120]"
 			itemSpacing="[0, 30]"
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"

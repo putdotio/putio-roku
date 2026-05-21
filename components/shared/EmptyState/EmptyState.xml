@@ -13,7 +13,6 @@
     <LayoutGroup
       id="layout"
       layoutDirection="vert"
-      horizAlignment="center"
       itemSpacings="16"
     >
       <Label

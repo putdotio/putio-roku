@@ -19,7 +19,7 @@
 		<LayoutGroup
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[48, 60]"
+			translation="[35, 60]"
 			itemSpacings="28"
 		>
 			<Poster

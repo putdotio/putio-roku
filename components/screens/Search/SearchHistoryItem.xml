@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SearchHistoryItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/screens/Search/SearchHistoryItem.brs" />
+
+  <interface>
+    <field id="itemContent" type="node" onChange="itemContentChanged" />
+  </interface>
+
+  <children>
+    <Label
+      id="title"
+      translation="[35, 0]"
+      width="890"
+      height="120"
+      font="font:MediumBoldSystemFont"
+      color="0xEDEDEDFF"
+      vertAlign="center"
+    />
+  </children>
+</component>

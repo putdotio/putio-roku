@@ -7,6 +7,6 @@
     <field id="title" type="string" />
     <field id="description" type="string" />
     <field id="valueAlign" type="string" />
-    <field id="rowWidth" type="integer" value="1500" />
+    <field id="rowWidth" type="integer" value="1720" />
   </interface>
 </component>

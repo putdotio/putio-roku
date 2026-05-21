@@ -17,18 +17,35 @@
   <children>
     <Overhang
       id="overhang"
+      translation="[0, 8]"
       showClock="false"
       logoUri="pkg:/images/OverhangLogo.png"
       logoBaselineOffset="9"
-      title="Search"
+      title=""
       showOptions="true"
       optionsAvailable="false"
       optionsDimColor="0x00000000"
       optionsIconDimColor="0x00000000"
     />
 
+    <Poster
+      id="customTitleDot"
+      translation="[314, 69]"
+      width="12"
+      height="51"
+      uri="/RokuOS/Artwork/SceneGraph/GenevaTheme/Base/FHD/divider_vertical.webp"
+    />
+
+    <Label
+      id="customTitle"
+      translation="[350, 69]"
+      text="Search"
+      font="font:LargeBoldSystemFont"
+      color="0xEDEDEDFF"
+    />
+
     <LayoutGroup
-      translation="[180, 180]"
+      translation="[81, 180]"
       layoutDirection="horiz"
       vertAlignment="top"
       itemSpacings="20"
@@ -54,16 +71,17 @@
         horizAlignment="center"
         itemSpacings="20"
       >
-        <LabelList
+        <MarkupList
           id="searchHistory"
+          itemComponentName="SearchHistoryItem"
           itemSize="[960, 120]"
           itemSpacing="[0, 30]"
-          color="0xA0A0A0FF"
-          focusedColor="0xEDEDEDFF"
           drawFocusFeedback="true"
           drawFocusFeedbackOnTop="false"
           focusBitmapUri="pkg:/images/list-item-focus.9.png"
           focusBitmapBlendColor="0x2E2E2EFF"
+          focusFootprintBitmapUri="pkg:/images/transparent-pixel.png"
+          focusFootprintBlendColor="0x00000000"
           vertFocusAnimationStyle="fixedFocus"
           numRows="6"
           visible="false"
