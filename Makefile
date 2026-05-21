@@ -33,6 +33,8 @@ ROKU_LIVE_SECRET_ENV := $(ROKU_LIVE_ENV) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" RO
 ROKU_LIVE_DEBUG_ENV := $(ROKU_LIVE_ENV) ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)"
 PUTIO_AUTH_ENV := PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)"
 SECRETS_OUTPUT ?= .env.local
+PUTIO_INFISICAL_DOMAIN ?= https://eu.infisical.com/api
+PUTIO_ROKU_INFISICAL_ENV ?= dev
 
 ifneq ($(strip $(ROKU_PASSWORD)),)
 	ROKU_DEV_USERPASS := rokudev:$(ROKU_PASSWORD)
@@ -49,8 +51,14 @@ build: $(APP_ZIP_FILE)
 
 .PHONY: secrets-setup
 secrets-setup:
-	@infisical export --domain https://eu.infisical.com/api --projectId b2fcfbd7-19e0-4b87-a797-93d125c432ce --env dev --path /roku --format dotenv --output-file $(SECRETS_OUTPUT)
-	@chmod 600 $(SECRETS_OUTPUT)
+	@set -eu; \
+	: "$${PUTIO_ROKU_INFISICAL_PROJECT_ID:?Set PUTIO_ROKU_INFISICAL_PROJECT_ID for this repo}"; \
+	: "$${PUTIO_ROKU_INFISICAL_PATH:?Set PUTIO_ROKU_INFISICAL_PATH for this repo}"; \
+	umask 077; \
+	tmp="$$(mktemp)"; \
+	trap 'rm -f "$$tmp"' EXIT; \
+	infisical export --silent --domain "$(PUTIO_INFISICAL_DOMAIN)" --projectId "$$PUTIO_ROKU_INFISICAL_PROJECT_ID" --env "$(PUTIO_ROKU_INFISICAL_ENV)" --path "$$PUTIO_ROKU_INFISICAL_PATH" --format dotenv --output-file "$$tmp"; \
+	install -m 600 "$$tmp" "$(SECRETS_OUTPUT)"
 
 .PHONY: secrets-clean
 secrets-clean:

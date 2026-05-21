@@ -12,25 +12,29 @@ Prerequisites:
 - Node.js from `.node-version`
 - `pnpm`
 
-Optional local overrides live in `.env` or `.env.local`. Put.io team members
-with Infisical access should render the shared testing-account values first:
+Optional local overrides live in `.env` or `.env.local`. If your onboarding
+includes Infisical access, render the shared testing-account values first:
 
 ```bash
 make secrets-setup
 ```
 
-That reads the Infisical `/roku` path and writes an ignored `.env.local` with
-the shared put.io test account, OAuth fields, and live-test fixture IDs. Keep
-using that same account for hardware-backed Roku checks so
+That reads the repo-owned Infisical path and writes an ignored `.env.local` with
+the shared put.io test account, OAuth fields, and live-test fixture IDs. Set the
+onboarding-provided `PUTIO_ROKU_INFISICAL_*` variables in this repo or worktree
+shell before running the command. Keep using that same account for
+hardware-backed Roku checks so
 screenshots, file navigation, playback, and track-selection flows exercise
 stable fixtures.
 
-For non-put.io contributors or one-off local setups, copy the sample file:
+If you are using your own local device or credentials, copy the sample file:
 
 ```bash
 cp .env.example .env
-make secrets-setup
 ```
+
+Then fill in the device and fixture values you have locally. The Infisical
+setup command is only needed when you are using the shared test fixtures.
 
 Supported variables:
 

@@ -5,23 +5,25 @@ proof from a real Roku device instead of only a ZIP build.
 
 ## Setup
 
-Put.io team members should render the shared testing-account and fixture values
-from Infisical, then fill in the local device values in the generated file:
+If your onboarding includes Infisical access, render the shared testing-account
+and fixture values first, then fill in the local device values in the generated
+file:
 
 ```bash
 make secrets-setup
 ```
 
-`make secrets-setup` writes `.env.local` from the `/roku` Infisical path. The
-generated file includes the approved put.io CLI profile, harness credentials,
-OAuth fields, and the file IDs used by `make live-test-flow-full`.
+`make secrets-setup` writes `.env.local` from the repo-owned Infisical path.
+Set the onboarding-provided `PUTIO_ROKU_INFISICAL_*` variables in this repo or
+worktree shell before running the command. The generated file includes the
+approved put.io CLI profile, harness credentials, OAuth fields, and the file IDs
+used by `make live-test-flow-full`.
 
-For non-put.io contributors or one-off local setups, copy the sample
+If you are using your own local device or credentials, copy the sample
 environment file:
 
 ```bash
 cp .env.example .env
-make secrets-setup
 ```
 
 Required for read-only device checks:
