@@ -11,6 +11,7 @@ import {
   exitAppDialogTitle,
   sceneGraphRequestTimeoutMs,
 } from "./constants.ts";
+import { formatErrorMessage } from "./errors.ts";
 import { imageRenderSmoke } from "./image.ts";
 import {
   captureDeveloperScreenshot,
@@ -21,7 +22,7 @@ import {
   waitForNamedNodeVisible,
   waitForSceneGraphAssertion,
 } from "./rokit-device.ts";
-import { sleep } from "./timing.ts";
+import { retryAsync, sleep } from "./timing.ts";
 
 export const visualLabStories = [
   ["app-dialog-empty", "AppDialog / no message"],
@@ -43,12 +44,16 @@ export const visualLabStories = [
   ["list-item-history", "HistoryListItem"],
 ] as const;
 
-type VisualLabStory = (typeof visualLabStories)[number];
+export type VisualLabStory = (typeof visualLabStories)[number];
 
 export const defaultVisualLabStoryIds = new Set<string>([
   "app-dialog-empty",
   "app-dialog-message",
 ]);
+
+const labLaunchRetryCount = 24;
+const labLaunchRetryDelayMs = 5_000;
+const labCaptureRestartInterval = 5;
 
 export function selectVisualLabStories(storyIds: readonly string[]): readonly VisualLabStory[] {
   if (storyIds.length === 0) {
@@ -93,6 +98,22 @@ export type VisualCaptureDriver = {
     screenName: string,
     timeoutMs?: number,
   ) => Promise<void>;
+};
+
+export type VisualLabCaptureOperations = {
+  readonly captureStory: (storyId: string) => Promise<void>;
+  readonly launchStory: (storyId: string, expectedTitle: string) => Promise<void>;
+  readonly leaveActivePlaybackSurface: () => Promise<void>;
+  readonly logRecovery: (storyId: string, error: unknown) => void;
+  readonly navigateStoryList: (
+    currentStoryIndex: number,
+    nextStoryIndex: number,
+    storyId: string,
+    expectedTitle: string,
+  ) => Promise<void>;
+  readonly openFocusedStory: (storyId: string, expectedTitle: string) => Promise<void>;
+  readonly restartSession: () => Promise<void>;
+  readonly returnToStoryList: () => Promise<void>;
 };
 
 export async function captureVisualPages(
@@ -188,27 +209,66 @@ export async function captureVisualLabStories(
   const password = requireDeveloperPassword();
   await mkdir(outputDir, { recursive: true });
   console.log(`visual lab captures: ${outputDir}`);
-  await driver.leaveActivePlaybackSurface(target);
+
+  await captureVisualLabStorySequence(selectedStories, {
+    captureStory: async (storyId) => {
+      await sleep(1_500);
+      const outputPath = join(outputDir, `${storyId}.jpg`);
+      const capturedPath = await captureDeveloperScreenshot(target, password, outputPath);
+      console.log(`visual lab captured: ${storyId} ${capturedPath}`);
+      await sleep(2_000);
+    },
+    launchStory: async (storyId, expectedTitle) => await launchLabStory(target, storyId, expectedTitle),
+    leaveActivePlaybackSurface: async () => await driver.leaveActivePlaybackSurface(target),
+    logRecovery: (storyId, error) => {
+      console.log(`visual lab recovered by relaunching ${storyId}: ${formatVisualCaptureError(error)}`);
+    },
+    navigateStoryList: async (currentStoryIndex, storyIndex, storyId, expectedTitle) =>
+      await navigateLabStoryList(target, currentStoryIndex, storyIndex, storyId, expectedTitle),
+    openFocusedStory: async (storyId, expectedTitle) =>
+      await openFocusedLabStory(target, storyId, expectedTitle),
+    restartSession: async () => await restartLabCaptureSession(target),
+    returnToStoryList: async () => await returnToLabStoryList(target),
+  });
+}
+
+export async function captureVisualLabStorySequence(
+  selectedStories: readonly VisualLabStory[],
+  operations: VisualLabCaptureOperations,
+  restartInterval = labCaptureRestartInterval,
+): Promise<void> {
+  await operations.leaveActivePlaybackSurface();
 
   let currentStoryIndex = -1;
 
-  for (const [storyId, expectedTitle] of selectedStories) {
+  for (let selectedIndex = 0; selectedIndex < selectedStories.length; selectedIndex += 1) {
+    const [storyId, expectedTitle] = selectedStories[selectedIndex];
     const storyIndex = visualLabStories.findIndex(([knownStoryId]) => knownStoryId === storyId);
 
+    if (storyIndex < 0) {
+      throw new Error(`unknown lab story id: ${storyId}`);
+    }
+
     if (currentStoryIndex < 0) {
-      await launchLabStory(target, storyId, expectedTitle);
+      await operations.launchStory(storyId, expectedTitle);
     } else {
-      await returnToLabStoryList(target);
-      await navigateLabStoryList(target, currentStoryIndex, storyIndex, storyId, expectedTitle);
-      await openFocusedLabStory(target, storyId, expectedTitle);
+      try {
+        await operations.returnToStoryList();
+        await operations.navigateStoryList(currentStoryIndex, storyIndex, storyId, expectedTitle);
+        await operations.openFocusedStory(storyId, expectedTitle);
+      } catch (error) {
+        operations.logRecovery(storyId, error);
+        await operations.launchStory(storyId, expectedTitle);
+      }
     }
 
     currentStoryIndex = storyIndex;
-    await sleep(1_500);
-    const outputPath = join(outputDir, `${storyId}.jpg`);
-    const capturedPath = await captureDeveloperScreenshot(target, password, outputPath);
-    console.log(`visual lab captured: ${storyId} ${capturedPath}`);
-    await sleep(2_000);
+    await operations.captureStory(storyId);
+
+    if (selectedIndex < selectedStories.length - 1 && (selectedIndex + 1) % restartInterval === 0) {
+      await operations.restartSession();
+      currentStoryIndex = -1;
+    }
   }
 }
 
@@ -295,20 +355,33 @@ function normalizeSceneGraphColor(color: string | undefined): string | undefined
 }
 
 async function launchLabStory(target: string, storyId: string, expectedTitle: string): Promise<void> {
-  await rokitLaunchApp(
-    rokitContext(target),
-    "dev",
-    new Map([
-      ["lab", "1"],
-      ["story", storyId],
-    ]),
+  await retryAsync(
+    async () => {
+      await rokitLaunchApp(
+        rokitContext(target),
+        "dev",
+        new Map([
+          ["lab", "1"],
+          ["story", storyId],
+        ]),
+      );
+
+      await rokitWaitForSceneGraphNode(
+        rokitContext(target, sceneGraphRequestTimeoutMs),
+        "detailView",
+        { state: "visible" },
+        15_000,
+      );
+    },
+    {
+      attempts: labLaunchRetryCount,
+      delayMs: labLaunchRetryDelayMs,
+      onRetry: (error, attempt) => {
+        console.log(`visual lab launch retry ${attempt}/${labLaunchRetryCount}: ${formatVisualCaptureError(error)}`);
+      },
+    },
   );
-  await rokitWaitForSceneGraphNode(
-    rokitContext(target, sceneGraphRequestTimeoutMs),
-    "detailView",
-    { state: "visible" },
-    15_000,
-  );
+
   await waitForSceneGraphAssertion(
     target,
     `expected lab story ${storyId}`,
@@ -317,6 +390,20 @@ async function launchLabStory(target: string, storyId: string, expectedTitle: st
     },
     15_000,
   );
+}
+
+async function restartLabCaptureSession(target: string): Promise<void> {
+  try {
+    await pressKey(target, "Home");
+  } catch (error) {
+    console.log(`visual lab Home cooldown skipped: ${formatVisualCaptureError(error)}`);
+  }
+
+  await sleep(5_000);
+}
+
+function formatVisualCaptureError(error: unknown): string {
+  return formatErrorMessage(error);
 }
 
 async function returnToLabStoryList(target: string): Promise<void> {

@@ -7,6 +7,7 @@ import {
   launchDeepLink,
   waitForSceneGraphAssertion,
 } from "./rokit-device.ts";
+import { leaveActivePlaybackSurface } from "./navigation.ts";
 import {
   assertNamedNodeHiddenOrAbsent,
   assertNamedNodeVisible,
@@ -20,6 +21,7 @@ const imageViewport = {
 } as const;
 
 export async function imageRenderSmoke(target: string, contentId: string): Promise<void> {
+  await leaveActivePlaybackSurface(target);
   await launchDeepLink(target, contentId, "image");
   await waitForSceneGraphAssertion(
     target,

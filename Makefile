@@ -21,12 +21,16 @@ ROKU_ZIP_FILES := LC_ALL=C find manifest source components images \( -path 'comp
 endif
 
 ROKU_DEV_CONSOLE_PORT ?= 8085
-ROKU_ECP_WAIT_ATTEMPTS ?= 12
+ROKU_ECP_WAIT_ATTEMPTS ?= 24
 ROKU_TARGET := $(or $(ROKU_DEV_TARGET),$(ROKIT_TARGET))
 ROKU_PASSWORD := $(or $(ROKU_DEV_PASSWORD),$(ROKIT_PASSWORD))
 ROKU_DEBUG_ARTIFACT_DIR ?= $(CURDIR)/.local/roku-debug
 PUTIO_CLI_PROFILE ?= devs-fe-auto
 PUTIO_CLI_CONFIG_PATH ?= $(CURDIR)/.putio-cli/$(PUTIO_CLI_PROFILE).json
+ROKU_LIVE_ENV := ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET)
+ROKU_LIVE_SECRET_ENV := $(ROKU_LIVE_ENV) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)"
+ROKU_LIVE_DEBUG_ENV := $(ROKU_LIVE_ENV) ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)"
+PUTIO_AUTH_ENV := PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)"
 
 ifneq ($(strip $(ROKU_PASSWORD)),)
 	ROKU_DEV_USERPASS := rokudev:$(ROKU_PASSWORD)
@@ -373,11 +377,12 @@ lab-launch: check-roku-dev-target
 			list-item-history) EXPECTED_TITLE="HistoryListItem" ;; \
 		esac; \
 		if [ -n "$$EXPECTED_TITLE" ]; then \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) pnpm exec rokit wait-node storyTitle text "$$EXPECTED_TITLE" --timeout-ms 10000; \
-		fi
+				$(ROKU_LIVE_ENV) pnpm exec rokit wait-node storyTitle text "$$EXPECTED_TITLE" --timeout-ms 10000; \
+			fi
 
 .PHONY: lab-install
 lab-install:
+	@$(MAKE) remove
 	@$(MAKE) ROKU_INCLUDE_LAB=1 install
 	@$(MAKE) lab-launch
 
@@ -387,7 +392,7 @@ lab-screenshot: lab-install
 	@STORY_NAME="$(or $(STORY),app-dialog-empty)"; \
 		RUN_ID=$$(date -u +%Y%m%d-%H%M%S); \
 		sleep "$(or $(LAB_SCREENSHOT_DELAY),3)"; \
-		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$(TMP_DIR)/lab/$${STORY_NAME}-$${RUN_ID}.jpg"
+			$(ROKU_LIVE_SECRET_ENV) pnpm exec rokit screenshot "$(TMP_DIR)/lab/$${STORY_NAME}-$${RUN_ID}.jpg"
 
 .PHONY: visual-capture
 visual-capture: check-roku-dev-target
@@ -398,26 +403,26 @@ visual-capture: check-roku-dev-target
 	@RUN_ID=$$(date -u +%Y%m%d-%H%M%S); \
 		OUTPUT_PATH="$(TMP_DIR)/visual/captures/$$RUN_ID/$(NAME).jpg"; \
 		mkdir -p "$$(dirname "$$OUTPUT_PATH")"; \
-		ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" pnpm exec rokit screenshot "$$OUTPUT_PATH"; \
-		echo "$$OUTPUT_PATH"
+			$(ROKU_LIVE_SECRET_ENV) pnpm exec rokit screenshot "$$OUTPUT_PATH"; \
+			echo "$$OUTPUT_PATH"
 
 .PHONY: visual-capture-pages
 visual-capture-pages: putio-auth-prepare
 	@OUTPUT_ARG="$(OUTPUT_DIR)"; \
 		if [ -n "$$OUTPUT_ARG" ]; then \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" IMAGE_CONTENT_ID="$(IMAGE_CONTENT_ID)" pnpm roku:live visual-pages "$$OUTPUT_ARG" $(if $(INCLUDE_AUTH),--include-auth,); \
-		else \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" IMAGE_CONTENT_ID="$(IMAGE_CONTENT_ID)" pnpm roku:live visual-pages $(if $(INCLUDE_AUTH),--include-auth,); \
-		fi
+				$(ROKU_LIVE_SECRET_ENV) $(PUTIO_AUTH_ENV) IMAGE_CONTENT_ID="$(IMAGE_CONTENT_ID)" pnpm roku:live visual-pages "$$OUTPUT_ARG" $(if $(INCLUDE_AUTH),--include-auth,); \
+			else \
+				$(ROKU_LIVE_SECRET_ENV) $(PUTIO_AUTH_ENV) IMAGE_CONTENT_ID="$(IMAGE_CONTENT_ID)" pnpm roku:live visual-pages $(if $(INCLUDE_AUTH),--include-auth,); \
+			fi
 
 .PHONY: visual-capture-lab
 visual-capture-lab: lab-install
 	@OUTPUT_ARG="$(OUTPUT_DIR)"; \
 		if [ -n "$$OUTPUT_ARG" ]; then \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)" pnpm roku:live visual-lab "$$OUTPUT_ARG" $(STORIES) $(if $(ALL),--all,); \
-		else \
-			ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)" ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)" pnpm roku:live visual-lab $(STORIES) $(if $(ALL),--all,); \
-		fi
+				$(ROKU_LIVE_SECRET_ENV) ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)" pnpm roku:live visual-lab "$$OUTPUT_ARG" $(STORIES) $(if $(ALL),--all,); \
+			else \
+				$(ROKU_LIVE_SECRET_ENV) ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)" pnpm roku:live visual-lab $(STORIES) $(if $(ALL),--all,); \
+			fi
 
 .PHONY: visual-validate
 visual-validate:
@@ -437,11 +442,11 @@ live-test-auth-refresh:
 
 .PHONY: live-test-auth-prepare
 live-test-auth-prepare: putio-auth-prepare
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live auth-prepare "$(PUTIO_CLI_PROFILE)"
+	@$(ROKU_LIVE_ENV) $(PUTIO_AUTH_ENV) pnpm roku:live auth-prepare "$(PUTIO_CLI_PROFILE)"
 
 .PHONY: live-test-flow-smoke
 live-test-flow-smoke: putio-auth-prepare
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live flow-smoke "$(OUTPUT_DIR)"
+	@$(ROKU_LIVE_DEBUG_ENV) $(PUTIO_AUTH_ENV) pnpm roku:live flow-smoke "$(OUTPUT_DIR)"
 
 .PHONY: live-test-flow
 live-test-flow: putio-auth-prepare
@@ -449,7 +454,7 @@ live-test-flow: putio-auth-prepare
 		echo "ERROR: FLOWS is not set. Example: make live-test-flow FLOWS=auth,files,dialogs"; \
 		exit 1; \
 	fi
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" PLAYBACK_CONTENT_ID="$(PLAYBACK_CONTENT_ID)" IMAGE_CONTENT_ID="$(IMAGE_CONTENT_ID)" AUDIO_CONTENT_ID="$(AUDIO_CONTENT_ID)" SUBTITLE_CONTENT_ID="$(SUBTITLE_CONTENT_ID)" HISTORY_EXPECTED_TEXT="$(HISTORY_EXPECTED_TEXT)" MEDIA_TYPE="$(or $(MEDIA_TYPE),movie)" START_FROM="$(or $(START_FROM),continue)" pnpm roku:live flow "$(FLOWS)" "$(PLAYBACK_CONTENT_ID)" "$(AUDIO_CONTENT_ID)" "$(SUBTITLE_CONTENT_ID)" "$(or $(MEDIA_TYPE),movie)" "$(or $(START_FROM),continue)" "$(OUTPUT_DIR)"
+	@$(ROKU_LIVE_DEBUG_ENV) $(PUTIO_AUTH_ENV) PLAYBACK_CONTENT_ID="$(PLAYBACK_CONTENT_ID)" IMAGE_CONTENT_ID="$(IMAGE_CONTENT_ID)" AUDIO_CONTENT_ID="$(AUDIO_CONTENT_ID)" SUBTITLE_CONTENT_ID="$(SUBTITLE_CONTENT_ID)" HISTORY_EXPECTED_TEXT="$(HISTORY_EXPECTED_TEXT)" MEDIA_TYPE="$(or $(MEDIA_TYPE),movie)" START_FROM="$(or $(START_FROM),continue)" pnpm roku:live flow "$(FLOWS)" "$(PLAYBACK_CONTENT_ID)" "$(AUDIO_CONTENT_ID)" "$(SUBTITLE_CONTENT_ID)" "$(or $(MEDIA_TYPE),movie)" "$(or $(START_FROM),continue)" "$(OUTPUT_DIR)"
 
 .PHONY: live-test-flow-full
 live-test-flow-full: putio-auth-prepare
@@ -469,4 +474,4 @@ live-test-flow-full: putio-auth-prepare
 		echo "ERROR: SUBTITLE_CONTENT_ID is not set. Example: make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>"; \
 		exit 1; \
 	fi
-	@ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET) PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)" pnpm roku:live flow-full "$(PLAYBACK_CONTENT_ID)" "$(IMAGE_CONTENT_ID)" "$(AUDIO_CONTENT_ID)" "$(SUBTITLE_CONTENT_ID)" "$(or $(MEDIA_TYPE),movie)" "$(or $(START_FROM),continue)" "$(OUTPUT_DIR)"
+	@$(ROKU_LIVE_DEBUG_ENV) $(PUTIO_AUTH_ENV) pnpm roku:live flow-full "$(PLAYBACK_CONTENT_ID)" "$(IMAGE_CONTENT_ID)" "$(AUDIO_CONTENT_ID)" "$(SUBTITLE_CONTENT_ID)" "$(or $(MEDIA_TYPE),movie)" "$(or $(START_FROM),continue)" "$(OUTPUT_DIR)"

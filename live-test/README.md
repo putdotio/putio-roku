@@ -154,6 +154,8 @@ make console
 - `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
   runs the broader regression sweep: app smoke flows plus HLS playback, image
   rendering, track selection/player controls, logout, and auth restoration.
+  Flow targets write failure snapshots under `.local/roku-debug/` by default
+  when Roku/ECP is reachable after a failure.
 - `make test-live` runs the Vitest contract tests around the TypeScript
   harness. These catch flow-suite drift, fixture argument parsing regressions,
   and Lab story/capture registry mismatches without touching the Roku.
@@ -163,8 +165,10 @@ make console
   playback launch assertions, SceneGraph parsing/assertions, visual capture
   drivers, usage text, and player UI review artifact generation live under
   `scripts/live-test/`.
-- `make lab-install [STORY=app-dialog-empty]` installs this checkout and opens
-  the Lab scene on a specific story. Available stories are
+- `make lab-install [STORY=app-dialog-empty]` removes the existing developer
+  app, installs this checkout with Lab enabled, and opens the Lab scene on a
+  specific story. Lab launch needs a fresh developer-channel process because
+  `lab=1` is read by `Main(args)`. Available stories are
   `app-dialog-empty`, `app-dialog-message`, `delete-dialog-short`,
   `delete-dialog-long`, `continue-watching`, `continue-watching-beginning`,
   `track-menu-audio`, `track-menu-subtitles`,
@@ -188,9 +192,11 @@ make console
   drives Lab stories and saves raw screenshots under `dist/tmp/visual/lab/`.
   Without `STORIES` or `ALL=1`, it captures the stable shared AppDialog
   stories. Use `ALL=1` deliberately because broad Lab sweeps are heavier than
-  targeted story captures. On failure, the harness writes a debug snapshot
-  under `.local/roku-debug/` with active-app, SceneGraph, debug-server, and
-  screenshot artifacts when the device is reachable.
+  targeted story captures. Broad sweeps restart/cool down the Lab session in
+  batches and relaunch a story if a return-to-list step loses SceneGraph. On
+  failure, the harness writes a debug snapshot under `.local/roku-debug/` with
+  active-app, SceneGraph, debug-server, and screenshot artifacts when the
+  device is reachable.
 - `make visual-validate` validates `.vref/manifest.json` and committed
   screenshot assets without rewriting the gallery.
 - `make visual-gallery` rebuilds the static visual reference gallery from
