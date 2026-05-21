@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHmac } from "node:crypto";
 import { dirname, isAbsolute, join } from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
@@ -8,9 +9,8 @@ import { execFile as execFileCallback } from "node:child_process";
 const execFile = promisify(execFileCallback);
 
 const defaultProfile = "devs-fe-auto";
-const defaultAccountItem = "putio-test-account";
-const defaultOAuthItem = "putio-oauth-first-party";
 const defaultApiBaseUrl = "https://api.put.io";
+const totpAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 type AuthStatus = {
   authenticated: boolean;
@@ -73,10 +73,11 @@ function usage(): never {
 environment:
   PUTIO_CLI_PROFILE=devs-fe-auto
   PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
-  PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
-  PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
-  PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
-  PUTIO_HARNESS_OAUTH_VAULT=frontend-dev`);
+  PUTIO_TEST_USERNAME=devs+fe+auto@put.io
+  PUTIO_TEST_PASSWORD=<secret>
+  PUTIO_TEST_TOTP_REFERENCE=<base32-secret>
+  PUTIO_CLIENT_ID_FIRST_PARTY=<oauth-client-id>
+  PUTIO_CLIENT_SECRET_FIRST_PARTY=<oauth-client-secret>`);
   process.exit(1);
 }
 
@@ -311,40 +312,71 @@ async function readAuthStatus(profile: string): Promise<AuthStatus> {
   return parseAuthStatus(await runJson("putio", args, profile));
 }
 
-function opItemArgs(item: string, vault: string | undefined): string[] {
-  const args = ["item", "get", item];
-
-  if (vault !== undefined && vault !== "") {
-    args.push("--vault", vault);
-  }
-
-  return args;
+function readEnv(name: string): string {
+  return process.env[name]?.trim() ?? "";
 }
 
-async function opField(item: string, field: string, vault?: string): Promise<string> {
-  const { stdout } = await execFile("op", [...opItemArgs(item, vault), "--field", field, "--reveal"], {
-    maxBuffer: 1024 * 1024,
-  });
-  const value = stdout.trim();
+function requireEnv(name: string): string {
+  const value = readEnv(name);
 
-  if (value === "") {
-    throw new Error(`1Password item ${item} field ${field} is empty`);
+  if (!value) {
+    throw new Error(`Missing ${name}. Run make secrets-setup or export it before auth-prepare.`);
   }
 
   return value;
 }
 
-async function opOtp(item: string, vault?: string): Promise<string> {
-  const { stdout } = await execFile("op", [...opItemArgs(item, vault), "--otp"], {
-    maxBuffer: 1024 * 1024,
-  });
-  const value = stdout.trim();
+function decodeBase32(value: string): Buffer {
+  const normalized = value.replace(/[\s-]/g, "").replace(/=+$/g, "").toUpperCase();
+  const bytes: number[] = [];
+  let accumulator = 0;
+  let bits = 0;
 
-  if (value === "") {
-    throw new Error(`1Password item ${item} one-time password is empty`);
+  for (const character of normalized) {
+    const digit = totpAlphabet.indexOf(character);
+
+    if (digit < 0) {
+      throw new Error("Invalid PUTIO_TEST_TOTP_REFERENCE encoding");
+    }
+
+    accumulator = (accumulator << 5) | digit;
+    bits += 5;
+
+    if (bits >= 8) {
+      bytes.push((accumulator >>> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
   }
 
-  return value;
+  return Buffer.from(bytes);
+}
+
+function generateTotpCode(secret: string, now = Date.now()): string {
+  const counter = Math.floor(now / 30_000);
+  const counterBuffer = Buffer.alloc(8);
+  counterBuffer.writeUInt32BE(Math.floor(counter / 0x1_0000_0000), 0);
+  counterBuffer.writeUInt32BE(counter >>> 0, 4);
+
+  const digest = createHmac("sha1", decodeBase32(secret)).update(counterBuffer).digest();
+  const offset = digest[digest.length - 1] & 0x0f;
+  const binary =
+    ((digest[offset] & 0x7f) << 24) |
+    ((digest[offset + 1] & 0xff) << 16) |
+    ((digest[offset + 2] & 0xff) << 8) |
+    (digest[offset + 3] & 0xff);
+
+  return String(binary % 1_000_000).padStart(6, "0");
+}
+
+function readEnvTotp(): string {
+  const totp = readEnv("PUTIO_TEST_TOTP");
+  const reference = readEnv("PUTIO_TEST_TOTP_REFERENCE");
+
+  if (totp) {
+    return totp;
+  }
+
+  return reference ? generateTotpCode(reference) : "";
 }
 
 async function loginWithPassword(input: {
@@ -407,7 +439,7 @@ async function verifyTotpToken(twoFactorToken: string, code: string): Promise<st
   return data.token;
 }
 
-async function resolveLoginToken(token: string, accountItem: string, accountVault: string | undefined): Promise<string> {
+async function resolveLoginToken(token: string): Promise<string> {
   const validation = await validateToken(token);
 
   if (validation.result && validation.token_scope !== "two_factor") {
@@ -415,7 +447,12 @@ async function resolveLoginToken(token: string, accountItem: string, accountVaul
   }
 
   if (validation.result && validation.token_scope === "two_factor") {
-    const otp = await opOtp(accountItem, accountVault);
+    const otp = readEnvTotp();
+
+    if (!otp) {
+      throw new Error("Missing PUTIO_TEST_TOTP or PUTIO_TEST_TOTP_REFERENCE for two-factor login");
+    }
+
     const verifiedToken = await verifyTotpToken(token, otp);
     const verifiedValidation = await validateToken(verifiedToken);
 
@@ -428,16 +465,12 @@ async function resolveLoginToken(token: string, accountItem: string, accountVaul
 }
 
 async function materializeToken(): Promise<string> {
-  const accountItem = process.env.PUTIO_HARNESS_ACCOUNT_ITEM?.trim() || defaultAccountItem;
-  const oauthItem = process.env.PUTIO_HARNESS_OAUTH_ITEM?.trim() || defaultOAuthItem;
-  const accountVault = process.env.PUTIO_HARNESS_ACCOUNT_VAULT?.trim();
-  const oauthVault = process.env.PUTIO_HARNESS_OAUTH_VAULT?.trim();
-  const username = await opField(accountItem, "username", accountVault);
-  const email = await opField(accountItem, "email", accountVault).catch(() => "");
-  const password = await opField(accountItem, "password", accountVault);
-  const otp = await opOtp(accountItem, accountVault).catch(() => "");
-  const clientId = await opField(oauthItem, "CLIENT_ID", oauthVault);
-  const clientSecret = await opField(oauthItem, "CLIENT_SECRET", oauthVault);
+  const username = requireEnv("PUTIO_TEST_USERNAME");
+  const email = readEnv("PUTIO_TEST_EMAIL");
+  const password = requireEnv("PUTIO_TEST_PASSWORD");
+  const otp = readEnvTotp();
+  const clientId = requireEnv("PUTIO_CLIENT_ID_FIRST_PARTY");
+  const clientSecret = requireEnv("PUTIO_CLIENT_SECRET_FIRST_PARTY");
   const usernames = [...new Set([username, email].filter((value) => value !== ""))];
   const passwords = [...new Set([password, otp === "" ? "" : `${password}${otp}`].filter((value) => value !== ""))];
   let lastError: unknown;
@@ -452,7 +485,7 @@ async function materializeToken(): Promise<string> {
           username: candidateUsername,
         });
 
-        return await resolveLoginToken(token, accountItem, accountVault);
+        return await resolveLoginToken(token);
       } catch (error) {
         lastError = error;
       }
@@ -546,8 +579,6 @@ async function authStatus(profile: string): Promise<void> {
 
 async function authPrepare(profile: string): Promise<void> {
   const before = await readAuthStatus(profile);
-  const accountItem = process.env.PUTIO_HARNESS_ACCOUNT_ITEM?.trim() || defaultAccountItem;
-  const accountVault = process.env.PUTIO_HARNESS_ACCOUNT_VAULT?.trim();
 
   if (before.authenticated) {
     const existingToken = await readPreparedToken(profile).catch(() => undefined);
@@ -572,7 +603,7 @@ async function authPrepare(profile: string): Promise<void> {
     }
 
     if (existingToken !== undefined && existingValidation.token_scope === "two_factor") {
-      const token = await resolveLoginToken(existingToken, accountItem, accountVault);
+      const token = await resolveLoginToken(existingToken);
       const configPath = await writeConfig(profile, token);
 
       console.log(

@@ -6,21 +6,22 @@ proof from a real Roku device instead of only a ZIP build.
 ## Setup
 
 Put.io team members should render the shared testing-account and fixture values
-from 1Password, then fill in the local device values in the generated file:
+from Infisical, then fill in the local device values in the generated file:
 
 ```bash
 make secrets-setup
 ```
 
-`make secrets-setup` writes `.env.local` from the `putio-roku` secure note.
-The generated file includes the approved put.io CLI profile, harness item
-names, and the file IDs used by `make live-test-flow-full`.
+`make secrets-setup` writes `.env.local` from the `/roku` Infisical path. The
+generated file includes the approved put.io CLI profile, harness credentials,
+OAuth fields, and the file IDs used by `make live-test-flow-full`.
 
 For non-put.io contributors or one-off local setups, copy the sample
 environment file:
 
 ```bash
 cp .env.example .env
+make secrets-setup
 ```
 
 Required for read-only device checks:
@@ -48,15 +49,16 @@ Optional for authenticated harness setup:
 ```bash
 PUTIO_CLI_PROFILE=devs-fe-auto
 PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
-PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
-PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
-PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
-PUTIO_HARNESS_OAUTH_VAULT=frontend-dev
+PUTIO_TEST_USERNAME=<testing-account-username>
+PUTIO_TEST_PASSWORD=<testing-account-password>
+PUTIO_TEST_TOTP_REFERENCE=<testing-account-totp-secret>
+PUTIO_CLIENT_ID_FIRST_PARTY=<oauth-client-id>
+PUTIO_CLIENT_SECRET_FIRST_PARTY=<oauth-client-secret>
 ```
 
 Keep `.env` and `.env.local` local. Device IPs, Developer Mode passwords,
-signing keys, and download tokens do not belong in git. `.putio-cli/` is
-ignored and may contain local put.io CLI auth state for the testing account.
+signing keys, and download tokens do not belong in git. `.putio-cli/` is ignored
+and may contain local put.io CLI auth state for the testing account.
 
 Install the repo toolchain before running smoke or install checks:
 
@@ -229,7 +231,7 @@ make console
   put.io CLI auth state without exposing token material.
 - `make putio-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` materializes local
   testing-account auth into the ignored `PUTIO_CLI_CONFIG_PATH` through the
-  approved 1Password-backed `devs-fe-auto` setup.
+  approved Infisical-backed `devs-fe-auto` setup.
 - `make live-test-auth-reset` launches the Roku developer app, drives Settings >
   Log out through remote keypresses, and waits for the auth screen.
 - `make live-test-auth-refresh` signs the app out when needed, waits for the

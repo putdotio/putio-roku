@@ -58,7 +58,7 @@
 ## Build And Config
 
 - Local overrides flow through optional `.env` and ignored `.env.local`; `.env.local` wins when both are present
-- Put.io team members can run `make secrets-setup` to render shared testing-account and live-test fixture values from the `putio-roku` 1Password secure note into `.env.local`, then fill local Roku device values there
+- Put.io team members can run `make secrets-setup` to render shared Infisical-backed testing-account, OAuth, and live-test fixture values into `.env.local`, then fill local Roku device values there
 - `.env.example` must stay sanitized and safe to publish
 - `make verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP
 - `make test-live` runs the Vitest contract tests for live-test flow wiring, fixture argument parsing, and Lab visual-capture registry drift

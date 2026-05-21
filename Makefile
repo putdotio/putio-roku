@@ -26,15 +26,13 @@ ROKU_ECP_WAIT_ATTEMPTS ?= 24
 ROKU_TARGET := $(or $(ROKU_DEV_TARGET),$(ROKIT_TARGET))
 ROKU_PASSWORD := $(or $(ROKU_DEV_PASSWORD),$(ROKIT_PASSWORD))
 ROKU_DEBUG_ARTIFACT_DIR ?= $(CURDIR)/.local/roku-debug
-PUTIO_ROKU_1PASSWORD_ACCOUNT ?= putdotio.1password.com
-PUTIO_ROKU_1PASSWORD_VAULT ?= frontend-dev
-PUTIO_ROKU_ENV_ITEM ?= putio-roku
 PUTIO_CLI_PROFILE ?= devs-fe-auto
 PUTIO_CLI_CONFIG_PATH ?= $(CURDIR)/.putio-cli/$(PUTIO_CLI_PROFILE).json
 ROKU_LIVE_ENV := ROKU_DEV_TARGET=$(ROKU_TARGET) ROKIT_TARGET=$(ROKU_TARGET)
 ROKU_LIVE_SECRET_ENV := $(ROKU_LIVE_ENV) ROKU_DEV_PASSWORD="$(ROKU_PASSWORD)" ROKIT_PASSWORD="$(ROKU_PASSWORD)"
 ROKU_LIVE_DEBUG_ENV := $(ROKU_LIVE_ENV) ROKU_DEBUG_ARTIFACT_DIR="$(ROKU_DEBUG_ARTIFACT_DIR)"
 PUTIO_AUTH_ENV := PUTIO_CLI_PROFILE="$(PUTIO_CLI_PROFILE)" PUTIO_CLI_CONFIG_PATH="$(PUTIO_CLI_CONFIG_PATH)"
+SECRETS_OUTPUT ?= .env.local
 
 ifneq ($(strip $(ROKU_PASSWORD)),)
 	ROKU_DEV_USERPASS := rokudev:$(ROKU_PASSWORD)
@@ -48,6 +46,15 @@ MAKEFLAGS += --no-builtin-rules
 
 .PHONY: build
 build: $(APP_ZIP_FILE)
+
+.PHONY: secrets-setup
+secrets-setup:
+	@infisical export --domain https://eu.infisical.com/api --projectId b2fcfbd7-19e0-4b87-a797-93d125c432ce --env dev --path /roku --format dotenv --output-file $(SECRETS_OUTPUT)
+	@chmod 600 $(SECRETS_OUTPUT)
+
+.PHONY: secrets-clean
+secrets-clean:
+	rm -f .env.local .env.local.* .env.local.swp
 
 .PHONY: $(APP_NAME)
 $(APP_NAME): build
@@ -95,10 +102,6 @@ check-roku-live:
 .PHONY: test-live
 test-live:
 	pnpm run test:live
-
-.PHONY: secrets-setup
-secrets-setup:
-	PUTIO_ROKU_1PASSWORD_ACCOUNT="$(PUTIO_ROKU_1PASSWORD_ACCOUNT)" PUTIO_ROKU_1PASSWORD_VAULT="$(PUTIO_ROKU_1PASSWORD_VAULT)" PUTIO_ROKU_ENV_ITEM="$(PUTIO_ROKU_ENV_ITEM)" node scripts/render-env-local.ts
 
 .PHONY: putio-auth-status
 putio-auth-status:
