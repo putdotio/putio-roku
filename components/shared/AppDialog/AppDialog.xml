@@ -12,6 +12,7 @@
     <field id="close" type="bool" value="false" alwaysNotify="true" onChange="onCloseChange" />
   </interface>
 
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/AppDialog/AppDialog.brs" />
@@ -29,56 +30,56 @@
         id="panelShadow"
         translation="[12,12]"
         width="900"
-        height="344"
+        height="360"
         color="0x00000080"
       />
 
       <Rectangle
         id="panel"
         width="900"
-        height="344"
+        height="360"
         color="0x202020FF"
       />
 
       <Rectangle
         id="panelBorderTop"
         width="900"
-        height="1"
+        height="3"
         color="0x4A4A4AFF"
         visible="false"
       />
 
       <Rectangle
         id="panelBorderRight"
-        translation="[899,0]"
-        width="1"
-        height="344"
+        translation="[897,0]"
+        width="3"
+        height="360"
         color="0x4A4A4AFF"
         visible="false"
       />
 
       <Rectangle
         id="panelBorderBottom"
-        translation="[0,343]"
+        translation="[0,357]"
         width="900"
-        height="1"
+        height="3"
         color="0x4A4A4AFF"
         visible="false"
       />
 
       <Rectangle
         id="panelBorderLeft"
-        width="1"
-        height="344"
+        width="3"
+        height="360"
         color="0x4A4A4AFF"
         visible="false"
       />
 
       <Label
         id="titleLabel"
-        translation="[48,46]"
+        translation="[48,51]"
         width="804"
-        height="44"
+        height="45"
         font="font:LargeBoldSystemFont"
         color="0xEDEDEDFF"
         horizAlign="center"
@@ -86,18 +87,18 @@
 
       <Rectangle
         id="divider"
-        translation="[48,98]"
+        translation="[48,99]"
         width="804"
-        height="1"
+        height="3"
         color="0x343434FF"
         visible="false"
       />
 
       <Label
         id="messageLine0"
-        translation="[48,108]"
+        translation="[48,144]"
         width="804"
-        height="44"
+        height="45"
         font="font:MediumSystemFont"
         color="0xA0A0A0FF"
         horizAlign="center"
@@ -105,9 +106,9 @@
 
       <Label
         id="messageLine1"
-        translation="[48,156]"
+        translation="[48,192]"
         width="804"
-        height="44"
+        height="45"
         font="font:MediumSystemFont"
         color="0xA0A0A0FF"
         horizAlign="center"
@@ -116,9 +117,9 @@
 
       <Label
         id="messageLine2"
-        translation="[48,204]"
+        translation="[48,240]"
         width="804"
-        height="44"
+        height="45"
         font="font:MediumSystemFont"
         color="0xA0A0A0FF"
         horizAlign="center"
@@ -127,9 +128,9 @@
 
       <Label
         id="messageLine3"
-        translation="[48,252]"
+        translation="[48,288]"
         width="804"
-        height="44"
+        height="45"
         font="font:MediumSystemFont"
         color="0xA0A0A0FF"
         horizAlign="center"
@@ -138,9 +139,9 @@
 
       <Label
         id="messageLine4"
-        translation="[48,300]"
+        translation="[48,336]"
         width="804"
-        height="44"
+        height="45"
         font="font:MediumSystemFont"
         color="0xA0A0A0FF"
         horizAlign="center"
@@ -149,28 +150,28 @@
 
       <Label
         id="messageLine5"
-        translation="[48,348]"
+        translation="[48,384]"
         width="804"
-        height="44"
+        height="45"
         font="font:MediumSystemFont"
         color="0xA0A0A0FF"
         horizAlign="center"
         visible="false"
       />
 
-      <Group id="buttonsGroup" translation="[48,196]">
+      <Group id="buttonsGroup" translation="[48,135]">
         <Group id="button0">
           <Rectangle
             id="button0Background"
             width="804"
-            height="76"
+            height="78"
             color="0xFDCE45FF"
             visible="false"
           />
           <Label
             id="button0Label"
             width="804"
-            height="76"
+            height="78"
             font="font:MediumBoldSystemFont"
             color="0x000000FF"
             horizAlign="center"
@@ -178,18 +179,18 @@
           />
         </Group>
 
-        <Group id="button1" translation="[0,92]">
+        <Group id="button1" translation="[0,96]">
           <Rectangle
             id="button1Background"
             width="804"
-            height="76"
+            height="78"
             color="0x232323FF"
             visible="false"
           />
           <Label
             id="button1Label"
             width="804"
-            height="76"
+            height="78"
             font="font:MediumBoldSystemFont"
             color="0xEDEDEDFF"
             horizAlign="center"

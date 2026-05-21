@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SettingsScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
@@ -31,8 +32,8 @@
 		<MarkupList
 			id="settingsList"
 			itemComponentName="ListItem"
-			translation="[102, 170]"
-			itemSize="[1720, 120]"
+			translation="[102, 171]"
+			itemSize="[1716, 120]"
 			itemSpacing="[0, 12]"
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"

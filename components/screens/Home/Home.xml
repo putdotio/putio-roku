@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HomeScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Home/Home.brs" />
@@ -26,9 +27,9 @@
 
 		<MarkupList
 			id="list"
-			translation="[102, 190]"
+			translation="[102, 189]"
 			itemComponentName="ListItem"
-			itemSize="[1720, 120]"
+			itemSize="[1716, 120]"
 			itemSpacing="[0, 30]"
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"

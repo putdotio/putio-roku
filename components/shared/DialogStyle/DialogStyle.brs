@@ -102,11 +102,11 @@ sub setDialogNodeVisible(node, visible as boolean)
 end sub
 
 function defaultListItemRowWidth() as integer
-    return 1500
+    return uiListRowWidth()
 end function
 
 function defaultListItemRowHeight() as integer
-    return 120
+    return uiListRowHeight()
 end function
 
 function normalizeListItemRowHeight(rowHeight) as integer
@@ -191,7 +191,7 @@ end sub
 
 function listItemFocusCornerRadius(height as integer) as integer
     if height < 80
-        return 8
+        return 9
     end if
 
     return 12

@@ -115,20 +115,20 @@ sub updateDialogButtons()
 end sub
 
 sub updateDialogLayout(buttonCount as integer)
-    rowHeight = 76
-    rowGap = 16
-    topPadding = 52
-    titleHeight = 44
+    rowHeight = 78
+    rowGap = 18
+    topPadding = 51
+    titleHeight = 45
     titleBodyGap = 48
-    bodyButtonGap = 56
-    titleButtonGap = 40
-    bottomPadding = 52
+    bodyButtonGap = 57
+    titleButtonGap = 39
+    bottomPadding = 51
     hasMessage = m.top.message <> ""
     bodyY = topPadding + titleHeight + titleBodyGap
 
     if hasMessage
         if Len(m.top.message) > 34
-            panelWidth = 1040
+            panelWidth = 1044
             contentWidth = 936
             messageLineLength = 40
         else
@@ -139,9 +139,9 @@ sub updateDialogLayout(buttonCount as integer)
 
         messageLines = wrapAppDialogMessageLines(m.top.message, messageLineLength)
         messageLineCount = messageLines.count()
-        messageHeight = messageLineCount * 44
+        messageHeight = messageLineCount * 45
         if messageLineCount > 1
-            messageHeight = messageHeight + ((messageLineCount - 1) * 4)
+            messageHeight = messageHeight + ((messageLineCount - 1) * 3)
         end if
         buttonsY = bodyY + messageHeight + bodyButtonGap
     else
@@ -156,24 +156,32 @@ sub updateDialogLayout(buttonCount as integer)
         panelHeight = panelHeight + ((buttonCount - 1) * rowGap)
     end if
 
-    panelX = Int((1920 - panelWidth) / 2)
-    panelY = Int((1080 - panelHeight) / 2)
+    panelX = uiCenterX(panelWidth)
+    panelY = uiCenterY(panelHeight)
+    contentX = uiSnap(Int((panelWidth - contentWidth) / 2))
+    borderWidth = uiBorderWidth()
 
     m.panel.width = panelWidth
     m.panel.height = panelHeight
     m.panelShadow.width = panelWidth
     m.panelShadow.height = panelHeight
+    m.panelShadow.translation = [uiShadowOffset(), uiShadowOffset()]
     m.panelBorderTop.width = panelWidth
-    m.panelBorderRight.translation = [panelWidth - 1, 0]
+    m.panelBorderTop.height = borderWidth
+    m.panelBorderRight.translation = [panelWidth - borderWidth, 0]
+    m.panelBorderRight.width = borderWidth
     m.panelBorderRight.height = panelHeight
-    m.panelBorderBottom.translation = [0, panelHeight - 1]
+    m.panelBorderBottom.translation = [0, panelHeight - borderWidth]
     m.panelBorderBottom.width = panelWidth
+    m.panelBorderBottom.height = borderWidth
+    m.panelBorderLeft.width = borderWidth
     m.panelBorderLeft.height = panelHeight
     m.panelGroup.translation = [panelX, panelY]
-    m.titleLabel.translation = [48, topPadding]
+    m.titleLabel.translation = [contentX, topPadding]
     m.titleLabel.width = contentWidth
-    updateDialogMessageLabels(messageLines, contentWidth, bodyY)
-    m.buttonsGroup.translation = [48, buttonsY]
+    m.titleLabel.height = titleHeight
+    updateDialogMessageLabels(messageLines, contentWidth, contentX, bodyY)
+    m.buttonsGroup.translation = [contentX, buttonsY]
 
     for i = 0 to m.buttonNodes.count() - 1
         button = m.buttonNodes[i]
@@ -261,12 +269,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
     return true
 end function
 
-sub updateDialogMessageLabels(lines as object, contentWidth as integer, bodyY as integer)
+sub updateDialogMessageLabels(lines as object, contentWidth as integer, contentX as integer, bodyY as integer)
     for i = 0 to m.messageLabels.count() - 1
         label = m.messageLabels[i]
         label.width = contentWidth
-        label.height = 44
-        label.translation = [48, bodyY + (i * 48)]
+        label.height = 45
+        label.translation = [contentX, bodyY + (i * 48)]
 
         if i < lines.count()
             label.text = lines[i]

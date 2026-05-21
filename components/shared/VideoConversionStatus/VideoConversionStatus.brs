@@ -203,15 +203,15 @@ sub updateProgress(percentDone)
     hideSpinner()
     m.progressGroup.visible = true
     m.progressFill.width = int(672 * percent / 100)
-    m.statusLabel.translation = [64, 244]
+    m.statusLabel.translation = [66, 243]
     m.actionButton.translation = [240, 324]
 end sub
 
 sub showSpinner()
     m.spinner.visible = true
     m.spinner.control = "start"
-    m.statusLabel.translation = [64, 274]
-    m.actionButton.translation = [240, 328]
+    m.statusLabel.translation = [66, 273]
+    m.actionButton.translation = [240, 327]
 end sub
 
 sub hideSpinner()
@@ -234,8 +234,8 @@ sub showError(message as string)
     hideSpinner()
     hideProgress()
     m.actionLabel.text = "Retry"
-    m.statusLabel.translation = [64, 224]
-    m.actionButton.translation = [240, 304]
+    m.statusLabel.translation = [66, 225]
+    m.actionButton.translation = [240, 303]
     setStatus(message)
 end sub
 

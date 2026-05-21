@@ -60,18 +60,22 @@ export function assertTrackMenuLayout(
   const rowBackgroundName = `trackMenuRow${selectedRowIndex}Background`;
   const rowCheckName = `trackMenuRow${selectedRowIndex}Check`;
   const visibleRowCount = countVisibleTrackRows(xml);
-  const rowHeight = 62;
-  const rowGap = 8;
-  const panelHeight = 108 + 44 + visibleRowCount * rowHeight + Math.max(0, visibleRowCount - 1) * rowGap;
-  const panelY = Math.round((1080 - panelHeight) / 2);
+  const rowHeight = 63;
+  const rowGap = 9;
+  const panelHeight = 108 + 45 + visibleRowCount * rowHeight + Math.max(0, visibleRowCount - 1) * rowGap;
+  const panelY = snapFhdToHdGrid(Math.floor((1080 - panelHeight) / 2));
 
-  assertNodeTranslation(xml, "trackMenuPanel", 550, panelY);
-  assertScopedNodeSize(xml, "trackMenuPanel", "panelFill", 820, panelHeight);
-  assertScopedNodeSize(xml, "trackMenuPanel", "panelShadow", 820, panelHeight);
-  assertNodeTranslation(xml, "trackMenuTitle", 48, 44);
+  assertNodeTranslation(xml, "trackMenuPanel", 549, panelY);
+  assertScopedNodeSize(xml, "trackMenuPanel", "panelFill", 822, panelHeight);
+  assertScopedNodeSize(xml, "trackMenuPanel", "panelShadow", 822, panelHeight);
+  assertNodeTranslation(xml, "trackMenuTitle", 48, 45);
   assertNodeTranslation(xml, "trackRows", 48, 108);
-  assertNodeSize(xml, rowBackgroundName, 724, 62);
-  assertNodeTranslation(xml, rowCheckName, 660, 8);
+  assertNodeSize(xml, rowBackgroundName, 726, 63);
+  assertNodeTranslation(xml, rowCheckName, 660, 9);
+}
+
+function snapFhdToHdGrid(value: number): number {
+  return Math.round(value / 3) * 3;
 }
 
 export function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean {

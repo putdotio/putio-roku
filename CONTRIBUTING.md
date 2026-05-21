@@ -107,6 +107,7 @@ make artifact
 
 - Keep checked-in defaults open-source-safe
 - Keep device addresses, passwords, signing keys, and private release notes out of commits
+- Author Roku UI in 1920x1080 logical coordinates, but keep visible edges and common spacing on the 3px grid exposed by `components/shared/UiMetrics/UiMetrics.brs`; many Roku devices output 1280x720 screenshots from the FHD scene and scale by 2/3
 - Prefer repo-relative doc links when adding or updating documentation
 - Update docs when sideloading, validation, CI, or release expectations change
 

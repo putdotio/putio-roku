@@ -63,6 +63,7 @@
 - `make verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP
 - `make test-live` runs the Vitest contract tests for live-test flow wiring, fixture argument parsing, and Lab visual-capture registry drift
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
+- Roku layout is authored in 1920x1080 FHD coordinates even when device screenshots are 1280x720; use `components/shared/UiMetrics/UiMetrics.brs` for shared screen, centering, row, and 3px autoscale-grid values instead of scattering raw modal/list dimensions
 - Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
 - Live app regressions are grouped as flow suites: use `make live-test-flow-smoke` for auth/files/dialogs/settings/get-new-code coverage and `make live-test-flow-full` before shipping broad routing/player/image refactors
 - `make lab-install STORY=<story-id>` and `make lab-screenshot STORY=<story-id>` open isolated Lab stories for modal/component UI work; use them before broader authenticated flows when the change can be proven in Lab

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SearchScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
@@ -31,12 +32,12 @@
       translation="[81, 180]"
       layoutDirection="horiz"
       vertAlignment="top"
-      itemSpacings="20"
+      itemSpacings="21"
     >
       <LayoutGroup
         layoutDirection="vert"
         horizAlignment="center"
-        itemSpacings="20"
+        itemSpacings="21"
       >
         <MiniKeyboard id="keyboard" />
         <LoadingIndicator
@@ -52,7 +53,7 @@
         id="searchResultGroup"
         layoutDirection="vert"
         horizAlignment="center"
-        itemSpacings="20"
+        itemSpacings="21"
       >
         <MarkupList
           id="searchHistory"

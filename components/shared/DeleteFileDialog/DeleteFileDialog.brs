@@ -48,42 +48,60 @@ sub updateDeleteDialogLayout(fileLineCount as integer)
         fileLineCount = 3
     end if
 
-    panelWidth = 1040
+    panelWidth = 1044
     contentWidth = 936
-    panelX = Int((1920 - panelWidth) / 2)
-    contentX = panelX + 52
-    titleY = 52
-    titleHeight = 44
+    panelX = uiCenterX(panelWidth)
+    contentX = panelX + uiSnap(Int((panelWidth - contentWidth) / 2))
+    titleY = 51
+    titleHeight = 45
     titleBodyGap = 48
-    bodyButtonGap = 56
-    bottomPadding = 52
+    bodyButtonGap = 57
+    bottomPadding = 51
+    rowHeight = 78
+    rowGap = 18
+    buttonsHeight = (2 * rowHeight) + rowGap
     fileNameY = titleY + titleHeight + titleBodyGap
-    lineHeight = 44
+    lineHeight = 45
     fileNameHeight = fileLineCount * lineHeight
     buttonsY = fileNameY + fileNameHeight + bodyButtonGap
-    panelHeight = buttonsY + 164 + bottomPadding
-    panelY = Int((1080 - panelHeight) / 2)
+    panelHeight = buttonsY + buttonsHeight + bottomPadding
+    panelY = uiCenterY(panelHeight)
+    borderWidth = uiBorderWidth()
 
     m.panel.translation = [panelX, panelY]
     m.panel.width = panelWidth
     m.panel.height = panelHeight
-    m.panelShadow.translation = [panelX + 12, panelY + 12]
+    m.panelShadow.translation = [panelX + uiShadowOffset(), panelY + uiShadowOffset()]
     m.panelShadow.width = panelWidth
     m.panelShadow.height = panelHeight
     m.panelBorderTop.translation = [panelX, panelY]
     m.panelBorderTop.width = panelWidth
-    m.panelBorderRight.translation = [panelX + panelWidth - 1, panelY]
+    m.panelBorderTop.height = borderWidth
+    m.panelBorderRight.translation = [panelX + panelWidth - borderWidth, panelY]
+    m.panelBorderRight.width = borderWidth
     m.panelBorderRight.height = panelHeight
-    m.panelBorderBottom.translation = [panelX, panelY + panelHeight - 1]
+    m.panelBorderBottom.translation = [panelX, panelY + panelHeight - borderWidth]
     m.panelBorderBottom.width = panelWidth
+    m.panelBorderBottom.height = borderWidth
     m.panelBorderLeft.translation = [panelX, panelY]
+    m.panelBorderLeft.width = borderWidth
     m.panelBorderLeft.height = panelHeight
     m.title.translation = [contentX, panelY + titleY]
     m.title.width = contentWidth
+    m.title.height = titleHeight
     m.fileName.translation = [contentX, panelY + fileNameY]
     m.fileName.width = contentWidth
     m.fileName.height = fileNameHeight
     m.buttons.translation = [contentX, panelY + buttonsY]
+    m.deleteButtonBackground.width = contentWidth
+    m.deleteButtonBackground.height = rowHeight
+    m.deleteButtonLabel.width = contentWidth
+    m.deleteButtonLabel.height = rowHeight
+    m.cancelButtonBackground.width = contentWidth
+    m.cancelButtonBackground.height = rowHeight
+    m.cancelButtonLabel.width = contentWidth
+    m.cancelButtonLabel.height = rowHeight
+    m.top.findNode("cancelButton").translation = [0, rowHeight + rowGap]
 end sub
 
 sub updateButtonFocus()

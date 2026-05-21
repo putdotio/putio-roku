@@ -12,8 +12,8 @@ sub init()
     m.topSeparator = m.top.findNode("topSeparator")
     m.bottomSeparator = m.top.findNode("bottomSeparator")
     m.visibleRowCount = 8
-    m.rowHeight = 62
-    m.rowGap = 8
+    m.rowHeight = 63
+    m.rowGap = 9
     applyDialogScrim(m.scrim)
     applyDialogPanelColors(m.panelFill, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
     applyDialogTextColors(m.titleLabel, invalid)
@@ -105,30 +105,53 @@ sub renderTrackMenu()
 end sub
 
 sub updateTrackMenuLayout(rowCount as integer)
-    panelWidth = 820
+    panelWidth = 822
+    rowWidth = 726
+    contentX = 48
+    borderWidth = uiBorderWidth()
     rowAreaHeight = rowCount * m.rowHeight
     if rowCount > 1
         rowAreaHeight = rowAreaHeight + ((rowCount - 1) * m.rowGap)
     end if
 
     rowsY = 108
-    panelHeight = rowsY + rowAreaHeight + 44
-    panelY = Int((1080 - panelHeight) / 2)
+    panelHeight = rowsY + rowAreaHeight + 45
+    panelY = uiCenterY(panelHeight)
 
-    m.panel.translation = [550, panelY]
+    m.panel.translation = [uiCenterX(panelWidth), panelY]
     m.panelShadow.width = panelWidth
     m.panelShadow.height = panelHeight
+    m.panelShadow.translation = [uiShadowOffset(), uiShadowOffset()]
     m.panelFill.width = panelWidth
     m.panelFill.height = panelHeight
     m.panelBorderTop.width = panelWidth
-    m.panelBorderRight.translation = [panelWidth - 1, 0]
+    m.panelBorderTop.height = borderWidth
+    m.panelBorderRight.translation = [panelWidth - borderWidth, 0]
+    m.panelBorderRight.width = borderWidth
     m.panelBorderRight.height = panelHeight
-    m.panelBorderBottom.translation = [0, panelHeight - 1]
+    m.panelBorderBottom.translation = [0, panelHeight - borderWidth]
     m.panelBorderBottom.width = panelWidth
+    m.panelBorderBottom.height = borderWidth
+    m.panelBorderLeft.width = borderWidth
     m.panelBorderLeft.height = panelHeight
-    m.rows.translation = [48, rowsY]
-    m.topSeparator.translation = [48, rowsY - 12]
-    m.bottomSeparator.translation = [48, rowsY + rowAreaHeight + 10]
+    m.titleLabel.translation = [contentX, 45]
+    m.titleLabel.width = rowWidth
+    m.rows.translation = [contentX, rowsY]
+    m.topSeparator.translation = [contentX, rowsY - 12]
+    m.topSeparator.width = rowWidth
+    m.bottomSeparator.translation = [contentX, rowsY + rowAreaHeight + 12]
+    m.bottomSeparator.width = rowWidth
+
+    for each row in m.rowNodes
+        row.background.width = rowWidth
+        row.background.height = m.rowHeight
+        row.label.translation = [24, 12]
+        row.label.width = 600
+        row.label.height = m.rowHeight
+        row.check.translation = [660, 9]
+        row.check.width = 45
+        row.check.height = m.rowHeight
+    end for
 end sub
 
 function getTrackMenuVisibleRowCount(itemCount as integer) as integer

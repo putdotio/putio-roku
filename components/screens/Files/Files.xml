@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="FilesScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
@@ -34,9 +35,9 @@
 
     <MarkupList
       id="fileList"
-      translation="[102, 190]"
+      translation="[102, 189]"
       itemComponentName="FileListItem"
-      itemSize="[1720, 120]"
+      itemSize="[1716, 120]"
       itemSpacing="[0, 30]"
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"
@@ -48,7 +49,7 @@
 
     <EmptyState
       id="emptyState"
-      translation="[190, 310]"
+      translation="[189, 309]"
       contentWidth="1500"
       visible="false"
     />

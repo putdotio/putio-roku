@@ -45,7 +45,7 @@ end sub
 sub updateProgressPreview()
     previewStartFrom = getFocusedStartFrom()
     progressWidth = 0
-    progressTrackWidth = 724
+    progressTrackWidth = 726
 
     if m.top.duration > 0 and previewStartFrom > 0
         progressWidth = fix((previewStartFrom / m.top.duration) * progressTrackWidth)
