@@ -2,7 +2,7 @@
 -include .env.local
 
 APP_NAME := put.io
-VERSION = 2.10.2
+VERSION = 2.10.3
 ARTIFACT_NAME := putio-roku-v2.zip
 
 DIST_DIR := dist
