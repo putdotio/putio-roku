@@ -76,7 +76,7 @@ environment:
   PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
   PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
   PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
-  PUTIO_HARNESS_OAUTH_VAULT=frontend-ci`);
+  PUTIO_HARNESS_OAUTH_VAULT=frontend-dev`);
   process.exit(1);
 }
 

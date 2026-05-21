@@ -51,7 +51,7 @@ PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
 PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
 PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
 PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
-PUTIO_HARNESS_OAUTH_VAULT=frontend-ci
+PUTIO_HARNESS_OAUTH_VAULT=frontend-dev
 ```
 
 Keep `.env` and `.env.local` local. Device IPs, Developer Mode passwords,
