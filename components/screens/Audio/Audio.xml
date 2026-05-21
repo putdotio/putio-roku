@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="AudioScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Audio/Audio.brs" />
 
 	<interface>
     <field id="params" type="assocarray" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
 		<field id="navigate" type="assocarray" />
 		<field id="navigateBack" type="bool" alwaysNotify="true" />
     <field id="showDialog" type="node" alwaysNotify="true" />
@@ -44,7 +49,7 @@
           id="play"
           width="128"
           height="128"
-          uri="pkg:/images/icons/play-4-focused.png"
+          uri="pkg:/images/icons/play-4.png"
           audioGuideText="Play or Pause"
         />
         <Poster
@@ -66,7 +71,7 @@
         <Label
 					id="position"
 					font="font:MediumBoldSystemFont"
-					color="0xFFFFFFFF"
+					color="0xEDEDEDFF"
 					text="..:.."
 					width="128"
 				/>
@@ -74,13 +79,14 @@
         <ProgressBar
           id="progressBar"
           width="960"
-          filledBarBlendColor="0xFFCF00FF"
+          emptyBarBlendColor="0x343434FF"
+          filledBarBlendColor="0xFDCE45FF"
         />
 
         <Label
 					id="duration"
 					font="font:MediumBoldSystemFont"
-					color="0xFFFFFFFF"
+					color="0xEDEDEDFF"
 					text="..:.."
 					width="128"
 				/>

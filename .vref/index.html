@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#09090B">
+<title>put.io Roku visual reference</title>
+<style>
+  @import url('https://static.put.io/fonts/gt-america/standard/font.css');
+  @import url('https://static.put.io/fonts/gt-america/mono/font.css');
+  @import url('https://static.put.io/fonts/gt-america/extended/font.css');
+  @import url('https://static.put.io/fonts/berkeley-mono/variable/font.css');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #09090B;
+    --bg-2: #111113;
+    --bg-3: #19191B;
+    --bg-4: #222225;
+    --line: #27272A;
+    --border: #3F3F46;
+    --solid: #71717A;
+    --text-2: #A1A1AA;
+    --text: #FAFAFA;
+    --yellow: #FDCE45;
+    --blue: #60A5FA;
+    --green: #34D399;
+    --pink: #F472B6;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  body {
+    font-family: 'GT America', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; }
+  .container {
+    max-width: 1120px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: 56px 24px 44px;
+    display: flex;
+    flex-direction: column;
+  }
+  .hero { margin-bottom: 30px; }
+  .hero h1 { font-size: 30px; font-weight: 600; letter-spacing: 0; margin-bottom: 0; }
+  .hero h1 span { color: var(--yellow); }
+  .hero p {
+    max-width: 520px;
+    margin: 6px 0 0;
+    color: var(--text-2);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .filter-control {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .filters {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    padding: 10px 0 16px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-row { display: flex; gap: 7px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-label {
+    font-size: 10px;
+    color: var(--solid);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    width: 60px;
+    flex: 0 0 auto;
+  }
+  .filter-group { display: flex; gap: 4px; align-items: center; }
+  .nav-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.025);
+    border: none;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 11px;
+    color: rgba(250,250,250,0.58);
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 24px;
+    transition: transform 140ms var(--ease-out);
+  }
+  .nav-btn span { pointer-events: none; }
+  .nav-btn:active { transform: scale(0.97); }
+  .nav-btn:has(.filter-control:focus-visible), .modal-btn:focus-visible, .card:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+  }
+  .nav-btn:has(.filter-control:checked) { color: #15130A; background: var(--yellow); font-weight: 600; }
+  .container:has(#filter-group-dialogs:checked) #gallery .card:not([data-group="dialogs"]) { display: none; }
+  .container:has(#filter-group-lab-components:checked) #gallery .card:not([data-group="lab-components"]) { display: none; }
+  .container:has(#filter-group-main-pages:checked) #gallery .card:not([data-group="main-pages"]) { display: none; }
+  .container:has(#filter-group-player:checked) #gallery .card:not([data-group="player"]) { display: none; }
+  .container:has(#filter-group-search:checked) #gallery .card:not([data-group="search"]) { display: none; }
+  .container:has(#filter-tag-app-dialog:checked) #gallery .card:not([data-tags~="app-dialog"]) { display: none; }
+  .container:has(#filter-tag-dialog:checked) #gallery .card:not([data-tags~="dialog"]) { display: none; }
+  .container:has(#filter-tag-empty:checked) #gallery .card:not([data-tags~="empty"]) { display: none; }
+  .container:has(#filter-tag-files:checked) #gallery .card:not([data-tags~="files"]) { display: none; }
+  .container:has(#filter-tag-focus:checked) #gallery .card:not([data-tags~="focus"]) { display: none; }
+  .container:has(#filter-tag-home:checked) #gallery .card:not([data-tags~="home"]) { display: none; }
+  .container:has(#filter-tag-keyboard:checked) #gallery .card:not([data-tags~="keyboard"]) { display: none; }
+  .container:has(#filter-tag-lab:checked) #gallery .card:not([data-tags~="lab"]) { display: none; }
+  .container:has(#filter-tag-list:checked) #gallery .card:not([data-tags~="list"]) { display: none; }
+  .container:has(#filter-tag-player:checked) #gallery .card:not([data-tags~="player"]) { display: none; }
+  .container:has(#filter-tag-progress:checked) #gallery .card:not([data-tags~="progress"]) { display: none; }
+  .container:has(#filter-tag-search:checked) #gallery .card:not([data-tags~="search"]) { display: none; }
+  .container:has(#filter-tag-subtitles:checked) #gallery .card:not([data-tags~="subtitles"]) { display: none; }
+  .container:has(#filter-tag-track-menu:checked) #gallery .card:not([data-tags~="track-menu"]) { display: none; }
+  .results-count {
+    font-size: 11px;
+    color: var(--solid);
+    margin-bottom: 16px;
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; }
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 160ms var(--ease-out);
+  }
+  .card:active { transform: scale(0.995); }
+  .preview {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #000;
+    outline: 1px solid rgba(255,255,255,0.08);
+    outline-offset: -1px;
+  }
+  .card-body { display: flex; align-items: flex-start; gap: 10px; padding: 14px; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-meta {
+    font-size: 11px;
+    color: var(--solid);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    margin-top: 2px;
+  }
+  .item-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    background: rgba(253, 206, 69, 0.12);
+    border: 1px solid rgba(253, 206, 69, 0.14);
+    color: #F8D867;
+  }
+  .footer {
+    text-align: center;
+    margin-top: auto;
+    padding: 56px 0 0;
+    color: var(--solid);
+    font-family: 'Berkeley Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+  }
+  .footer code { color: var(--text-2); font: inherit; }
+  .modal-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(12px);
+    padding: 32px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms var(--ease-out);
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal-panel {
+    width: min(1400px, 100%);
+    opacity: 0.96;
+    transform: scale(0.98);
+    transform-origin: center;
+    transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+  }
+  .modal-overlay.open .modal-panel { opacity: 1; transform: scale(1); }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .modal-title {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-2);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .modal-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text-2);
+    cursor: pointer;
+    text-decoration: none;
+    min-height: 28px;
+    transition: transform 140ms var(--ease-out);
+  }
+  .modal-btn:active { transform: scale(0.97); }
+  .modal-frame {
+    overflow: hidden;
+    background: #000;
+    border-radius: 4px;
+    border: 10px solid #1A1A1A;
+    box-shadow: 0 32px 100px rgba(0,0,0,0.6);
+  }
+  .modal-frame img { display: block; width: 100%; height: auto; max-height: calc(100vh - 132px); object-fit: contain; }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-btn:not(:has(.filter-control:checked)):hover { color: var(--text); background: rgba(255,255,255,0.075); }
+    .nav-btn:has(.filter-control:checked):hover { background: #FFD85C; }
+    .card:hover { border-color: var(--border); background: var(--bg-3); transform: translateY(-1px); box-shadow: 0 18px 44px rgba(0,0,0,0.28); }
+    .modal-btn:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+  }
+  @media (max-width: 720px) {
+    .container { padding: 36px 16px 32px; }
+    .grid { grid-template-columns: 1fr; }
+    .hero { margin-bottom: 28px; }
+    .hero h1 { font-size: 28px; }
+    .filters { padding: 8px 0 16px; margin-bottom: 14px; }
+    .filter-label { width: 54px; }
+    .nav-btn { min-height: 34px; padding: 4px 10px; }
+    .modal-overlay { padding: 14px; }
+    .modal-header { flex-wrap: wrap; }
+    .modal-title { flex-basis: 100%; }
+    .modal-btn { min-height: 34px; padding: 6px 10px; }
+    .modal-frame { border-width: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-btn, .card, .modal-overlay, .modal-panel, .modal-btn {
+      transition-duration: 0.01ms;
+    }
+    .nav-btn:active, .card:active, .card:hover, .modal-panel, .modal-overlay.open .modal-panel, .modal-btn:active {
+      transform: none;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>put<span>.</span>io Roku visual reference</h1>
+    <p>19 curated Roku references for quick visual review.</p>
+  </div>
+  <div class="filters">
+    <div class="filter-row">
+      <span class="filter-label">Group</span>
+      <div class="filter-group"><label class="nav-btn" data-filter-group="group" data-filter-value="all"><input class="filter-control" type="radio" name="filter-group" id="filter-group-all" checked><span>All</span></label><label class="nav-btn" data-filter-group="group" data-filter-value="dialogs"><input class="filter-control" type="radio" name="filter-group" id="filter-group-dialogs"><span>Dialogs</span></label><label class="nav-btn" data-filter-group="group" data-filter-value="lab-components"><input class="filter-control" type="radio" name="filter-group" id="filter-group-lab-components"><span>Lab components</span></label><label class="nav-btn" data-filter-group="group" data-filter-value="main-pages"><input class="filter-control" type="radio" name="filter-group" id="filter-group-main-pages"><span>Main pages</span></label><label class="nav-btn" data-filter-group="group" data-filter-value="player"><input class="filter-control" type="radio" name="filter-group" id="filter-group-player"><span>Player</span></label><label class="nav-btn" data-filter-group="group" data-filter-value="search"><input class="filter-control" type="radio" name="filter-group" id="filter-group-search"><span>Search</span></label></div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Tag</span>
+      <div class="filter-group"><label class="nav-btn" data-filter-group="tag" data-filter-value="all"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-all" checked><span>All</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="app-dialog"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-app-dialog"><span>app-dialog</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="dialog"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-dialog"><span>dialog</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="empty"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-empty"><span>empty</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="files"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-files"><span>files</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="focus"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-focus"><span>focus</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="home"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-home"><span>home</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="keyboard"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-keyboard"><span>keyboard</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="lab"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-lab"><span>lab</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="list"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-list"><span>list</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="player"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-player"><span>player</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="progress"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-progress"><span>progress</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="search"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-search"><span>search</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="subtitles"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-subtitles"><span>subtitles</span></label><label class="nav-btn" data-filter-group="tag" data-filter-value="track-menu"><input class="filter-control" type="radio" name="filter-tag" id="filter-tag-track-menu"><span>track-menu</span></label></div>
+    </div>
+  </div>
+  <div class="results-count">19 references &middot; Updated May 20, 2026</div>
+  <div class="grid" id="gallery">
+    <a class="card" href="screenshots/roku-720p/auth.jpg" aria-label="Auth screenshot" data-card data-title="Auth" data-platform="roku" data-group="main-pages" data-tags="auth activation-code redacted">
+      <img class="preview" src="screenshots/roku-720p/auth.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Auth</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 21 KB</span></div>
+          <div class="item-tags"><span class="tag">auth</span><span class="tag">activation-code</span><span class="tag">redacted</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/home.jpg" aria-label="Home screenshot" data-card data-title="Home" data-platform="roku" data-group="main-pages" data-tags="home navigation">
+      <img class="preview" src="screenshots/roku-720p/home.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Home</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 24 KB</span></div>
+          <div class="item-tags"><span class="tag">home</span><span class="tag">navigation</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/files.jpg" aria-label="Files screenshot" data-card data-title="Files" data-platform="roku" data-group="main-pages" data-tags="files list focus">
+      <img class="preview" src="screenshots/roku-720p/files.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Files</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 46 KB</span></div>
+          <div class="item-tags"><span class="tag">files</span><span class="tag">list</span><span class="tag">focus</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/history.jpg" aria-label="History screenshot" data-card data-title="History" data-platform="roku" data-group="main-pages" data-tags="history list focus">
+      <img class="preview" src="screenshots/roku-720p/history.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">History</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 22 KB</span></div>
+          <div class="item-tags"><span class="tag">history</span><span class="tag">list</span><span class="tag">focus</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/image.jpg" aria-label="Image viewer screenshot" data-card data-title="Image viewer" data-platform="roku" data-group="main-pages" data-tags="image viewer scale-to-fit">
+      <img class="preview" src="screenshots/roku-720p/image.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Image viewer</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 54 KB</span></div>
+          <div class="item-tags"><span class="tag">image</span><span class="tag">viewer</span><span class="tag">scale-to-fit</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/file-delete-dialog.jpg" aria-label="File delete dialog screenshot" data-card data-title="File delete dialog" data-platform="roku" data-group="dialogs" data-tags="files dialog destructive">
+      <img class="preview" src="screenshots/roku-720p/file-delete-dialog.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">File delete dialog</div>
+          <div class="item-meta"><span>Dialogs</span><span>1280x720 / 36 KB</span></div>
+          <div class="item-tags"><span class="tag">files</span><span class="tag">dialog</span><span class="tag">destructive</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-empty.jpg" aria-label="Search empty screenshot" data-card data-title="Search empty" data-platform="roku" data-group="main-pages" data-tags="search keyboard empty">
+      <img class="preview" src="screenshots/roku-720p/search-empty.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Search empty</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 33 KB</span></div>
+          <div class="item-tags"><span class="tag">search</span><span class="tag">keyboard</span><span class="tag">empty</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-no-results.jpg" aria-label="Search no results screenshot" data-card data-title="Search no results" data-platform="roku" data-group="search" data-tags="search keyboard empty">
+      <img class="preview" src="screenshots/roku-720p/search-no-results.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Search no results</div>
+          <div class="item-meta"><span>Search</span><span>1280x720 / 32 KB</span></div>
+          <div class="item-tags"><span class="tag">search</span><span class="tag">keyboard</span><span class="tag">empty</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-results.jpg" aria-label="Search results screenshot" data-card data-title="Search results" data-platform="roku" data-group="search" data-tags="search keyboard">
+      <img class="preview" src="screenshots/roku-720p/search-results.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Search results</div>
+          <div class="item-meta"><span>Search</span><span>1280x720 / 43 KB</span></div>
+          <div class="item-tags"><span class="tag">search</span><span class="tag">keyboard</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/search-result-focused.jpg" aria-label="Search result focused screenshot" data-card data-title="Search result focused" data-platform="roku" data-group="search" data-tags="search focus">
+      <img class="preview" src="screenshots/roku-720p/search-result-focused.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Search result focused</div>
+          <div class="item-meta"><span>Search</span><span>1280x720 / 42 KB</span></div>
+          <div class="item-tags"><span class="tag">search</span><span class="tag">focus</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/settings.jpg" aria-label="Settings screenshot" data-card data-title="Settings" data-platform="roku" data-group="main-pages" data-tags="settings list device">
+      <img class="preview" src="screenshots/roku-720p/settings.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Settings</div>
+          <div class="item-meta"><span>Main pages</span><span>1280x720 / 39 KB</span></div>
+          <div class="item-tags"><span class="tag">settings</span><span class="tag">list</span><span class="tag">device</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/exit-app-dialog.jpg" aria-label="Exit app dialog screenshot" data-card data-title="Exit app dialog" data-platform="roku" data-group="dialogs" data-tags="home dialog exit">
+      <img class="preview" src="screenshots/roku-720p/exit-app-dialog.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Exit app dialog</div>
+          <div class="item-meta"><span>Dialogs</span><span>1280x720 / 24 KB</span></div>
+          <div class="item-tags"><span class="tag">home</span><span class="tag">dialog</span><span class="tag">exit</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/lab-app-dialog-empty.jpg" aria-label="Lab app dialog without message screenshot" data-card data-title="Lab app dialog without message" data-platform="roku" data-group="lab-components" data-tags="lab dialog app-dialog">
+      <img class="preview" src="screenshots/roku-720p/lab-app-dialog-empty.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Lab app dialog without message</div>
+          <div class="item-meta"><span>Lab components</span><span>1280x720 / 53 KB</span></div>
+          <div class="item-tags"><span class="tag">lab</span><span class="tag">dialog</span><span class="tag">app-dialog</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/lab-app-dialog-message.jpg" aria-label="Lab app dialog with message screenshot" data-card data-title="Lab app dialog with message" data-platform="roku" data-group="lab-components" data-tags="lab dialog app-dialog">
+      <img class="preview" src="screenshots/roku-720p/lab-app-dialog-message.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Lab app dialog with message</div>
+          <div class="item-meta"><span>Lab components</span><span>1280x720 / 56 KB</span></div>
+          <div class="item-tags"><span class="tag">lab</span><span class="tag">dialog</span><span class="tag">app-dialog</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/player-audio-menu.jpg" aria-label="Player audio menu screenshot" data-card data-title="Player audio menu" data-platform="roku" data-group="player" data-tags="player track-menu audio">
+      <img class="preview" src="screenshots/roku-720p/player-audio-menu.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Player audio menu</div>
+          <div class="item-meta"><span>Player</span><span>1280x720 / 26 KB</span></div>
+          <div class="item-tags"><span class="tag">player</span><span class="tag">track-menu</span><span class="tag">audio</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/player-progress.jpg" aria-label="Player progress screenshot" data-card data-title="Player progress" data-platform="roku" data-group="player" data-tags="player progress focus">
+      <img class="preview" src="screenshots/roku-720p/player-progress.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Player progress</div>
+          <div class="item-meta"><span>Player</span><span>1280x720 / 23 KB</span></div>
+          <div class="item-tags"><span class="tag">player</span><span class="tag">progress</span><span class="tag">focus</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/player-subtitle-button.jpg" aria-label="Player subtitle button screenshot" data-card data-title="Player subtitle button" data-platform="roku" data-group="player" data-tags="player subtitles focus">
+      <img class="preview" src="screenshots/roku-720p/player-subtitle-button.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Player subtitle button</div>
+          <div class="item-meta"><span>Player</span><span>1280x720 / 20 KB</span></div>
+          <div class="item-tags"><span class="tag">player</span><span class="tag">subtitles</span><span class="tag">focus</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/player-subtitle-menu.jpg" aria-label="Player subtitle menu screenshot" data-card data-title="Player subtitle menu" data-platform="roku" data-group="player" data-tags="player track-menu subtitles">
+      <img class="preview" src="screenshots/roku-720p/player-subtitle-menu.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Player subtitle menu</div>
+          <div class="item-meta"><span>Player</span><span>1280x720 / 34 KB</span></div>
+          <div class="item-tags"><span class="tag">player</span><span class="tag">track-menu</span><span class="tag">subtitles</span></div>
+        </div>
+      </div>
+    </a>
+    <a class="card" href="screenshots/roku-720p/player-progress-focus.jpg" aria-label="Player progress after menu screenshot" data-card data-title="Player progress after menu" data-platform="roku" data-group="player" data-tags="player progress subtitles">
+      <img class="preview" src="screenshots/roku-720p/player-progress-focus.jpg" alt="" loading="lazy">
+      <div class="card-body">
+        <div class="item-info">
+          <div class="item-name">Player progress after menu</div>
+          <div class="item-meta"><span>Player</span><span>1280x720 / 22 KB</span></div>
+          <div class="item-tags"><span class="tag">player</span><span class="tag">progress</span><span class="tag">subtitles</span></div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="footer">Generated from <code>.vref/manifest.json</code> with <code>vref build</code></div>
+</div>
+
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <a class="modal-btn" id="modal-open" href="">Open image</a>
+      <button class="modal-btn" id="modal-close" type="button">Close</button>
+    </div>
+    <div class="modal-frame"><img id="modal-image" src="" alt=""></div>
+  </div>
+</div>
+<script>
+  const cards = Array.from(document.querySelectorAll('[data-card]'));
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalImage = document.getElementById('modal-image');
+  const modalOpen = document.getElementById('modal-open');
+  const modalClose = document.getElementById('modal-close');
+  let lastFocusedElement = null;
+
+  cards.forEach((card) => {
+    card.addEventListener('click', (event) => {
+      event.preventDefault();
+      lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      modalTitle.textContent = card.dataset.title;
+      modalImage.src = card.getAttribute('href');
+      modalImage.alt = card.dataset.title;
+      modalOpen.href = card.getAttribute('href');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      modalClose.focus({ preventScroll: true });
+    });
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  function closeModal() {
+    if (!modal.classList.contains('open')) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    modalImage.removeAttribute('src');
+    if (lastFocusedElement) {
+      lastFocusedElement.focus({ preventScroll: true });
+      lastFocusedElement = null;
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="AuthScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Auth/Auth.brs" />
 
   <interface>
 		<field id="params" type="assocarray" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
     <field id="token" type="string" value="" />
 		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
   </interface>
@@ -12,62 +15,144 @@
 		<LayoutGroup
 			layoutDirection="vert"
 			horizAlignment="center"
-			translation="[960, 120]"
-			itemSpacings="96"
+			translation="[960, 168]"
+			itemSpacings="64"
 		>
 			<Poster
 				id="welcome"
-				width="960"
-				height="240"
+				width="640"
+				height="120"
 				loadDisplayMode="scaleToFit"
 				uri="pkg:/images/AuthWelcome.png"
 			/>
 
       <Label
         id="description"
-        font="font:MediumSystemFont"
-        color="0xFFFFFFFF"
-				width="1280"
-				text="Please go to [put.io/link] in your web browser or navigate to [Settings -> Link your device] section of Putio iOS app and activate this device with the following code"
+        font="font:SmallSystemFont"
+        color="0xEDEDEDFF"
+				width="920"
+				height="44"
+				text="use this activation code to log in"
 				wrap="true"
 				horizAlign="center"
 				vertAlign="center"
-				lineSpacing="20.0"
       />
 
 			<LayoutGroup
 				layoutDirection="vert"
 				horizAlignment="center"
-				itemSpacings="20"
+				itemSpacings="44"
 			>
 				<Group>
-					<Rectangle
-						color="0x000000FF"
-						width="360"
-						height="120"
-					/>
+					<LayoutGroup
+						id="codeTiles"
+						layoutDirection="horiz"
+						itemSpacings="16"
+					>
+						<Group id="codeTile0">
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
+							<Label id="codeChar0" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
+						</Group>
+						<Group id="codeTile1">
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
+							<Label id="codeChar1" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
+						</Group>
+						<Group id="codeTile2">
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
+							<Label id="codeChar2" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
+						</Group>
+						<Group id="codeTile3">
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
+							<Label id="codeChar3" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
+						</Group>
+						<Group id="codeTile4">
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
+							<Label id="codeChar4" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
+						</Group>
+						<Group id="codeTile5">
+							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
+							<Label id="codeChar5" width="96" height="96" font="font:LargeBoldSystemFont" color="0x000000FF" horizAlign="center" vertAlign="center" />
+						</Group>
+					</LayoutGroup>
 
 					<Label
 						id="code"
 						text="Loading..."
 						font="font:LargeBoldSystemFont"
-						width="360"
-						height="120"
+						color="0xEDEDEDFF"
+						width="656"
+						height="96"
 						horizAlign="center"
 						vertAlign="center"
 					/>
 				</Group>
 
-				<Label
-					id="message"
-					text=""
-					width="960"
-					wrap="true"
-					horizAlign="center"
-					vertAlign="center"
-					lineSpacing="10.0"
-					font="font:SmallSystemFont"
-				/>
+				<LayoutGroup
+					layoutDirection="vert"
+					horizAlignment="center"
+					itemSpacings="16"
+				>
+					<Label
+						id="stepsLabel"
+						text="follow the steps at the website below"
+						width="920"
+						height="36"
+						color="0xA0A0A0FF"
+						horizAlign="center"
+						vertAlign="center"
+						font="font:SmallSystemFont"
+					/>
+
+					<Label
+						id="linkLabel"
+						text="put.io/link"
+						width="920"
+						height="56"
+						color="0xFDCE45FF"
+						horizAlign="center"
+						vertAlign="center"
+						font="font:LargeBoldSystemFont"
+					/>
+
+					<Label
+						id="message"
+						text=""
+						width="920"
+						height="0"
+						color="0xA0A0A0FF"
+						visible="false"
+						wrap="true"
+						horizAlign="center"
+						vertAlign="center"
+						lineSpacing="10.0"
+						font="font:SmallSystemFont"
+					/>
+				</LayoutGroup>
+
+				<Group id="refreshButton">
+					<Poster id="refreshButtonBackground" width="400" height="72" uri="pkg:/images/auth-refresh-button.png" loadDisplayMode="scaleToFit" />
+
+					<Poster
+						id="refreshButtonIcon"
+						translation="[66,20]"
+						width="32"
+						height="32"
+						uri="pkg:/images/Spinner.png"
+						loadDisplayMode="scaleToFit"
+					/>
+
+					<Label
+						id="refreshButtonLabel"
+						text="Get new code"
+						font="font:MediumBoldSystemFont"
+						color="0xEDEDEDFF"
+						translation="[116,0]"
+						width="270"
+						height="72"
+						horizAlign="left"
+						vertAlign="center"
+					/>
+				</Group>
 			</LayoutGroup>
 		</LayoutGroup>
 	</children>

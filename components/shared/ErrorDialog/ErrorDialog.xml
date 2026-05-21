@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<component name="ErrorDialog" extends="Dialog">
+<component name="ErrorDialog" extends="AppDialog">
   <interface>
     <field id="error" type="assocarray" onChange="onErrorChange" />
   </interface>

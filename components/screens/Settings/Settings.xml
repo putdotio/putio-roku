@@ -1,47 +1,46 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SettingsScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Settings/Settings.brs" />
 
 	<interface>
     <field id="params" type="assocarray" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
 		<field id="navigate" type="assocarray" />
 		<field id="navigateBack" type="bool" alwaysNotify="true" />
 		<field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
 
 	<children>
-		<Overhang
-			id="overhang"
-			showClock="false"
+    <Overhang
+      id="overhang"
+      showClock="false"
       title="Settings"
-			logoUri="pkg:/images/OverhangLogo.png"
-			logoBaselineOffset="9"
-			showOptions="true"
-			optionsAvailable="false"
-			optionsDimColor="0x00000000"
-			optionsIconDimColor="0x00000000"
-		/>
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      showOptions="true"
+      optionsAvailable="false"
+      optionsDimColor="0x00000000"
+      optionsIconDimColor="0x00000000"
+    />
 
 		<MarkupList
 			id="settingsList"
 			itemComponentName="ListItem"
-			translation="[190, 190]"
-			itemSize="[1500, 120]"
-			itemSpacing="[0, 30]"
-			focusBitmapBlendColor="0x00000FF"
-      		vertFocusAnimationStyle="floatingFocus"
+			translation="[102, 171]"
+			itemSize="[1716, 120]"
+			itemSpacing="[0, 12]"
+      drawFocusFeedback="true"
+      drawFocusFeedbackOnTop="false"
+      focusBitmapUri="pkg:/images/list-item-focus.9.png"
+      focusBitmapBlendColor="0x2E2E2EFF"
+      vertFocusAnimationStyle="fixedFocus"
 			numRows="6"
-		/>
-
-		<Label
-			id="version"
-			font="font:MediumBoldSystemFont"
-			color="0xFFFFFFFF"
-			text="Version "
-			width="512"
-			translation="[190, 1000]"
 		/>
 	</children>
 </component>

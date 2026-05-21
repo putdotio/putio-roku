@@ -1,12 +1,13 @@
 function init()
     m.storage = CreateObject("roRegistrySection", "userConfig")
     m.top.observeField("visible", "onVisibleChange")
+    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.keyboard = m.top.findNode("keyboard")
-    m.keyboard.setFocus(true)
     m.keyboard.observeField("text", "onKeywordChange")
 
     m.loading = m.top.findNode("loading")
+    m.emptyState = m.top.findNode("emptyState")
     m.searchFileList = m.top.findNode("searchFileList")
     m.searchFileList.observeField("itemSelected", "onFileSelected")
     m.searchFileList.visible = false
@@ -59,13 +60,20 @@ sub updateSearchHistoryButtons(keyword)
         end for
 
         m.searchHistory.content = content
-        m.searchHistory.visible = true
+        m.searchHistory.visible = content.getChildCount() > 0
+        m.searchFileList.visible = false
+        if content.getChildCount() = 0
+            showEmptyState("No recent searches", "Searches will appear here after you open a result.")
+        else
+            hideEmptyState()
+        end if
     else
         if m.searchHistory.getParent() <> invalid
             m.searchResultGroup.removeChild(m.searchHistory)
         end if
 
         m.searchHistory.visible = false
+        hideEmptyState()
     end if
 end sub
 
@@ -142,6 +150,7 @@ end sub
 
 ''' UI
 sub showLoading()
+    hideEmptyState()
     m.loading.visible = "true"
 end sub
 
@@ -155,10 +164,30 @@ sub configureFileList()
     for each file in m.files
         listItemData = content.createChild("FileListItemData")
         listItemData.file = file
+        listItemData.rowWidth = 960
     end for
 
     m.searchFileList.visible = m.files.Count() > 0
     m.searchFileList.content = content
+    if m.files.Count() > 0
+        hideEmptyState()
+    else if hasSearchKeyword()
+        showEmptyState("No results found", "Try a different search term.")
+    end if
+end sub
+
+function hasSearchKeyword() as boolean
+    return m.keyboard.text <> invalid and m.keyboard.text.Len() > 0
+end function
+
+sub showEmptyState(headingText as string, bodyText as string)
+    m.emptyState.headingText = headingText
+    m.emptyState.bodyText = bodyText
+    m.emptyState.visible = "true"
+end sub
+
+sub hideEmptyState()
+    m.emptyState.visible = "false"
 end sub
 
 ''' Error Dialog
@@ -213,12 +242,16 @@ sub onFetchSearchHistory(obj)
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top)
+        return true
+    end if
+
     if m.top.visible and press
-        normalizedKey = LCase(key)
+        normalizedKey = normalizeKey(key)
 
         if normalizedKey = "back"
             m.keyboard.text = ""
-            m.top.navigateBack = "true"
+            m.top.navigateBack = true
             return true
         else if normalizedKey = "left"
             if m.searchHistory.isInFocusChain()
@@ -240,12 +273,16 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 end if
             end if
             return false
-        else if normalizedKey = "options" or normalizedKey = "info" or normalizedKey = "search"
+        else if isOptionsKey(normalizedKey) or normalizedKey = "search"
             if m.searchFileList.visible
                 m.searchFileList.setFocus(true)
                 return true
             else if m.searchHistory.visible
                 m.searchHistory.setFocus(true)
+                return true
+            end if
+
+            if isOptionsKey(normalizedKey)
                 return true
             end if
 

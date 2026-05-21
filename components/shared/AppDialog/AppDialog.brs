@@ -1,0 +1,382 @@
+sub init()
+    initAppDialog()
+end sub
+
+sub initAppDialog()
+    m.top.focusable = true
+    m.scrim = m.top.findNode("scrim")
+    m.panelGroup = m.top.findNode("panelGroup")
+    m.panelShadow = m.top.findNode("panelShadow")
+    m.panel = m.top.findNode("panel")
+    m.panelBorderTop = m.top.findNode("panelBorderTop")
+    m.panelBorderRight = m.top.findNode("panelBorderRight")
+    m.panelBorderBottom = m.top.findNode("panelBorderBottom")
+    m.panelBorderLeft = m.top.findNode("panelBorderLeft")
+    m.titleLabel = m.top.findNode("titleLabel")
+    m.divider = m.top.findNode("divider")
+    m.messageLabels = []
+    for i = 0 to 5
+        m.messageLabels.push(m.top.findNode("messageLine" + i.toStr()))
+    end for
+    m.buttonsGroup = m.top.findNode("buttonsGroup")
+    m.buttonNodes = [
+        {
+            node: m.top.findNode("button0"),
+            background: m.top.findNode("button0Background"),
+            label: m.top.findNode("button0Label"),
+        },
+        {
+            node: m.top.findNode("button1"),
+            background: m.top.findNode("button1Background"),
+            label: m.top.findNode("button1Label"),
+        },
+    ]
+    m.focusIndex = 0
+    m.closeOnKeyRelease = false
+    m.pendingButtonSelected = invalid
+    applyDialogScrim(m.scrim)
+    applyDialogPanelColors(m.panel, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
+    applyDialogTextColors(m.titleLabel, invalid)
+    setDialogNodeColor(m.divider, "border")
+    for each label in m.messageLabels
+        setDialogNodeColor(label, "textMuted")
+    end for
+    updateDialogContent()
+    updateDialogButtons()
+end sub
+
+sub onDialogContentChange()
+    updateDialogContent()
+end sub
+
+sub onButtonsChange()
+    updateDialogButtons()
+end sub
+
+sub onDefaultButtonChange()
+    updateDialogButtons()
+end sub
+
+sub onFocusedButtonChange()
+    m.focusIndex = m.top.focusedButton
+    updateDialogButtonFocus()
+end sub
+
+sub onCloseChange()
+    if m.top.close = true
+        closeAppDialog()
+    end if
+end sub
+
+sub updateDialogContent()
+    if m.titleLabel = invalid
+        return
+    end if
+
+    m.titleLabel.text = m.top.title
+    updateDialogButtons()
+end sub
+
+sub updateDialogButtons()
+    if m.buttonNodes = invalid
+        return
+    end if
+
+    buttons = m.top.buttons
+    if buttons = invalid or buttons.count() = 0
+        buttons = ["OK"]
+    end if
+
+    maxButtons = m.buttonNodes.count()
+    visibleButtonCount = buttons.count()
+    if visibleButtonCount > maxButtons
+        visibleButtonCount = maxButtons
+    end if
+
+    m.focusIndex = m.top.defaultButton
+    if m.focusIndex < 0 or m.focusIndex >= visibleButtonCount
+        m.focusIndex = 0
+    end if
+    m.top.focusedButton = m.focusIndex
+
+    for i = 0 to maxButtons - 1
+        button = m.buttonNodes[i]
+        if i < visibleButtonCount
+            button.node.visible = true
+            button.label.text = buttons[i]
+        else
+            button.node.visible = false
+            button.label.text = ""
+        end if
+    end for
+
+    updateDialogLayout(visibleButtonCount)
+    updateDialogButtonFocus()
+end sub
+
+sub updateDialogLayout(buttonCount as integer)
+    rowHeight = 78
+    rowGap = 18
+    topPadding = 51
+    titleHeight = 45
+    titleBodyGap = 48
+    bodyButtonGap = 57
+    titleButtonGap = 39
+    bottomPadding = 51
+    hasMessage = m.top.message <> ""
+    bodyY = topPadding + titleHeight + titleBodyGap
+
+    if hasMessage
+        if Len(m.top.message) > 34
+            panelWidth = 1044
+            contentWidth = 936
+            messageLineLength = 40
+        else
+            panelWidth = 900
+            contentWidth = 804
+            messageLineLength = 34
+        end if
+
+        messageLines = wrapAppDialogMessageLines(m.top.message, messageLineLength)
+        messageLineCount = messageLines.count()
+        messageHeight = messageLineCount * 45
+        if messageLineCount > 1
+            messageHeight = messageHeight + ((messageLineCount - 1) * 3)
+        end if
+        buttonsY = bodyY + messageHeight + bodyButtonGap
+    else
+        panelWidth = 900
+        contentWidth = 804
+        messageLines = []
+        buttonsY = topPadding + titleHeight + titleButtonGap
+    end if
+
+    panelHeight = buttonsY + (buttonCount * rowHeight) + bottomPadding
+    if buttonCount > 1
+        panelHeight = panelHeight + ((buttonCount - 1) * rowGap)
+    end if
+
+    panelX = uiCenterX(panelWidth)
+    panelY = uiCenterY(panelHeight)
+    contentX = uiSnap(Int((panelWidth - contentWidth) / 2))
+    borderWidth = uiBorderWidth()
+
+    m.panel.width = panelWidth
+    m.panel.height = panelHeight
+    m.panelShadow.width = panelWidth
+    m.panelShadow.height = panelHeight
+    m.panelShadow.translation = [uiShadowOffset(), uiShadowOffset()]
+    m.panelBorderTop.width = panelWidth
+    m.panelBorderTop.height = borderWidth
+    m.panelBorderRight.translation = [panelWidth - borderWidth, 0]
+    m.panelBorderRight.width = borderWidth
+    m.panelBorderRight.height = panelHeight
+    m.panelBorderBottom.translation = [0, panelHeight - borderWidth]
+    m.panelBorderBottom.width = panelWidth
+    m.panelBorderBottom.height = borderWidth
+    m.panelBorderLeft.width = borderWidth
+    m.panelBorderLeft.height = panelHeight
+    m.panelGroup.translation = [panelX, panelY]
+    m.titleLabel.translation = [contentX, topPadding]
+    m.titleLabel.width = contentWidth
+    m.titleLabel.height = titleHeight
+    updateDialogMessageLabels(messageLines, contentWidth, contentX, bodyY)
+    m.buttonsGroup.translation = [contentX, buttonsY]
+
+    for i = 0 to m.buttonNodes.count() - 1
+        button = m.buttonNodes[i]
+        button.node.translation = [0, i * (rowHeight + rowGap)]
+        button.background.width = contentWidth
+        button.background.height = rowHeight
+        button.label.width = contentWidth
+        button.label.height = rowHeight
+    end for
+end sub
+
+sub updateDialogButtonFocus()
+    if m.buttonNodes = invalid
+        return
+    end if
+
+    for i = 0 to m.buttonNodes.count() - 1
+        button = m.buttonNodes[i]
+        focused = button.node.visible and i = m.focusIndex
+        button.background.visible = button.node.visible
+
+        if i = 0
+            applyDialogButtonState(button.background, button.label, focused, "primary")
+        else
+            applyDialogButtonState(button.background, button.label, focused, "secondary")
+        end if
+    end for
+end sub
+
+sub closeAppDialog()
+    m.top.visible = false
+    m.top.close = false
+    m.top.wasClosed = true
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if m.top.visible = false
+        return false
+    end if
+
+    if press = false
+        if m.closeOnKeyRelease
+            m.closeOnKeyRelease = false
+
+            if m.pendingButtonSelected <> invalid
+                pendingButtonSelected = m.pendingButtonSelected
+                m.pendingButtonSelected = invalid
+                m.top.buttonSelected = pendingButtonSelected
+
+                if m.top.visible
+                    closeAppDialog()
+                end if
+            else
+                closeAppDialog()
+            end if
+
+            return true
+        end if
+
+        return false
+    end if
+
+    if isBackKey(key)
+        m.pendingButtonSelected = invalid
+        m.closeOnKeyRelease = true
+        return true
+    else if isVerticalNavigationKey(key)
+        buttonCount = getVisibleDialogButtonCount()
+        if buttonCount > 1
+            if m.focusIndex = 0
+                m.focusIndex = 1
+            else
+                m.focusIndex = 0
+            end if
+            m.top.focusedButton = m.focusIndex
+            updateDialogButtonFocus()
+        end if
+        return true
+    else if isSelectKey(key)
+        m.pendingButtonSelected = m.focusIndex
+        m.closeOnKeyRelease = true
+        return true
+    end if
+
+    return true
+end function
+
+sub updateDialogMessageLabels(lines as object, contentWidth as integer, contentX as integer, bodyY as integer)
+    for i = 0 to m.messageLabels.count() - 1
+        label = m.messageLabels[i]
+        label.width = contentWidth
+        label.height = 45
+        label.translation = [contentX, bodyY + (i * 48)]
+
+        if i < lines.count()
+            label.text = lines[i]
+            label.visible = true
+        else
+            label.text = ""
+            label.visible = false
+        end if
+    end for
+end sub
+
+function wrapAppDialogMessageLines(message as string, maxLineLength as integer) as object
+    lines = []
+    maxLines = 6
+
+    if message = invalid or message = ""
+        return lines
+    end if
+
+    remainingMessage = message
+
+    while remainingMessage <> "" and lines.count() < maxLines
+        newlineIndex = Instr(1, remainingMessage, chr(10))
+        if newlineIndex > 0
+            paragraph = Left(remainingMessage, newlineIndex - 1)
+            remainingMessage = Mid(remainingMessage, newlineIndex + 1)
+        else
+            paragraph = remainingMessage
+            remainingMessage = ""
+        end if
+
+        appendWrappedAppDialogLines(lines, paragraph, maxLineLength, maxLines, remainingMessage <> "")
+    end while
+
+    if remainingMessage <> "" and lines.count() > 0
+        lines[lines.count() - 1] = abbreviateAppDialogLine(lines[lines.count() - 1], maxLineLength)
+    end if
+
+    return lines
+end function
+
+sub appendWrappedAppDialogLines(lines as object, text as string, maxLineLength as integer, maxLines as integer, hasMoreText as boolean)
+    remaining = text
+
+    if remaining = ""
+        lines.push("")
+        return
+    end if
+
+    while remaining <> "" and lines.count() < maxLines
+        if Len(remaining) <= maxLineLength
+            lines.push(remaining)
+            remaining = ""
+        else
+            wrapIndex = maxLineLength
+            wrapAtSpace = false
+
+            for i = maxLineLength to 1 step -1
+                if Mid(remaining, i, 1) = " "
+                    wrapIndex = i
+                    wrapAtSpace = true
+                    exit for
+                end if
+            end for
+
+            if wrapAtSpace and wrapIndex >= 24
+                lines.push(Left(remaining, wrapIndex - 1))
+                remaining = Mid(remaining, wrapIndex + 1)
+            else
+                lines.push(Left(remaining, maxLineLength))
+                remaining = Mid(remaining, maxLineLength + 1)
+            end if
+        end if
+    end while
+
+    if (remaining <> "" or hasMoreText) and lines.count() > 0
+        lines[lines.count() - 1] = abbreviateAppDialogLine(lines[lines.count() - 1], maxLineLength)
+    end if
+end sub
+
+function abbreviateAppDialogLine(line as string, maxLineLength as integer) as string
+    suffix = "..."
+    maxBodyLength = maxLineLength - Len(suffix)
+    if maxBodyLength < 1
+        return suffix
+    end if
+
+    if Len(line) > maxBodyLength
+        return Left(line, maxBodyLength) + suffix
+    end if
+
+    return line + suffix
+end function
+
+function getVisibleDialogButtonCount() as integer
+    count = 0
+
+    for i = 0 to m.buttonNodes.count() - 1
+        if m.buttonNodes[i].node.visible
+            count = count + 1
+        end if
+    end for
+
+    return count
+end function

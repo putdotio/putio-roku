@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="ImageScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Image/Image.brs" />
   <interface>
     <field id="params" type="assocarray" />
-		<field id="navigateBack" type="bool" alwaysNotify="true" />
-		<field id="showDialog" type="node" alwaysNotify="true" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
+    <field id="navigateBack" type="bool" alwaysNotify="true" />
+    <field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
   <children>
     <Overhang
@@ -17,7 +22,7 @@
       optionsAvailable="false"
       optionsDimColor="0x00000000"
       optionsIconDimColor="0x00000000"
-	  />
+    />
 
     <LoadingIndicator
       id="loading"
@@ -26,10 +31,12 @@
     />
 
     <Poster
-        id="image"
-        translation="[190,190]"
-        visible="false"
-        loadDisplayMode="scaleToFit"
+      id="renderedImage"
+      translation="[96,160]"
+      width="1728"
+      height="824"
+      visible="false"
+      loadDisplayMode="scaleToFit"
     />
   </children>
 </component>

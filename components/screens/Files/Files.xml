@@ -1,41 +1,62 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="FilesScreen" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Files/Files.brs" />
 
-	<interface>
+  <interface>
     <field id="params" type="assocarray" />
-		<field id="navigate" type="assocarray" />
-		<field id="navigateBack" type="bool" alwaysNotify="true" />
-		<field id="showDialog" type="node" alwaysNotify="true" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
+    <field id="navigate" type="assocarray" />
+    <field id="navigateBack" type="bool" alwaysNotify="true" />
+    <field id="showDialog" type="node" alwaysNotify="true" />
   </interface>
 
-	<children>
-		<Overhang
-			id="overhang"
-			showClock="false"
+  <children>
+    <Overhang
+      id="overhang"
+      showClock="false"
       title="Your Files"
-			logoUri="pkg:/images/OverhangLogo.png"
-			logoBaselineOffset="9"
-			showOptions="true"
-			optionsAvailable="true"
-			optionsText="Delete"
-		/>
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      showOptions="true"
+      optionsAvailable="true"
+      optionsText="Delete"
+    />
 
-		<LoadingIndicator
+    <LoadingIndicator
       id="loading"
       imageWidth="120"
       imageHeight="120"
     />
 
-		<MarkupList
-			id="fileList"
-			translation="[190, 190]"
-			itemComponentName="FileListItem"
-			itemSize="[1500, 120]"
-			itemSpacing="[0, 30]"
-			focusBitmapBlendColor="0x00000FF"
-			numRows="6"
-		/>
-	</children>
+    <MarkupList
+      id="fileList"
+      translation="[102, 189]"
+      itemComponentName="FileListItem"
+      itemSize="[1716, 120]"
+      itemSpacing="[0, 30]"
+      drawFocusFeedback="true"
+      drawFocusFeedbackOnTop="false"
+      focusBitmapUri="pkg:/images/list-item-focus.9.png"
+      focusBitmapBlendColor="0x2E2E2EFF"
+      vertFocusAnimationStyle="fixedFocus"
+      numRows="6"
+    />
+
+    <EmptyState
+      id="emptyState"
+      translation="[189, 309]"
+      contentWidth="1500"
+      visible="false"
+    />
+
+    <DeleteFileDialog
+      id="deleteFileDialog"
+      visible="false"
+    />
+  </children>
 </component>

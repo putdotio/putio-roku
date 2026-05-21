@@ -26,12 +26,8 @@ function init()
     m.playbackSpeedSupported = isPlaybackSpeedSupported(m.video)
 
     m.trackMenu = m.top.findNode("trackMenu")
-    m.trackMenuPanel = m.top.findNode("trackMenuPanel")
-    m.trackMenuTitle = m.top.findNode("trackMenuTitle")
-    m.trackRows = m.top.findNode("trackRows")
     m.trackMenuSelectionGuard = m.top.findNode("trackMenuSelectionGuard")
     m.trackMenuSelectionGuard.observeField("fire", "onTrackMenuSelectionGuardFire")
-    m.trackMenuRows = createTrackMenuRows(m.trackRows, getTrackMenuRowPoolSize())
 
     m.controls = [
         {
@@ -142,7 +138,6 @@ function init()
     m.trackMenuItems = []
     m.trackMenuMode = ""
     m.trackMenuFocusIndex = 0
-    m.trackMenuScrollOffset = 0
     m.trackMenuReturnFocusIndex = 1
     m.selectedAudioTrack = invalid
     m.userSelectedAudioTrack = false
@@ -155,58 +150,6 @@ function init()
     m.errorDialog = invalid
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
-end function
-
-function getTrackMenuRowPoolSize() as integer
-    return 12
-end function
-
-function createTrackMenuRows(parent as object, rowCount as integer) as object
-    rows = []
-
-    for i = 0 to rowCount - 1
-        index = i.toStr()
-        row = CreateObject("roSGNode", "Group")
-        row.id = "trackRow" + index
-        row.visible = false
-
-        background = CreateObject("roSGNode", "Rectangle")
-        background.id = "trackRow" + index + "Background"
-        background.width = 1200
-        background.height = 92
-        background.color = "0x333333FF"
-        background.visible = false
-        row.appendChild(background)
-
-        label = CreateObject("roSGNode", "Label")
-        label.id = "trackRow" + index + "Label"
-        label.translation = [28, 24]
-        label.width = 1068
-        label.font = "font:MediumSystemFont"
-        label.color = "0xF0F0F0FF"
-        row.appendChild(label)
-
-        check = CreateObject("roSGNode", "Label")
-        check.id = "trackRow" + index + "Check"
-        check.translation = [1128, 21]
-        check.width = 48
-        check.font = "font:LargeBoldSystemFont"
-        check.color = "0xFFFFFFFF"
-        check.horizAlign = "center"
-        check.text = "✓"
-        check.visible = false
-        row.appendChild(check)
-
-        parent.appendChild(row)
-        rows.push({
-            node: row,
-            background: background,
-            label: label,
-            check: check
-        })
-    end for
-
-    return rows
 end function
 
 function isPlaybackSpeedSupported(video) as boolean
@@ -328,7 +271,6 @@ sub resetPlaybackState()
     m.trackMenuItems = []
     m.trackMenuMode = ""
     m.trackMenuFocusIndex = 0
-    m.trackMenuScrollOffset = 0
     m.trackMenuReturnFocusIndex = 1
     m.selectedAudioTrack = invalid
     m.userSelectedAudioTrack = false
@@ -969,7 +911,7 @@ sub updateControlFocus()
             if focused
                 control.valueLabel.color = "0xFDCE45FF"
             else
-                control.valueLabel.color = "0xD6D6D6FF"
+                control.valueLabel.color = "0xA0A0A0FF"
             end if
         end if
     end for
@@ -985,7 +927,7 @@ sub updateProgressFocusStyle(focused as boolean)
     if focused
         m.progressTrack.translation = [0, 23]
         m.progressTrack.height = 12
-        m.progressTrack.color = "0x8A8A8AFF"
+        m.progressTrack.color = "0x505050FF"
         m.progressFill.translation = [0, 23]
         m.progressFill.height = 12
         m.progressFill.color = "0xFDCE45FF"
@@ -1000,10 +942,10 @@ sub updateProgressFocusStyle(focused as boolean)
     else
         m.progressTrack.translation = [0, 25]
         m.progressTrack.height = 8
-        m.progressTrack.color = "0x5B5B5BE0"
+        m.progressTrack.color = "0x343434E0"
         m.progressFill.translation = [0, 25]
         m.progressFill.height = 8
-        m.progressFill.color = "0xD2A923FF"
+        m.progressFill.color = "0xFDCE45FF"
         m.progressFocusTop.width = 0
         m.progressFocusTop.height = 0
         m.progressFocusBottom.width = 0
@@ -1369,7 +1311,7 @@ end function
 
 sub showPlaybackErrorDialog()
     m.errorDialogShown = true
-    m.errorDialog = createObject("roSGNode", "Dialog")
+    m.errorDialog = createObject("roSGNode", "AppDialog")
     m.errorDialog.title = "Playback failed"
     m.errorDialog.message = getPlaybackErrorDialogMessage()
     m.errorDialog.buttons = ["OK"]
@@ -1443,7 +1385,7 @@ function getCurrentPlaybackSourceLabel() as string
 end function
 
 sub showPlaybackUnavailableDialog()
-    m.errorDialog = createObject("roSGNode", "Dialog")
+    m.errorDialog = createObject("roSGNode", "AppDialog")
     m.errorDialog.title = "Video unavailable"
     m.errorDialog.message = "This video does not have a Roku-compatible stream yet."
     m.errorDialog.buttons = ["OK"]
@@ -1494,8 +1436,16 @@ sub onGoBack()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top)
+        return true
+    end if
+
+    if m.trackMenu.visible and press = false
+        return true
+    end if
+
     if m.top.visible and press
-        normalizedKey = LCase(key)
+        normalizedKey = normalizeKey(key)
 
         if normalizedKey = "back"
             if m.trackMenu.visible
@@ -1518,7 +1468,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             else if normalizedKey = "ok" or normalizedKey = "select"
                 selectFocusedTrackMenuItem()
             else
-                return false
+                return true
             end if
 
             return true
@@ -1593,7 +1543,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             else
                 activateFocusedControl()
             end if
-        else if normalizedKey = "options" or normalizedKey = "info"
+        else if isOptionsKey(normalizedKey)
             showOsd()
             if getFirstAvailableControlIndex() <> invalid
                 focusControls()

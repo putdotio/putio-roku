@@ -74,7 +74,9 @@ environment:
   PUTIO_CLI_PROFILE=devs-fe-auto
   PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
   PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
-  PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party`);
+  PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
+  PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
+  PUTIO_HARNESS_OAUTH_VAULT=frontend-dev`);
   process.exit(1);
 }
 
@@ -309,8 +311,18 @@ async function readAuthStatus(profile: string): Promise<AuthStatus> {
   return parseAuthStatus(await runJson("putio", args, profile));
 }
 
-async function opField(item: string, field: string): Promise<string> {
-  const { stdout } = await execFile("op", ["item", "get", item, "--field", field, "--reveal"], {
+function opItemArgs(item: string, vault: string | undefined): string[] {
+  const args = ["item", "get", item];
+
+  if (vault !== undefined && vault !== "") {
+    args.push("--vault", vault);
+  }
+
+  return args;
+}
+
+async function opField(item: string, field: string, vault?: string): Promise<string> {
+  const { stdout } = await execFile("op", [...opItemArgs(item, vault), "--field", field, "--reveal"], {
     maxBuffer: 1024 * 1024,
   });
   const value = stdout.trim();
@@ -322,8 +334,8 @@ async function opField(item: string, field: string): Promise<string> {
   return value;
 }
 
-async function opOtp(item: string): Promise<string> {
-  const { stdout } = await execFile("op", ["item", "get", item, "--otp"], {
+async function opOtp(item: string, vault?: string): Promise<string> {
+  const { stdout } = await execFile("op", [...opItemArgs(item, vault), "--otp"], {
     maxBuffer: 1024 * 1024,
   });
   const value = stdout.trim();
@@ -395,7 +407,7 @@ async function verifyTotpToken(twoFactorToken: string, code: string): Promise<st
   return data.token;
 }
 
-async function resolveLoginToken(token: string, accountItem: string): Promise<string> {
+async function resolveLoginToken(token: string, accountItem: string, accountVault: string | undefined): Promise<string> {
   const validation = await validateToken(token);
 
   if (validation.result && validation.token_scope !== "two_factor") {
@@ -403,7 +415,7 @@ async function resolveLoginToken(token: string, accountItem: string): Promise<st
   }
 
   if (validation.result && validation.token_scope === "two_factor") {
-    const otp = await opOtp(accountItem);
+    const otp = await opOtp(accountItem, accountVault);
     const verifiedToken = await verifyTotpToken(token, otp);
     const verifiedValidation = await validateToken(verifiedToken);
 
@@ -418,12 +430,14 @@ async function resolveLoginToken(token: string, accountItem: string): Promise<st
 async function materializeToken(): Promise<string> {
   const accountItem = process.env.PUTIO_HARNESS_ACCOUNT_ITEM?.trim() || defaultAccountItem;
   const oauthItem = process.env.PUTIO_HARNESS_OAUTH_ITEM?.trim() || defaultOAuthItem;
-  const username = await opField(accountItem, "username");
-  const email = await opField(accountItem, "email").catch(() => "");
-  const password = await opField(accountItem, "password");
-  const otp = await opOtp(accountItem).catch(() => "");
-  const clientId = await opField(oauthItem, "CLIENT_ID");
-  const clientSecret = await opField(oauthItem, "CLIENT_SECRET");
+  const accountVault = process.env.PUTIO_HARNESS_ACCOUNT_VAULT?.trim();
+  const oauthVault = process.env.PUTIO_HARNESS_OAUTH_VAULT?.trim();
+  const username = await opField(accountItem, "username", accountVault);
+  const email = await opField(accountItem, "email", accountVault).catch(() => "");
+  const password = await opField(accountItem, "password", accountVault);
+  const otp = await opOtp(accountItem, accountVault).catch(() => "");
+  const clientId = await opField(oauthItem, "CLIENT_ID", oauthVault);
+  const clientSecret = await opField(oauthItem, "CLIENT_SECRET", oauthVault);
   const usernames = [...new Set([username, email].filter((value) => value !== ""))];
   const passwords = [...new Set([password, otp === "" ? "" : `${password}${otp}`].filter((value) => value !== ""))];
   let lastError: unknown;
@@ -438,7 +452,7 @@ async function materializeToken(): Promise<string> {
           username: candidateUsername,
         });
 
-        return await resolveLoginToken(token, accountItem);
+        return await resolveLoginToken(token, accountItem, accountVault);
       } catch (error) {
         lastError = error;
       }
@@ -533,6 +547,7 @@ async function authStatus(profile: string): Promise<void> {
 async function authPrepare(profile: string): Promise<void> {
   const before = await readAuthStatus(profile);
   const accountItem = process.env.PUTIO_HARNESS_ACCOUNT_ITEM?.trim() || defaultAccountItem;
+  const accountVault = process.env.PUTIO_HARNESS_ACCOUNT_VAULT?.trim();
 
   if (before.authenticated) {
     const existingToken = await readPreparedToken(profile).catch(() => undefined);
@@ -557,7 +572,7 @@ async function authPrepare(profile: string): Promise<void> {
     }
 
     if (existingToken !== undefined && existingValidation.token_scope === "two_factor") {
-      const token = await resolveLoginToken(existingToken, accountItem);
+      const token = await resolveLoginToken(existingToken, accountItem, accountVault);
       const configPath = await writeConfig(profile, token);
 
       console.log(

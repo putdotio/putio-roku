@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<component name="App" extends="Scene" initialFocus="splashScreen">
+<component name="App" extends="Scene" initialFocus="screenHost">
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/App.brs" />
 
   <interface>
@@ -10,70 +11,14 @@
   </interface>
 
   <children>
-    <SplashScreen
-      id="splashScreen"
-      visible="true"
-      translation="[0, 0]"
+    <Group
+      id="screenHost"
+      focusable="true"
     />
 
-    <AuthScreen
-      id="authScreen"
+    <AppDialog
+      id="appDialog"
       visible="false"
-      translation="[0, 0]"
-    />
-
-    <HomeScreen
-      id="homeScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <SearchScreen
-      id="searchScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <HistoryScreen
-      id="historyScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <FilesScreen
-      id="filesScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <VideoScreen
-      id="videoScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <VideoPlayerScreen
-      id="videoPlayerScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <AudioScreen
-      id="audioScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <ImageScreen
-      id="imageScreen"
-      visible="false"
-      translation="[0, 0]"
-    />
-
-    <SettingsScreen
-      id="settingsScreen"
-      visible="false"
-      translation="[0, 0]"
     />
   </children>
 </component>

@@ -5,7 +5,19 @@ proof from a real Roku device instead of only a ZIP build.
 
 ## Setup
 
-Copy the sample environment file and fill in the local device values:
+Put.io team members should render the shared testing-account and fixture values
+from 1Password, then fill in the local device values in the generated file:
+
+```bash
+make secrets-setup
+```
+
+`make secrets-setup` writes `.env.local` from the `putio-roku` secure note.
+The generated file includes the approved put.io CLI profile, harness item
+names, and the file IDs used by `make live-test-flow-full`.
+
+For non-put.io contributors or one-off local setups, copy the sample
+environment file:
 
 ```bash
 cp .env.example .env
@@ -37,11 +49,14 @@ Optional for authenticated harness setup:
 PUTIO_CLI_PROFILE=devs-fe-auto
 PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
 PUTIO_HARNESS_ACCOUNT_ITEM=putio-test-account
+PUTIO_HARNESS_ACCOUNT_VAULT=frontend-dev
+PUTIO_HARNESS_OAUTH_ITEM=putio-oauth-first-party
+PUTIO_HARNESS_OAUTH_VAULT=frontend-dev
 ```
 
-Keep `.env` local. Device IPs, Developer Mode passwords, signing keys, and
-download tokens do not belong in git. `.putio-cli/` is ignored and may contain
-local put.io CLI auth state for the testing account.
+Keep `.env` and `.env.local` local. Device IPs, Developer Mode passwords,
+signing keys, and download tokens do not belong in git. `.putio-cli/` is
+ignored and may contain local put.io CLI auth state for the testing account.
 
 Install the repo toolchain before running smoke or install checks:
 
@@ -49,10 +64,11 @@ Install the repo toolchain before running smoke or install checks:
 pnpm install --frozen-lockfile
 ```
 
-The Make targets load `.env` automatically. If you call `pnpm roku:live`
-directly, export `ROKU_DEV_TARGET` or `ROKIT_TARGET` in the shell first. The
-scenario script uses `@putdotio/rokit` for generic Roku device control and keeps
-put.io-specific playback assertions in this repo.
+The Make targets load `.env` and `.env.local` automatically, with `.env.local`
+winning when both are present. If you call `pnpm roku:live` directly, export
+`ROKU_DEV_TARGET` or `ROKIT_TARGET` in the shell first. The scenario script uses
+`@putdotio/rokit` for generic Roku device control and keeps put.io-specific
+playback assertions in this repo.
 
 ## Commands
 
@@ -69,11 +85,24 @@ make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id>
 make live-test-playback-error-dialog CONTENT_ID=<bad-file-id>
 make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
 make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
+make live-test-flow-smoke
+make live-test-flow FLOWS=auth,files,dialogs
+make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>
+make test-live
+make lab-install STORY=<story-id>
+make lab-screenshot STORY=<story-id>
+make visual-capture NAME=<short-screen-name>
+make visual-capture-pages
+make visual-capture-lab
+make visual-validate
+make visual-gallery
 make live-test-launch
 make live-test-install
+make debug-snapshot
 make putio-auth-status
 make putio-auth-prepare
 make live-test-auth-reset
+make live-test-auth-refresh
 make live-test-auth-prepare
 make console
 ```
@@ -98,13 +127,13 @@ make console
   confirms `videoPlayerScreen` is visible. Use it when repeated relaunches make
   the device unstable during HLS startup.
 - `make live-test-playback-type TYPE=<hls|mp4>` updates the `playbackType`
-  config value for the prepared `PUTIO_CLI_PROFILE`. The player UI smoke sets
-  this to HLS before running so persisted MP4 preference does not change
-  player-control assertions.
+  config value for the prepared `PUTIO_CLI_PROFILE`. This is useful for direct
+  API config checks, but the live playback smoke uses the Roku Settings UI so
+  it exercises the app token and the real persisted app preference.
 - `make live-test-playback-type-smoke TYPE=<hls|mp4> CONTENT_ID=<file-id> [MEDIA_TYPE=movie] [START_FROM=continue]`
-  updates the playback preference, opens the requested file, asserts the
-  requested file id in the player SceneGraph, and checks the Roku media-player
-  container matches the selected type.
+  opens Settings on the Roku app, sets the playback preference, opens the
+  requested file, asserts the requested file id in the player SceneGraph, and
+  checks the Roku media-player container matches the selected type.
 - `make live-test-playback-error-dialog CONTENT_ID=<bad-file-id> [MEDIA_TYPE=movie] [EXPECTED_TITLE=Oops] [EXPECTED_MESSAGE="File not found"]`
   opens a negative playback route and asserts the error dialog stays visible
   with readable title/message text before dismissing it.
@@ -117,8 +146,10 @@ make console
   media seek keys move playback.
   It uses SceneGraph state because Roku developer screenshots capture the app UI
   plane but not always the video plane.
-- `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=dist/tmp/player-ui]`
-  drives the same playback path and saves `play-focus.jpg`,
+- `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  drives the same playback path and saves screenshots under a timestamped
+  `dist/tmp/player-ui/<run>/` directory unless `OUTPUT_DIR` is set:
+  `play-focus.jpg`,
   `subtitle-button-focus.jpg`, `subtitle-menu.jpg`, `progress-focus.jpg`, and
   optional `audio-button-focus.jpg`, `audio-menu.jpg`,
   `speed-button-focus.jpg`, `speed-menu.jpg`, plus `review.html` for visual
@@ -127,11 +158,73 @@ make console
   available. Set `PLAYER_UI_REFERENCE_IMAGE` to copy an extra reference image
   into the review page. It requires `ROKU_DEV_PASSWORD` because
   screenshots come from the Roku developer inspector.
+- `make live-test-flow-smoke [OUTPUT_DIR=<dir>]` runs the app-level e2e smoke
+  suite against a signed-in device: auth readiness, Files navigation, delete
+  dialog open/dismiss, Settings navigation, Get new code, and auth restoration.
+  It writes flow run output under a timestamped `dist/tmp/flows/app-smoke-*`
+  directory unless `OUTPUT_DIR` is set.
+- `make live-test-flow FLOWS=auth,files,dialogs [PLAYBACK_CONTENT_ID=<file-id>] [IMAGE_CONTENT_ID=<file-id>] [AUDIO_CONTENT_ID=<file-id>] [SUBTITLE_CONTENT_ID=<file-id>] [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  runs a custom comma-separated flow list. Available flows are `auth`,
+  `get-new-code`, `files`, `history`, `dialogs`, `settings`, `logout`,
+  `playback`, `image`, and `tracks`.
+- `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> [MEDIA_TYPE=movie] [START_FROM=continue] [OUTPUT_DIR=<dir>]`
+  runs the broader regression sweep: app smoke flows plus HLS playback, image
+  rendering, track selection/player controls, logout, and auth restoration.
+  Flow targets write failure snapshots under `.local/roku-debug/` by default
+  when Roku/ECP is reachable after a failure.
+- `make test-live` runs the Vitest contract tests around the TypeScript
+  harness. These catch flow-suite drift, fixture argument parsing regressions,
+  and Lab story/capture registry mismatches without touching the Roku.
+- The app-specific command entrypoint is `scripts/roku-live-test.ts`; shared
+  flow definitions, CLI option parsing, put.io config helpers, artifact paths,
+  auth/session handling, rokit device wrappers, navigation/focus helpers,
+  playback launch assertions, SceneGraph parsing/assertions, visual capture
+  drivers, usage text, and player UI review artifact generation live under
+  `scripts/live-test/`.
+- `make lab-install [STORY=app-dialog-empty]` removes the existing developer
+  app, installs this checkout with Lab enabled, and opens the Lab scene on a
+  specific story. Lab launch needs a fresh developer-channel process because
+  `lab=1` is read by `Main(args)`. Available stories are
+  `app-dialog-empty`, `app-dialog-message`, `delete-dialog-short`,
+  `delete-dialog-long`, `continue-watching`, `continue-watching-beginning`,
+  `track-menu-audio`, `track-menu-subtitles`,
+  `track-menu-subtitles-scroll`, `track-menu-speed`,
+  `conversion-status-converting`, `conversion-status-error`,
+  `list-item-generic`, `list-item-files`, `list-item-file-watched-focused`,
+  `list-item-file-loading-focused`, and `list-item-history`.
+- `make lab-screenshot [STORY=app-dialog-empty] [LAB_SCREENSHOT_DELAY=3]`
+  launches the same Lab story and writes
+  a timestamped screenshot such as
+  `dist/tmp/lab/<story>-YYYYMMDD-HHMMSS.jpg`. The delay gives Roku's
+  developer screenshot endpoint time to capture the first rendered app frame.
+- `make visual-capture NAME=<short-screen-name>` captures the current Roku app
+  state into `dist/tmp/visual/captures/<timestamp>/<short-screen-name>.jpg`.
+- `make visual-capture-pages [OUTPUT_DIR=<dir>] [INCLUDE_AUTH=1]` drives the
+  main Roku pages and saves raw screenshots under `dist/tmp/visual/pages/`.
+  `INCLUDE_AUTH=1` signs out, captures Auth, then restores the testing account;
+  do not commit Auth captures unless the activation code is redacted or
+  otherwise public-safe.
+- `make visual-capture-lab [OUTPUT_DIR=<dir>] [STORIES="story-id ..."] [ALL=1]`
+  drives Lab stories and saves raw screenshots under `dist/tmp/visual/lab/`.
+  Without `STORIES` or `ALL=1`, it captures the stable shared AppDialog
+  stories. Use `ALL=1` deliberately because broad Lab sweeps are heavier than
+  targeted story captures. Broad sweeps restart/cool down the Lab session in
+  batches and relaunch a story if a return-to-list step loses SceneGraph. On
+  failure, the harness writes a debug snapshot under `.local/roku-debug/` with
+  active-app, SceneGraph, debug-server, and screenshot artifacts when the
+  device is reachable.
+- `make visual-validate` validates `.vref/manifest.json` and committed
+  screenshot assets without rewriting the gallery.
+- `make visual-gallery` rebuilds the static visual reference gallery from
+  `.vref/manifest.json` with `@putdotio/vref`.
 - `make live-test-launch` opens the installed developer app and prints the
   active app state.
 - `make live-test-install` removes the existing developer app, installs this
   checkout, launches it, and prints the active app state. It requires
   `ROKU_DEV_PASSWORD`.
+- `make debug-snapshot [ROKU_DEBUG_ARTIFACT_DIR=<dir>]` captures the current
+  active app, SceneGraph, Roku debug-server snapshots (`chanperf`, memory,
+  textures, bitmaps), and a screenshot into ignored local artifacts.
 - `make putio-auth-status [PUTIO_CLI_PROFILE=devs-fe-auto]` checks the local
   put.io CLI auth state without exposing token material.
 - `make putio-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` materializes local
@@ -139,6 +232,9 @@ make console
   approved 1Password-backed `devs-fe-auto` setup.
 - `make live-test-auth-reset` launches the Roku developer app, drives Settings >
   Log out through remote keypresses, and waits for the auth screen.
+- `make live-test-auth-refresh` signs the app out when needed, waits for the
+  auth screen device code, presses Select on Get new code, and asserts a new
+  code is rendered.
 - `make live-test-auth-prepare [PUTIO_CLI_PROFILE=devs-fe-auto]` launches the
   Roku developer app, reads the visible device code from SceneGraph when the app
   is signed out, approves it with the prepared testing account, and waits until
@@ -163,12 +259,23 @@ make ROKU_DEV_PASSWORD=<developer-mode-password> live-test-install
 5. Run `make live-test-player-ui AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    for custom player UI changes that affect track menus, scrubber focus, or
    media-key seek behavior.
-6. Run `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+6. Run `make live-test-flow-smoke` after navigation/auth/dialog/router changes
+   to cover the regular app shell flows before touching playback-heavy checks.
+7. Run `make live-test-flow-full PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
+   before shipping broad refactors that could affect auth, routing, files,
+   dialogs, settings, logout, playback, image rendering, or track selection.
+8. Run `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id>`
    when a visual player UI change needs repeatable screenshot artifacts.
-7. Run `make live-test-install` after code changes that must be reproduced on
+9. Run `make lab-install STORY=<story-id>` or
+   `make lab-screenshot STORY=<story-id>` for modal/component visual changes
+   that can be isolated from authenticated app state.
+10. Run `make live-test-install` after code changes that must be reproduced on
    hardware.
-8. In another terminal, run `make console` before launching playback flows so
+11. In another terminal, run `make console` before launching playback flows so
    BrightScript compile/runtime/player logs are visible.
+12. Run `make debug-snapshot` immediately after a crash, ECP timeout, or visual
+   capture failure. For long visual Lab sweeps, prefer targeted `STORIES=...`
+   slices first, then `ALL=1` only when the device is stable.
 
 If `make live-test` passes but install fails with repeated HTTP `401`, the
 device is reachable but Developer Mode auth failed. Check `ROKU_DEV_PASSWORD`

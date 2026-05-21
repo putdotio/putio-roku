@@ -2,11 +2,14 @@
 <component name="VideoPlayerScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerTrackMenu.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayer.brs" />
 
 	<interface>
     <field id="params" type="assocarray" />
+    <field id="routeShown" type="boolean" alwaysNotify="true" />
+    <field id="routeHidden" type="boolean" alwaysNotify="true" />
 		<field id="navigate" type="assocarray" />
 		<field id="navigateBack" type="bool" alwaysNotify="true" />
     <field id="showDialog" type="node" alwaysNotify="true" />
@@ -18,6 +21,14 @@
       translation="[0,0]"
       width="1920"
       height="1080"
+    />
+
+    <Poster
+      id="playerControlFocusPreload"
+      width="1"
+      height="1"
+      opacity="0"
+      uri="pkg:/images/player-control-focus.png"
     />
 
     <Group
@@ -36,7 +47,7 @@
         translation="[0,800]"
         width="1920"
         height="280"
-        color="0x000000A8"
+        color="0x00000090"
       />
 
       <Label
@@ -44,7 +55,7 @@
         translation="[96,900]"
         width="1360"
         font="font:LargeBoldSystemFont"
-        color="0xDADADAFF"
+        color="0xEDEDEDFF"
       />
 
       <Label
@@ -52,7 +63,7 @@
         translation="[96,923]"
         width="1360"
         font="font:MediumSystemFont"
-        color="0xCCCCCCFF"
+        color="0xA0A0A0FF"
         visible="false"
       />
 
@@ -65,7 +76,7 @@
           translation="[0,52]"
           width="180"
           font="font:SmallSystemFont"
-          color="0xBDBDBDFF"
+          color="0xA0A0A0FF"
           text="..:.."
         />
         <Poster
@@ -90,14 +101,14 @@
             translation="[0,25]"
             width="1728"
             height="8"
-            color="0x5B5B5BE0"
+            color="0x343434E0"
           />
           <Rectangle
             id="playerProgressFill"
             translation="[0,25]"
             width="0"
             height="8"
-            color="0xD2A923FF"
+            color="0xFDCE45FF"
           />
           <Poster
             id="playerProgressThumb"
@@ -121,7 +132,7 @@
           translation="[1548,52]"
           width="180"
           font="font:SmallSystemFont"
-          color="0xBDBDBDFF"
+          color="0xA0A0A0FF"
           horizAlign="right"
           text="..:.."
         />
@@ -138,9 +149,9 @@
         >
           <Poster
             id="rewindBackground"
-            translation="[0,0]"
-            width="88"
-            height="88"
+            translation="[-4,-4]"
+            width="96"
+            height="96"
             uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
@@ -163,7 +174,7 @@
             translation="[0,0]"
             width="0"
             font="font:SmallBoldSystemFont"
-            color="0xFFFFFFFF"
+            color="0xEDEDEDFF"
             text="15"
             visible="false"
           />
@@ -176,9 +187,9 @@
         >
           <Poster
             id="playBackground"
-            translation="[0,0]"
-            width="88"
-            height="88"
+            translation="[-4,-4]"
+            width="96"
+            height="96"
             uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
@@ -205,9 +216,9 @@
         >
           <Poster
             id="fastForwardBackground"
-            translation="[0,0]"
-            width="88"
-            height="88"
+            translation="[-4,-4]"
+            width="96"
+            height="96"
             uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
@@ -230,7 +241,7 @@
             translation="[0,0]"
             width="0"
             font="font:SmallBoldSystemFont"
-            color="0xFFFFFFFF"
+            color="0xEDEDEDFF"
             text="15"
             visible="false"
           />
@@ -247,16 +258,16 @@
             width="260"
             height="36"
             font="font:SmallSystemFont"
-            color="0xBDBDBDFF"
+            color="0xA0A0A0FF"
             horizAlign="center"
             text="Language"
             visible="false"
           />
           <Poster
             id="audioBackground"
-            translation="[6,6]"
-            width="76"
-            height="76"
+            translation="[-4,-4]"
+            width="96"
+            height="96"
             uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
@@ -287,16 +298,16 @@
             width="260"
             height="36"
             font="font:SmallSystemFont"
-            color="0xBDBDBDFF"
+            color="0xA0A0A0FF"
             horizAlign="center"
             text="Subtitles"
             visible="false"
           />
           <Poster
             id="captionsBackground"
-            translation="[6,6]"
-            width="76"
-            height="76"
+            translation="[-4,-4]"
+            width="96"
+            height="96"
             uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
@@ -327,16 +338,16 @@
             width="260"
             height="36"
             font="font:SmallSystemFont"
-            color="0xBDBDBDFF"
+            color="0xA0A0A0FF"
             horizAlign="center"
             text="Speed"
             visible="false"
           />
           <Poster
             id="speedBackground"
-            translation="[6,6]"
-            width="76"
-            height="76"
+            translation="[-4,-4]"
+            width="96"
+            height="96"
             uri="pkg:/images/player-control-focus.png"
             visible="false"
           />
@@ -365,7 +376,7 @@
       <Rectangle
         width="1920"
         height="1080"
-        color="0x00000040"
+        color="0x00000090"
       />
       <LoadingIndicator
         id="bufferingIndicator"
@@ -377,42 +388,11 @@
       />
     </Group>
 
-    <Group
+    <TrackMenu
       id="trackMenu"
       visible="false"
-    >
-      <Rectangle
-        width="1920"
-        height="1080"
-        color="0x0000004D"
-      />
-      <Rectangle
-        id="trackMenuPanel"
-        translation="[320,348]"
-        width="1280"
-        height="384"
-        color="0x151515F8"
-      />
-      <Label
-        id="trackMenuTitle"
-        translation="[380,406]"
-        width="1160"
-        font="font:LargeBoldSystemFont"
-        color="0xBDBDBDFF"
-      />
-
-      <Group id="trackRows" translation="[360,496]" />
-
-      <Label
-        id="trackMenuHint"
-        translation="[748,678]"
-        width="424"
-        font="font:SmallSystemFont"
-        color="0xAAAAAAFF"
-        text="OK selects. Back closes."
-        visible="false"
-      />
-    </Group>
+      showScrim="true"
+    />
 
     <Timer
       id="osdTimer"

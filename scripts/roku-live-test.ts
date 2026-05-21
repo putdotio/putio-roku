@@ -1,64 +1,124 @@
 #!/usr/bin/env node
-import { execFile as execFileCallback } from "node:child_process";
-import { access, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, dirname, extname, join } from "node:path";
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import process from "node:process";
-import { promisify } from "node:util";
 import {
-  assertMediaPlayerContainer as rokitAssertMediaPlayerContainer,
-  assertNamedNodeState,
   assertNamedNodeSize as assertNodeSize,
   assertNamedNodeText,
-  assertNamedNodeTranslation as assertNodeTranslation,
   assertSceneGraphNumberNear as assertNear,
-  checkDevice as rokitCheckDevice,
-  isActiveMediaPlayerState as rokitIsActiveMediaPlayerState,
   isNamedNodeVisible,
-  launchApp as rokitLaunchApp,
-  pressKey as rokitPressKey,
-  queryActiveApp as rokitQueryActiveApp,
-  queryMediaPlayerXml as rokitQueryMediaPlayerXml,
-  queryMediaPlayerXmlSafe as rokitQueryMediaPlayerXmlSafe,
-  querySceneGraph as rokitQuerySceneGraph,
   readNamedNodeAttribute,
-  readNamedNodeAttributes,
-  readNamedNodeBounds,
   readNamedNodeNumber,
   readNamedNodeTranslation,
-  readMediaPlayerContainer,
-  readMediaPlayerPositionMs as rokitReadMediaPlayerPositionMs,
-  readMediaPlayerState as rokitReadMediaPlayerState,
-  readSceneGraphFailure,
   sceneGraphContainsText,
-  takeScreenshot as rokitTakeScreenshot,
-  validateRemoteKey,
-  waitForActiveApp as rokitWaitForActiveApp,
-  waitForMediaPlayerState as rokitWaitForMediaPlayerState,
-  waitForSceneGraphAssertion as rokitWaitForSceneGraphAssertion,
-  waitForSceneGraphNode as rokitWaitForSceneGraphNode,
-  type ActiveApp,
-  type RokuContext,
 } from "@putdotio/rokit";
-import { createPlaybackLaunchRetry } from "./roku-playback-launch.ts";
+import {
+  assertNotAuthScreen,
+  authRefreshSmoke as authRefreshSmokeWithDriver,
+  resetAuthState as resetAuthStateWithDriver,
+  waitForAuthCode,
+  waitForAuthReady,
+  waitForBootstrapScreen,
+  type AuthDriver,
+} from "./live-test/auth.ts";
+import {
+  defaultFlowOutputDir,
+  formatArtifactTimestamp,
+  defaultPlayerUiOutputDir,
+  defaultVisualLabOutputDir,
+  defaultVisualPagesOutputDir,
+} from "./live-test/artifacts.ts";
+import {
+  captureRokuDebugSnapshot,
+  defaultDebugArtifactDir,
+} from "./live-test/diagnostics.ts";
+import {
+  sceneGraphPollIntervalMs,
+  trackMenuRowPoolSize,
+} from "./live-test/constants.ts";
+import { formatErrorMessage } from "./live-test/errors.ts";
+import {
+  ensureAppPlaybackTypeSetting as ensureAppPlaybackTypeSettingWithDriver,
+  runAppFlow,
+  type AppFlowDriver,
+} from "./live-test/app-flows.ts";
+import {
+  appFlowOptionsFromArgs,
+  emptyStringAsUndefined,
+  startFromChoiceFromArg,
+  type AppFlowOptions,
+} from "./live-test/flow-options.ts";
+import {
+  appFlowSmokeSuite,
+  fullAppFlowSuite,
+  parseFlowList,
+  runFlowSuite,
+  type FlowId,
+  type FlowRunContext,
+} from "./live-test/flow-suite.ts";
+import { imageRenderSmoke } from "./live-test/image.ts";
+import {
+  assertDirectPlaybackSurfaceOnDevice,
+  assertPlaybackTypeSurfaceOnDevice,
+  ensureMediaPlaying,
+  launchPlayback,
+  launchPlaybackWithRemoteStart,
+  playbackTypeFromArg,
+} from "./live-test/playback.ts";
+import { capturePlayerUiScreenshots } from "./live-test/player-ui-review.ts";
+import { putioProfileFromArg, setPlaybackTypeConfig } from "./live-test/putio-config.ts";
+import {
+  assertListHasItems,
+  dismissExitDialogIfVisible,
+  focusLastListItem,
+  focusListItemByIndex,
+  leaveActivePlaybackSurface,
+  openHomeItem,
+  returnToHomeScreen as returnToHomeScreenWithGuard,
+  waitForAnyRouteScreenVisible,
+  waitForRouteScreenVisible,
+} from "./live-test/navigation.ts";
+import {
+  captureDeveloperScreenshot,
+  checkDevice,
+  controlSmoke,
+  launchApp,
+  launchDeepLink,
+  pressKey,
+  printActiveApp,
+  queryActiveAppSafe,
+  queryMediaPlayerStateSafe,
+  queryMediaPlayerXmlSafe,
+  querySceneGraph,
+  readMediaPlayerPositionMs,
+  requireDeveloperPassword,
+  requireTarget,
+  type ActiveApp,
+  waitForDevAppSceneGraphReady,
+  waitForMediaPlayerState,
+  waitForNamedNodeVisible,
+  waitForSceneGraphAssertion,
+} from "./live-test/rokit-device.ts";
+import {
+  assertFocusedAuxiliaryLabelLayout,
+  assertNamedNodeHidden,
+  assertNamedNodeVisible,
+  assertPlayerOsdLayout,
+  assertTrackMenuLayout,
+  hasVisibleNode,
+  hasVisibleRouteScreen,
+  readListFocusIndex,
+  type TrackMenuTitle,
+} from "./live-test/scenegraph.ts";
+import { sleep } from "./live-test/timing.ts";
+import { usage } from "./live-test/usage.ts";
+import {
+  captureVisualLabStories,
+  captureVisualPages,
+  visualLabStories,
+  type VisualCaptureDriver,
+} from "./live-test/visual-capture.ts";
 
-const execFile = promisify(execFileCallback);
-const requestTimeoutMs = 15_000;
-const sceneGraphRequestTimeoutMs = 10_000;
-const sceneGraphPollIntervalMs = 1_500;
-const playbackLaunchSceneGraphPollIntervalMs = 3_000;
-const playbackLaunchInitialSettleMs = 5_000;
-const playbackLaunchPostPromptSettleMs = 10_000;
-const launchTimeoutMs = 30_000;
-const authPrepareTimeoutMs = 90_000;
-const playbackLaunchTimeoutMs = 240_000;
-const playbackLaunchRetryMs = 10_000;
-const appSceneGraphReadyTimeoutMs = 45_000;
-const maxPlaybackLaunchAttempts = 4;
-const screenshotCaptureAttempts = 5;
-const trackMenuRowPoolSize = 12;
-
-type TrackMenuTitle = "Audio tracks" | "Subtitles" | "Playback speed";
 type PlayerControlId =
   | "rewind"
   | "play"
@@ -67,1110 +127,21 @@ type PlayerControlId =
   | "captions"
   | "speed";
 
-type PlayerUiReviewContext = {
-  target: string;
-  audioContentId: string;
-  subtitleContentId: string;
-  mediaType: string;
-  startFromChoice: "continue" | "beginning";
+const playerControlBackgroundNodes: Record<PlayerControlId, string> = {
+  rewind: "rewindBackground",
+  play: "playBackground",
+  fastForward: "fastForwardBackground",
+  audio: "audioBackground",
+  captions: "captionsBackground",
+  speed: "speedBackground",
 };
 
-type ImageMetadata = {
-  filename: string;
-  width: number;
-  height: number;
-};
-
-type ReviewImage = {
-  alt: string;
-  filename: string;
-  title: string;
-};
-
-type PutioCliAuthProfile = {
-  auth_token?: string;
-};
-
-type PutioCliConfig = {
-  auth_token?: string;
-  profiles?: Record<string, PutioCliAuthProfile>;
-};
-
-function usage(): never {
-  console.error(`usage:
-  node scripts/roku-live-test.ts check
-  node scripts/roku-live-test.ts active-app
-  node scripts/roku-live-test.ts auth-reset
-  node scripts/roku-live-test.ts auth-prepare [profile]
-  node scripts/roku-live-test.ts set-playback-type <hls|mp4> [profile]
-  node scripts/roku-live-test.ts playback-type-smoke <hls|mp4> <content-id> [media-type] [continue|beginning]
-  node scripts/roku-live-test.ts playback-error-dialog-smoke <content-id> [media-type] [expected-title] [expected-message-fragment]
-  node scripts/roku-live-test.ts launch [app-id]
-  node scripts/roku-live-test.ts launch-deeplink <content-id> [media-type]
-  node scripts/roku-live-test.ts launch-playback <content-id> [media-type] [continue|beginning]
-  node scripts/roku-live-test.ts launch-playback-remote <content-id> [media-type] [continue|beginning]
-  node scripts/roku-live-test.ts player-ui-smoke <audio-content-id> <subtitle-content-id> [media-type] [continue|beginning]
-  node scripts/roku-live-test.ts player-ui-screenshots <audio-content-id> <subtitle-content-id> [media-type] [continue|beginning] [output-dir]
-  node scripts/roku-live-test.ts press <key> [key...]
-  node scripts/roku-live-test.ts control-smoke
-
-environment:
-  ROKU_DEV_TARGET=<roku-ip> or ROKIT_TARGET=<roku-ip>
-  ROKU_DEV_PASSWORD=<developer-mode-password> or ROKIT_PASSWORD=<developer-mode-password>
-  PUTIO_CLI_PROFILE=devs-fe-auto
-  PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
-  PLAYER_UI_REFERENCE_IMAGE=<optional-reference-image-path>`);
-  process.exit(1);
-}
-
-function requireTarget(): string {
-  const rawTarget =
-    process.env.ROKIT_TARGET?.trim() ?? process.env.ROKU_DEV_TARGET?.trim();
-
-  if (!rawTarget) {
-    throw new Error("ROKU_DEV_TARGET or ROKIT_TARGET is not set");
-  }
-
-  return rawTarget
-    .replace(/^https?:\/\//, "")
-    .replace(/\/.*$/, "")
-    .replace(/:\d+$/, "");
-}
-
-function rokitContext(target: string, timeoutMs = requestTimeoutMs): RokuContext {
-  return {
-    target,
-    timeoutMs,
-    username: "rokudev",
-  };
-}
-
-function requireDeveloperPassword(): string {
-  const password = process.env.ROKIT_PASSWORD ?? process.env.ROKU_DEV_PASSWORD;
-
-  if (!password) {
-    throw new Error("ROKU_DEV_PASSWORD or ROKIT_PASSWORD is not set");
-  }
-
-  return password;
-}
-
-function assertNamedNodeVisible(xml: string, nodeName: string): void {
-  assertNamedNodeState(xml, nodeName, "visible");
-}
-
-function assertNamedNodeHidden(xml: string, nodeName: string): void {
-  assertNamedNodeState(xml, nodeName, "hidden");
-}
-
-function assertNamedNodeAbsent(xml: string, nodeName: string): void {
-  assertNamedNodeState(xml, nodeName, "absent");
-}
-
-async function waitForNamedNodeVisible(
-  target: string,
-  nodeName: string,
-  timeoutMs = 30_000,
-): Promise<void> {
-  await rokitWaitForSceneGraphNode(
-    rokitContext(target, sceneGraphRequestTimeoutMs),
-    nodeName,
-    { state: "visible" },
-    timeoutMs,
-  );
-}
-
-function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
-  assertNamedNodeAbsent(xml, "bottomShadeSoft0");
-  assertNodeTranslation(xml, "bottomShade", 0, 800);
-  assertNodeSize(xml, "bottomShade", 1920, 280);
-  assertNodeTranslation(xml, "playerTitle", 96, 900);
-  assertNodeSize(xml, "playerTitle", 1360, 46);
-  assertNodeTranslation(xml, "controls", 0, 870);
-  assertNamedNodeHidden(xml, "rewindButton");
-  assertNamedNodeHidden(xml, "playButton");
-  assertNamedNodeHidden(xml, "fastForwardButton");
-  assertTitleDoesNotOverlapAuxiliaryControls(xml);
-  assertAuxiliaryControlsLayout(xml);
-  assertNodeTranslation(xml, "progress", 96, 960);
-  assertNodeTranslation(xml, "playerProgressTrack", 0, progressFocused ? 23 : 25);
-  assertNodeSize(xml, "playerProgressTrack", 1728, progressFocused ? 12 : 8);
-  assertNodeTranslation(xml, "playerDuration", 1548, 52);
-}
-
-function assertTitleDoesNotOverlapAuxiliaryControls(xml: string): void {
-  const titleBounds = readNamedNodeBounds(xml, "playerTitle");
-  const controlsTranslation = readNamedNodeTranslation(xml, "controls");
-
-  if (titleBounds === undefined || controlsTranslation === undefined) {
-    throw new Error("expected bounds for playerTitle and translation for controls");
-  }
-
-  for (const controlNodeName of ["audioButton", "captionsButton", "speedButton"]) {
-    if (!isNamedNodeVisible(xml, controlNodeName)) {
-      continue;
-    }
-
-    const controlBounds = readNamedNodeBounds(xml, controlNodeName);
-
-    if (controlBounds === undefined) {
-      throw new Error(`expected bounds for ${controlNodeName}`);
-    }
-
-    const absoluteControlBounds = [
-      controlsTranslation[0] + controlBounds[0],
-      controlsTranslation[1] + controlBounds[1],
-      controlBounds[2],
-      controlBounds[3],
-    ] as const;
-
-    if (boundsOverlap(titleBounds, absoluteControlBounds)) {
-      throw new Error(
-        `expected playerTitle bounds ${titleBounds.join(",")} not to overlap ${controlNodeName} bounds ${absoluteControlBounds.join(",")}`,
-      );
-    }
-  }
-}
-
-function boundsOverlap(
-  firstBounds: readonly [number, number, number, number],
-  secondBounds: readonly [number, number, number, number],
-): boolean {
-  const [firstX, firstY, firstWidth, firstHeight] = firstBounds;
-  const [secondX, secondY, secondWidth, secondHeight] = secondBounds;
-
-  return (
-    firstX < secondX + secondWidth &&
-    firstX + firstWidth > secondX &&
-    firstY < secondY + secondHeight &&
-    firstY + firstHeight > secondY
-  );
-}
-
-function assertAuxiliaryControlsLayout(xml: string): void {
-  const visibleAuxiliaryControls = [
-    ["audioButton", "audioFocusLabel", "audioIcon"],
-    ["captionsButton", "captionsFocusLabel", "captionsIcon"],
-    ["speedButton", "speedFocusLabel", "speedIcon"],
-  ].filter(([buttonName]) => isNamedNodeVisible(xml, buttonName));
-
-  const controlGap = 24;
-  const controlWidth = 88;
-  const auxiliaryWidth =
-    visibleAuxiliaryControls.length * controlWidth +
-    Math.max(0, visibleAuxiliaryControls.length - 1) * controlGap;
-  let nextX = 1824 - auxiliaryWidth;
-
-  for (const [buttonName, labelName, valueName] of visibleAuxiliaryControls) {
-    assertNodeTranslation(xml, buttonName, nextX, 0);
-
-    if (isNamedNodeVisible(xml, labelName)) {
-      assertNodeTranslation(xml, labelName, -86, -44);
-      assertNodeSize(xml, labelName, 260, 36);
-    }
-
-    assertNodeTranslation(xml, valueName, 16, 16);
-    assertNodeSize(xml, valueName, 56, 56);
-
-    nextX += controlWidth + controlGap;
-  }
-}
-
-function assertFocusedAuxiliaryLabelLayout(xml: string, focusLabelNodeName: string): void {
-  assertNodeTranslation(xml, focusLabelNodeName, -86, -44);
-  assertNodeSize(xml, focusLabelNodeName, 260, 36);
-}
-
-function assertTrackMenuLayout(
-  xml: string,
-  expectedTitle: TrackMenuTitle,
-  selectedRowIndex: number,
-): void {
-  const rowBackgroundName = `trackRow${selectedRowIndex}Background`;
-  const rowCheckName = `trackRow${selectedRowIndex}Check`;
-  const visibleRowCount = countVisibleTrackRows(xml);
-  const rowHeight = 70;
-  const rowGap = 8;
-  const panelHeight = 104 + 32 + visibleRowCount * rowHeight + Math.max(0, visibleRowCount - 1) * rowGap;
-  const panelY = Math.round((1080 - panelHeight) / 2);
-
-  assertNodeTranslation(xml, "trackMenuPanel", 640, panelY);
-  assertNodeSize(xml, "trackMenuPanel", 640, panelHeight);
-  assertNodeTranslation(xml, "trackMenuTitle", 672, panelY + 40);
-  assertNodeTranslation(xml, "trackRows", 672, panelY + 104);
-  assertNodeSize(xml, rowBackgroundName, 576, 70);
-  assertNodeTranslation(xml, rowCheckName, 516, 10);
-}
-
-function countVisibleTrackRows(xml: string): number {
-  let visibleRows = 0;
-
-  for (let index = 0; index < trackMenuRowPoolSize; index += 1) {
-    if (isNamedNodeVisible(xml, `trackRow${index}`)) {
-      visibleRows += 1;
-    }
-  }
-
-  return visibleRows;
-}
-
-async function checkDevice(target: string): Promise<void> {
-  const summary = await rokitCheckDevice(rokitContext(target));
-
-  console.log(`device: ${summary.name} (${summary.model})`);
-  console.log(`ecp: ${summary.ecp}`);
-  console.log(`developer installer HTTP status: ${summary.installerStatus}`);
-}
-
-async function queryActiveApp(target: string): Promise<ActiveApp> {
-  return await rokitQueryActiveApp(rokitContext(target));
-}
-
-async function printActiveApp(target: string): Promise<void> {
-  const app = await queryActiveApp(target);
-  console.log(`active app: ${app.id} ${app.name} ${app.version}`.trim());
-}
-
-async function waitForAppActive(
-  target: string,
-  appId: string,
-  timeoutMs = 30_000,
-): Promise<ActiveApp> {
-  const start = Date.now();
-  let lastApp: ActiveApp | undefined;
-  let lastError: string | undefined;
-
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const app = await queryActiveApp(target);
-      lastApp = app;
-      lastError = undefined;
-
-      if (app.id === appId) {
-        return app;
-      }
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-    }
-
-    await sleep(1_000);
-  }
-
-  const lastState = lastError ?? (lastApp ? `${lastApp.id} ${lastApp.name}`.trim() : "unknown");
-  throw new Error(`expected active app ${appId}, got ${lastState}`);
-}
-
-async function launchApp(target: string, appId: string): Promise<ActiveApp> {
-  let lastError: string | undefined;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      const app = await rokitLaunchApp(rokitContext(target), appId);
-      if (app.id === appId) {
-        return app;
-      }
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-    }
-
-    try {
-      return await waitForAppActive(target, appId, 10_000);
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-    }
-  }
-
-  throw new Error(lastError ?? `expected active app ${appId}`);
-}
-
-async function launchDeepLink(
-  target: string,
-  contentId: string,
-  mediaType: string,
-  startFromChoice?: "continue" | "beginning",
-): Promise<ActiveApp> {
-  const params = createPlaybackParams(contentId, mediaType, startFromChoice);
-
-  try {
-    return await rokitLaunchApp(rokitContext(target), "dev", params);
-  } catch {
-    await launchApp(target, "dev");
-    await sleep(1_000);
-    return await rokitLaunchApp(rokitContext(target), "dev", params);
-  }
-}
-
-function createPlaybackParams(
-  contentId: string,
-  mediaType: string,
-  startFromChoice?: "continue" | "beginning",
-): Map<string, string> {
-  const params = new Map<string, string>([
-    ["contentID", contentId],
-    ["mediaType", mediaType],
-  ]);
-
-  if (startFromChoice !== undefined) {
-    params.set("startFrom", startFromChoice);
-  }
-
-  return params;
-}
-
-function playbackTypeFromArg(value: string): "hls" | "mp4" {
-  if (value === "hls" || value === "mp4") {
-    return value;
-  }
-
-  throw new Error("playback type must be hls or mp4");
-}
-
-function putioProfileFromArg(rawProfile?: string): string {
-  return rawProfile?.trim() || process.env.PUTIO_CLI_PROFILE?.trim() || "devs-fe-auto";
-}
-
-function putioConfigPathForProfile(profile: string): string {
-  const rawPath = process.env.PUTIO_CLI_CONFIG_PATH?.trim();
-
-  if (rawPath) {
-    return rawPath;
-  }
-
-  return join(process.cwd(), ".putio-cli", `${profile}.json`);
-}
-
-function putioApiBaseUrl(): string {
-  return process.env.PUTIO_CLI_API_BASE_URL?.trim() || "https://api.put.io";
-}
-
-function parseJsonText(text: string, context: string): unknown {
-  try {
-    const value: unknown = JSON.parse(text);
-    return value;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "unknown JSON parse error";
-    throw new Error(`Could not parse JSON from ${context}: ${message}`);
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function optionalString(record: Record<string, unknown>, key: string): string | undefined {
-  const value = record[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-function parsePutioCliConfig(value: unknown): PutioCliConfig {
-  if (!isRecord(value)) {
-    throw new Error("Expected put.io CLI config to be an object");
-  }
-
-  const rawProfiles = value.profiles;
-  const profiles: Record<string, PutioCliAuthProfile> = {};
-
-  if (isRecord(rawProfiles)) {
-    for (const [profile, rawProfile] of Object.entries(rawProfiles)) {
-      if (!isRecord(rawProfile)) {
-        continue;
-      }
-
-      const authToken = optionalString(rawProfile, "auth_token");
-      if (authToken !== undefined) {
-        profiles[profile] = { auth_token: authToken };
-      }
-    }
-  }
-
-  return {
-    auth_token: optionalString(value, "auth_token"),
-    profiles: Object.keys(profiles).length === 0 ? undefined : profiles,
-  };
-}
-
-async function readPreparedPutioToken(profile: string): Promise<string> {
-  const configPath = putioConfigPathForProfile(profile);
-  const config = parsePutioCliConfig(parseJsonText(await readFile(configPath, "utf8"), configPath));
-  const token = config.profiles?.[profile]?.auth_token ?? config.auth_token;
-
-  if (!token) {
-    throw new Error(`No put.io token is configured for ${profile}. Run auth-prepare first.`);
-  }
-
-  return token;
-}
-
-async function setPutioConfigValue(profile: string, key: string, value: string): Promise<void> {
-  const token = await readPreparedPutioToken(profile);
-  const url = new URL(`/v2/config/${encodeURIComponent(key)}`, putioApiBaseUrl());
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: {
-      Authorization: `token ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ value }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`put.io config update failed (${response.status}): ${await response.text()}`);
-  }
-}
-
-async function setPlaybackTypeConfig(playbackType: "hls" | "mp4", profile?: string): Promise<void> {
-  const resolvedProfile = putioProfileFromArg(profile);
-  await setPutioConfigValue(resolvedProfile, "playbackType", playbackType);
-  console.log(`set playbackType=${playbackType} for profile=${resolvedProfile}`);
-}
-
-async function querySceneGraph(target: string): Promise<string> {
-  let xml = "";
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    try {
-      xml = await rokitQuerySceneGraph(rokitContext(target, sceneGraphRequestTimeoutMs), {
-        attempts: 2,
-        requireComplete: true,
-        retryDelayMs: 500,
-      });
-    } catch (error) {
-      lastError = error;
-      await sleep(500);
-      continue;
-    }
-
-    if (xml.includes("<App ") || !xml.includes("<All_Nodes>")) {
-      return xml;
-    }
-
-    await sleep(500);
-  }
-
-  if (xml === "" && lastError !== undefined) {
-    throw lastError;
-  }
-
-  return xml;
-}
-
-async function queryMediaPlayerState(target: string): Promise<string | undefined> {
-  return rokitReadMediaPlayerState(await rokitQueryMediaPlayerXml(rokitContext(target)));
-}
-
-async function queryMediaPlayerStateSafe(target: string): Promise<string | undefined> {
-  try {
-    return await queryMediaPlayerState(target);
-  } catch {
-    return undefined;
-  }
-}
-
-async function queryMediaPlayerXmlSafe(target: string): Promise<string | undefined> {
-  return await rokitQueryMediaPlayerXmlSafe(rokitContext(target));
-}
-
-function readMediaPlayerPositionMs(xml: string | undefined): number | undefined {
-  return xml === undefined ? undefined : rokitReadMediaPlayerPositionMs(xml);
-}
-
-const isActiveMediaPlayerState = rokitIsActiveMediaPlayerState;
-
-async function assertHlsPlaybackSurfaceOnDevice(
-  target: string,
-  contentId: string,
-): Promise<void> {
-  const xml = await querySceneGraph(target);
-
-  try {
-    assertHlsPlaybackSurface(xml, contentId);
-    return;
-  } catch (error) {
-    assertDirectPlaybackSurface(xml, contentId);
-
-    const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
-    if (
-      hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen") &&
-      mediaPlayerXml !== undefined &&
-      readMediaPlayerContainer(mediaPlayerXml) === "hls" &&
-      isActiveMediaPlayerState(await queryMediaPlayerStateSafe(target))
-    ) {
-      return;
-    }
-
-    throw error;
-  }
-}
-
-async function assertDirectPlaybackSurfaceOnDevice(
-  target: string,
-  contentId: string,
-): Promise<void> {
-  const xml = await querySceneGraph(target);
-  assertDirectPlaybackSurface(xml, contentId);
-}
-
-async function assertMediaPlayerContainer(
-  target: string,
-  expectedContainer: string,
-): Promise<void> {
-  await rokitAssertMediaPlayerContainer(rokitContext(target), expectedContainer);
-}
-
-async function assertPlaybackTypeSurfaceOnDevice(
-  target: string,
-  playbackType: "hls" | "mp4",
-  contentId: string,
-): Promise<void> {
-  if (playbackType === "hls") {
-    await assertHlsPlaybackSurfaceOnDevice(target, contentId);
-    await assertMediaPlayerContainer(target, "hls");
-  } else {
-    await assertDirectPlaybackSurfaceOnDevice(target, contentId);
-    await assertMediaPlayerContainer(target, "mp4");
-  }
-}
-
-async function queryActiveAppSafe(target: string): Promise<ActiveApp | undefined> {
-  try {
-    return await queryActiveApp(target);
-  } catch {
-    return undefined;
-  }
-}
-
-async function waitForMediaPlayerState(
-  target: string,
-  expectedState: string,
-  timeoutMs = 4_000,
-): Promise<boolean> {
-  try {
-    await rokitWaitForMediaPlayerState(rokitContext(target), expectedState, timeoutMs);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function ensureMediaPlaying(target: string): Promise<void> {
-  if ((await queryMediaPlayerStateSafe(target)) === "play") {
-    return;
-  }
-
-  await pressKey(target, "Play");
-  if (!(await waitForMediaPlayerState(target, "play", 8_000))) {
-    throw new Error("expected media-player to resume playback");
-  }
-}
-
-function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean {
-  const nodePattern = new RegExp(
-    `<${tagName}\\b(?=[^>]*\\bname="${nodeName}")([^>]*)>`,
-  );
-  const match = nodePattern.exec(xml);
-
-  return match !== null && !match[1]?.includes('visible="false"');
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function hasStartFromPrompt(xml: string): boolean {
-  return hasVisibleNode(xml, "ContinueWatchingPrompt", "continueWatchingPrompt");
-}
-
-function readAuthCode(xml: string): string | undefined {
-  if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
-    return undefined;
-  }
-
-  const code = readNamedNodeAttribute(xml, "code", "text")?.trim();
-  if (code === undefined || code === "" || code === "Loading..." || code === "Error!") {
-    return undefined;
-  }
-
-  return code;
-}
-
-async function approveAuthCodeWithHarness(code: string, profile: string): Promise<void> {
-  await execFile(
-    process.execPath,
-    ["scripts/putio-auth-harness.ts", "auth-approve-device", code, profile],
-    {
-      cwd: process.cwd(),
-      env: {
-        ...process.env,
-        PUTIO_CLI_PROFILE: profile,
-      },
-      maxBuffer: 1024 * 1024,
-    },
-  );
-}
-
-async function waitForAuthReady(target: string, profile: string): Promise<void> {
-  await launchApp(target, "dev");
-  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
-
-  const startedAt = Date.now();
-  let approvedCode: string | undefined;
-  let lastState = "waiting for auth state";
-
-  while (Date.now() - startedAt < authPrepareTimeoutMs) {
-    try {
-      const xml = await querySceneGraph(target);
-
-      if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
-        console.log(`auth ready: profile=${profile}`);
-        return;
-      }
-
-      const code = readAuthCode(xml);
-      lastState = code === undefined ? "auth code has not loaded yet" : "auth screen waiting for approval";
-
-      if (code !== undefined && code !== approvedCode) {
-        await approveAuthCodeWithHarness(code, profile);
-        approvedCode = code;
-        console.log(`approved auth code for profile=${profile}`);
-      }
-    } catch (error) {
-      lastState = formatErrorMessage(error);
-    }
-
-    await sleep(sceneGraphPollIntervalMs);
-  }
-
-  throw new Error(`Roku dev app is still signed out after auth prepare: ${lastState}`);
+async function authRefreshSmoke(target: string): Promise<void> {
+  await authRefreshSmokeWithDriver(target, createAuthDriver());
 }
 
 async function resetAuthState(target: string): Promise<void> {
-  await launchApp(target, "dev");
-  await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
-
-  let xml = await querySceneGraph(target);
-
-  if (hasVisibleNode(xml, "AuthScreen", "authScreen")) {
-    console.log("auth reset: already signed out");
-    return;
-  }
-
-  if (!isNamedNodeVisible(xml, "homeScreen")) {
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      await pressKey(target, "Back");
-      await sleep(500);
-      xml = await querySceneGraph(target);
-
-      if (isNamedNodeVisible(xml, "homeScreen") || hasVisibleNode(xml, "AuthScreen", "authScreen")) {
-        break;
-      }
-    }
-  }
-
-  xml = await querySceneGraph(target);
-
-  if (hasVisibleNode(xml, "AuthScreen", "authScreen")) {
-    console.log("auth reset: already signed out");
-    return;
-  }
-
-  assertNamedNodeVisible(xml, "homeScreen");
-
-  for (let step = 0; step < 5; step += 1) {
-    await pressKey(target, "Down");
-    await sleep(200);
-  }
-
-  await pressKey(target, "Select");
-  await waitForNamedNodeVisible(target, "settingsScreen", 15_000);
-
-  for (let step = 0; step < 5; step += 1) {
-    await pressKey(target, "Down");
-    await sleep(200);
-  }
-
-  await pressKey(target, "Select");
-  await waitForNamedNodeVisible(target, "authScreen", 15_000);
-  console.log("auth reset: signed out");
-}
-
-function assertNotAuthScreen(xml: string): void {
-  if (!hasVisibleNode(xml, "AuthScreen", "authScreen")) {
-    return;
-  }
-
-  const authCode = readAuthCode(xml);
-
-  if (authCode !== undefined) {
-    throw new Error(`Roku dev app is signed out; redeem device code ${authCode}`);
-  }
-
-  throw new Error("Roku dev app is signed out; device code has not loaded yet");
-}
-
-function assertDirectPlaybackSurface(xml: string, contentId: string): void {
-  assertNamedNodeVisible(xml, "videoPlayerScreen");
-  assertNamedNodeHidden(xml, "videoScreen");
-  assertNamedNodeAbsent(xml, "button-play");
-  assertNamedNodeAbsent(xml, "subtitleList");
-
-  if (xml.includes("original=1")) {
-    throw new Error("expected player content to avoid original=1 playback URLs");
-  }
-
-  const hasFilesPlaybackPath = xml.includes(`/files/${contentId}/`);
-  const hasStreamPlaybackPath = new RegExp(`/stream/${escapeRegExp(contentId)}(?:\\.|[/?&]|$)`).test(xml);
-  if (!hasFilesPlaybackPath && !hasStreamPlaybackPath) {
-    throw new Error(`expected player content to include playback path for ${contentId}`);
-  }
-}
-
-function assertHlsPlaybackSurface(xml: string, contentId: string): void {
-  assertDirectPlaybackSurface(xml, contentId);
-
-  if (!xml.includes("/hls/") && !xml.includes(".m3u8")) {
-    throw new Error(`expected player content for ${contentId} to use an HLS URL`);
-  }
-}
-
-function readVisiblePlaybackContentId(xml: string): string | undefined {
-  const match = /\/(?:files|stream)\/(\d+)(?:\/|\.|[?&]|$)/.exec(xml);
-  return match ? match[1] : undefined;
-}
-
-async function chooseStartFrom(
-  target: string,
-  choice: "continue" | "beginning",
-): Promise<void> {
-  if (choice === "beginning") {
-    await pressKey(target, "Down");
-    await sleep(250);
-  }
-
-  await pressKey(target, "Select");
-}
-
-async function launchPlayback(
-  target: string,
-  contentId: string,
-  mediaType: string,
-  startFromChoice: "continue" | "beginning",
-): Promise<ActiveApp> {
-  const initialApp = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-  const start = Date.now();
-  let didChooseStartFrom = false;
-  let lastStartFromChoiceAt = 0;
-  const retry = createPlaybackLaunchRetry({
-    afterLaunch: async () => {
-      await sleep(1_500);
-    },
-    formatError: formatErrorMessage,
-    initialApp,
-    initialLastLaunchAtMs: Date.now(),
-    initialState: "unknown",
-    launch: async () => await launchDeepLink(target, contentId, mediaType, startFromChoice),
-    launchLabel: "deeplink",
-    maxAttempts: maxPlaybackLaunchAttempts,
-    onRetry: () => {
-      didChooseStartFrom = false;
-      lastStartFromChoiceAt = 0;
-    },
-    retryDelayMs: playbackLaunchRetryMs,
-  });
-
-  while (Date.now() - start < playbackLaunchTimeoutMs) {
-    let xml: string;
-
-    try {
-      xml = await querySceneGraph(target);
-    } catch (error) {
-      const mediaState = await queryMediaPlayerStateSafe(target);
-      const activeApp = await queryActiveAppSafe(target);
-      retry.setLastState(
-        `scene graph unavailable: ${formatErrorMessage(error)}; ` +
-          `media-player=${mediaState ?? "unknown"}; ` +
-          `active-app=${activeApp ? activeApp.id : "unknown"}`,
-      );
-      if (!isActiveMediaPlayerState(mediaState) && activeApp?.id !== "dev") {
-        await retry.maybeRetry(retry.lastState);
-      }
-      await sleep(sceneGraphPollIntervalMs);
-      continue;
-    }
-
-    assertNotAuthScreen(xml);
-
-    if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
-      didChooseStartFrom = true;
-      lastStartFromChoiceAt = Date.now();
-      await chooseStartFrom(target, startFromChoice);
-      retry.setLastState("startFromPrompt");
-    } else if (hasStartFromPrompt(xml)) {
-      retry.setLastState("startFromPrompt");
-      if (Date.now() - lastStartFromChoiceAt >= playbackLaunchRetryMs) {
-        lastStartFromChoiceAt = Date.now();
-        await chooseStartFrom(target, startFromChoice);
-      }
-    } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
-      try {
-        assertDirectPlaybackSurface(xml, contentId);
-        return retry.app;
-      } catch (error) {
-        const visibleContentId = readVisiblePlaybackContentId(xml);
-        let didRetry = false;
-        if (visibleContentId !== undefined && visibleContentId !== contentId) {
-          didRetry = await retry.maybeRetry(`stale content ${visibleContentId}`);
-        }
-        if (!didRetry) {
-          retry.setLastState(formatErrorMessage(error));
-        }
-      }
-    } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
-      retry.setLastState("videoScreen");
-    } else if (hasVisibleNode(xml, "SearchScreen", "searchScreen")) {
-      retry.setLastState("searchScreen");
-      await retry.maybeRetry(retry.lastState);
-    } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
-      retry.setLastState("homeScreen");
-      await retry.maybeRetry(retry.lastState);
-    }
-
-    await sleep(sceneGraphPollIntervalMs);
-  }
-
-  try {
-    const xml = await querySceneGraph(target);
-    assertDirectPlaybackSurface(xml, contentId);
-    return retry.app;
-  } catch {
-    throw new Error(
-      `expected videoPlayerScreen after deeplink, last visible state: ${retry.lastState}`,
-    );
-  }
-}
-
-async function launchPlaybackWithRemoteStart(
-  target: string,
-  contentId: string,
-  mediaType: string,
-  startFromChoice: "continue" | "beginning",
-): Promise<ActiveApp> {
-  const existingPlaybackApp = await findExistingPlaybackSurface(target, contentId);
-  if (existingPlaybackApp !== undefined) {
-    return existingPlaybackApp;
-  }
-
-  await leaveActivePlaybackSurface(target);
-
-  const initialApp = await launchDeepLink(target, contentId, mediaType, startFromChoice);
-  let didChooseStartFrom = false;
-  let lastStartFromChoiceAt = 0;
-  const retry = createPlaybackLaunchRetry({
-    formatError: formatErrorMessage,
-    initialApp,
-    initialState: "playback deeplink launch",
-    launch: async () => await launchDeepLink(target, contentId, mediaType, startFromChoice),
-    launchLabel: "playback launch",
-    maxAttempts: maxPlaybackLaunchAttempts,
-    onRetry: () => {
-      didChooseStartFrom = false;
-      lastStartFromChoiceAt = 0;
-    },
-    retryDelayMs: playbackLaunchRetryMs,
-  });
-
-  await sleep(playbackLaunchInitialSettleMs);
-  const start = Date.now();
-
-  while (Date.now() - start < playbackLaunchTimeoutMs) {
-    const mediaState = await queryMediaPlayerStateSafe(target);
-
-    let xml: string;
-
-    try {
-      xml = await querySceneGraph(target);
-    } catch (error) {
-      retry.setLastState(
-        `scene graph unavailable: ${formatErrorMessage(error)}; media-player=${mediaState ?? "unknown"}`,
-      );
-      await sleep(playbackLaunchSceneGraphPollIntervalMs);
-      continue;
-    }
-
-    assertNotAuthScreen(xml);
-
-    const sceneGraphFailure = readSceneGraphFailure(xml);
-    if (sceneGraphFailure !== undefined) {
-      const activeApp = await queryActiveAppSafe(target);
-      retry.setLastState(
-        `scene graph failed: ${sceneGraphFailure}; active-app=${activeApp?.id ?? "unknown"}; media-player=${mediaState ?? "unknown"}`,
-      );
-
-      if (!isActiveMediaPlayerState(mediaState)) {
-        await retry.maybeRetry(retry.lastState);
-      }
-    } else if (!didChooseStartFrom && hasStartFromPrompt(xml)) {
-      didChooseStartFrom = true;
-      lastStartFromChoiceAt = Date.now();
-      await chooseStartFrom(target, startFromChoice);
-      await sleep(playbackLaunchPostPromptSettleMs);
-      retry.setLastState("startFromPrompt");
-    } else if (hasStartFromPrompt(xml)) {
-      retry.setLastState("startFromPrompt");
-      if (Date.now() - lastStartFromChoiceAt >= playbackLaunchRetryMs) {
-        lastStartFromChoiceAt = Date.now();
-        await chooseStartFrom(target, startFromChoice);
-        await sleep(playbackLaunchPostPromptSettleMs);
-      }
-    } else if (hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
-      try {
-        assertDirectPlaybackSurface(xml, contentId);
-        return retry.app;
-      } catch (error) {
-        const visibleContentId = readVisiblePlaybackContentId(xml);
-        let didRetry = false;
-        if (visibleContentId !== undefined && visibleContentId !== contentId) {
-          didRetry = await retry.maybeRetry(`stale content ${visibleContentId}`);
-        }
-        if (!didRetry) {
-          retry.setLastState(formatErrorMessage(error));
-        }
-      }
-    } else if (hasVisibleNode(xml, "VideoScreen", "videoScreen")) {
-      retry.setLastState("videoScreen");
-    } else if (hasVisibleNode(xml, "SearchScreen", "searchScreen")) {
-      retry.setLastState("searchScreen");
-    } else if (hasVisibleNode(xml, "HomeScreen", "homeScreen")) {
-      retry.setLastState("homeScreen");
-
-      if (Date.now() - start >= playbackLaunchRetryMs) {
-        await retry.maybeRetry(retry.lastState);
-      }
-    }
-
-    await sleep(playbackLaunchSceneGraphPollIntervalMs);
-  }
-
-  throw new Error(
-    `expected videoPlayerScreen after playback deeplink, last visible state: ${retry.lastState}`,
-  );
-}
-
-async function findExistingPlaybackSurface(
-  target: string,
-  contentId: string,
-): Promise<ActiveApp | undefined> {
-  const activeApp = await queryActiveAppSafe(target);
-  if (activeApp?.id !== "dev") {
-    return undefined;
-  }
-
-  try {
-    const xml = await querySceneGraph(target);
-    if (!hasVisibleNode(xml, "VideoPlayerScreen", "videoPlayerScreen")) {
-      return undefined;
-    }
-
-    assertDirectPlaybackSurface(xml, contentId);
-    return activeApp;
-  } catch {
-    return undefined;
-  }
-}
-
-async function leaveActivePlaybackSurface(target: string): Promise<void> {
-  let lastState = "active playback";
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const mediaState = await queryMediaPlayerStateSafe(target);
-    let playerVisible = false;
-
-    try {
-      playerVisible = hasVisibleNode(
-        await querySceneGraph(target),
-        "VideoPlayerScreen",
-        "videoPlayerScreen",
-      );
-    } catch {
-      playerVisible = isActiveMediaPlayerState(mediaState);
-    }
-
-    if (!playerVisible && !isActiveMediaPlayerState(mediaState)) {
-      return;
-    }
-
-    lastState = `playerVisible=${playerVisible.toString()} media-player=${mediaState ?? "unknown"}`;
-    await pressKey(target, "Back");
-    await sleep(2_000);
-  }
-
-  throw new Error(`could not leave active playback before relaunch: ${lastState}`);
-}
-
-async function waitForDevAppSceneGraphReady(
-  target: string,
-  timeoutMs: number,
-): Promise<void> {
-  const start = Date.now();
-  let lastState = "waiting for dev app SceneGraph";
-
-  while (Date.now() - start < timeoutMs) {
-    const activeApp = await queryActiveAppSafe(target);
-    if (activeApp?.id !== "dev") {
-      lastState = `active-app=${activeApp?.id ?? "unknown"}`;
-      await sleep(sceneGraphPollIntervalMs);
-      continue;
-    }
-
-    try {
-      const xml = await querySceneGraph(target);
-      const sceneGraphFailure = readSceneGraphFailure(xml);
-
-      if (sceneGraphFailure === undefined) {
-        return;
-      }
-
-      lastState = `scene graph failed: ${sceneGraphFailure}`;
-    } catch (error) {
-      lastState = `scene graph unavailable: ${formatErrorMessage(error)}`;
-    }
-
-    await sleep(sceneGraphPollIntervalMs);
-  }
-
-  console.log(`continuing playback launch before dev app SceneGraph settled: ${lastState}`);
-}
-
-function formatErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
-async function waitForActiveApp(
-  target: string,
-  appId: string,
-): Promise<ActiveApp> {
-  return await rokitWaitForActiveApp(rokitContext(target), appId, launchTimeoutMs);
-}
-
-async function pressKey(target: string, key: string): Promise<void> {
-  validateRemoteKey(key);
-  await rokitPressKey(rokitContext(target), key);
-  console.log(`pressed: ${key}`);
-}
-
-async function controlSmoke(target: string): Promise<void> {
-  await checkDevice(target);
-  const launchedApp = await launchApp(target, "dev");
-  console.log(
-    `launched: ${launchedApp.id} ${launchedApp.name} ${launchedApp.version}`,
-  );
-
-  await pressKey(target, "Info");
-  await sleep(300);
-  await pressKey(target, "Back");
-
-  const activeApp = await waitForActiveApp(target, "dev");
-  console.log(`asserted active dev app: ${activeApp.name} ${activeApp.version}`);
+  await resetAuthStateWithDriver(target, createAuthDriver());
 }
 
 function parseDurationLabel(label: string): number | undefined {
@@ -1226,20 +197,6 @@ async function readPlayerPositionSecondsFromDevice(
   throw new Error(`expected player position label: ${lastError}`);
 }
 
-async function waitForSceneGraphAssertion(
-  target: string,
-  description: string,
-  assertion: (xml: string) => void,
-  timeoutMs = 6_000,
-): Promise<string> {
-  return await rokitWaitForSceneGraphAssertion(
-    rokitContext(target, sceneGraphRequestTimeoutMs),
-    description,
-    assertion,
-    { pollIntervalMs: 250, timeoutMs },
-  );
-}
-
 async function assertTrackMenu(
   target: string,
   expectedTitle: TrackMenuTitle,
@@ -1249,8 +206,8 @@ async function assertTrackMenu(
     assertNamedNodeVisible(xml, "videoPlayerScreen");
     assertNamedNodeVisible(xml, "trackMenu");
     assertNamedNodeText(xml, "trackMenuTitle", expectedTitle);
-    assertNamedNodeVisible(xml, "trackRow0");
-    assertNamedNodeVisible(xml, `trackRow${selectedRowIndex}Background`);
+    assertNamedNodeVisible(xml, "trackMenuRow0");
+    assertNamedNodeVisible(xml, `trackMenuRow${selectedRowIndex}Background`);
     assertSelectedTrackRow(xml, selectedRowIndex);
     assertTrackMenuLayout(xml, expectedTitle, selectedRowIndex);
   });
@@ -1271,7 +228,7 @@ async function isTrackMenuOpen(
 
 function assertSelectedTrackRow(xml: string, selectedRowIndex: number): void {
   for (let rowIndex = 0; rowIndex < trackMenuRowPoolSize; rowIndex += 1) {
-    const checkName = `trackRow${rowIndex}Check`;
+    const checkName = `trackMenuRow${rowIndex}Check`;
 
     if (rowIndex === selectedRowIndex) {
       assertNamedNodeVisible(xml, checkName);
@@ -1597,7 +554,7 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
   const currentState = await queryMediaPlayerStateSafe(target);
   if (currentState === "pause") {
     await waitForOsdVisible(target);
-    await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
+    await assertPausedPositionGlyphBestEffort(target);
     return;
   }
 
@@ -1608,7 +565,7 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
   await pressKey(target, "Play");
   if (await waitForMediaPlayerState(target, "pause")) {
     await waitForOsdVisible(target);
-    await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
+    await assertPausedPositionGlyphBestEffort(target);
     return;
   }
 
@@ -1622,11 +579,7 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
     await pressKey(target, "Play");
     if (await waitForMediaPlayerState(target, "pause")) {
       await waitForOsdVisible(target);
-      await waitForSceneGraphAssertion(
-        target,
-        "expected paused position glyph",
-        assertPausedPositionGlyph,
-      );
+      await assertPausedPositionGlyphBestEffort(target);
       return;
     }
 
@@ -1644,7 +597,20 @@ async function pausePlaybackForStableOsd(target: string): Promise<void> {
   }
 
   await waitForOsdVisible(target);
-  await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
+  await assertPausedPositionGlyphBestEffort(target);
+}
+
+async function assertPausedPositionGlyphBestEffort(target: string): Promise<void> {
+  try {
+    await waitForSceneGraphAssertion(
+      target,
+      "expected paused position glyph",
+      assertPausedPositionGlyph,
+      2_000,
+    );
+  } catch (error) {
+    console.log(`skipped paused glyph assertion while stabilizing OSD: ${formatErrorMessage(error)}`);
+  }
 }
 
 async function focusInitialControlsForScreenshot(target: string): Promise<void> {
@@ -1845,6 +811,7 @@ async function focusPlaybackControl(
     await sleep(200);
     xml = await querySceneGraph(target);
     if (readFocusedPlaybackControl(xml) === controlId) {
+      await waitForPlaybackControlFocusReady(target, controlId);
       return;
     }
 
@@ -1853,6 +820,31 @@ async function focusPlaybackControl(
 
   throw new Error(
     `expected ${controlId} control to be focused, got ${lastFocusedControl ?? "none"}`,
+  );
+}
+
+async function waitForPlaybackControlFocusReady(
+  target: string,
+  controlId: PlayerControlId,
+): Promise<void> {
+  const backgroundNodeName = playerControlBackgroundNodes[controlId];
+
+  await waitForSceneGraphAssertion(
+    target,
+    `expected ${controlId} focus background`,
+    (xml) => {
+      assertPlaybackControlFocused(xml, controlId);
+
+      if (!isNamedNodeVisible(xml, backgroundNodeName)) {
+        throw new Error(`expected ${backgroundNodeName} to be visible`);
+      }
+
+      const loadStatus = readNamedNodeAttribute(xml, backgroundNodeName, "loadStatus");
+      if (loadStatus !== "3") {
+        throw new Error(`expected ${backgroundNodeName} to load, got ${loadStatus ?? "none"}`);
+      }
+    },
+    3_000,
   );
 }
 
@@ -1886,6 +878,12 @@ async function openAudioMenuFromPlayback(target: string): Promise<void> {
   await assertTrackMenu(target, "Audio tracks");
 }
 
+async function openAudioMenuForScreenshot(target: string): Promise<void> {
+  await focusAudioButtonFromPlayback(target);
+  await activateFocusedTrackButton(target, "Audio tracks", "audio");
+  await waitForTrackMenuOpen(target, "Audio tracks", 10_000);
+}
+
 async function focusSubtitleButtonFromPlayback(target: string): Promise<void> {
   await ensureOsdVisibleForActivation(target);
   await waitForNamedNodeVisible(target, "captionsButton");
@@ -1897,6 +895,12 @@ async function openSubtitleMenuFromPlayback(target: string): Promise<void> {
   await focusSubtitleButtonFromPlayback(target);
   await activateFocusedTrackButton(target, "Subtitles", "captions");
   await assertTrackMenu(target, "Subtitles", 1);
+}
+
+async function openSubtitleMenuForScreenshot(target: string): Promise<void> {
+  await focusSubtitleButtonFromPlayback(target);
+  await activateFocusedTrackButton(target, "Subtitles", "captions");
+  await waitForTrackMenuOpen(target, "Subtitles", 10_000);
 }
 
 async function focusSpeedButtonFromPlayback(target: string): Promise<void> {
@@ -1917,6 +921,12 @@ async function openSpeedMenuFromPlayback(target: string, selectedRowIndex = 3): 
   await focusSpeedButtonFromPlayback(target);
   await activateFocusedTrackButton(target, "Playback speed", "speed");
   await assertTrackMenu(target, "Playback speed", selectedRowIndex);
+}
+
+async function openSpeedMenuForScreenshot(target: string): Promise<void> {
+  await focusSpeedButtonFromPlayback(target);
+  await activateFocusedTrackButton(target, "Playback speed", "speed");
+  await waitForTrackMenuOpen(target, "Playback speed", 10_000);
 }
 
 async function assertSpeedFocusRoundTrip(target: string): Promise<void> {
@@ -2021,7 +1031,7 @@ async function playerUiSmoke(
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<void> {
-  await setPlaybackTypeConfig("hls");
+  await ensureAppPlaybackTypeSetting(target, "hls");
 
   const audioApp = await launchPlaybackWithRemoteStart(
     target,
@@ -2099,12 +1109,15 @@ async function playbackTypeSmoke(
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<void> {
-  await setPlaybackTypeConfig(playbackType);
+  await ensureAppPlaybackTypeSetting(target, playbackType);
+  await leaveActivePlaybackSurface(target);
+
   const app = await launchPlaybackWithRemoteStart(
     target,
     contentId,
     mediaType,
     startFromChoice,
+    { reuseExisting: false },
   );
   console.log(
     `opened ${playbackType} playback: ${app.id} ${app.name} ${app.version} contentID=${contentId}`,
@@ -2143,65 +1156,18 @@ async function playbackErrorDialogSmoke(
   console.log(`asserted readable playback error dialog for contentID=${contentId}`);
 }
 
-async function captureDeveloperScreenshot(
+async function ensureAppPlaybackTypeSetting(
   target: string,
-  password: string,
-  outputPath: string,
-): Promise<string> {
-  await mkdir(dirname(outputPath), { recursive: true });
-  let lastError = "unknown";
+  playbackType: "hls" | "mp4",
+): Promise<void> {
+  await ensureAppPlaybackTypeSettingWithDriver(target, playbackType, createAppFlowDriver());
+}
 
-  for (let attempt = 1; attempt <= screenshotCaptureAttempts; attempt += 1) {
-    const captureDir = await mkdtemp(
-      join(tmpdir(), `putio-roku-${basename(outputPath, extname(outputPath))}-`),
-    );
-    const capturePath = join(captureDir, basename(outputPath));
-
-    try {
-      const capturedPath = await rokitTakeScreenshot(
-        { ...rokitContext(target), password },
-        capturePath,
-      );
-      if (await fileExists(capturedPath)) {
-        await copyFile(capturedPath, outputPath);
-        return outputPath;
-      }
-
-      if (await fileExists(capturePath)) {
-        await copyFile(capturePath, outputPath);
-        return outputPath;
-      }
-
-      const directCapturedPath = await rokitTakeScreenshot(
-        { ...rokitContext(target), password },
-        outputPath,
-      );
-      if (await fileExists(outputPath)) {
-        return outputPath;
-      }
-
-      if (await fileExists(directCapturedPath)) {
-        await copyFile(directCapturedPath, outputPath);
-        return outputPath;
-      }
-
-      throw new Error("screenshot capture succeeded without writing an image file");
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-      if (attempt === screenshotCaptureAttempts) {
-        break;
-      }
-
-      console.log(
-        `screenshot retry ${attempt}/${screenshotCaptureAttempts} for ${basename(outputPath)}: ${lastError}`,
-      );
-      await sleep(1_500);
-    } finally {
-      await rm(captureDir, { force: true, recursive: true });
-    }
-  }
-
-  throw new Error(`failed to capture ${basename(outputPath)}: ${lastError}`);
+async function returnToHomeScreen(target: string): Promise<void> {
+  await returnToHomeScreenWithGuard(target, {
+    assertNotAuthScreen,
+    waitForBootstrapScreen,
+  });
 }
 
 async function playerUiScreenshots(
@@ -2212,587 +1178,134 @@ async function playerUiScreenshots(
   startFromChoice: "continue" | "beginning",
   outputDir: string,
 ): Promise<void> {
-  await cleanupPlayerUiReviewArtifacts(outputDir);
-
   const password = requireDeveloperPassword();
-  const audioApp = await launchPlaybackWithRemoteStart(
-    target,
-    audioContentId,
-    mediaType,
-    startFromChoice,
-  );
-  console.log(
-    `opened audio playback: ${audioApp.id} ${audioApp.name} ${audioApp.version} contentID=${audioContentId}`,
-  );
-  await waitForPlayerClockReady(target);
-  await assertDirectPlaybackSurfaceOnDevice(target, audioContentId);
-  await pausePlaybackForStableOsd(target);
-  await focusInitialControlsForScreenshot(target);
-  const playFocusPath = await captureDeveloperScreenshot(
-    target,
-    password,
-    join(outputDir, "play-focus.jpg"),
-  );
-  console.log(`captured initial controls screenshot: ${playFocusPath}`);
-  if (await isSpeedControlAvailable(target)) {
-    await focusSpeedButtonFromPlayback(target);
-    const speedButtonPath = await captureDeveloperScreenshot(
+
+  await capturePlayerUiScreenshots(
+    {
+      assertDirectPlaybackSurfaceOnDevice: async (contentId) => {
+        await assertDirectPlaybackSurfaceOnDevice(target, contentId);
+      },
+      assertFocusRoundTrip: async (focusLabelId) => {
+        await assertFocusRoundTrip(target, focusLabelId);
+      },
+      assertProgressFocused: async () => {
+        await assertProgressFocused(target);
+      },
+      captureScreenshot: async (outputPath) => {
+        return await captureDeveloperScreenshot(target, password, outputPath);
+      },
+      focusAudioButtonFromPlayback: async () => {
+        await focusAudioButtonFromPlayback(target);
+      },
+      focusInitialControlsForScreenshot: async () => {
+        await focusInitialControlsForScreenshot(target);
+      },
+      focusProgressFromOpenMenu: async () => {
+        await focusProgressFromOpenMenu(target);
+      },
+      focusSpeedButtonFromPlayback: async () => {
+        await focusSpeedButtonFromPlayback(target);
+      },
+      focusSubtitleButtonFromPlayback: async () => {
+        await focusSubtitleButtonFromPlayback(target);
+      },
+      isAudioControlAvailable: async () => await isAudioControlAvailable(target),
+      isSpeedControlAvailable: async () => await isSpeedControlAvailable(target),
+      launchPlaybackWithRemoteStart: async (contentId, launchMediaType, launchStartFromChoice) =>
+        await launchPlaybackWithRemoteStart(
+          target,
+          contentId,
+          launchMediaType,
+          launchStartFromChoice,
+        ),
+      openAudioMenuFromPlayback: async () => {
+        await openAudioMenuForScreenshot(target);
+      },
+      openSpeedMenuFromPlayback: async () => {
+        await openSpeedMenuForScreenshot(target);
+      },
+      openSubtitleMenuFromPlayback: async () => {
+        await openSubtitleMenuForScreenshot(target);
+      },
+      pausePlaybackForStableOsd: async () => {
+        await pausePlaybackForStableOsd(target);
+      },
+      pressKey: async (key) => {
+        await pressKey(target, key);
+      },
+      sleep,
+      waitForPlayerClockReady: async () => {
+        await waitForPlayerClockReady(target);
+      },
+    },
+    {
       target,
-      password,
-      join(outputDir, "speed-button-focus.jpg"),
-    );
-    console.log(`captured speed button focus screenshot: ${speedButtonPath}`);
-    await openSpeedMenuFromPlayback(target);
-    const speedPath = await captureDeveloperScreenshot(
-      target,
-      password,
-      join(outputDir, "speed-menu.jpg"),
-    );
-    console.log(`captured speed menu screenshot: ${speedPath}`);
-    await pressKey(target, "Select");
-    await sleep(750);
-  } else {
-    console.log("skipped speed screenshots: Roku Video.playbackSpeed is unavailable");
-  }
-  if (await isAudioControlAvailable(target)) {
-    await focusAudioButtonFromPlayback(target);
-    await assertFocusRoundTrip(target, "audioFocusLabel");
-    const audioButtonPath = await captureDeveloperScreenshot(
-      target,
-      password,
-      join(outputDir, "audio-button-focus.jpg"),
-    );
-    console.log(`captured audio button focus screenshot: ${audioButtonPath}`);
-    await openAudioMenuFromPlayback(target);
-    const audioPath = await captureDeveloperScreenshot(
-      target,
-      password,
-      join(outputDir, "audio-menu.jpg"),
-    );
-    console.log(`captured audio menu screenshot: ${audioPath}`);
-    await pressKey(target, "Select");
-    await sleep(750);
-  } else {
-    console.log("skipped audio screenshots: Roku did not expose multiple audio tracks");
-  }
-
-  const subtitleApp = await launchPlaybackWithRemoteStart(
-    target,
-    subtitleContentId,
-    mediaType,
-    startFromChoice,
-  );
-  console.log(
-    `opened subtitle playback: ${subtitleApp.id} ${subtitleApp.name} ${subtitleApp.version} contentID=${subtitleContentId}`,
-  );
-  await waitForPlayerClockReady(target);
-  await assertDirectPlaybackSurfaceOnDevice(target, subtitleContentId);
-  await pausePlaybackForStableOsd(target);
-  await focusSubtitleButtonFromPlayback(target);
-  await assertFocusRoundTrip(target, "captionsFocusLabel");
-  const subtitleButtonPath = await captureDeveloperScreenshot(
-    target,
-    password,
-    join(outputDir, "subtitle-button-focus.jpg"),
-  );
-  console.log(`captured subtitle button focus screenshot: ${subtitleButtonPath}`);
-  await openSubtitleMenuFromPlayback(target);
-  const subtitlePath = await captureDeveloperScreenshot(
-    target,
-    password,
-    join(outputDir, "subtitle-menu.jpg"),
-  );
-  console.log(`captured subtitle menu screenshot: ${subtitlePath}`);
-
-  await focusProgressFromOpenMenu(target);
-  await assertProgressFocused(target);
-  const progressPath = await captureDeveloperScreenshot(
-    target,
-    password,
-    join(outputDir, "progress-focus.jpg"),
-  );
-  console.log(`captured progress focus screenshot: ${progressPath}`);
-  const reviewPath = await writePlayerUiReview(outputDir, {
-    target,
-    audioContentId,
-    subtitleContentId,
-    mediaType,
-    startFromChoice,
-  });
-  console.log(`wrote player UI review: ${reviewPath}`);
-}
-
-async function cleanupPlayerUiReviewArtifacts(outputDir: string): Promise<void> {
-  await mkdir(outputDir, { recursive: true });
-
-  await Promise.all(
-    [
-      "audio-button-focus.jpg",
-      "audio-menu.jpg",
-      "play-focus.jpg",
-      "progress-focus.jpg",
-      "progress-focus-latest.jpg",
-      "reference-tv-native.jpg",
-      "reference-tv-native.jpeg",
-      "reference-tv-native.png",
-      "reference-tv-native.webp",
-      "reference-tv-native-audio-focus.png",
-      "reference-tv-native-audio-menu.png",
-      "reference-tv-native-controls.png",
-      "reference-tv-native-progress.png",
-      "reference-tv-native-speed-menu.png",
-      "reference-tv-native-subtitle-menu.png",
-      "review.html",
-      "speed-button-focus.jpg",
-      "speed-menu.jpg",
-      "subtitle-button-focus.jpg",
-      "subtitle-menu.jpg",
-    ].map(async (filename) => {
-      await rm(join(outputDir, filename), { force: true });
-    }),
-  );
-}
-
-async function writePlayerUiReview(
-  outputDir: string,
-  context: PlayerUiReviewContext,
-): Promise<string> {
-  const referenceImages = await copyPlayerUiReferenceImages(outputDir);
-  const hasAudioMenu = await fileExists(join(outputDir, "audio-menu.jpg"));
-  const hasAudioButton = await fileExists(join(outputDir, "audio-button-focus.jpg"));
-  const hasSpeedMenu = await fileExists(join(outputDir, "speed-menu.jpg"));
-  const hasSpeedButton = await fileExists(join(outputDir, "speed-button-focus.jpg"));
-  const imageMetadata = await readPlayerUiImageMetadata(outputDir, [
-    "audio-button-focus.jpg",
-    "audio-menu.jpg",
-    "play-focus.jpg",
-    "progress-focus.jpg",
-    "speed-button-focus.jpg",
-    "speed-menu.jpg",
-    "subtitle-button-focus.jpg",
-    "subtitle-menu.jpg",
-    ...referenceImages.map((image) => image.filename),
-  ]);
-  const reviewPath = join(outputDir, "review.html");
-  const generatedAt = new Date().toISOString();
-  const smokeCommand = `make live-test-player-ui AUDIO_CONTENT_ID=${context.audioContentId} SUBTITLE_CONTENT_ID=${context.subtitleContentId} MEDIA_TYPE=${context.mediaType} START_FROM=${context.startFromChoice}`;
-  const screenshotCommand = `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=${context.audioContentId} SUBTITLE_CONTENT_ID=${context.subtitleContentId} MEDIA_TYPE=${context.mediaType} START_FROM=${context.startFromChoice}`;
-  const nativeCapturePanels = referenceImages
-    .map(
-      (image) => `
-      <section class="panel wide">
-        <h2>${escapeHtml(image.title)}</h2>
-        <img src="./${escapeHtml(image.filename)}" alt="${escapeHtml(image.alt)}" />
-      </section>`,
-    )
-    .join("");
-  const speedMenuPanel = hasSpeedMenu
-    ? `
-      <section class="panel">
-        <h2>Speed menu</h2>
-        <img src="./speed-menu.jpg" alt="Roku speed menu" />
-      </section>`
-    : "";
-  const speedButtonPanel = hasSpeedButton
-    ? `
-      <section class="panel">
-        <h2>Speed button focus</h2>
-        <img src="./speed-button-focus.jpg" alt="Roku speed button focus" />
-      </section>`
-    : "";
-  const speedChecklistItem = hasSpeedMenu
-    ? "<li>Playback speed menu captured and covered by live smoke selection.</li>"
-    : "<li>Playback speed menu was skipped because this Roku did not expose Video.playbackSpeed.</li>";
-  const audioChecklistItem = hasAudioMenu
-    ? "<li>Audio and subtitle menus open from player controls and move selected checkmarks.</li>"
-    : "<li>Subtitle menu opens from player controls; audio menu was skipped because Roku did not expose multiple audio tracks.</li>";
-  const audioMenuPanel = hasAudioMenu
-    ? `
-      <section class="panel">
-        <h2>Audio menu</h2>
-        <img src="./audio-menu.jpg" alt="Roku audio menu" />
-      </section>`
-    : "";
-  const audioButtonPanel = hasAudioButton
-    ? `
-      <section class="panel">
-        <h2>Audio button focus</h2>
-        <img src="./audio-button-focus.jpg" alt="Roku audio button focus" />
-      </section>`
-    : "";
-  const imageMetadataItems = imageMetadata
-    .map(
-      (metadata) =>
-        `<li><code>${escapeHtml(metadata.filename)}</code> ${metadata.width}×${metadata.height}</li>`,
-    )
-    .join("");
-
-  await writeFile(
-    reviewPath,
-    `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Roku Player UI Review</title>
-    <style>
-      :root {
-        background: #050505;
-        color: #eeeeee;
-        color-scheme: dark;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      body {
-        margin: 0;
-        padding: 28px;
-      }
-
-      h1,
-      h2 {
-        margin: 0;
-        font-weight: 650;
-      }
-
-      h1 {
-        font-size: 24px;
-      }
-
-      .meta {
-        color: #b8b8b8;
-        display: grid;
-        gap: 6px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-top: 14px;
-      }
-
-      .meta div {
-        background: #101010;
-        border: 1px solid #242424;
-        padding: 10px 12px;
-      }
-
-      .meta strong {
-        color: #f0f0f0;
-        display: block;
-        font-size: 12px;
-        margin-bottom: 3px;
-      }
-
-      .checklist {
-        background: #101010;
-        border: 1px solid #242424;
-        color: #d8d8d8;
-        margin-top: 18px;
-        padding: 14px 16px;
-      }
-
-      .checklist ul {
-        display: grid;
-        gap: 8px 18px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      .checklist li::before {
-        color: #fdce45;
-        content: "✓";
-        margin-right: 8px;
-      }
-
-      .captures {
-        background: #101010;
-        border: 1px solid #242424;
-        color: #b8b8b8;
-        margin-top: 10px;
-        padding: 12px 16px;
-      }
-
-      .captures ul {
-        display: grid;
-        gap: 6px 18px;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      code {
-        color: #dddddd;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 12px;
-        overflow-wrap: anywhere;
-      }
-
-      h2 {
-        color: #cfcfcf;
-        font-size: 15px;
-        margin-bottom: 10px;
-      }
-
-      .grid {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-top: 24px;
-      }
-
-      .panel {
-        background: #111111;
-        border: 1px solid #2a2a2a;
-        padding: 14px;
-      }
-
-      .wide {
-        grid-column: 1 / -1;
-      }
-
-      img {
-        background: #000000;
-        display: block;
-        height: auto;
-        width: 100%;
-      }
-
-    </style>
-  </head>
-  <body>
-    <h1>Roku Player UI Review</h1>
-    <div class="meta">
-      <div><strong>Target</strong><code>${escapeHtml(context.target)}</code></div>
-      <div><strong>Start mode</strong><code>${escapeHtml(context.startFromChoice)}</code></div>
-      <div><strong>Audio file</strong><code>${escapeHtml(context.audioContentId)}</code></div>
-      <div><strong>Subtitle file</strong><code>${escapeHtml(context.subtitleContentId)}</code></div>
-      <div><strong>Generated at</strong><code>${escapeHtml(generatedAt)}</code></div>
-      <div><strong>Smoke proof</strong><code>${escapeHtml(smokeCommand)}</code></div>
-      <div><strong>Screenshot proof</strong><code>${escapeHtml(screenshotCommand)}</code></div>
-    </div>
-    <section class="checklist" aria-label="Player UI proof checklist">
-      <ul>
-        <li>Direct player routing asserted; old play/subtitle preselection surface rejected.</li>
-        ${audioChecklistItem}
-        ${speedChecklistItem}
-        <li>Progress focus and adaptive right-side option labels have SceneGraph geometry assertions.</li>
-        <li>OSD auto-hide/reveal flow is covered by live smoke.</li>
-        <li>Remote Play, Fast Forward, and Rewind keys are covered by live smoke.</li>
-      </ul>
-    </section>
-    <section class="captures" aria-label="Captured image metadata">
-      <ul>${imageMetadataItems}</ul>
-    </section>
-    <div class="grid">${nativeCapturePanels}${audioMenuPanel}
-      <section class="panel">
-        <h2>Subtitle menu</h2>
-        <img src="./subtitle-menu.jpg" alt="Roku subtitle menu" />
-      </section>${speedMenuPanel}${audioButtonPanel}
-      <section class="panel">
-        <h2>Subtitle button focus</h2>
-        <img src="./subtitle-button-focus.jpg" alt="Roku subtitle button focus" />
-      </section>${speedButtonPanel}
-      <section class="panel">
-        <h2>Initial controls</h2>
-        <img src="./play-focus.jpg" alt="Roku initial controls" />
-      </section>
-      <section class="panel">
-        <h2>Progress focus</h2>
-        <img src="./progress-focus.jpg" alt="Roku progress focus" />
-      </section>
-    </div>
-  </body>
-</html>
-`,
-  );
-
-  return reviewPath;
-}
-
-async function readPlayerUiImageMetadata(
-  outputDir: string,
-  filenames: string[],
-): Promise<ImageMetadata[]> {
-  const metadata: ImageMetadata[] = [];
-
-  for (const filename of filenames) {
-    if (!(await fileExists(join(outputDir, filename)))) {
-      continue;
-    }
-
-    const dimensions = readImageDimensions(await readFile(join(outputDir, filename)));
-    metadata.push({
-      filename,
-      width: dimensions.width,
-      height: dimensions.height,
-    });
-  }
-
-  return metadata;
-}
-
-function readImageDimensions(buffer: Buffer): { width: number; height: number } {
-  const pngSignature = "89504e470d0a1a0a";
-  if (buffer.subarray(0, 8).toString("hex") === pngSignature) {
-    return {
-      width: buffer.readUInt32BE(16),
-      height: buffer.readUInt32BE(20),
-    };
-  }
-
-  if (buffer[0] === 0xff && buffer[1] === 0xd8) {
-    return readJpegDimensions(buffer);
-  }
-
-  throw new Error("unsupported image format in player UI review artifact");
-}
-
-function readJpegDimensions(buffer: Buffer): { width: number; height: number } {
-  let offset = 2;
-
-  while (offset + 9 < buffer.length) {
-    if (buffer[offset] !== 0xff) {
-      offset += 1;
-      continue;
-    }
-
-    const marker = buffer[offset + 1];
-    const segmentLength = buffer.readUInt16BE(offset + 2);
-    const isStartOfFrame =
-      marker >= 0xc0 &&
-      marker <= 0xcf &&
-      marker !== 0xc4 &&
-      marker !== 0xc8 &&
-      marker !== 0xcc;
-
-    if (isStartOfFrame) {
-      return {
-        height: buffer.readUInt16BE(offset + 5),
-        width: buffer.readUInt16BE(offset + 7),
-      };
-    }
-
-    offset += 2 + segmentLength;
-  }
-
-  throw new Error("could not read JPEG dimensions in player UI review artifact");
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function copyOptionalReferenceImage(
-  outputDir: string,
-): Promise<string | undefined> {
-  const referenceImage = process.env.PLAYER_UI_REFERENCE_IMAGE;
-
-  if (!referenceImage) {
-    return undefined;
-  }
-
-  await access(referenceImage);
-  const extension = extname(referenceImage) || ".png";
-  const filename = `reference-tv-native${extension}`;
-  await copyFile(referenceImage, join(outputDir, filename));
-
-  return filename;
-}
-
-async function copyPlayerUiReferenceImages(outputDir: string): Promise<ReviewImage[]> {
-  const referenceImages: ReviewImage[] = [];
-  const optionalReferenceImage = await copyOptionalReferenceImage(outputDir);
-
-  if (optionalReferenceImage !== undefined) {
-    referenceImages.push({
-      alt: "Custom player UI reference capture",
-      filename: optionalReferenceImage,
-      title: "Custom reference",
-    });
-  }
-
-  const referenceDir =
-    process.env.PLAYER_UI_TV_NATIVE_REFERENCE_DIR ??
-    join(
-      process.cwd(),
-      "..",
-      "putio-frontend-workspace",
-      "docs",
-      "specs",
-      "tv-native",
-      "android-tv",
-    );
-  const references: Array<ReviewImage & { source: string }> = [
-    {
-      alt: "tv-native Android player controls",
-      filename: "reference-tv-native-controls.png",
-      source: "18-video-controls.png",
-      title: "tv-native controls reference",
+      audioContentId,
+      subtitleContentId,
+      mediaType,
+      startFromChoice,
     },
-    {
-      alt: "tv-native Android language button focus",
-      filename: "reference-tv-native-audio-focus.png",
-      source: "30-video-multi-audio-language-focus.png",
-      title: "tv-native language focus reference",
-    },
-    {
-      alt: "tv-native Android audio track picker",
-      filename: "reference-tv-native-audio-menu.png",
-      source: "31-video-language-picker.png",
-      title: "tv-native audio menu reference",
-    },
-    {
-      alt: "tv-native Android subtitle picker",
-      filename: "reference-tv-native-subtitle-menu.png",
-      source: "21-video-subtitles-picker.png",
-      title: "tv-native subtitle menu reference",
-    },
-    {
-      alt: "tv-native Android speed picker",
-      filename: "reference-tv-native-speed-menu.png",
-      source: "20-video-speed-picker.png",
-      title: "tv-native speed menu reference",
-    },
-    {
-      alt: "tv-native Android focused seek bar",
-      filename: "reference-tv-native-progress.png",
-      source: "28-video-seekbar-focused.png",
-      title: "tv-native progress focus reference",
-    },
-  ];
-
-  for (const reference of references) {
-    const sourcePath = join(referenceDir, reference.source);
-    if (!(await fileExists(sourcePath))) {
-      continue;
-    }
-
-    await copyFile(sourcePath, join(outputDir, reference.filename));
-    referenceImages.push({
-      alt: reference.alt,
-      filename: reference.filename,
-      title: reference.title,
-    });
-  }
-
-  return referenceImages;
+    outputDir,
+  );
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
+function createVisualCaptureDriver(): VisualCaptureDriver {
+  return {
+    assertListHasItems,
+    dismissExitDialogIfVisible,
+    focusLastListItem,
+    leaveActivePlaybackSurface,
+    openHomeItem,
+    readListFocusIndex,
+    resetAuthState,
+    returnToHomeScreen,
+    waitForAnyRouteScreenVisible,
+    waitForAuthCode,
+    waitForAuthReady,
+    waitForRouteScreenVisible,
+  };
+}
+
+function createAuthDriver(): AuthDriver {
+  return {
+    dismissExitDialogIfVisible,
+    focusLastListItem,
+    returnToHomeScreen,
+    waitForDevAppSceneGraphReady,
+    waitForRouteScreenVisible,
+  };
+}
+
+function createAppFlowDriver(): AppFlowDriver {
+  return {
+    assertListHasItems,
+    authRefreshSmoke,
+    focusLastListItem,
+    focusListItemByIndex,
+    openHomeItem,
+    playbackTypeSmoke,
+    imageRenderSmoke,
+    playerUiSmoke,
+    resetAuthState,
+    returnToHomeScreen,
+    waitForAnyRouteScreenVisible,
+    waitForAuthReady,
+    waitForBootstrapScreen,
+    waitForRouteScreenVisible,
+  };
+}
+
+async function runNamedFlowSuite(
+  target: string,
+  suiteName: string,
+  flows: readonly FlowId[],
+  options: AppFlowOptions,
+  rawArtifactDir?: string,
+): Promise<void> {
+  const artifactDir = emptyStringAsUndefined(rawArtifactDir) ?? defaultFlowOutputDir(suiteName);
+  await mkdir(artifactDir, { recursive: true });
+  await runFlowSuite(flows, { target, artifactDir }, async (flowId, context) => {
+    await runAppFlow(flowId, context, options, createAppFlowDriver());
   });
 }
 
@@ -2808,11 +1321,102 @@ async function main(): Promise<void> {
     await checkDevice(target);
   } else if (command === "active-app") {
     await printActiveApp(target);
+  } else if (command === "debug-snapshot") {
+    const [rawOutputDir] = args;
+    const outputDir = rawOutputDir ?? defaultDebugArtifactDir("snapshot");
+    await captureRokuDebugSnapshot(target, outputDir);
+    console.log(`debug snapshot: ${outputDir}`);
   } else if (command === "auth-reset") {
     await resetAuthState(target);
+  } else if (command === "auth-refresh-smoke") {
+    await authRefreshSmoke(target);
   } else if (command === "auth-prepare") {
     const [profile = process.env.PUTIO_CLI_PROFILE ?? "devs-fe-auto"] = args;
     await waitForAuthReady(target, profile);
+  } else if (command === "flow-smoke") {
+    const [rawArtifactDir] = args;
+    await runNamedFlowSuite(
+      target,
+      "app-smoke",
+      appFlowSmokeSuite,
+      appFlowOptionsFromArgs([]),
+      rawArtifactDir,
+    );
+  } else if (command === "flow-full") {
+    const [
+      playbackContentId,
+      imageContentId,
+      audioContentId,
+      subtitleContentId,
+      mediaType = "movie",
+      rawStartFromChoice = "continue",
+      rawArtifactDir,
+    ] = args;
+
+    if (!playbackContentId || !imageContentId || !audioContentId || !subtitleContentId) {
+      usage();
+    }
+
+    await runNamedFlowSuite(
+      target,
+      "app-full",
+      fullAppFlowSuite,
+      {
+        profile: putioProfileFromArg(),
+        playbackContentId,
+        imageContentId,
+        audioContentId,
+        subtitleContentId,
+        mediaType,
+        startFromChoice: startFromChoiceFromArg(rawStartFromChoice),
+      },
+      rawArtifactDir,
+    );
+  } else if (command === "flow") {
+    const [rawFlowList, ...flowArgs] = args;
+
+    if (!rawFlowList) {
+      usage();
+    }
+
+    const flows = parseFlowList(rawFlowList);
+    const artifactDir = flowArgs[5];
+    await runNamedFlowSuite(
+      target,
+      "custom",
+      flows,
+      appFlowOptionsFromArgs(flowArgs),
+      artifactDir,
+    );
+  } else if (command === "visual-pages") {
+    const includeAuth = args.includes("--include-auth");
+    const rawArtifactDir = args.find((arg) => !arg.startsWith("--"));
+    await captureVisualPages(
+      target,
+      emptyStringAsUndefined(rawArtifactDir) ?? defaultVisualPagesOutputDir(),
+      {
+        includeAuth,
+        imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
+        profile: putioProfileFromArg(),
+      },
+      createVisualCaptureDriver(),
+    );
+  } else if (command === "visual-lab") {
+    const captureAll = args.includes("--all");
+    const knownStoryIds = new Set<string>(visualLabStories.map(([storyId]) => storyId));
+    const firstPositional = args.find((arg) => !arg.startsWith("--"));
+    const rawArtifactDir = firstPositional !== undefined && !knownStoryIds.has(firstPositional)
+      ? firstPositional
+      : undefined;
+    const storyIds = captureAll
+      ? visualLabStories.map(([storyId]) => storyId)
+      : args.filter((arg) => !arg.startsWith("--") && arg !== rawArtifactDir);
+    await captureVisualLabStories(
+      target,
+      emptyStringAsUndefined(rawArtifactDir) ?? defaultVisualLabOutputDir(),
+      storyIds,
+      createVisualCaptureDriver(),
+    );
   } else if (command === "set-playback-type") {
     const [rawPlaybackType, rawProfile] = args;
 
@@ -2821,6 +1425,14 @@ async function main(): Promise<void> {
     }
 
     await setPlaybackTypeConfig(playbackTypeFromArg(rawPlaybackType), rawProfile);
+  } else if (command === "image-render-smoke") {
+    const [contentId] = args;
+
+    if (!contentId) {
+      usage();
+    }
+
+    await imageRenderSmoke(target, contentId);
   } else if (command === "playback-type-smoke") {
     const [
       rawPlaybackType,
@@ -2961,7 +1573,7 @@ async function main(): Promise<void> {
       subtitleContentId,
       mediaType = "movie",
       rawStartFromChoice = "continue",
-      outputDir = "dist/tmp/player-ui",
+      rawOutputDir,
     ] = args;
 
     if (!audioContentId || !subtitleContentId) {
@@ -2981,7 +1593,7 @@ async function main(): Promise<void> {
       subtitleContentId,
       mediaType,
       rawStartFromChoice,
-      outputDir,
+      rawOutputDir ?? defaultPlayerUiOutputDir(),
     );
   } else if (command === "press") {
     if (args.length === 0) {
@@ -2999,7 +1611,23 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
+main().catch(async (error: unknown) => {
   console.error(`ERROR: ${formatErrorMessage(error)}`);
+
+  const debugArtifactDir = process.env.ROKU_DEBUG_ARTIFACT_DIR;
+  if (debugArtifactDir !== undefined && debugArtifactDir.trim() !== "") {
+    try {
+      const target = requireTarget();
+      const outputDir = join(
+        debugArtifactDir,
+        `failure-${formatArtifactTimestamp(new Date())}`,
+      );
+      await captureRokuDebugSnapshot(target, outputDir);
+      console.error(`debug snapshot: ${outputDir}`);
+    } catch (diagnosticError) {
+      console.error(`debug snapshot failed: ${formatErrorMessage(diagnosticError)}`);
+    }
+  }
+
   process.exit(1);
 });

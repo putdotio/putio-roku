@@ -8,8 +8,12 @@
     <field id="completedFile" type="assocarray" />
     <field id="completed" type="bool" alwaysNotify="true" />
     <field id="dismissed" type="bool" alwaysNotify="true" />
+    <field id="previewMode" type="string" onChange="onPreviewModeChange" />
   </interface>
 
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/VideoConversionStatus/VideoConversionStatus.brs" />
 
   <children>
@@ -17,92 +21,137 @@
       id="backdrop"
       width="1920"
       height="1080"
-      color="0x000000CC"
+      color="0x000000B8"
     />
 
     <Group
       id="panel"
-      translation="[590,320]"
+      translation="[558,330]"
     >
       <Rectangle
-        width="740"
-        height="440"
-        color="0x141414F4"
+        id="panelShadow"
+        translation="[12,12]"
+        width="804"
+        height="420"
+        color="0x00000080"
+      />
+
+      <Rectangle
+        id="panelFill"
+        width="804"
+        height="420"
+        color="0x202020FF"
+      />
+
+      <Rectangle
+        id="panelBorderTop"
+        width="804"
+        height="3"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Rectangle
+        id="panelBorderRight"
+        translation="[801,0]"
+        width="3"
+        height="420"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Rectangle
+        id="panelBorderBottom"
+        translation="[0,417]"
+        width="804"
+        height="3"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Rectangle
+        id="panelBorderLeft"
+        width="3"
+        height="420"
+        color="0x4A4A4AFF"
+        visible="false"
       />
 
       <Label
         id="title"
-        translation="[56,54]"
-        width="628"
+        translation="[66,54]"
+        width="672"
         font="font:LargeBoldSystemFont"
-        color="0xE8E8E8FF"
+        color="0xEDEDEDFF"
         text="Preparing video"
       />
 
       <Label
         id="fileNameLabel"
-        translation="[56,118]"
-        width="628"
-        height="44"
-        font="font:MediumSystemFont"
-        color="0xBDBDBDFF"
+        translation="[66,111]"
+        width="672"
+        height="64"
+        font="font:SmallSystemFont"
+        color="0xA0A0A0FF"
+        wrap="true"
       />
 
       <LoadingIndicator
         id="spinner"
-        translation="[326,184]"
+        translation="[358,183]"
         centered="false"
         width="88"
         height="88"
-        imageWidth="72"
-        imageHeight="72"
+        imageWidth="64"
+        imageHeight="64"
       />
 
       <Group
         id="progressGroup"
-        translation="[56,274]"
+        translation="[66,201]"
         visible="false"
       >
         <Rectangle
           id="progressTrack"
-          width="628"
-          height="8"
-          color="0x4E4E4EFF"
+          width="672"
+          height="9"
+          color="0x343434FF"
         />
         <Rectangle
           id="progressFill"
           width="0"
-          height="8"
-          color="0xD2A923FF"
+          height="9"
+          color="0xFDCE45FF"
         />
       </Group>
 
       <Label
         id="statusLabel"
-        translation="[56,306]"
-        width="628"
+        translation="[66,243]"
+        width="672"
         font="font:MediumSystemFont"
-        color="0xD6D6D6FF"
+        color="0xA0A0A0FF"
         horizAlign="center"
         text="Checking conversion status..."
       />
 
       <Group
         id="actionButton"
-        translation="[226,360]"
+        translation="[240,324]"
       >
         <Rectangle
           id="actionBackground"
-          width="288"
-          height="58"
-          color="0x3A3A3AFF"
+          width="324"
+          height="63"
+          color="0x2E2E2EFF"
         />
         <Label
           id="actionLabel"
-          translation="[0,13]"
-          width="288"
+          translation="[0,15]"
+          width="324"
+          height="63"
           font="font:MediumBoldSystemFont"
-          color="0xFFFFFFFF"
+          color="0xEDEDEDFF"
           horizAlign="center"
           text="Cancel"
         />

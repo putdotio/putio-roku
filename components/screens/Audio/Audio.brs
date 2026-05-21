@@ -1,5 +1,6 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
+    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.audio = m.top.findNode("audio")
     m.overhang = m.top.findNode("overhang")
@@ -23,18 +24,25 @@ function init()
     m.focusOrder = [
         {
             component: m.playButton,
+            normalUri: "pkg:/images/icons/play-4.png",
+            activeUri: "pkg:/images/icons/pause-4.png",
             callback: playOrPause,
         },
         {
             component: m.fastForwardButton,
+            normalUri: "pkg:/images/icons/goforward15.png",
+            activeUri: "pkg:/images/icons/goforward15.png",
             callback: fastforward,
         },
         {
             component: m.rewindButton,
+            normalUri: "pkg:/images/icons/goback15.png",
+            activeUri: "pkg:/images/icons/goback15.png",
             callback: rewind,
         },
     ]
     m.focusIndex = 0
+    updateControlIcons()
 end function
 
 sub onVisibleChange()
@@ -46,9 +54,9 @@ sub onVisibleChange()
 
         setupPlayer()
 
+        m.focusIndex = 0
         m.playButton.setFocus(true)
         onAudioStateChange() ' to update play button's icon
-        m.focusIndex = 0
 
         m.loading.visible = "true"
     else
@@ -57,7 +65,7 @@ sub onVisibleChange()
         m.audio.unobserveField("position")
         m.audio.unobserveField("duration")
 
-        m.focusOrder[m.focusIndex].component.uri = m.focusOrder[m.focusIndex].component.uri.replace("-focused", "")
+        resetControlFocus()
     end if
 end sub
 
@@ -76,21 +84,11 @@ end sub
 
 sub onAudioStateChange()
     m.loading.visible = m.audio.state = "buffering"
-    if m.audio.state = "playing"
-        if m.playButton.hasFocus()
-            m.playButton.uri = "pkg:/images/icons/pause-4-focused.png"
-        else
-            m.playButton.uri = "pkg:/images/icons/pause-4.png"
-        end if
-    else if m.audio.state = "paused" or m.audio.state = "stopped" or m.audio.state = "finished"
-        if m.playButton.hasFocus()
-            m.playButton.uri = "pkg:/images/icons/play-4-focused.png"
-        else
-            m.playButton.uri = "pkg:/images/icons/play-4.png"
-        end if
-    else if m.audio.state = "error"
+    if m.audio.state = "error"
         showAudioErrorDialog()
     end if
+
+    updateControlIcons()
 end sub
 
 sub showAudioErrorDialog()
@@ -102,7 +100,7 @@ sub showAudioErrorDialog()
 end sub
 
 sub onAudioLoadErrorDialogClosed()
-    m.top.navigateBack = "true"
+    m.top.navigateBack = true
 end sub
 
 sub onPositionChange()
@@ -141,54 +139,86 @@ sub fastforward()
 end sub
 
 sub setNextFocusIndex()
-    oldFocusIndex = m.focusIndex
     if m.focusIndex + 1 = m.focusOrder.count()
         newFocusIndex = 0
     else
         newFocusIndex = m.focusIndex + 1
     end if
 
-    updateFocusIcons(oldFocusIndex, newFocusIndex)
-    m.focusIndex = newFocusIndex
+    updateFocusIcons(newFocusIndex)
 end sub
 
 sub setPrevFocusIndex()
-    oldFocusIndex = m.focusIndex
     if m.focusIndex - 1 = -1
         newFocusIndex = m.focusOrder.count() - 1
     else
         newFocusIndex = m.focusIndex - 1
     end if
 
-    updateFocusIcons(oldFocusIndex, newFocusIndex)
+    updateFocusIcons(newFocusIndex)
+end sub
+
+sub updateFocusIcons(newFocusIndex)
     m.focusIndex = newFocusIndex
-end sub
-
-sub updateFocusIcons(oldFocusIndex, newFocusIndex)
     m.focusOrder[newFocusIndex].component.setFocus(true)
-    m.focusOrder[oldFocusIndex].component.uri = m.focusOrder[oldFocusIndex].component.uri.replace("-focused", "")
-    m.focusOrder[newFocusIndex].component.uri = m.focusOrder[newFocusIndex].component.uri.replace(".png", "-focused.png")
+    updateControlIcons()
 end sub
 
-function onKeyEvent(key, press)
+sub resetControlFocus()
+    for each item in m.focusOrder
+        item.component.blendColor = dialogColor("text")
+    end for
+end sub
+
+sub updateControlIcons()
+    if m.focusOrder = invalid
+        return
+    end if
+
+    for i = 0 to m.focusOrder.count() - 1
+        item = m.focusOrder[i]
+
+        if i = 0 and m.audio.state = "playing"
+            item.component.uri = item.activeUri
+        else
+            item.component.uri = item.normalUri
+        end if
+
+        if i = m.focusIndex
+            item.component.blendColor = dialogColor("primary")
+        else
+            item.component.blendColor = dialogColor("text")
+        end if
+    end for
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top)
+        return true
+    end if
+
     if m.top.visible and press
-        if key = "back"
-            m.top.navigateBack = "true"
-        else if key = "play"
+        normalizedKey = normalizeKey(key)
+
+        if normalizedKey = "back"
+            m.top.navigateBack = true
+        else if normalizedKey = "play"
             playOrPause()
-        else if key = "rewind"
+        else if normalizedKey = "rewind"
             rewind()
-        else if key = "fastforward"
+        else if normalizedKey = "fastforward"
             fastforward()
-        else if key = "replay"
+        else if normalizedKey = "replay"
             m.audio.seek = 0
-        else if key = "OK"
+        else if normalizedKey = "ok"
             callback = m.focusOrder[m.focusIndex].callback
             callback()
-        else if key = "right"
+        else if normalizedKey = "right"
             setNextFocusIndex()
-        else if key = "left"
+        else if normalizedKey = "left"
             setPrevFocusIndex()
+        else if isOptionsKey(normalizedKey)
+            return true
         else
             return false
         end if

@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="ListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/ListItem/ListItem.brs" />
 
 	<interface>
  		<field id="itemContent" type="node" onChange="itemContentChanged" />
+		<field id="itemHasFocus" type="bool" onChange="updateFocus" />
 	</interface>
 
 	<children>
+		<FocusBackground
+			id="focusBackground"
+			visible="false"
+		/>
+
 		<LayoutGroup
+			id="inlineContent"
 			layoutDirection="horiz"
 			vertAlignment="center"
-			translation="[0, 55]"
-			itemSpacings="32"
+			translation="[35,60]"
+			itemSpacings="28"
 		>
 			<Poster
 				id="icon"
@@ -24,14 +33,25 @@
 			<Label
 				id="title"
 				font="font:MediumBoldSystemFont"
-				color="0xFFFFFFFF"
+				color="0xEDEDEDFF"
 			/>
 
 			<Label
 				id="description"
 				font="font:SmallSystemFont"
-				color="0xFFFFFFFF"
+				color="0xA0A0A0FF"
 			/>
 		</LayoutGroup>
+
+		<Label
+			id="value"
+			translation="[1260,0]"
+			width="412"
+			height="120"
+			font="font:SmallSystemFont"
+			color="0xA0A0A0FF"
+			horizAlign="right"
+			vertAlign="center"
+		/>
 	</children>
 </component>

@@ -9,5 +9,5 @@
     "target": "ES2024",
     "types": ["node"]
   },
-  "include": ["scripts/roku-live-test.ts", "scripts/putio-auth-harness.ts"]
+  "include": ["scripts/**/*.ts", "test/**/*.ts"]
 }

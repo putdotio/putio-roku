@@ -1,20 +1,51 @@
 function init()
-    m.icon = m.top.findNode("icon")
-    m.title = m.top.findNode("title")
-    m.description = m.top.findNode("description")
-    m.watchedEye = m.top.findNode("watchedEye")
-    m.spinner = m.top.findNode("spinner")
-    m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
+    ensureFileListItemNodes()
 end function
 
+sub ensureFileListItemNodes()
+    if m.focusBackground = invalid
+        m.focusBackground = m.top.findNode("focusBackground")
+        m.icon = m.top.findNode("icon")
+        m.title = m.top.findNode("title")
+        m.description = m.top.findNode("description")
+        m.watchedEye = m.top.findNode("watchedEye")
+        m.spinner = m.top.findNode("spinner")
+        m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
+    end if
+
+    applyListItemFocusBackground(m.focusBackground)
+end sub
+
 sub itemContentChanged()
+    ensureFileListItemNodes()
+    if m.top.itemContent = invalid
+        return
+    end if
+
     file = m.top.itemContent.file
     isLoading = m.top.itemContent.isLoading
+    configureLayout()
     setIcon(file)
     setTitle(file)
     setDescription(file)
-    setLoading(isLoading)
+    applyListItemLoading(m.spinner, m.spinnerAnimation, isLoading)
     setWatchedEye(file)
+end sub
+
+sub updateFocus()
+    ensureFileListItemNodes()
+    if m.focusBackground <> invalid
+        m.focusBackground.visible = false
+    end if
+end sub
+
+sub configureLayout()
+    ensureFileListItemNodes()
+
+    rowWidth = normalizeListItemRowWidth(m.top.itemContent.rowWidth)
+    applyListItemFocusBackground(m.focusBackground, rowWidth)
+
+    m.title.width = listItemMainTextWidth(rowWidth)
 end sub
 
 sub setTitle(file)
@@ -51,15 +82,5 @@ sub setWatchedEye(file)
         m.watchedEye.visible = "true"
     else
         m.watchedEye.visible = "false"
-    end if
-end sub
-
-sub setLoading(isLoading)
-    if isLoading = true
-        m.spinner.visible = "true"
-        m.spinnerAnimation.control = "start"
-    else
-        m.spinner.visible = "false"
-        m.spinnerAnimation.control = "stop"
     end if
 end sub

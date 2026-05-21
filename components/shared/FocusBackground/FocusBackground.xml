@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="FocusBackground" extends="Group">
+  <children>
+    <Poster
+      id="focusPatch"
+      width="1500"
+      height="120"
+      uri="pkg:/images/list-item-focus.9.png"
+      blendColor="0x2E2E2EFF"
+    />
+  </children>
+</component>

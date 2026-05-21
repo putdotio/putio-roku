@@ -25,32 +25,28 @@ sub showTrackMenu(mode)
     m.trackMenuItems = []
     m.trackMenuReturnFocusIndex = m.focusIndex
 
-    content = createObject("roSGNode", "ContentNode")
-
     if mode = "audio"
-        m.trackMenuTitle.text = "Audio tracks"
-        addTrackMenuItems(content, m.audioTracks, false)
+        m.trackMenu.title = "Audio tracks"
+        addTrackMenuItems(m.audioTracks, false)
     else if mode = "captions"
-        m.trackMenuTitle.text = "Subtitles"
-        addSubtitleOffItem(content)
-        addTrackMenuItems(content, m.subtitleTracks, true)
+        m.trackMenu.title = "Subtitles"
+        addSubtitleOffItem()
+        addTrackMenuItems(m.subtitleTracks, true)
     else if mode = "speed"
-        m.trackMenuTitle.text = "Playback speed"
-        addPlaybackSpeedMenuItems(content)
+        m.trackMenu.title = "Playback speed"
+        addPlaybackSpeedMenuItems()
     end if
 
     if m.trackMenuItems.count() = 0
-        addDisabledTrackMenuItem(content, "No tracks available")
+        addDisabledTrackMenuItem("No tracks available")
     end if
 
     m.trackMenuFocusIndex = getSelectedTrackMenuIndex()
-    m.trackMenuScrollOffset = 0
-    ensureTrackMenuFocusVisible()
-    renderTrackMenuRows()
+    m.trackMenu.items = getTrackMenuPresentationItems()
+    m.trackMenu.focusedIndex = m.trackMenuFocusIndex
     m.trackMenu.visible = true
     m.osd.visible = true
     m.osdTimer.control = "stop"
-    updateTrackMenuFocus()
     m.canSelectTrackMenu = false
     m.trackMenuSelectionGuard.control = "stop"
     m.trackMenuSelectionGuard.control = "start"
@@ -60,85 +56,9 @@ sub onTrackMenuSelectionGuardFire()
     m.canSelectTrackMenu = true
 end sub
 
-sub renderTrackMenuRows()
-    rowCount = getTrackMenuVisibleRowCount()
-    metrics = getTrackMenuMetrics()
-
-    panelHeight = metrics.topPadding + metrics.bottomPadding + (rowCount * metrics.rowHeight)
-    if rowCount > 1
-        panelHeight = panelHeight + ((rowCount - 1) * metrics.rowGap)
-    end if
-
-    if panelHeight < metrics.minPanelHeight
-        panelHeight = metrics.minPanelHeight
-    end if
-
-    panelY = Int((1080 - panelHeight) / 2)
-    if metrics.panelY <> invalid
-        panelY = metrics.panelY
-    end if
-
-    m.trackMenuPanel.width = metrics.panelWidth
-    m.trackMenuPanel.height = panelHeight
-    m.trackMenuPanel.translation = [metrics.panelX, panelY]
-    m.trackMenuTitle.width = metrics.titleWidth
-    m.trackMenuTitle.translation = [metrics.titleX, m.trackMenuPanel.translation[1] + metrics.titleY]
-    m.trackRows.translation = [metrics.rowsX, m.trackMenuPanel.translation[1] + metrics.rowsY]
-
-    for i = 0 to m.trackMenuRows.count() - 1
-        row = m.trackMenuRows[i]
-        itemIndex = m.trackMenuScrollOffset + i
-        row.node.translation = [0, i * (metrics.rowHeight + metrics.rowGap)]
-        row.background.width = metrics.rowWidth
-        row.background.height = metrics.rowHeight
-        row.label.width = metrics.labelWidth
-        row.check.translation = [metrics.checkX, metrics.checkY]
-
-        if i < rowCount and itemIndex < m.trackMenuItems.count()
-            row.node.visible = true
-            row.label.text = getMenuSafeTrackLabel(m.trackMenuItems[itemIndex].label)
-            if m.trackMenuMode = "captions"
-                row.label.font = "font:SmallSystemFont"
-                row.label.translation = [16, metrics.captionLabelY]
-            else
-                row.label.font = "font:MediumSystemFont"
-                row.label.translation = [16, metrics.labelY]
-            end if
-        else
-            row.node.visible = false
-            row.label.text = ""
-        end if
-    end for
-end sub
-
-function getTrackMenuMetrics() as object
-    return {
-        panelWidth: 640,
-        panelX: 640,
-        titleWidth: 576,
-        titleX: 672,
-        rowsX: 672,
-        rowWidth: 576,
-        labelWidth: 500,
-        checkX: 516,
-        minPanelHeight: 284,
-        titleY: 40,
-        rowsY: 104,
-        topPadding: 104,
-        bottomPadding: 32,
-        rowHeight: 70,
-        rowGap: 8,
-        labelY: 15,
-        captionLabelY: 18,
-        checkY: 10
-    }
-end function
-
-sub addPlaybackSpeedMenuItems(content)
+sub addPlaybackSpeedMenuItems()
     for each speed in m.playbackSpeedOptions
         label = getPlaybackSpeedLabel(speed)
-        item = content.createChild("ContentNode")
-        item.title = label
         m.trackMenuItems.push({
             type: "speed",
             label: label,
@@ -147,15 +67,13 @@ sub addPlaybackSpeedMenuItems(content)
     end for
 end sub
 
-sub addTrackMenuItems(content, tracks, isSubtitle)
+sub addTrackMenuItems(tracks, isSubtitle)
     if tracks = invalid
         return
     end if
 
     for each track in tracks
         title = getTrackLabel(track)
-        item = content.createChild("ContentNode")
-        item.title = getMenuSafeTrackLabel(title)
 
         if isSubtitle
             m.trackMenuItems.push({
@@ -173,18 +91,14 @@ sub addTrackMenuItems(content, tracks, isSubtitle)
     end for
 end sub
 
-sub addSubtitleOffItem(content)
-    item = content.createChild("ContentNode")
-    item.title = "Off"
+sub addSubtitleOffItem()
     m.trackMenuItems.push({
         type: "subtitleOff",
         label: "Off"
     })
 end sub
 
-sub addDisabledTrackMenuItem(content, title)
-    item = content.createChild("ContentNode")
-    item.title = title
+sub addDisabledTrackMenuItem(title)
     m.trackMenuItems.push({
         type: "disabled",
         label: title
@@ -208,71 +122,7 @@ sub moveTrackMenuFocus(direction)
         m.trackMenuFocusIndex = 0
     end if
 
-    ensureTrackMenuFocusVisible()
-    renderTrackMenuRows()
-    updateTrackMenuFocus()
-end sub
-
-sub updateTrackMenuFocus()
-    for i = 0 to m.trackMenuRows.count() - 1
-        row = m.trackMenuRows[i]
-        itemIndex = m.trackMenuScrollOffset + i
-        focused = m.trackMenu.visible and itemIndex = m.trackMenuFocusIndex and row.node.visible
-        selected = false
-
-        if itemIndex < m.trackMenuItems.count()
-            selected = isTrackMenuItemSelected(m.trackMenuItems[itemIndex])
-        end if
-
-        row.background.visible = focused
-        row.check.visible = selected
-
-        if focused
-            row.label.color = "0xFFFFFFFF"
-        else
-            row.label.color = "0xE7E7E7FF"
-        end if
-    end for
-end sub
-
-function getTrackMenuVisibleRowCount() as integer
-    rowCount = m.trackMenuItems.count()
-    if rowCount > m.trackMenuRows.count()
-        rowCount = m.trackMenuRows.count()
-    end if
-
-    maxVisibleRows = m.trackMenuRows.count()
-
-    if rowCount > maxVisibleRows
-        rowCount = maxVisibleRows
-    end if
-
-    return rowCount
-end function
-
-sub ensureTrackMenuFocusVisible()
-    visibleRows = getTrackMenuVisibleRowCount()
-    if visibleRows <= 0
-        m.trackMenuScrollOffset = 0
-        return
-    end if
-
-    if m.trackMenuFocusIndex < m.trackMenuScrollOffset
-        m.trackMenuScrollOffset = m.trackMenuFocusIndex
-    else if m.trackMenuFocusIndex >= m.trackMenuScrollOffset + visibleRows
-        m.trackMenuScrollOffset = m.trackMenuFocusIndex - visibleRows + 1
-    end if
-
-    maxOffset = m.trackMenuItems.count() - visibleRows
-    if maxOffset < 0
-        maxOffset = 0
-    end if
-
-    if m.trackMenuScrollOffset > maxOffset
-        m.trackMenuScrollOffset = maxOffset
-    else if m.trackMenuScrollOffset < 0
-        m.trackMenuScrollOffset = 0
-    end if
+    m.trackMenu.focusedIndex = m.trackMenuFocusIndex
 end sub
 
 function isTrackMenuItemSelected(item) as boolean
@@ -307,6 +157,19 @@ function getSelectedTrackMenuIndex() as integer
     end for
 
     return 0
+end function
+
+function getTrackMenuPresentationItems() as object
+    items = []
+
+    for each item in m.trackMenuItems
+        items.push({
+            label: getMenuSafeTrackLabel(item.label),
+            selected: isTrackMenuItemSelected(item)
+        })
+    end for
+
+    return items
 end function
 
 sub selectFocusedTrackMenuItem()

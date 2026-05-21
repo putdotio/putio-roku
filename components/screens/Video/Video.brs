@@ -1,5 +1,6 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
+    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.file = {}
     m.subtitles = []
@@ -194,9 +195,10 @@ sub onFetchFileErrorDialogClosed()
 end sub
 
 sub showPlaybackUnavailableDialog()
-    m.playbackUnavailableDialog = createObject("roSGNode", "Dialog")
+    m.playbackUnavailableDialog = createObject("roSGNode", "AppDialog")
     m.playbackUnavailableDialog.title = "Video unavailable"
     m.playbackUnavailableDialog.message = "This video does not have a Roku-compatible stream yet."
+    m.playbackUnavailableDialog.buttons = ["OK"]
     m.playbackUnavailableDialog.observeField("wasClosed", "onPlaybackUnavailableDialogClosed")
     m.top.showDialog = m.playbackUnavailableDialog
 end sub
@@ -276,16 +278,19 @@ sub navigateToVideoPlayer(startFrom)
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    if m.top.visible and press and key = "back"
-        if m.continueWatchingPrompt.visible
-            m.continueWatchingPrompt.visible = false
-        else if m.conversionStatus.visible
-            m.conversionStatus.control = "stop"
-            m.conversionStatus.visible = false
-        end if
-
-        m.top.navigateBack = true
+    if shouldTrapModalInput(m.top, [m.continueWatchingPrompt, m.conversionStatus])
         return true
+    end if
+
+    if m.top.visible and press
+        normalizedKey = normalizeKey(key)
+
+        if normalizedKey = "back"
+            m.top.navigateBack = true
+            return true
+        else if isOptionsKey(normalizedKey)
+            return true
+        end if
     end if
 
     return false

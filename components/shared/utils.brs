@@ -66,9 +66,10 @@ end function
 ''' File Not Supported Dialog
 function showFileNotSupportedDialog(callback = invalid)
     m.fileNotSupportedDialogCallback = callback
-    m.fileNotSupportedDialog = createObject("roSGNode", "Dialog")
+    m.fileNotSupportedDialog = createObject("roSGNode", "AppDialog")
     m.fileNotSupportedDialog.title = "Oops :("
     m.fileNotSupportedDialog.message = "We're unable to show this kind of file on this app (for now)"
+    m.fileNotSupportedDialog.buttons = ["OK"]
     m.fileNotSupportedDialog.observeField("wasClosed", "onFileNotSupportedDialogClosedBase")
     m.top.showDialog = m.fileNotSupportedDialog
 end function

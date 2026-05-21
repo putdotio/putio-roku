@@ -11,19 +11,25 @@
     "check": "sst version",
     "format:roku": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --check",
     "format:roku:write": "bsfmt \"source/**/*.{brs,bs}\" \"components/**/*.{brs,bs}\" --write",
+    "test:live": "vitest run",
     "roku:live": "node scripts/roku-live-test.ts",
     "roku:auth": "node scripts/putio-auth-harness.ts",
+    "visual:validate": "node scripts/vref.ts validate --output json",
+    "visual:gallery": "node scripts/vref.ts build --output json",
+    "visual:serve": "vref serve",
     "prepare:release": "node scripts/prepare-release.ts",
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
     "@putdotio/rokit": "2.2.0",
+    "@putdotio/vref": "1.0.1",
     "@rokucommunity/bslint": "0.8.43",
     "@types/node": "^25.9.1",
     "brighterscript": "0.72.2",
     "brighterscript-formatter": "1.7.26",
     "sst": "^4.14.3",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.6"
   },
   "packageManager": "pnpm@11.0.0"
 }

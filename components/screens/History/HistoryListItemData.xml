@@ -3,5 +3,6 @@
   <interface>
     <field id="event" type="assocarray" />
     <field id="isLoading" type="boolean" value="false" />
+    <field id="rowWidth" type="integer" value="1716" />
   </interface>
 </component>

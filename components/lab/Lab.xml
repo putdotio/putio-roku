@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="Lab" extends="Scene" initialFocus="storyList">
+  <interface>
+    <field id="story" type="string" onChange="onStoryLaunchArgChange" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lab/Lab.brs" />
+
+  <children>
+    <Rectangle
+      id="background"
+      width="1920"
+      height="1080"
+      color="0x161616FF"
+    />
+
+    <Group id="listView">
+      <Label
+        id="title"
+        translation="[80,64]"
+        width="720"
+        height="48"
+        font="font:LargeBoldSystemFont"
+        color="0xEDEDEDFF"
+        text="Lab"
+      />
+
+      <Label
+        id="subtitle"
+        translation="[80,122]"
+        width="760"
+        height="42"
+        wrap="true"
+        font="font:SmallSystemFont"
+        color="0xA0A0A0FF"
+        text="Browse stories. OK opens detail. Left returns."
+      />
+
+      <MarkupList
+        id="storyList"
+        translation="[72,208]"
+        itemComponentName="LabStoryListItem"
+        itemSize="[620,58]"
+        itemSpacing="[0,6]"
+        numRows="13"
+        drawFocusFeedback="false"
+        vertFocusAnimationStyle="fixedFocus"
+      />
+
+      <Rectangle
+        id="listDivider"
+        translation="[780,96]"
+        width="2"
+        height="888"
+        color="0x343434FF"
+      />
+
+      <Label
+        id="listStorySection"
+        translation="[860,276]"
+        width="780"
+        height="30"
+        font="font:SmallBoldSystemFont"
+        color="0xA0A0A0FF"
+      />
+
+      <Label
+        id="listStoryTitle"
+        translation="[860,320]"
+        width="880"
+        height="58"
+        font="font:LargeBoldSystemFont"
+        color="0xEDEDEDFF"
+      />
+
+      <Label
+        id="listStoryDescription"
+        translation="[860,396]"
+        width="820"
+        height="120"
+        wrap="true"
+        font="font:SmallSystemFont"
+        color="0xA0A0A0FF"
+      />
+    </Group>
+
+    <Group
+      id="detailView"
+      visible="false"
+    >
+      <Group
+        id="storyMetadata"
+        opacity="0"
+      >
+        <Label
+          id="storySection"
+          width="1"
+          height="1"
+        />
+
+        <Label
+          id="storyTitle"
+          width="1"
+          height="1"
+        />
+
+        <Label
+          id="storyDescription"
+          width="1"
+          height="1"
+        />
+      </Group>
+
+      <Group id="previewHost" />
+    </Group>
+  </children>
+</component>

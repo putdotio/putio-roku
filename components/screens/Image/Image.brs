@@ -1,15 +1,18 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
+    applyAppOverhangColors(m.top.findNode("overhang"))
 
-    m.image = m.top.findNode("image")
+    m.image = m.top.findNode("renderedImage")
     m.loading = m.top.findNode("loading")
     m.overhang = m.top.findNode("overhang")
 
     m.image.observeField("loadStatus", "onImageLoad")
+    layoutImage()
 end function
 
 sub onVisibleChange()
     if m.top.visible
+        layoutImage()
         m.image.visible = "false"
         m.loading.visible = "true"
         m.image.uri = (m.global.apiURL + "/files/" + m.top.params.fileId.toStr() + "/download?oauth_token=" + m.global.user.download_token.toStr() + "")
@@ -28,8 +31,38 @@ sub onImageLoad()
     end if
 end sub
 
+sub layoutImage()
+    marginX = 96
+    topY = 160
+    bottomY = 96
+    viewportWidth = getImageViewportWidth()
+    viewportHeight = getImageViewportHeight()
+
+    m.image.translation = [marginX, topY]
+    m.image.width = viewportWidth - (marginX * 2)
+    m.image.height = viewportHeight - topY - bottomY
+end sub
+
+function getImageViewportWidth() as integer
+    parent = m.top.getParent()
+    if parent <> invalid and parent.width <> invalid and parent.width > 0
+        return parent.width
+    end if
+
+    return 1920
+end function
+
+function getImageViewportHeight() as integer
+    parent = m.top.getParent()
+    if parent <> invalid and parent.height <> invalid and parent.height > 0
+        return parent.height
+    end if
+
+    return 1080
+end function
+
 sub onImageLoadErrorDialogClosed()
-    m.top.navigateBack = "true"
+    m.top.navigateBack = true
 end sub
 
 sub showImageErrorDialog()
@@ -40,10 +73,18 @@ sub showImageErrorDialog()
     m.top.showDialog = m.imageLoadErrorDialog
 end sub
 
-function onKeyEvent(key, press)
+function onKeyEvent(key as string, press as boolean) as boolean
+    if shouldTrapModalInput(m.top)
+        return true
+    end if
+
     if m.top.visible and press
-        if key = "back"
-            m.top.navigateBack = "true"
+        normalizedKey = normalizeKey(key)
+
+        if normalizedKey = "back"
+            m.top.navigateBack = true
+            return true
+        else if isOptionsKey(normalizedKey)
             return true
         end if
     end if

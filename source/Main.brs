@@ -3,6 +3,11 @@ sub Main(args as object)
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
 
+    if shouldLaunchLab(args)
+        launchLab(screen, args)
+        return
+    end if
+
     m.global = screen.getGlobalNode()
     m.global.addFields({
         appId: "3776",
@@ -18,7 +23,7 @@ sub Main(args as object)
     })
 
     scene = screen.CreateScene("App")
-    scene.backgroundColor = "0x333333FF"
+    scene.backgroundColor = "0x161616FF"
     scene.backgroundUri = ""
     if args <> invalid
         scene.deepLink = args
@@ -48,6 +53,76 @@ sub Main(args as object)
             field = msg.getField()
             if field = "exitApp" then
                 return
+            end if
+        end if
+    end while
+end sub
+
+function shouldLaunchLab(args as object) as boolean
+    if isLabLaunchEnabled() = false
+        return false
+    end if
+
+    if args = invalid
+        return false
+    end if
+
+    lab = readLaunchArg(args, "lab")
+    story = readLaunchArg(args, "story")
+
+    return isTruthyLaunchArg(lab) or story <> invalid
+end function
+
+function isLabLaunchEnabled() as boolean
+    return false
+end function
+
+function readLaunchArg(args as object, key as string)
+    if args <> invalid and args.doesExist(key)
+        return args[key]
+    end if
+
+    return invalid
+end function
+
+function isTruthyLaunchArg(value) as boolean
+    if value = invalid
+        return false
+    end if
+
+    normalizedValue = LCase(value.toStr())
+    return normalizedValue = "1" or normalizedValue = "true" or normalizedValue = "yes"
+end function
+
+sub launchLab(screen, args as object)
+    scene = screen.CreateScene("Lab")
+    scene.backgroundColor = "0x161616FF"
+    scene.backgroundUri = ""
+
+    story = readLaunchArg(args, "story")
+    if story <> invalid
+        scene.story = story.toStr()
+    end if
+
+    input = CreateObject("roInput")
+    input.setMessagePort(m.port)
+
+    screen.show()
+    scene.signalBeacon("AppLaunchComplete")
+
+    while(true)
+        msg = wait(0, m.port)
+        msgType = type(msg)
+
+        if msgType = "roSGScreenEvent" and msg.isScreenClosed()
+            return
+        else if msgType = "roInputEvent" then
+            if msg.isInput()
+                launchInfo = msg.getInfo()
+                story = readLaunchArg(launchInfo, "story")
+                if story <> invalid
+                    scene.story = story.toStr()
+                end if
             end if
         end if
     end while

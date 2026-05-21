@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="TrackMenu" extends="Group">
+  <interface>
+    <field id="title" type="string" onChange="renderTrackMenu" />
+    <field id="items" type="array" onChange="renderTrackMenu" />
+    <field id="focusedIndex" type="integer" value="0" onChange="renderTrackMenu" />
+    <field id="showScrim" type="bool" value="false" onChange="renderTrackMenu" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/TrackMenu/TrackMenu.brs" />
+
+  <children>
+    <Rectangle
+      id="scrim"
+      width="1920"
+      height="1080"
+      color="0x000000B8"
+      visible="false"
+    />
+
+    <Group id="trackMenuPanel" translation="[549,180]">
+      <Rectangle
+        id="panelShadow"
+        translation="[12,12]"
+        width="822"
+        height="720"
+        color="0x00000080"
+      />
+
+      <Rectangle
+        id="panelFill"
+        width="822"
+        height="720"
+        color="0x202020FF"
+      />
+
+      <Rectangle
+        id="panelBorderTop"
+        width="822"
+        height="3"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Rectangle
+        id="panelBorderRight"
+        translation="[819,0]"
+        width="3"
+        height="720"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Rectangle
+        id="panelBorderBottom"
+        translation="[0,717]"
+        width="822"
+        height="3"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Rectangle
+        id="panelBorderLeft"
+        width="3"
+        height="720"
+        color="0x4A4A4AFF"
+        visible="false"
+      />
+
+      <Label
+        id="trackMenuTitle"
+        translation="[48,45]"
+        width="726"
+        height="45"
+        font="font:LargeBoldSystemFont"
+        color="0xEDEDEDFF"
+      />
+
+      <Rectangle
+        id="topSeparator"
+        translation="[48,104]"
+        width="726"
+        height="3"
+        color="0x343434FF"
+        visible="false"
+      />
+
+      <Group id="trackRows" translation="[48,108]">
+        <Group id="trackMenuRow0" visible="false">
+          <Rectangle id="trackMenuRow0Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow0Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow0Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow1" visible="false">
+          <Rectangle id="trackMenuRow1Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow1Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow1Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow2" visible="false">
+          <Rectangle id="trackMenuRow2Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow2Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow2Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow3" visible="false">
+          <Rectangle id="trackMenuRow3Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow3Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow3Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow4" visible="false">
+          <Rectangle id="trackMenuRow4Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow4Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow4Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow5" visible="false">
+          <Rectangle id="trackMenuRow5Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow5Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow5Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow6" visible="false">
+          <Rectangle id="trackMenuRow6Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow6Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow6Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+
+        <Group id="trackMenuRow7" visible="false">
+          <Rectangle id="trackMenuRow7Background" width="726" height="63" color="0x2E2E2EFF" visible="false" />
+          <Label id="trackMenuRow7Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" color="0xEDEDEDFF" />
+          <Label id="trackMenuRow7Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" color="0xFDCE45FF" text="✓" visible="false" />
+        </Group>
+      </Group>
+
+      <Rectangle
+        id="bottomSeparator"
+        translation="[48,687]"
+        width="726"
+        height="3"
+        color="0x343434FF"
+        visible="false"
+      />
+    </Group>
+  </children>
+</component>
