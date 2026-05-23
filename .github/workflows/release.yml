@@ -44,7 +44,7 @@ jobs:
 
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
-    name: Create GitHub release artifact
+    name: Publish GitHub release
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
@@ -104,15 +104,6 @@ jobs:
           GIT_COMMITTER_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
           GIT_COMMITTER_EMAIL: ${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
 
-      - name: Upload hosted release payload
-        if: ${{ steps.semantic.outputs.new_release_published == 'true' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
-        with:
-          name: putio-roku-hosted-${{ steps.semantic.outputs.new_release_version }}
-          path: dist/public
-          if-no-files-found: error
-          retention-days: 1
-
   deploy:
     if: ${{ needs.release.outputs.new_release_published == 'true' }}
     name: Deploy released ZIP
@@ -149,11 +140,30 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Download hosted release payload
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: putio-roku-hosted-${{ needs.release.outputs.new_release_version }}
-          path: dist/public
+      - name: Prepare hosted release payload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.release.outputs.new_release_version }}
+        run: |
+          set -euo pipefail
+
+          release_asset="putio-roku-v${RELEASE_VERSION}.zip"
+          release_tag="v${RELEASE_VERSION}"
+
+          rm -rf dist/public dist/release
+          mkdir -p dist/public/releases/v2 dist/release
+
+          gh release download "${release_tag}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --pattern "${release_asset}" \
+            --dir dist/release
+
+          release_zip="dist/release/${release_asset}"
+          test -f "${release_zip}"
+          unzip -t "${release_zip}" > /dev/null
+
+          cp "${release_zip}" dist/public/v2.zip
+          cp "${release_zip}" "dist/public/releases/v2/${RELEASE_VERSION}.zip"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
