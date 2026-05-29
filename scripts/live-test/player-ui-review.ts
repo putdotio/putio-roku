@@ -192,8 +192,8 @@ async function writePlayerUiReview(
   ]);
   const reviewPath = join(outputDir, "review.html");
   const generatedAt = new Date().toISOString();
-  const smokeCommand = `make live-test-player-ui AUDIO_CONTENT_ID=${context.audioContentId} SUBTITLE_CONTENT_ID=${context.subtitleContentId} MEDIA_TYPE=${context.mediaType} START_FROM=${context.startFromChoice}`;
-  const screenshotCommand = `make live-test-player-ui-screenshots AUDIO_CONTENT_ID=${context.audioContentId} SUBTITLE_CONTENT_ID=${context.subtitleContentId} MEDIA_TYPE=${context.mediaType} START_FROM=${context.startFromChoice}`;
+  const smokeCommand = `AUDIO_CONTENT_ID=${context.audioContentId} SUBTITLE_CONTENT_ID=${context.subtitleContentId} MEDIA_TYPE=${context.mediaType} START_FROM=${context.startFromChoice} pnpm roku live-test-player-ui`;
+  const screenshotCommand = `AUDIO_CONTENT_ID=${context.audioContentId} SUBTITLE_CONTENT_ID=${context.subtitleContentId} MEDIA_TYPE=${context.mediaType} START_FROM=${context.startFromChoice} pnpm roku live-test-player-ui-screenshots`;
   const nativeCapturePanels = referenceImages
     .map(
       (image) => `

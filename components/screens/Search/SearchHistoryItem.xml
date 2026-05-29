@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SearchHistoryItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Search/SearchHistoryItem.brs" />
 
   <interface>
@@ -13,7 +16,6 @@
       width="890"
       height="120"
       font="font:MediumBoldSystemFont"
-      color="0xEDEDEDFF"
       vertAlign="center"
     />
   </children>

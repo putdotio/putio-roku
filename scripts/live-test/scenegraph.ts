@@ -5,6 +5,7 @@ import {
   isNamedNodeVisible,
   readNamedNodeAttribute,
   readNamedNodeBounds,
+  readNamedNodeNumber,
   readNamedNodeTranslation,
 } from "@putdotio/rokit";
 import { trackMenuRowPoolSize } from "./constants.ts";
@@ -112,13 +113,8 @@ export function readNamedNodeIntegerAttribute(
   nodeName: string,
   attributeName: string,
 ): number {
-  const nodePattern = new RegExp(`<[^>]+\\bname="${escapeRegExp(nodeName)}"[^>]*>`);
-  const nodeTag = nodePattern.exec(xml)?.[0];
-  const attributePattern = new RegExp(`\\b${escapeRegExp(attributeName)}="([^"]*)"`);
-  const rawValue = nodeTag === undefined ? undefined : attributePattern.exec(nodeTag)?.[1];
-  const value = Number.parseInt(rawValue ?? "", 10);
-
-  if (!Number.isInteger(value)) {
+  const value = readNamedNodeNumber(xml, nodeName, attributeName);
+  if (value === undefined || !Number.isInteger(value)) {
     throw new Error(`expected ${nodeName}.${attributeName} to be an integer`);
   }
 
@@ -318,12 +314,6 @@ function readNamedNodeOptionalIntegerAttribute(
   nodeName: string,
   attributeName: string,
 ): number | undefined {
-  const rawValue = readNamedNodeAttribute(xml, nodeName, attributeName);
-
-  if (rawValue === undefined) {
-    return undefined;
-  }
-
-  const value = Number.parseInt(rawValue, 10);
+  const value = readNamedNodeNumber(xml, nodeName, attributeName);
   return Number.isInteger(value) ? value : undefined;
 }

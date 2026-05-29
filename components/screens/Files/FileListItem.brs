@@ -11,6 +11,8 @@ sub ensureFileListItemNodes()
         m.watchedEye = m.top.findNode("watchedEye")
         m.spinner = m.top.findNode("spinner")
         m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
+        setDialogNodeColor(m.title, "text")
+        setDialogNodeColor(m.description, "textMuted")
     end if
 
     applyListItemFocusBackground(m.focusBackground)

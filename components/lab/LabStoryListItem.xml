@@ -7,6 +7,7 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/lab/LabStoryListItem.brs" />
 
@@ -23,13 +24,12 @@
         width="404"
         height="28"
         font="font:SmallBoldSystemFont"
-        color="0xA0A0A0FF"
       />
       <Rectangle
+        id="sectionDivider"
         translation="[0,52]"
         width="404"
         height="2"
-        color="0x343434FF"
       />
     </Group>
 
@@ -40,7 +40,6 @@
         width="356"
         height="36"
         font="font:MediumBoldSystemFont"
-        color="0xEDEDEDFF"
       />
     </Group>
   </children>

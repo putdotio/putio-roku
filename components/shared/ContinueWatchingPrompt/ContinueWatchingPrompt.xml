@@ -11,6 +11,7 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/ContinueWatchingPrompt/ContinueWatchingPrompt.brs" />
@@ -20,7 +21,6 @@
       id="backdrop"
       width="1920"
       height="1080"
-      color="0x000000B8"
     />
 
     <Group
@@ -32,21 +32,18 @@
         translation="[12,12]"
         width="822"
         height="504"
-        color="0x00000080"
       />
 
       <Rectangle
         id="panelFill"
         width="822"
         height="504"
-        color="0x202020FF"
       />
 
       <Rectangle
         id="panelBorderTop"
         width="822"
         height="3"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -55,7 +52,6 @@
         translation="[819,0]"
         width="3"
         height="504"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -64,7 +60,6 @@
         translation="[0,501]"
         width="822"
         height="3"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -72,7 +67,6 @@
         id="panelBorderLeft"
         width="3"
         height="504"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -82,7 +76,6 @@
         width="726"
         height="45"
         font="font:LargeBoldSystemFont"
-        color="0xEDEDEDFF"
         text="Continue watching"
       />
 
@@ -91,7 +84,6 @@
         translation="[48,99]"
         width="726"
         height="3"
-        color="0x343434FF"
         visible="false"
       />
 
@@ -102,7 +94,6 @@
         height="72"
         wrap="true"
         font="font:SmallSystemFont"
-        color="0xA0A0A0FF"
       />
 
       <Group
@@ -113,14 +104,12 @@
           id="progressRemaining"
           width="726"
           height="9"
-          color="0x343434FF"
         />
 
         <Rectangle
           id="progressElapsed"
           width="0"
           height="9"
-          color="0xFDCE45FF"
         />
       </Group>
 
@@ -132,13 +121,11 @@
           id="continueBackground"
           width="726"
           height="78"
-          color="0xFDCE45FF"
         />
         <Rectangle
           id="continueAccent"
           width="6"
           height="78"
-          color="0xFCBE03FF"
           visible="false"
         />
         <Label
@@ -146,7 +133,6 @@
           width="726"
           height="78"
           font="font:MediumBoldSystemFont"
-          color="0x000000FF"
           horizAlign="center"
           vertAlign="center"
         />
@@ -160,13 +146,11 @@
           id="beginningBackground"
           width="726"
           height="78"
-          color="0x232323FF"
         />
         <Rectangle
           id="beginningAccent"
           width="6"
           height="78"
-          color="0xFCBE03FF"
           visible="false"
         />
         <Label
@@ -174,7 +158,6 @@
           width="726"
           height="78"
           font="font:MediumBoldSystemFont"
-          color="0xEDEDEDFF"
           text="Start from the beginning"
           horizAlign="center"
           vertAlign="center"

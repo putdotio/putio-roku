@@ -136,20 +136,10 @@ function syncVersion(): void {
     manifestPath,
   );
   writeText(manifestPath, manifest);
-
-  const makefilePath = "Makefile";
-  let makefile = readText(makefilePath);
-  makefile = replaceRequired(
-    makefile,
-    /^VERSION = .*$/m,
-    `VERSION = ${version}`,
-    makefilePath,
-  );
-  writeText(makefilePath, makefile);
 }
 
-function runMakeArtifact(): void {
-  const result = spawnSync("make", ["artifact"], { stdio: "inherit" });
+function runArtifact(): void {
+  const result = spawnSync("pnpm", ["artifact"], { stdio: "inherit" });
 
   if (result.error) {
     throw result.error;
@@ -157,7 +147,7 @@ function runMakeArtifact(): void {
 
   if (result.status !== 0) {
     throw new Error(
-      `make artifact failed with status ${result.status ?? "unknown"}`,
+      `pnpm artifact failed with status ${result.status ?? "unknown"}`,
     );
   }
 }
@@ -180,7 +170,7 @@ function stageReleaseFiles(): void {
 }
 
 syncVersion();
-runMakeArtifact();
+runArtifact();
 stageReleaseFiles();
 
 console.log(`Prepared Roku release ${version}`);

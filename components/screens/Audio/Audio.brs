@@ -15,6 +15,10 @@ function init()
 
     m.position = m.top.findNode("position")
     m.duration = m.top.findNode("duration")
+    setDialogNodeColor(m.position, "text")
+    setDialogNodeColor(m.duration, "text")
+    setDialogNodeFieldColor(m.progressBar, "emptyBarBlendColor", "border")
+    setDialogNodeFieldColor(m.progressBar, "filledBarBlendColor", "primary")
 
     translationWidth = (getParentWidth() - m.playButton.width * 4) / 2
     translationHeight = (getParentHeight() - m.playButton.height) / 2

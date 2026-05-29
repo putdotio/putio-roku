@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="ListItem" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/ListItem/ListItem.brs" />
 
@@ -33,13 +34,11 @@
 			<Label
 				id="title"
 				font="font:MediumBoldSystemFont"
-				color="0xEDEDEDFF"
 			/>
 
 			<Label
 				id="description"
 				font="font:SmallSystemFont"
-				color="0xA0A0A0FF"
 			/>
 		</LayoutGroup>
 
@@ -49,7 +48,6 @@
 			width="412"
 			height="120"
 			font="font:SmallSystemFont"
-			color="0xA0A0A0FF"
 			horizAlign="right"
 			vertAlign="center"
 		/>
