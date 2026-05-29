@@ -10,7 +10,7 @@ sub Main(args as object)
 
     m.global = screen.getGlobalNode()
     m.global.addFields({
-        appId: "3776",
+        appId: buildConfigPutioAppId(),
         user: {},
         config: {
             playbackType: "hls"
@@ -23,7 +23,7 @@ sub Main(args as object)
     })
 
     scene = screen.CreateScene("App")
-    scene.backgroundColor = "0x161616FF"
+    scene.backgroundColor = designTokenColor("appBackground")
     scene.backgroundUri = ""
     if args <> invalid
         scene.deepLink = args
@@ -64,17 +64,21 @@ function shouldLaunchLab(args as object) as boolean
     end if
 
     if args = invalid
-        return false
+        return true
     end if
 
     lab = readLaunchArg(args, "lab")
     story = readLaunchArg(args, "story")
 
-    return isTruthyLaunchArg(lab) or story <> invalid
+    if lab <> invalid
+        return isTruthyLaunchArg(lab) or story <> invalid
+    end if
+
+    return true
 end function
 
 function isLabLaunchEnabled() as boolean
-    return false
+    return buildConfigLabEnabled()
 end function
 
 function readLaunchArg(args as object, key as string)
@@ -96,7 +100,7 @@ end function
 
 sub launchLab(screen, args as object)
     scene = screen.CreateScene("Lab")
-    scene.backgroundColor = "0x161616FF"
+    scene.backgroundColor = designTokenColor("appBackground")
     scene.backgroundUri = ""
 
     story = readLaunchArg(args, "story")

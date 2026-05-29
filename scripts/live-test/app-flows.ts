@@ -16,6 +16,7 @@ import {
   assertNamedNodeVisible,
   hasVisibleComponent,
 } from "./scenegraph.ts";
+import { rokuDesignColor } from "./design-colors.ts";
 
 export type AppFlowDriver = {
   readonly assertListHasItems: (target: string, nodeName: string, timeoutMs?: number) => Promise<number>;
@@ -270,7 +271,7 @@ async function deleteDialogFlowSmoke(
     "expected destructive delete action to receive focus",
     (xml) => {
       assertNamedNodeVisible(xml, "deleteFileDialog");
-      assertSceneGraphNodeColor(xml, "deleteButtonBackground", "0xF2555AFF");
+      assertSceneGraphNodeColor(xml, "deleteButtonBackground", rokuDesignColor("dangerFocused"));
     },
     10_000,
   );

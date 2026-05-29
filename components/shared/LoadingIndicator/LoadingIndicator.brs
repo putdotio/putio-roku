@@ -8,6 +8,8 @@ sub init()
     m.loadingIndicatorGroup = m.top.findNode("loadingIndicatorGroup")
     m.loadingGroup = m.top.findNode("loadingGroup")
     m.background = m.top.findNode("background")
+    setDialogNodeColor(m.background, "appBackground")
+    setDialogNodeColor(m.text, "textMuted")
 
     m.textHeight = 0
     m.textPadding = 0

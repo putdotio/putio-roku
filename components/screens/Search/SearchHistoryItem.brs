@@ -1,3 +1,7 @@
+sub init()
+    setDialogNodeColor(m.top.findNode("title"), "text")
+end sub
+
 sub itemContentChanged()
     if m.top.itemContent = invalid
         return

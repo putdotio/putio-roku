@@ -11,6 +11,7 @@ function init()
     m.historyRequestInFlight = false
 
     m.historyList = m.top.findNode("historyList")
+    setDialogNodeFieldColor(m.historyList, "focusBitmapBlendColor", "focus")
     m.historyList.observeField("itemSelected", "onHistoryItemSelected")
     m.emptyState = m.top.findNode("emptyState")
 

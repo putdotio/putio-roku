@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="EmptyState" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/EmptyState/EmptyState.brs" />
 

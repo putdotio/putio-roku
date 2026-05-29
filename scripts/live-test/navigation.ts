@@ -9,6 +9,7 @@ import {
 } from "./constants.ts";
 import { formatErrorMessage } from "./errors.ts";
 import {
+  configuredAppId,
   isActiveMediaPlayerState,
   launchApp,
   pressKey,
@@ -49,7 +50,7 @@ export async function dismissExitDialogIfVisible(target: string): Promise<void> 
 
   await pressKey(target, "Home");
   await sleep(1_500);
-  await launchApp(target, "dev");
+  await launchApp(target, configuredAppId());
   await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
   await waitForSceneGraphAssertion(
     target,
@@ -217,7 +218,7 @@ export async function returnToHomeScreen(
   target: string,
   guard: ReturnHomeGuard,
 ): Promise<void> {
-  await launchApp(target, "dev");
+  await launchApp(target, configuredAppId());
   await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
 
   for (let attempt = 0; attempt < 8; attempt += 1) {

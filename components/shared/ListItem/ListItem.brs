@@ -10,6 +10,9 @@ sub ensureListItemNodes()
         m.description = m.top.findNode("description")
         m.value = m.top.findNode("value")
         applyListItemFocusBackground(m.focusBackground)
+        setDialogNodeColor(m.title, "text")
+        setDialogNodeColor(m.description, "textMuted")
+        setDialogNodeColor(m.value, "textMuted")
     end if
 end sub
 
