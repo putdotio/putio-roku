@@ -9,6 +9,7 @@ function init()
     m.loading = m.top.findNode("loading")
     m.emptyState = m.top.findNode("emptyState")
     m.searchFileList = m.top.findNode("searchFileList")
+    setDialogNodeFieldColor(m.searchFileList, "focusBitmapBlendColor", "focus")
     m.searchFileList.observeField("itemSelected", "onFileSelected")
     m.searchFileList.visible = false
 
@@ -18,6 +19,8 @@ function init()
     m.searchResultGroup = m.top.findNode("searchResultGroup")
 
     m.searchHistory = m.top.findNode("searchHistory")
+    setDialogNodeFieldColor(m.searchHistory, "focusBitmapBlendColor", "focus")
+    setDialogNodeFieldColor(m.searchHistory, "focusFootprintBlendColor", "transparent")
     m.searchHistory.observeField("itemSelected", "onHistoryItemSelected")
 
     m.fetchSearchHistory = createObject("roSGNode", "HttpTask")

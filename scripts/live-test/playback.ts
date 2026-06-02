@@ -17,6 +17,7 @@ import { formatErrorMessage } from "./errors.ts";
 import { leaveActivePlaybackSurface } from "./navigation.ts";
 import {
   assertMediaPlayerContainer,
+  configuredAppId,
   isActiveMediaPlayerState,
   launchDeepLink,
   pressKey,
@@ -194,7 +195,7 @@ export async function launchPlayback(
           `media-player=${mediaState ?? "unknown"}; ` +
           `active-app=${activeApp ? activeApp.id : "unknown"}`,
       );
-      if (!isActiveMediaPlayerState(mediaState) && activeApp?.id !== "dev") {
+      if (!isActiveMediaPlayerState(mediaState) && activeApp?.id !== configuredAppId()) {
         await retry.maybeRetry(retry.lastState);
       }
       await sleep(sceneGraphPollIntervalMs);
@@ -390,7 +391,7 @@ async function findExistingPlaybackSurface(
   contentId: string,
 ): Promise<ActiveApp | undefined> {
   const activeApp = await queryActiveAppSafe(target);
-  if (activeApp?.id !== "dev") {
+  if (activeApp?.id !== configuredAppId()) {
     return undefined;
   }
 

@@ -10,7 +10,7 @@ Roku ended private channels, so the put.io Roku app is installed by sideloading 
 - A computer with a web browser
 - A ZIP build of the app from either supported source:
   - [published Roku ZIP](https://roku.put.io/v2.zip)
-  - generated from this repo: run `make artifact` and use `dist/apps/putio-roku-v2.zip`
+  - generated from this repo: run `pnpm artifact` and use `dist/apps/putio-roku-v2.zip`
 
 Do not extract the ZIP before uploading it to Roku.
 
@@ -67,24 +67,17 @@ If you want to sideload a local branch instead of the published ZIP:
 1. Copy `.env.example` to `.env`
 2. Set `ROKU_DEV_TARGET` to your Roku IP address
 3. Set `ROKU_DEV_PASSWORD` to the Developer Mode password if needed
-4. Run `make run`
+4. Run `pnpm sideload`
 
 Useful commands:
 
-- `make smoke` runs the standard static checks and builds a fresh ZIP
-- `make check-roku-dev-target` checks that the Roku developer endpoint is reachable
-- `make live-test` runs read-only device reachability and state checks
-- `make live-test-control` launches the sideloaded app, sends remote keypresses over ECP, and asserts the dev app stays active
-- `make live-test-press KEYS="Back Info"` sends explicit remote keypresses over ECP
-- `make live-test-deeplink CONTENT_ID=<file-id> [MEDIA_TYPE=movie]` launches the sideloaded app through Roku deep linking
-- `make live-test-launch` opens the installed developer app and reports active app state
-- `make live-test-install` builds, reinstalls, and launches this checkout on the device
-- `make launch` opens the sideloaded developer app on the configured Roku
-- `make active-app` prints the currently active Roku app from ECP
-- `make device-info` prints the configured Roku device metadata from ECP
-- `make console` attaches to the BrightScript debug console on port `8085`
-- `make verify` runs the Node-based Roku static checks and builds a fresh ZIP
-- `make artifact` creates `dist/apps/putio-roku-v2.zip`
+- `pnpm smoke` runs the standard static checks and builds a fresh ZIP
+- `pnpm roku check-roku-dev-target` checks that the Roku developer endpoint is reachable
+- `pnpm roku live-test-install` builds, reinstalls, and launches this checkout on the device
+- `pnpm roku console` attaches to the BrightScript debug console on port `8085`
+- `pnpm verify` runs the Node-based Roku static checks and builds a fresh ZIP
+- `pnpm artifact` creates the production `dist/apps/putio-roku-v2.zip`
 
-For hardware-backed debugging, see [Live Test](../live-test/README.md). For the
-full contributor workflow, see [Contributing](../CONTRIBUTING.md)
+Run `pnpm roku help` for the full task list. For hardware-backed debugging, see
+[Live Test](../live-test/README.md). For the full contributor workflow, see
+[Contributing](../CONTRIBUTING.md)

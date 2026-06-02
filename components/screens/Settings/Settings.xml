@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SettingsScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
@@ -25,8 +26,6 @@
       logoBaselineOffset="9"
       showOptions="true"
       optionsAvailable="false"
-      optionsDimColor="0x00000000"
-      optionsIconDimColor="0x00000000"
     />
 
 		<MarkupList
@@ -38,7 +37,6 @@
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"
       focusBitmapUri="pkg:/images/list-item-focus.9.png"
-      focusBitmapBlendColor="0x2E2E2EFF"
       vertFocusAnimationStyle="fixedFocus"
 			numRows="6"
 		/>

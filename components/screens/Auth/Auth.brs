@@ -2,22 +2,39 @@ function init()
     m.top.focusable = true
     m.top.observeField("visible", "onVisibleChange")
 
+    m.descriptionLabel = m.top.findNode("description")
     m.codeLabel = m.top.findNode("code")
     m.codeTiles = m.top.findNode("codeTiles")
     m.codeChars = []
     for i = 0 to 5
         m.codeChars.push(m.top.findNode("codeChar" + i.toStr()))
     end for
+    m.stepsLabel = m.top.findNode("stepsLabel")
+    m.linkLabel = m.top.findNode("linkLabel")
     m.messageLabel = m.top.findNode("message")
     m.refreshButtonBackground = m.top.findNode("refreshButtonBackground")
     m.refreshButtonLabel = m.top.findNode("refreshButtonLabel")
     m.code = ""
     m.isCodeLoading = false
+    applyAuthColors()
 
     m.timer = createObject("roSGNode", "Timer")
     m.timer.duration = 2
     m.timer.observeField("fire", "onTimerFired")
 end function
+
+sub applyAuthColors()
+    setDialogNodeColor(m.descriptionLabel, "text")
+    setDialogNodeColor(m.codeLabel, "text")
+    setDialogNodeColor(m.stepsLabel, "textMuted")
+    setDialogNodeColor(m.linkLabel, "primary")
+    setDialogNodeColor(m.messageLabel, "textMuted")
+    setDialogNodeColor(m.refreshButtonLabel, "text")
+
+    for each codeChar in m.codeChars
+        setDialogNodeColor(codeChar, "textInverse")
+    end for
+end sub
 
 sub onVisibleChange()
     if m.top.visible

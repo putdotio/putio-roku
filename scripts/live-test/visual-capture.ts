@@ -11,10 +11,12 @@ import {
   exitAppDialogTitle,
   sceneGraphRequestTimeoutMs,
 } from "./constants.ts";
+import { rokuDesignColor } from "./design-colors.ts";
 import { formatErrorMessage } from "./errors.ts";
 import { imageRenderSmoke } from "./image.ts";
 import {
   captureDeveloperScreenshot,
+  configuredAppId,
   pressKey,
   requireDeveloperPassword,
   rokitContext,
@@ -153,7 +155,7 @@ export async function captureVisualPages(
   await pressKey(target, "Info");
   await waitForNamedNodeVisible(target, "deleteFileDialog", 10_000);
   await pressKey(target, "Up");
-  await waitForNamedNodeColor(target, "deleteButtonBackground", "0xF2555AFF", 10_000);
+  await waitForNamedNodeColor(target, "deleteButtonBackground", rokuDesignColor("dangerFocused"), 10_000);
   await capturePage("file-delete-dialog");
   await pressKey(target, "Back");
   await waitForSceneGraphAssertion(
@@ -289,7 +291,7 @@ async function captureExitDialog(
     10_000,
   );
   await pressKey(target, "Up");
-  await waitForNamedNodeColor(target, "button0Background", "0xFDCE45FF", 10_000);
+  await waitForNamedNodeColor(target, "button0Background", rokuDesignColor("primary"), 10_000);
   await capturePage("exit-app-dialog");
   await driver.dismissExitDialogIfVisible(target);
 }
@@ -359,7 +361,7 @@ async function launchLabStory(target: string, storyId: string, expectedTitle: st
     async () => {
       await rokitLaunchApp(
         rokitContext(target),
-        "dev",
+        configuredAppId(),
         new Map([
           ["lab", "1"],
           ["story", storyId],

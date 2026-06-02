@@ -320,7 +320,7 @@ function requireEnv(name: string): string {
   const value = readEnv(name);
 
   if (!value) {
-    throw new Error(`Missing ${name}. Run make secrets-setup or export it before auth-prepare.`);
+    throw new Error(`Missing ${name}. Run pnpm roku secrets-setup or export it before auth-prepare.`);
   }
 
   return value;

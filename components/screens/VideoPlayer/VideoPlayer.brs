@@ -9,6 +9,7 @@ function init()
     m.osdTimer = m.top.findNode("osdTimer")
     m.osdTimer.observeField("fire", "onOsdTimerFire")
     m.bufferingOverlay = m.top.findNode("bufferingOverlay")
+    m.bufferingScrim = m.top.findNode("bufferingScrim")
     m.bufferingIndicator = m.top.findNode("bufferingIndicator")
 
     m.title = m.top.findNode("playerTitle")
@@ -115,6 +116,7 @@ function init()
             focusedIconUri: "pkg:/images/icons/player-speed.png"
         }
     ]
+    applyPlayerColors()
 
     m.focusIndex = 1
     m.focusArea = "progress"
@@ -151,6 +153,26 @@ function init()
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
 end function
+
+sub applyPlayerColors()
+    setDialogNodeColor(m.top.findNode("topShade"), "transparent")
+    setDialogNodeColor(m.top.findNode("bottomShade"), "scrim")
+    setDialogNodeColor(m.title, "text")
+    setDialogNodeColor(m.trackSummary, "textMuted")
+    setDialogNodeColor(m.positionLabel, "textMuted")
+    setDialogNodeColor(m.progressFocusTop, "transparent")
+    setDialogNodeColor(m.progressTrack, "border")
+    setDialogNodeColor(m.progressFill, "primary")
+    setDialogNodeColor(m.progressFocusBottom, "transparent")
+    setDialogNodeColor(m.durationLabel, "textMuted")
+    setDialogNodeColor(m.bufferingScrim, "scrim")
+
+    for each control in m.controls
+        setDialogNodeColor(control.focusBar, "transparent")
+        setDialogNodeColor(control.label, "text")
+        setDialogNodeColor(control.focusLabel, "textMuted")
+    end for
+end sub
 
 function isPlaybackSpeedSupported(video) as boolean
     if video = invalid or video.hasField("playbackSpeed") = false
@@ -909,9 +931,9 @@ sub updateControlFocus()
 
         if control.valueLabel <> invalid
             if focused
-                control.valueLabel.color = "0xFDCE45FF"
+                control.valueLabel.color = dialogColor("primary")
             else
-                control.valueLabel.color = "0xA0A0A0FF"
+                control.valueLabel.color = dialogColor("textMuted")
             end if
         end if
     end for
@@ -927,10 +949,10 @@ sub updateProgressFocusStyle(focused as boolean)
     if focused
         m.progressTrack.translation = [0, 23]
         m.progressTrack.height = 12
-        m.progressTrack.color = "0x505050FF"
+        m.progressTrack.color = dialogColor("panelBorder")
         m.progressFill.translation = [0, 23]
         m.progressFill.height = 12
-        m.progressFill.color = "0xFDCE45FF"
+        m.progressFill.color = dialogColor("primary")
         m.progressFocusTop.width = 0
         m.progressFocusTop.height = 0
         m.progressFocusBottom.width = 0
@@ -942,10 +964,10 @@ sub updateProgressFocusStyle(focused as boolean)
     else
         m.progressTrack.translation = [0, 25]
         m.progressTrack.height = 8
-        m.progressTrack.color = "0x343434E0"
+        m.progressTrack.color = dialogColor("border")
         m.progressFill.translation = [0, 25]
         m.progressFill.height = 8
-        m.progressFill.color = "0xFDCE45FF"
+        m.progressFill.color = dialogColor("primary")
         m.progressFocusTop.width = 0
         m.progressFocusTop.height = 0
         m.progressFocusBottom.width = 0

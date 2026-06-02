@@ -1,36 +1,12 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { listRepoFiles, readRepoFile, repoRoot } from "./repo-files.ts";
 
-const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const componentsRoot = join(repoRoot, "components");
-
-function readRepoFile(path: string): string {
-  return readFileSync(join(repoRoot, path), "utf8");
-}
-
-function listFiles(dir: string, suffix: string): string[] {
-  const entries = readdirSync(dir);
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    const absolutePath = join(dir, entry);
-    const stat = statSync(absolutePath);
-
-    if (stat.isDirectory()) {
-      files.push(...listFiles(absolutePath, suffix));
-    } else if (entry.endsWith(suffix)) {
-      files.push(relative(repoRoot, absolutePath));
-    }
-  }
-
-  return files;
-}
 
 describe("Roku UI metrics", () => {
   it("keeps component XML free of duplicate tag attributes", () => {
-    const xmlFiles = listFiles(componentsRoot, ".xml");
+    const xmlFiles = listRepoFiles(componentsRoot, ".xml");
 
     for (const filePath of xmlFiles) {
       const xml = readRepoFile(filePath);
@@ -54,7 +30,7 @@ describe("Roku UI metrics", () => {
   });
 
   it("keeps DialogStyle consumers wired to the shared FHD metrics helper", () => {
-    const dialogStyleXmlFiles = listFiles(componentsRoot, ".xml").filter((filePath) =>
+    const dialogStyleXmlFiles = listRepoFiles(componentsRoot, ".xml").filter((filePath) =>
       readRepoFile(filePath).includes("DialogStyle/DialogStyle.brs"),
     );
 

@@ -5,6 +5,7 @@ function init()
     applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.list = m.top.findNode("list")
+    setDialogNodeFieldColor(m.list, "focusBitmapBlendColor", "focus")
     m.list.observeField("itemSelected", "onListItemSelected")
 
     m.items = [
