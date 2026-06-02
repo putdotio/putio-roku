@@ -9,7 +9,7 @@ function designTokenColor(name as string) as string
         buttonFocus: "0x2E2E2EFF",
         buttonSurface: "0x232323FF",
         danger: "0xE5484DFF",
-        dangerFocused: "0xF2555AFF",
+        dangerFocused: "0xD7373FFF",
         disabledText: "0x707070FF",
         focus: "0x2E2E2EFF",
         panelBorder: "0x505050FF",
@@ -20,7 +20,7 @@ function designTokenColor(name as string) as string
         shadow: "0x00000070",
         surface: "0x232323FF",
         text: "0xEDEDEDFF",
-        textInverse: "0x0A0A0AFF",
+        textInverse: "0x2A1E09FF",
         textMuted: "0xA0A0A0FF",
         transparent: "0x00000000",
     }

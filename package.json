@@ -16,7 +16,7 @@
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
-    "@putdotio/design": "^1.1.0",
+    "@putdotio/design": "^1.3.0",
     "@putdotio/rokit": "2.4.0",
     "@putdotio/vref": "1.1.0",
     "@resvg/resvg-js": "^2.6.2",
