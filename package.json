@@ -21,15 +21,15 @@
     "deploy:production": "sst deploy --stage production"
   },
   "devDependencies": {
-    "@putdotio/rokit": "2.3.0",
+    "@putdotio/rokit": "2.4.0",
     "@putdotio/vref": "1.1.0",
     "@rokucommunity/bslint": "0.8.43",
     "@types/node": "^25.9.1",
-    "brighterscript": "0.72.2",
+    "brighterscript": "0.72.4",
     "brighterscript-formatter": "1.7.26",
-    "sst": "^4.14.3",
+    "sst": "^4.15.2",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "packageManager": "pnpm@11.2.2"
 }
