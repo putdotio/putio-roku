@@ -24,7 +24,7 @@
     "@putdotio/rokit": "2.4.0",
     "@putdotio/vref": "1.1.0",
     "@rokucommunity/bslint": "0.8.44",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "brighterscript": "0.72.5",
     "brighterscript-formatter": "1.7.27",
     "sst": "^4.15.2",
