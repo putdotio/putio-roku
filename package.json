@@ -24,10 +24,10 @@
     "@putdotio/rokit": "2.4.0",
     "@putdotio/vref": "1.1.0",
     "@rokucommunity/bslint": "0.8.44",
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.0.1",
     "brighterscript": "0.72.5",
-    "brighterscript-formatter": "1.7.27",
-    "sst": "^4.15.2",
+    "brighterscript-formatter": "1.7.28",
+    "sst": "^4.17.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.9"
   },
