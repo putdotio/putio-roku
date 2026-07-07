@@ -550,27 +550,27 @@ end sub
 sub renderHistoryListItemStory()
     content = createObject("roSGNode", "ContentNode")
     addHistoryListItem(content, {
-            type: "upload",
-            file_name: "Sintel.mp4",
-            file_size: 734003200,
-            created_at: "2026-05-18T18:42:00Z",
+        type: "upload",
+        file_name: "Sintel.mp4",
+        file_size: 734003200,
+        created_at: "2026-05-18T18:42:00Z",
     }, false)
     addHistoryListItem(content, {
-            type: "transfer_completed",
-            transfer_name: "Planet Earth II S01E01",
-            transfer_size: 1073741824,
-            created_at: "2026-05-17T12:20:00Z",
+        type: "transfer_completed",
+        transfer_name: "Planet Earth II S01E01",
+        transfer_size: 1073741824,
+        created_at: "2026-05-17T12:20:00Z",
     }, false)
     addHistoryListItem(content, {
-            type: "file_shared",
-            file_name: "Family Photos.zip",
-            sharing_user_name: "Ayse",
-            created_at: "2026-05-16T08:10:00Z",
+        type: "file_shared",
+        file_name: "Family Photos.zip",
+        sharing_user_name: "Ayse",
+        created_at: "2026-05-16T08:10:00Z",
     }, false)
     addHistoryListItem(content, {
-            type: "transfer_error",
-            transfer_name: "Ubuntu archive mirror",
-            created_at: "2026-05-15T22:30:00Z",
+        type: "transfer_error",
+        transfer_name: "Ubuntu archive mirror",
+        created_at: "2026-05-15T22:30:00Z",
     }, true)
 
     list = createPreviewMarkupList("HistoryListItem")
