@@ -152,8 +152,8 @@ export async function labInstall(): Promise<void> {
 }
 
 export async function labScreenshot(): Promise<void> {
-  await labInstall();
   const storyName = envOr("STORY", "app-dialog-empty");
+  await withEnv({ STORY: storyName }, labInstall);
   const outputPath = join(tmpDir, "lab", `${storyName}-${timestamp()}.jpg`);
   mkdirSync(dirname(outputPath), { recursive: true });
   await sleep(Number(envOr("LAB_SCREENSHOT_DELAY", "3")) * 1_000);
