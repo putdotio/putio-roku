@@ -157,12 +157,13 @@ reachable.
 | Rebuild visual reference gallery | `pnpm roku visual-gallery` | None |
 
 `pnpm roku lab-install` builds the `ROKU_VARIANT=lab` package and relaunches the
-developer-channel process with `lab=1`. `STORY` defaults to `app-dialog-empty`;
-story ids are defined in `scripts/live-test/visual-capture.ts` and mirrored by
-the Lab component tests. `pnpm roku visual-capture-lab` captures the stable
-AppDialog stories by default; use `STORIES="story-id ..."` for targeted
-captures and `ALL=1` only for deliberate broad sweeps. Page capture knobs are
-`OUTPUT_DIR`, `INCLUDE_AUTH`, and `IMAGE_CONTENT_ID`; Lab screenshot delay is
+developer-channel process with `lab=1`. Without `STORY`, it opens the story
+list; `pnpm roku lab-screenshot` defaults to `app-dialog-empty`. Story ids are
+defined in `scripts/live-test/visual-capture.ts` and mirrored by the Lab
+component tests. `pnpm roku visual-capture-lab` captures the stable AppDialog
+stories by default; use `STORIES="story-id ..."` for targeted captures and
+`ALL=1` only for deliberate broad sweeps. Page capture knobs are `OUTPUT_DIR`,
+`INCLUDE_AUTH`, and `IMAGE_CONTENT_ID`; Lab screenshot delay is
 `LAB_SCREENSHOT_DELAY`.
 
 ### Auth Helpers

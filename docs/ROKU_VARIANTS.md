@@ -35,7 +35,6 @@ Variant selection happens at the packaging boundary:
 - `ROKU_VARIANT=production|development|lab`
 - `ROKU_APP_TITLE` overrides the variant title
 - `PUTIO_ROKU_APP_ID` sets the put.io OAuth/app id in the generated build config
-- `ROKU_OUT_FILE` sets an explicit ZIP output path
 
 [scripts/package-roku.ts](../scripts/package-roku.ts) renders the variant
 manifest and `source/BuildConfig.brs` as package-time overrides, then delegates
