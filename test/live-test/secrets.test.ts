@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -37,6 +37,15 @@ describe("Infisical export output", () => {
     writeFileSync(`${requestedPath}.env`, "SECOND=value\n");
     expect(() => resolveSecretExportFile(requestedPath)).toThrow(
       "Infisical export wrote 2 recognized output files",
+    );
+  });
+
+  it("rejects a non-regular export artifact", () => {
+    const requestedPath = makeRequestedPath();
+    mkdirSync(requestedPath);
+
+    expect(() => resolveSecretExportFile(requestedPath)).toThrow(
+      `Infisical export output is not a regular file: ${requestedPath}`,
     );
   });
 });

@@ -60,7 +60,7 @@ export function resolveSecretExportFile(requestedPath: string): string {
 
   const source = candidates[0];
   if (source === undefined || !lstatSync(source).isFile()) {
-    throw new Error("Infisical export output is not a regular file");
+    throw new Error(`Infisical export output is not a regular file: ${source ?? requestedPath}`);
   }
 
   return source;
