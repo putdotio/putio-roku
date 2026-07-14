@@ -81,6 +81,7 @@ import {
 import {
   captureDeveloperScreenshot,
   checkDevice,
+  configuredAppId,
   controlSmoke,
   launchApp,
   launchDeepLink,
@@ -1479,7 +1480,7 @@ async function main(): Promise<void> {
       expectedMessageFragment,
     );
   } else if (command === "launch") {
-    const appId = args[0] ?? "dev";
+    const appId = args[0] ?? configuredAppId();
     const app = await launchApp(target, appId);
     console.log(`launched: ${app.id} ${app.name} ${app.version}`.trim());
   } else if (command === "launch-deeplink") {

@@ -21,7 +21,6 @@ Sample:
         imageHeight="100"
         centered="true"
         font="font:LargeBoldSystemFont"
-        backgroundColor="0x161616FF"
         backgroundOpacity="0.6"/> -->
 
 <component name="LoadingIndicator" extends="Group">
@@ -46,7 +45,7 @@ Sample:
          this to false, otherwise component might be centered. -->
     <field id="centered" type="bool" value="true" onChange="updateLayout"/>
 <!--     Color of the background. -->
-    <field id="backgroundColor" type="color" alias="background.color" value="0x161616FF"/>
+    <field id="backgroundColor" type="color" alias="background.color"/>
 <!--     Background image. If set, backgroundColor is ignored. -->
     <field id="backgroundUri" type="string" onChange="onBackgroundImageChange"/>
 <!--     Opacity of the background. To remove background, this should be set to 0. -->
@@ -54,7 +53,7 @@ Sample:
 <!--     Loading/message text, if used. -->
     <field id="text" type="string" alias="text.text" onChange="onTextChange"/>
 <!--     Color of the text. -->
-    <field id="textColor" type="color" alias="text.color" value="0xA0A0A0FF"/>
+    <field id="textColor" type="color" alias="text.color"/>
 <!--     Space, in pixels, between text and spinner. -->
     <field id="spacing" type="float" value="30"/>
 <!--     Left and right text padding. -->
@@ -75,6 +74,9 @@ Sample:
     <field id="fadeInterval" type="time"/>
 </interface>
 
+<script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs"/>
+<script type="text/brightscript" uri="pkg:/source/DesignTokens.brs"/>
+<script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs"/>
 <script type="text/brightscript" uri="pkg:/components/shared/LoadingIndicator/LoadingIndicator.brs"/>
 
 <children>

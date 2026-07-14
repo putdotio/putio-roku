@@ -21,36 +21,36 @@ edge artifacts.
 Capture a raw screenshot from the current Roku state:
 
 ```sh
-make visual-capture NAME=<short-screen-name>
+NAME=<short-screen-name> pnpm roku visual-capture
 ```
 
 Capture stable shared AppDialog Lab stories into ignored raw artifacts:
 
 ```sh
-make visual-capture-lab
+pnpm roku visual-capture-lab
 ```
 
 Capture the curated app pages plus the image viewer when an image fixture is
 available:
 
 ```sh
-make visual-capture-pages IMAGE_CONTENT_ID=<image-file-id>
+IMAGE_CONTENT_ID=<image-file-id> pnpm roku visual-capture-pages
 ```
 
 Lab components are development-only; the default production ZIP excludes
 `components/lab/`. Lab capture and install commands rebuild with
-`ROKU_INCLUDE_LAB=1`.
+`ROKU_VARIANT=lab`.
 
 Rebuild the static gallery:
 
 ```sh
-make visual-gallery
+pnpm roku visual-gallery
 ```
 
 Validate the manifest and screenshot files without rewriting the gallery:
 
 ```sh
-pnpm visual:validate
+pnpm roku visual-validate
 ```
 
 ## Rules

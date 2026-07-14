@@ -6,6 +6,7 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/lab/Lab.brs" />
@@ -15,7 +16,6 @@
       id="background"
       width="1920"
       height="1080"
-      color="0x161616FF"
     />
 
     <Group id="listView">
@@ -25,7 +25,6 @@
         width="720"
         height="48"
         font="font:LargeBoldSystemFont"
-        color="0xEDEDEDFF"
         text="Lab"
       />
 
@@ -36,7 +35,6 @@
         height="42"
         wrap="true"
         font="font:SmallSystemFont"
-        color="0xA0A0A0FF"
         text="Browse stories. OK opens detail. Left returns."
       />
 
@@ -56,7 +54,6 @@
         translation="[780,96]"
         width="2"
         height="888"
-        color="0x343434FF"
       />
 
       <Label
@@ -65,7 +62,6 @@
         width="780"
         height="30"
         font="font:SmallBoldSystemFont"
-        color="0xA0A0A0FF"
       />
 
       <Label
@@ -74,7 +70,6 @@
         width="880"
         height="58"
         font="font:LargeBoldSystemFont"
-        color="0xEDEDEDFF"
       />
 
       <Label
@@ -84,7 +79,6 @@
         height="120"
         wrap="true"
         font="font:SmallSystemFont"
-        color="0xA0A0A0FF"
       />
     </Group>
 

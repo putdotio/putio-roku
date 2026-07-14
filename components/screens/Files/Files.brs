@@ -10,6 +10,7 @@ function init()
     m.focusedFileIndex = 0
 
     m.fileList = m.top.findNode("fileList")
+    setDialogNodeFieldColor(m.fileList, "focusBitmapBlendColor", "focus")
     m.fileList.observeField("itemSelected", "onFileSelected")
     m.fileList.observeField("itemFocused", "onFileFocused")
     m.emptyState = m.top.findNode("emptyState")

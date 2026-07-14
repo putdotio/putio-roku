@@ -1,2 +1,5 @@
 allowBuilds:
   msgpackr-extract: true
+minimumReleaseAgeExclude:
+  - '@putdotio/rokit@2.4.0'
+  - '@putdotio/design@1.4.0'

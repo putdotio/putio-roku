@@ -8,11 +8,13 @@ sub ensureLabStoryListItemNodes()
         m.storyGroup = m.top.findNode("storyGroup")
         m.focusBackground = m.top.findNode("focusBackground")
         m.sectionLabel = m.top.findNode("sectionLabel")
+        m.sectionDivider = m.top.findNode("sectionDivider")
         m.storyLabel = m.top.findNode("storyLabel")
     end if
 
     applyListItemFocusBackground(m.focusBackground, 404, 58)
     setDialogNodeColor(m.sectionLabel, "textMuted")
+    setDialogNodeColor(m.sectionDivider, "border")
     setDialogNodeColor(m.storyLabel, "text")
 end sub
 

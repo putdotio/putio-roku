@@ -49,6 +49,11 @@ export function requireTarget(): string {
     .replace(/:\d+$/, "");
 }
 
+export function configuredAppId(): string {
+  const appId = process.env.ROKU_APP_ECP_ID?.trim();
+  return appId !== undefined && appId !== "" ? appId : "dev";
+}
+
 export function rokitContext(target: string, timeoutMs = requestTimeoutMs): RokuContext {
   return {
     target,
@@ -90,7 +95,8 @@ export async function checkDevice(target: string): Promise<void> {
 
 export async function controlSmoke(target: string): Promise<void> {
   await checkDevice(target);
-  const launchedApp = await launchApp(target, "dev");
+  const appId = configuredAppId();
+  const launchedApp = await launchApp(target, appId);
   console.log(
     `launched: ${launchedApp.id} ${launchedApp.name} ${launchedApp.version}`,
   );
@@ -99,8 +105,8 @@ export async function controlSmoke(target: string): Promise<void> {
   await sleep(300);
   await pressKey(target, "Back");
 
-  const activeApp = await waitForActiveApp(target, "dev");
-  console.log(`asserted active dev app: ${activeApp.name} ${activeApp.version}`);
+  const activeApp = await waitForActiveApp(target, appId);
+  console.log(`asserted active app ${appId}: ${activeApp.name} ${activeApp.version}`);
 }
 
 export async function queryActiveApp(target: string): Promise<ActiveApp> {
@@ -112,56 +118,8 @@ export async function printActiveApp(target: string): Promise<void> {
   console.log(`active app: ${app.id} ${app.name} ${app.version}`.trim());
 }
 
-export async function waitForAppActive(
-  target: string,
-  appId: string,
-  timeoutMs = 30_000,
-): Promise<ActiveApp> {
-  const start = Date.now();
-  let lastApp: ActiveApp | undefined;
-  let lastError: string | undefined;
-
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const app = await queryActiveApp(target);
-      lastApp = app;
-      lastError = undefined;
-
-      if (app.id === appId) {
-        return app;
-      }
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-    }
-
-    await sleep(1_000);
-  }
-
-  const lastState = lastError ?? (lastApp ? `${lastApp.id} ${lastApp.name}`.trim() : "unknown");
-  throw new Error(`expected active app ${appId}, got ${lastState}`);
-}
-
 export async function launchApp(target: string, appId: string): Promise<ActiveApp> {
-  let lastError: string | undefined;
-
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    try {
-      const app = await rokitLaunchApp(rokitContext(target), appId);
-      if (app.id === appId) {
-        return app;
-      }
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-    }
-
-    try {
-      return await waitForAppActive(target, appId, 10_000);
-    } catch (error) {
-      lastError = formatErrorMessage(error);
-    }
-  }
-
-  throw new Error(lastError ?? `expected active app ${appId}`);
+  return await rokitLaunchApp(rokitContext(target), appId);
 }
 
 export async function launchDeepLink(
@@ -171,13 +129,14 @@ export async function launchDeepLink(
   startFromChoice?: "continue" | "beginning",
 ): Promise<ActiveApp> {
   const params = createPlaybackParams(contentId, mediaType, startFromChoice);
+  const appId = configuredAppId();
 
   try {
-    return await rokitLaunchApp(rokitContext(target), "dev", params);
+    return await rokitLaunchApp(rokitContext(target), appId, params);
   } catch {
-    await launchApp(target, "dev");
+    await launchApp(target, appId);
     await sleep(1_000);
-    return await rokitLaunchApp(rokitContext(target), "dev", params);
+    return await rokitLaunchApp(rokitContext(target), appId, params);
   }
 }
 
@@ -199,34 +158,12 @@ function createPlaybackParams(
 }
 
 export async function querySceneGraph(target: string): Promise<string> {
-  let xml = "";
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    try {
-      xml = await rokitQuerySceneGraph(rokitContext(target, sceneGraphRequestTimeoutMs), {
-        attempts: 2,
-        requireComplete: true,
-        retryDelayMs: 500,
-      });
-    } catch (error) {
-      lastError = error;
-      await sleep(500);
-      continue;
-    }
-
-    if (xml.includes("<App ") || !xml.includes("<All_Nodes>")) {
-      return xml;
-    }
-
-    await sleep(500);
-  }
-
-  if (xml === "" && lastError !== undefined) {
-    throw lastError;
-  }
-
-  return xml;
+  return await rokitQuerySceneGraph(rokitContext(target, sceneGraphRequestTimeoutMs), {
+    attempts: 8,
+    requireAppNode: true,
+    requireComplete: true,
+    retryDelayMs: 500,
+  });
 }
 
 export async function queryMediaPlayerState(target: string): Promise<string | undefined> {
@@ -281,11 +218,12 @@ export async function waitForDevAppSceneGraphReady(
   timeoutMs = appSceneGraphReadyTimeoutMs,
 ): Promise<void> {
   const start = Date.now();
-  let lastState = "waiting for dev app SceneGraph";
+  const appId = configuredAppId();
+  let lastState = `waiting for app ${appId} SceneGraph`;
 
   while (Date.now() - start < timeoutMs) {
     const activeApp = await queryActiveAppSafe(target);
-    if (activeApp?.id !== "dev") {
+    if (activeApp?.id !== appId) {
       lastState = `active-app=${activeApp?.id ?? "unknown"}`;
       await sleep(sceneGraphPollIntervalMs);
       continue;

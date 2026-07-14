@@ -12,6 +12,7 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/VideoConversionStatus/VideoConversionStatus.brs" />
@@ -21,7 +22,6 @@
       id="backdrop"
       width="1920"
       height="1080"
-      color="0x000000B8"
     />
 
     <Group
@@ -33,21 +33,18 @@
         translation="[12,12]"
         width="804"
         height="420"
-        color="0x00000080"
       />
 
       <Rectangle
         id="panelFill"
         width="804"
         height="420"
-        color="0x202020FF"
       />
 
       <Rectangle
         id="panelBorderTop"
         width="804"
         height="3"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -56,7 +53,6 @@
         translation="[801,0]"
         width="3"
         height="420"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -65,7 +61,6 @@
         translation="[0,417]"
         width="804"
         height="3"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -73,7 +68,6 @@
         id="panelBorderLeft"
         width="3"
         height="420"
-        color="0x4A4A4AFF"
         visible="false"
       />
 
@@ -82,7 +76,6 @@
         translation="[66,54]"
         width="672"
         font="font:LargeBoldSystemFont"
-        color="0xEDEDEDFF"
         text="Preparing video"
       />
 
@@ -92,7 +85,6 @@
         width="672"
         height="64"
         font="font:SmallSystemFont"
-        color="0xA0A0A0FF"
         wrap="true"
       />
 
@@ -115,13 +107,11 @@
           id="progressTrack"
           width="672"
           height="9"
-          color="0x343434FF"
         />
         <Rectangle
           id="progressFill"
           width="0"
           height="9"
-          color="0xFDCE45FF"
         />
       </Group>
 
@@ -130,7 +120,6 @@
         translation="[66,243]"
         width="672"
         font="font:MediumSystemFont"
-        color="0xA0A0A0FF"
         horizAlign="center"
         text="Checking conversion status..."
       />
@@ -143,7 +132,6 @@
           id="actionBackground"
           width="324"
           height="63"
-          color="0x2E2E2EFF"
         />
         <Label
           id="actionLabel"
@@ -151,7 +139,6 @@
           width="324"
           height="63"
           font="font:MediumBoldSystemFont"
-          color="0xEDEDEDFF"
           horizAlign="center"
           text="Cancel"
         />

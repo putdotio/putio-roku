@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="AudioScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Audio/Audio.brs" />
@@ -23,8 +24,6 @@
       logoBaselineOffset="9"
       showOptions="true"
       optionsAvailable="false"
-      optionsDimColor="0x00000000"
-      optionsIconDimColor="0x00000000"
 	  />
 
     <LayoutGroup
@@ -71,7 +70,6 @@
         <Label
 					id="position"
 					font="font:MediumBoldSystemFont"
-					color="0xEDEDEDFF"
 					text="..:.."
 					width="128"
 				/>
@@ -79,14 +77,11 @@
         <ProgressBar
           id="progressBar"
           width="960"
-          emptyBarBlendColor="0x343434FF"
-          filledBarBlendColor="0xFDCE45FF"
         />
 
         <Label
 					id="duration"
 					font="font:MediumBoldSystemFont"
-					color="0xEDEDEDFF"
 					text="..:.."
 					width="128"
 				/>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HistoryListItem" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/History/HistoryEvents.brs" />
@@ -40,7 +41,6 @@
 				<Label
 					id="title"
 					font="font:MediumBoldSystemFont"
-					color="0xEDEDEDFF"
 					text="Title"
 					width="1336"
 				/>
@@ -48,7 +48,6 @@
 				<Label
 					id="description"
 					font="font:SmallestSystemFont"
-					color="0xA0A0A0FF"
 					text="Description"
 				/>
     	</LayoutGroup>

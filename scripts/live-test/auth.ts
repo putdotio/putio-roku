@@ -12,6 +12,7 @@ import {
 } from "./constants.ts";
 import { formatErrorMessage } from "./errors.ts";
 import {
+  configuredAppId,
   launchApp,
   pressKey,
   querySceneGraph,
@@ -142,7 +143,7 @@ export async function authRefreshSmoke(target: string, driver: AuthDriver): Prom
 }
 
 export async function waitForAuthReady(target: string, profile: string): Promise<void> {
-  await launchApp(target, "dev");
+  await launchApp(target, configuredAppId());
   await waitForDevAppSceneGraphReadyLocal(target, appSceneGraphReadyTimeoutMs);
 
   const startedAt = Date.now();
@@ -179,7 +180,7 @@ export async function waitForAuthReady(target: string, profile: string): Promise
 export async function resetAuthState(target: string, driver: AuthDriver): Promise<void> {
   await pressKey(target, "Home");
   await sleep(1_500);
-  await launchApp(target, "dev");
+  await launchApp(target, configuredAppId());
   await driver.waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
   await waitForBootstrapScreen(target, appSceneGraphReadyTimeoutMs);
 

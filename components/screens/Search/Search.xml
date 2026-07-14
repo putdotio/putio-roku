@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="SearchScreen" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
@@ -24,8 +25,6 @@
       title="Search"
       showOptions="true"
       optionsAvailable="false"
-      optionsDimColor="0x00000000"
-      optionsIconDimColor="0x00000000"
     />
 
     <LayoutGroup
@@ -63,9 +62,7 @@
           drawFocusFeedback="true"
           drawFocusFeedbackOnTop="false"
           focusBitmapUri="pkg:/images/list-item-focus.9.png"
-          focusBitmapBlendColor="0x2E2E2EFF"
           focusFootprintBitmapUri="pkg:/images/transparent-pixel.png"
-          focusFootprintBlendColor="0x00000000"
           vertFocusAnimationStyle="fixedFocus"
           numRows="6"
           visible="false"
@@ -78,7 +75,6 @@
           drawFocusFeedback="true"
           drawFocusFeedbackOnTop="false"
           focusBitmapUri="pkg:/images/list-item-focus.9.png"
-          focusBitmapBlendColor="0x2E2E2EFF"
           vertFocusAnimationStyle="fixedFocus"
           numRows="6"
         />

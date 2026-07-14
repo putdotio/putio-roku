@@ -1,33 +1,5 @@
 function dialogColor(name as string) as string
-    colors = {
-        appBackground: "0x161616FF",
-        appBackgroundWash: "0x00000000",
-        border: "0x343434FF",
-        borderHover: "0x505050FF",
-        buttonFocus: "0x343434FF",
-        buttonSurface: "0x232323FF",
-        danger: "0xE5484DFF",
-        dangerFocused: "0xF2555AFF",
-        disabledText: "0x777777FF",
-        focus: "0x2E2E2EFF",
-        primary: "0xFDCE45FF",
-        primaryPressed: "0xFCBE03FF",
-        panelBorder: "0x5A5A5AFF",
-        scrim: "0x000000B8",
-        secondary: "0x232323FF",
-        shadow: "0x00000080",
-        surface: "0x202020FF",
-        text: "0xEDEDEDFF",
-        textInverse: "0x000000FF",
-        textMuted: "0xA0A0A0FF",
-        transparent: "0x00000000",
-    }
-
-    if colors.doesExist(name)
-        return colors[name]
-    end if
-
-    return colors.text
+    return designTokenColor(name)
 end function
 
 sub setDialogNodeColor(node, colorName as string)
@@ -37,6 +9,12 @@ sub setDialogNodeColor(node, colorName as string)
         else if node.hasField("blendColor")
             node.blendColor = dialogColor(colorName)
         end if
+    end if
+end sub
+
+sub setDialogNodeFieldColor(node, fieldName as string, colorName as string)
+    if node <> invalid and node.hasField(fieldName)
+        node[fieldName] = dialogColor(colorName)
     end if
 end sub
 
