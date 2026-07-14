@@ -1,5 +1,7 @@
 import {
   chmodSync,
+  existsSync,
+  lstatSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
@@ -42,10 +44,26 @@ export function secretsSetup(): void {
       "--output-file",
       tempFile,
     ]);
-    installSecretFile(tempFile, output);
+    installSecretFile(resolveSecretExportFile(tempFile), output);
   } finally {
     rmSync(tempDir, { force: true, recursive: true });
   }
+}
+
+export function resolveSecretExportFile(requestedPath: string): string {
+  const candidates = [requestedPath, `${requestedPath}.env`].filter(existsSync);
+  if (candidates.length !== 1) {
+    throw new Error(
+      `Infisical export wrote ${candidates.length} recognized output files; expected exactly one`,
+    );
+  }
+
+  const source = candidates[0];
+  if (source === undefined || !lstatSync(source).isFile()) {
+    throw new Error(`Infisical export output is not a regular file: ${source ?? requestedPath}`);
+  }
+
+  return source;
 }
 
 export function secretsClean(): void {
