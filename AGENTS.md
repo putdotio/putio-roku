@@ -38,6 +38,12 @@
 - `pnpm roku live-test-install`
 - `pnpm roku console`
 
+## Worktrees
+
+`.worktreeinclude` carries `.env` files into Codex and Claude worktrees. Run
+`pnpm install --frozen-lockfile`; use `pnpm roku secrets-setup` if they are
+missing or stale.
+
 ## Rules
 
 - Keep checked-in defaults open-source-safe

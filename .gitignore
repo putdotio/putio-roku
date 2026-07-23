@@ -1,6 +1,7 @@
 .env
 .env.local
 .env.local.*
+.claude/worktrees/
 .putio-cli/
 .local/
 node_modules/
