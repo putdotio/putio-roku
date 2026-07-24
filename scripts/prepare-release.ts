@@ -173,17 +173,29 @@ function stageReleaseFiles(): void {
 
   // Root landing: redirect the bare domain (and unknown paths, via errorPage) to
   // the visual reference gallery instead of a raw S3 AccessDenied response.
-  copyFileSync("infra/site-root/index.html", "dist/public/index.html");
+  const siteRoot = "infra/site-root/index.html";
+  requireExists(siteRoot, "site root landing");
+  copyFileSync(siteRoot, "dist/public/index.html");
 }
 
 // Publish the curated visual reference gallery alongside the hosted ZIP so it
 // is served at <ROKU_DOMAIN>/vref/. index.html embeds the screenshots by
 // relative path, so only it, the manifest, and screenshots/ are needed.
 function stageVisualReference(): void {
+  requireExists(".vref/index.html", "visual reference gallery");
+  requireExists(".vref/manifest.json", "visual reference manifest");
+  requireExists(".vref/screenshots", "visual reference screenshots");
+
   mkdirSync("dist/public/vref", { recursive: true });
   copyFileSync(".vref/index.html", "dist/public/vref/index.html");
   copyFileSync(".vref/manifest.json", "dist/public/vref/manifest.json");
   cpSync(".vref/screenshots", "dist/public/vref/screenshots", { recursive: true });
+}
+
+function requireExists(path: string, label: string): void {
+  if (!existsSync(path)) {
+    throw new Error(`missing ${label}: ${path}`);
+  }
 }
 
 syncVersion();

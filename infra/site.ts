@@ -32,11 +32,13 @@ export function createRokuSite() {
           contentType: "application/zip",
         },
         {
-          files: "vref/**/*.html",
+          // Top-level gallery files (index.html, manifest.json); `*` avoids the
+          // `**/` globstar not matching files directly under vref/.
+          files: "vref/*.html",
           cacheControl: "public,max-age=300",
         },
         {
-          files: "vref/**/*.json",
+          files: "vref/*.json",
           cacheControl: "public,max-age=300",
         },
         {
