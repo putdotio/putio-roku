@@ -104,6 +104,30 @@ jobs:
           GIT_COMMITTER_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
           GIT_COMMITTER_EMAIL: ${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
 
+      # Attach the sideload ZIP with the gh CLI instead of @semantic-release/github's
+      # octokit uploader, which intermittently fails on large assets with
+      # "invalid content-length header" (undici) and blocks the deploy. prepareCmd
+      # (scripts/prepare-release.ts) built dist/release/*.zip earlier in this job.
+      - name: Attach sideload ZIP to the release
+        if: steps.semantic.outputs.new_release_published == 'true'
+        env:
+          GH_TOKEN: ${{ steps.release-bot.outputs.token }}
+          RELEASE_VERSION: ${{ steps.semantic.outputs.new_release_version }}
+        run: |
+          set -euo pipefail
+          zip="dist/release/putio-roku-v${RELEASE_VERSION}.zip"
+          test -f "$zip"
+          for attempt in 1 2 3; do
+            if gh release upload "v${RELEASE_VERSION}" "$zip" --clobber; then
+              echo "attached $zip to v${RELEASE_VERSION}"
+              exit 0
+            fi
+            echo "upload attempt ${attempt} failed; retrying in 5s..." >&2
+            sleep 5
+          done
+          echo "::error::failed to attach ${zip} after 3 attempts" >&2
+          exit 1
+
   deploy:
     if: ${{ needs.release.outputs.new_release_published == 'true' }}
     name: Deploy released ZIP
