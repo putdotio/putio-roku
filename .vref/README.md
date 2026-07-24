@@ -9,6 +9,13 @@ On each release the committed gallery is published to
 `https://<ROKU_DOMAIN>/vref/` (served by the SST site alongside the hosted ZIP),
 so everything here must stay public-safe — see [Rules](#rules).
 
+The site retains objects (`purge: false`, so the versioned ZIP archive under
+`releases/` is never deleted). Screenshots use stable names and are overwritten
+in place each release, but a **removed or renamed** screenshot persists at its
+old URL until manually purged from the bucket. Treat the public-safe rule as the
+primary control — not after-the-fact removal (these files are already permanent
+in public git history regardless).
+
 ## Structure
 
 - `manifest.json` lists the curated screenshots and their capture metadata.
