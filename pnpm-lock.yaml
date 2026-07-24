@@ -12,8 +12,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       '@putdotio/rokit':
-        specifier: 2.4.0
-        version: 2.4.0(ioredis@5.10.1)
+        specifier: 2.4.1
+        version: 2.4.1(ioredis@5.10.1)
       '@putdotio/vref':
         specifier: 1.1.0
         version: 1.1.0
@@ -112,17 +112,17 @@ packages:
     resolution: {integrity: sha512-sl4Bm6yiMNYrZKkqqDFWN0UfnWhlS8ivKxrYl+6t0gCLrqr8y3B2IqZZbFRkfaVVp7C/baApyh71P+LeE1A2sQ==}
     engines: {node: '>=18.0.0'}
 
-  '@effect/platform-node-shared@4.0.0-beta.75':
-    resolution: {integrity: sha512-ERxuFDuCuMAiSHLrNVTvSXPnUajcZV4PUVibXbk1lwiymhbkxRRBs1Zeuicwho8jZdpn7niXCDI24CiB9PIozA==}
+  '@effect/platform-node-shared@4.0.0-beta.101':
+    resolution: {integrity: sha512-g4L7XiyJSNJLJVhlslyg2zBCQsoKQf1y1gd+Yfd+3wD9ymC+m7ymbd/5FGqnT1aXV6E2AwRr4D/R1eyRUikvWQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.75
+      effect: ^4.0.0-beta.101
 
-  '@effect/platform-node@4.0.0-beta.70':
-    resolution: {integrity: sha512-Ls1WtLaO2CbcO8jHtZRRi6eZa4YOJZ9KXm6udMvwhjV/XhqdsT6AzmcXbc1hINbKgvRcik6qM/441YEaBMYoqw==}
+  '@effect/platform-node@4.0.0-beta.97':
+    resolution: {integrity: sha512-Vd40VLh+Y08Bs37KWtbe9AgO2+t3RKZKGX9YC6ZKAcswu4tXR3CwSI7V2MN+GgS+ez/GLmqH1WrzDDlaIAxKPA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.70
+      effect: ^4.0.0-beta.97
       ioredis: ^5.7.0
 
   '@emnapi/core@1.10.0':
@@ -205,9 +205,9 @@ packages:
   '@putdotio/design@1.4.0':
     resolution: {integrity: sha512-NdW4esNv/set4UAs0VX/KfXbFuqGZdyNb5deGViaNK/SXc/2vv4tHCuofzms73TAp7zTwmI/yVgm1VnDamWU7A==}
 
-  '@putdotio/rokit@2.4.0':
-    resolution: {integrity: sha512-CNtsh2zsQSBkZjs5M93D/sKvrK0TB+o6MUtEARO7qIKsFALia9bGvpGB2hzX+hlnKDxuaAYTooReihwMYiYs8A==}
-    engines: {node: '>=24.14.0'}
+  '@putdotio/rokit@2.4.1':
+    resolution: {integrity: sha512-DNAmOpZViN5kzJwkpmi/DW5xyTCFhUQKn5jQgRZeu/1gKcml67Htx4hiSIKLhufU9ZgAwUgPTTA2HSsdR0jYyA==}
+    engines: {node: '>=24.18.0'}
     hasBin: true
 
   '@putdotio/vref@1.1.0':
@@ -810,8 +810,8 @@ packages:
   ecc-jsbn@0.1.2:
     resolution: {integrity: sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==}
 
-  effect@4.0.0-beta.70:
-    resolution: {integrity: sha512-8AwGTRiNriirHGEYHrOS0E9fzdhIqCdZjiHP1YXmNo2UyPGS43ILsymsSHT7V0DJS+8dvlKq2RxnrDBUhDNZHg==}
+  effect@4.0.0-beta.101:
+    resolution: {integrity: sha512-HjowumlIo+orthn4jMlEJPuzIYPBV+uq/XiciHWhiedLsXQpWHdNJHO5d59BVDP5s1LPuvERcktwFqRXnJqnhA==}
 
   effect@4.0.0-beta.97:
     resolution: {integrity: sha512-pK03HpQVxGZOWdwDAy/iwvV8u3KYcUf2mOWyWqaut2zau8V2u6ejWP7b4BELjyUIiZWW1fl/s/VJpgZUcTjThg==}
@@ -1364,12 +1364,12 @@ packages:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
 
-  roku-deploy@3.17.4:
-    resolution: {integrity: sha512-tsy2TtibcFck/tnTgu2fMci/TAGYN1x6SJ0ACF+tWEB6jOIfkDQ2KGSZkXEHknmHhUQr1tQyVzhGlsCIK0WbuQ==}
-    hasBin: true
-
   roku-deploy@3.17.6:
     resolution: {integrity: sha512-5G28I0eNCpKCv34f6jCNvY8e746RE4uTWisGBZSiUqyKnraN6NIZo5VimNWMBajICCAqzUjpqLmJN9q5KXq8mw==}
+    hasBin: true
+
+  roku-deploy@3.17.7:
+    resolution: {integrity: sha512-aEgi9Vq8/D0NhJzY97CtEUUgUwfR0/F20QR/JIMKXKDxAYt8alfgV217WShTbnFMyYYnJflTMRCHP2bJBbriGQ==}
     hasBin: true
 
   rolldown@1.0.1:
@@ -1392,11 +1392,6 @@ packages:
   sax@1.6.0:
     resolution: {integrity: sha512-6R3J5M4AcbtLUdZmRv2SygeVaM7IhrLXu9BmnOGmmACak8fiUtOsYNWUS4uK7upbmHIBbLBeFeI//477BKLBzA==}
     engines: {node: '>=11.0.0'}
-
-  semver@7.8.1:
-    resolution: {integrity: sha512-rkVq3IXh+4FDGch+KwzX3aV9W3kO54GyEgpvBzSyctDA6Xtd7RJQV1xmXbeQp5v7+VzLOfVqiutSE6GICgPFvg==}
-    engines: {node: '>=10'}
-    hasBin: true
 
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
@@ -1576,8 +1571,8 @@ packages:
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
-  undici@8.3.0:
-    resolution: {integrity: sha512-TkUDgb6tl7KOGZ+7e8E3d2FYgUQgF6z5YypqjWmixVQSQERFcVrVg0ySADm2LVLRh5ljAaHTCR5Fmz3Q34rB7Q==}
+  undici@8.8.0:
+    resolution: {integrity: sha512-ubshXMXwF3MQIMF1y/WxZdNBnjEKeSg2wF5mcGUtU55YTw34tnVVpKRlLf7ruDXZ5344KokPVX4RBx1wJm64Bw==}
     engines: {node: '>=22.19.0'}
 
   universalify@0.1.2:
@@ -1954,22 +1949,22 @@ snapshots:
 
   '@aws/lambda-invoke-store@0.3.0': {}
 
-  '@effect/platform-node-shared@4.0.0-beta.75(effect@4.0.0-beta.70)':
+  '@effect/platform-node-shared@4.0.0-beta.101(effect@4.0.0-beta.97)':
     dependencies:
       '@types/ws': 8.18.1
-      effect: 4.0.0-beta.70
+      effect: 4.0.0-beta.97
       ws: 8.21.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@4.0.0-beta.70(effect@4.0.0-beta.70)(ioredis@5.10.1)':
+  '@effect/platform-node@4.0.0-beta.97(effect@4.0.0-beta.97)(ioredis@5.10.1)':
     dependencies:
-      '@effect/platform-node-shared': 4.0.0-beta.75(effect@4.0.0-beta.70)
-      effect: 4.0.0-beta.70
+      '@effect/platform-node-shared': 4.0.0-beta.101(effect@4.0.0-beta.97)
+      effect: 4.0.0-beta.97
       ioredis: 5.10.1
       mime: 4.1.0
-      undici: 8.3.0
+      undici: 8.8.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -2052,12 +2047,12 @@ snapshots:
 
   '@putdotio/design@1.4.0': {}
 
-  '@putdotio/rokit@2.4.0(ioredis@5.10.1)':
+  '@putdotio/rokit@2.4.1(ioredis@5.10.1)':
     dependencies:
-      '@effect/platform-node': 4.0.0-beta.70(effect@4.0.0-beta.70)(ioredis@5.10.1)
-      effect: 4.0.0-beta.70
+      '@effect/platform-node': 4.0.0-beta.97(effect@4.0.0-beta.97)(ioredis@5.10.1)
+      effect: 4.0.0-beta.97
       jszip: 3.10.1
-      roku-deploy: 3.17.4
+      roku-deploy: 3.17.7
     transitivePeerDependencies:
       - bufferutil
       - ioredis
@@ -2066,7 +2061,7 @@ snapshots:
 
   '@putdotio/vref@1.1.0':
     dependencies:
-      effect: 4.0.0-beta.97
+      effect: 4.0.0-beta.101
 
   '@resvg/resvg-js-android-arm-eabi@2.6.2':
     optional: true
@@ -2576,7 +2571,7 @@ snapshots:
       jsbn: 0.1.1
       safer-buffer: 2.1.2
 
-  effect@4.0.0-beta.70:
+  effect@4.0.0-beta.101:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 4.9.0
@@ -3112,28 +3107,6 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  roku-deploy@3.17.4:
-    dependencies:
-      '@types/request': 2.48.13
-      chalk: 2.4.2
-      dateformat: 3.0.3
-      dayjs: 1.11.21
-      fast-glob: 3.3.3
-      fs-extra: 7.0.1
-      is-glob: 4.0.3
-      jsonc-parser: 2.3.1
-      jszip: 3.10.1
-      lodash: 4.18.1
-      micromatch: 4.0.8
-      moment: 2.30.1
-      parse-ms: 2.1.0
-      postman-request: 2.88.1-postman.48
-      semver: 7.8.1
-      temp-dir: 2.0.0
-      xml2js: 0.5.0
-    transitivePeerDependencies:
-      - supports-color
-
   roku-deploy@3.17.6:
     dependencies:
       '@types/request': 2.48.13
@@ -3152,6 +3125,23 @@ snapshots:
       postman-request: 2.88.1-postman.48
       semver: 7.8.5
       temp-dir: 2.0.0
+      xml2js: 0.5.0
+    transitivePeerDependencies:
+      - supports-color
+
+  roku-deploy@3.17.7:
+    dependencies:
+      '@types/request': 2.48.13
+      chalk: 2.4.2
+      fast-glob: 3.3.3
+      fs-extra: 7.0.1
+      is-glob: 4.0.3
+      jsonc-parser: 2.3.1
+      jszip: 3.10.1
+      micromatch: 4.0.8
+      picomatch: 2.3.2
+      postman-request: 2.88.1-postman.48
+      semver: 7.8.5
       xml2js: 0.5.0
     transitivePeerDependencies:
       - supports-color
@@ -3188,8 +3178,6 @@ snapshots:
   safer-buffer@2.1.2: {}
 
   sax@1.6.0: {}
-
-  semver@7.8.1: {}
 
   semver@7.8.5: {}
 
@@ -3382,7 +3370,7 @@ snapshots:
 
   undici-types@8.3.0: {}
 
-  undici@8.3.0: {}
+  undici@8.8.0: {}
 
   universalify@0.1.2: {}
 
