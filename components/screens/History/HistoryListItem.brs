@@ -32,9 +32,11 @@ sub itemContentChanged()
     if contentMap.icon <> invalid
         m.icon.uri = "pkg:/images/icons/" + contentMap.icon + ".png"
 
+        ' Mapped events declare their own tint; unmapped/unknown events fall back
+        ' to the muted incidental tone (matching upload/shared/voucher), never bright white.
         iconColor = contentMap.iconColor
         if iconColor = invalid or iconColor = ""
-            iconColor = "text"
+            iconColor = "textMuted"
         end if
         setDialogNodeColor(m.icon, iconColor)
     end if
