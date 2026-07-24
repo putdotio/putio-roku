@@ -170,6 +170,10 @@ function stageReleaseFiles(): void {
   copyFileSync(sourceZip, `dist/release/putio-roku-v${version}.zip`);
 
   stageVisualReference();
+
+  // Root landing: redirect the bare domain (and unknown paths, via errorPage) to
+  // the visual reference gallery instead of a raw S3 AccessDenied response.
+  copyFileSync("infra/site-root/index.html", "dist/public/index.html");
 }
 
 // Publish the curated visual reference gallery alongside the hosted ZIP so it
@@ -187,6 +191,7 @@ runArtifact();
 stageReleaseFiles();
 
 console.log(`Prepared Roku release ${version}`);
+console.log("- dist/public/index.html (redirect -> /vref/index.html)");
 console.log("- dist/public/v2.zip");
 console.log(`- dist/public/releases/v2/${version}.zip`);
 console.log("- dist/public/vref/index.html");
