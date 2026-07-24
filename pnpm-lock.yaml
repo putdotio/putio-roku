@@ -15,8 +15,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       '@putdotio/rokit':
-        specifier: 2.4.1
-        version: 2.4.1(ioredis@5.10.1)
+        specifier: 2.4.2
+        version: 2.4.2(ioredis@5.10.1)
       '@putdotio/vref':
         specifier: 1.1.0
         version: 1.1.0
@@ -211,8 +211,8 @@ packages:
   '@putdotio/design@1.4.0':
     resolution: {integrity: sha512-NdW4esNv/set4UAs0VX/KfXbFuqGZdyNb5deGViaNK/SXc/2vv4tHCuofzms73TAp7zTwmI/yVgm1VnDamWU7A==}
 
-  '@putdotio/rokit@2.4.1':
-    resolution: {integrity: sha512-DNAmOpZViN5kzJwkpmi/DW5xyTCFhUQKn5jQgRZeu/1gKcml67Htx4hiSIKLhufU9ZgAwUgPTTA2HSsdR0jYyA==}
+  '@putdotio/rokit@2.4.2':
+    resolution: {integrity: sha512-GVSiqnrAezbWxSQnlSMv/7byLTowcowLw0L5gltsGSWNo65t0EJW8GQ9iMq7hE+x6bXgNEMKbp03c5l47j4czA==}
     engines: {node: '>=24.18.0'}
     hasBin: true
 
@@ -2055,7 +2055,7 @@ snapshots:
 
   '@putdotio/design@1.4.0': {}
 
-  '@putdotio/rokit@2.4.1(ioredis@5.10.1)':
+  '@putdotio/rokit@2.4.2(ioredis@5.10.1)':
     dependencies:
       '@effect/platform-node': 4.0.0-beta.97(effect@4.0.0-beta.97)(ioredis@5.10.1)
       effect: 4.0.0-beta.97

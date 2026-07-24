@@ -1,5 +1,6 @@
 allowBuilds:
   msgpackr-extract: true
 minimumReleaseAgeExclude:
-  - '@putdotio/rokit@2.4.0'
-  - '@putdotio/design@1.4.0'
+  # First-party packages are trusted (we publish them), so exempt the whole
+  # scope from the minimum-release-age policy that guards third-party publishes.
+  - '@putdotio/*'
