@@ -51,7 +51,7 @@ sub configureIcon()
 
     iconColor = m.top.itemContent.iconColor
     if iconColor = invalid or iconColor = ""
-        iconColor = "text"
+        iconColor = "primary"
     end if
     setDialogNodeColor(m.icon, iconColor)
 end sub
