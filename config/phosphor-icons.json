@@ -1,0 +1,38 @@
+{
+  "package": {
+    "name": "@phosphor-icons/core",
+    "version": "2.1.1"
+  },
+  "icons": [
+    { "asset": "file-folder", "name": "folder", "weight": "fill" },
+    { "asset": "file-video", "name": "file-video", "weight": "regular" },
+    { "asset": "file-audio", "name": "file-audio", "weight": "regular" },
+    { "asset": "file-image", "name": "image", "weight": "regular" },
+    { "asset": "file-text", "name": "file-text", "weight": "regular" },
+    { "asset": "file-other", "name": "file", "weight": "regular" },
+    { "asset": "eye", "name": "eye", "weight": "regular" },
+    { "asset": "media-filter", "name": "funnel", "weight": "regular" },
+    { "asset": "history", "name": "clock-counter-clockwise", "weight": "regular" },
+    { "asset": "logout", "name": "sign-out", "weight": "regular" },
+    { "asset": "info", "name": "info", "weight": "regular" },
+    { "asset": "settings", "name": "gear", "weight": "regular" },
+    { "asset": "search", "name": "magnifying-glass", "weight": "regular" },
+    { "asset": "upload", "name": "cloud-arrow-up", "weight": "regular" },
+    { "asset": "shared", "name": "cloud-arrow-down", "weight": "regular" },
+    { "asset": "completed", "name": "cloud-check", "weight": "regular" },
+    { "asset": "error", "name": "x-circle", "weight": "regular" },
+    { "asset": "warning", "name": "warning-circle", "weight": "regular" },
+    { "asset": "rss", "name": "rss", "weight": "regular" },
+    { "asset": "voucher", "name": "gift", "weight": "regular" },
+    { "asset": "skip-back", "name": "arrow-counter-clockwise", "weight": "regular" },
+    { "asset": "skip-forward", "name": "arrow-clockwise", "weight": "regular" },
+    { "asset": "play", "name": "play", "weight": "fill" },
+    { "asset": "pause", "name": "pause", "weight": "fill" },
+    { "asset": "pause-circle", "name": "pause-circle", "weight": "fill" },
+    { "asset": "audio-on", "name": "speaker-high", "weight": "regular" },
+    { "asset": "audio-off", "name": "speaker-x", "weight": "regular" },
+    { "asset": "captions-on", "name": "closed-captioning", "weight": "fill" },
+    { "asset": "captions-off", "name": "closed-captioning", "weight": "regular" },
+    { "asset": "speed", "name": "gauge", "weight": "regular" }
+  ]
+}

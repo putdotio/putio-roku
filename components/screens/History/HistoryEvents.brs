@@ -114,52 +114,62 @@ sub GetMapFromHistoryEventType(eventType) as object
         upload: {
             title: HistoryEventUploadTitle,
             description: HistoryEventUploadDescription,
-            icon: "cloud-upload-1",
+            icon: "upload",
+            iconColor: "textMuted",
         },
         file_shared: {
             title: HistoryEventFileSharedTitle,
             description: HistoryEventFileSharedDescription,
-            icon: "cloud-add-1",
+            icon: "shared",
+            iconColor: "textMuted",
         },
         transfer_completed: {
             title: HistoryEventTransferCompletedTitle,
             description: HistoryEventTransferCompletedDescription,
-            icon: "media-gallery-1",
+            icon: "completed",
+            iconColor: "primary",
         },
         transfer_error: {
             title: HistoryEventTransferErrorTitle,
             description: HistoryEventTransferErrorDescription,
-            icon: "x-2-red",
+            icon: "error",
+            iconColor: "danger",
         },
         file_from_rss_deleted_for_space: {
             title: HistoryEventFileFromRSSDeletedTitle,
             description: HistoryEventFileFromRSSDeletedDescription,
-            icon: "exclamation-point-1",
+            icon: "warning",
+            iconColor: "primary",
         },
         rss_filter_paused: {
             title: HistoryEventRSSPausedTitle,
             description: HistoryEventRSSPausedDescription,
-            icon: "rss-1",
+            icon: "rss",
+            iconColor: "danger",
         },
         transfer_from_rss_error: {
             title: HistoryEventRSSTransferErrorTitle,
             description: HistoryEventRSSTransferErrorDescription,
-            icon: "x-2-red",
+            icon: "error",
+            iconColor: "danger",
         },
         transfer_callback_error: {
             title: HistoryEventTransferCallbackErrorTitle,
             description: HistoryEventTransferCallbackErrorDescription,
-            icon: "x-2-red",
+            icon: "error",
+            iconColor: "danger",
         },
         private_torrent_pin: {
             title: HistoryEventPrivateTorrentPinTitle,
             description: HistoryEventPrivateTorrentPinDescription,
-            icon: "exclamation-point-1",
+            icon: "warning",
+            iconColor: "primary",
         },
         voucher: {
             title: HistoryEventVoucherTitle,
             description: HistoryEventVoucherDescription,
-            icon: "user-1",
+            icon: "voucher",
+            iconColor: "textMuted",
         }
     }
 
@@ -170,6 +180,6 @@ sub GetMapFromHistoryEventType(eventType) as object
     return {
         title: HistoryEventAnyTitle,
         description: HistoryEventAnyDescription,
-        icon: "x-2",
+        icon: "info",
     }
 end sub

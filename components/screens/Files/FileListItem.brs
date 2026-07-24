@@ -13,6 +13,7 @@ sub ensureFileListItemNodes()
         m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
         setDialogNodeColor(m.title, "text")
         setDialogNodeColor(m.description, "textMuted")
+        setDialogNodeColor(m.watchedEye, "textMuted")
     end if
 
     applyListItemFocusBackground(m.focusBackground)
@@ -62,21 +63,23 @@ end sub
 
 sub setIcon(file)
     fileType = file.file_type
-    iconFileName = "file_type_other.png"
+    iconName = "file-other"
     iconMap = {
-        FOLDER: "file_type_folder.png"
-        VIDEO: "file_type_video.png"
-        AUDIO: "file_type_audio.png"
-        IMAGE: "file_type_image.png"
-        TEXT: "file_type_text.png"
+        FOLDER: "file-folder"
+        VIDEO: "file-video"
+        AUDIO: "file-audio"
+        IMAGE: "file-image"
+        TEXT: "file-text"
     }
 
     if iconMap[fileType] <> invalid
-        iconFileName = iconMap[fileType]
+        iconName = iconMap[fileType]
     end if
 
-    iconFolderPath = "pkg:/images/icons/"
-    m.icon.uri = iconFolderPath + iconFileName
+    m.icon.uri = "pkg:/images/icons/" + iconName + ".png"
+
+    ' put.io TV identity tints every file-type glyph brand-yellow.
+    setDialogNodeColor(m.icon, "primary")
 end sub
 
 sub setWatchedEye(file)

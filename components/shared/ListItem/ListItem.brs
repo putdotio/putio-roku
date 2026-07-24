@@ -48,6 +48,12 @@ end sub
 sub configureIcon()
     ensureListItemNodes()
     m.icon.uri = "pkg:/images/icons/" + m.top.itemContent.iconName + ".png"
+
+    iconColor = m.top.itemContent.iconColor
+    if iconColor = invalid or iconColor = ""
+        iconColor = "primary"
+    end if
+    setDialogNodeColor(m.icon, iconColor)
 end sub
 
 sub configureTitle()

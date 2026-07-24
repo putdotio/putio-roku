@@ -494,9 +494,9 @@ end sub
 
 sub renderGenericListItemStory()
     content = createObject("roSGNode", "ContentNode")
-    addGenericListItem(content, "media-gallery-1", "Files", "Browse your put.io files", "")
+    addGenericListItem(content, "file-folder", "Files", "Browse your put.io files", "")
     addGenericListItem(content, "search", "Search", "Find media by name", "")
-    addGenericListItem(content, "history-1", "History", "Enabled", "right")
+    addGenericListItem(content, "history", "History", "Enabled", "right")
     addGenericListItem(content, "settings", "Settings", "Playback type: Direct", "right")
 
     list = createPreviewMarkupList("ListItem")

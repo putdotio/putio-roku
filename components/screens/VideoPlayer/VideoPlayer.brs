@@ -42,8 +42,8 @@ function init()
             width: 88,
             action: "rewind",
             showFocusBackground: true,
-            iconUri: "pkg:/images/icons/player-goback15.png",
-            focusedIconUri: "pkg:/images/icons/player-goback15.png"
+            iconUri: "pkg:/images/icons/skip-back.png",
+            focusedIconUri: "pkg:/images/icons/skip-back.png"
         },
         {
             node: m.top.findNode("playButton"),
@@ -56,8 +56,8 @@ function init()
             width: 88,
             action: "play",
             showFocusBackground: true,
-            iconUri: "pkg:/images/icons/player-play.png",
-            focusedIconUri: "pkg:/images/icons/player-play.png"
+            iconUri: "pkg:/images/icons/play.png",
+            focusedIconUri: "pkg:/images/icons/play.png"
         },
         {
             node: m.top.findNode("fastForwardButton"),
@@ -70,8 +70,8 @@ function init()
             width: 88,
             action: "fastforward",
             showFocusBackground: true,
-            iconUri: "pkg:/images/icons/player-goforward15.png",
-            focusedIconUri: "pkg:/images/icons/player-goforward15.png"
+            iconUri: "pkg:/images/icons/skip-forward.png",
+            focusedIconUri: "pkg:/images/icons/skip-forward.png"
         },
         {
             node: m.top.findNode("audioButton"),
@@ -84,8 +84,8 @@ function init()
             width: 88,
             action: "audio",
             showFocusBackground: true,
-            iconUri: "pkg:/images/icons/player-audio.png",
-            focusedIconUri: "pkg:/images/icons/player-audio.png"
+            iconUri: "pkg:/images/icons/audio-on.png",
+            focusedIconUri: "pkg:/images/icons/audio-on.png"
         },
         {
             node: m.top.findNode("captionsButton"),
@@ -98,8 +98,8 @@ function init()
             width: 88,
             action: "captions",
             showFocusBackground: true,
-            iconUri: "pkg:/images/icons/player-captions-off.png",
-            focusedIconUri: "pkg:/images/icons/player-captions-off.png"
+            iconUri: "pkg:/images/icons/captions-off.png",
+            focusedIconUri: "pkg:/images/icons/captions-off.png"
         },
         {
             node: m.top.findNode("speedButton"),
@@ -112,8 +112,8 @@ function init()
             width: 88,
             action: "speed",
             showFocusBackground: true,
-            iconUri: "pkg:/images/icons/player-speed.png",
-            focusedIconUri: "pkg:/images/icons/player-speed.png"
+            iconUri: "pkg:/images/icons/speed.png",
+            focusedIconUri: "pkg:/images/icons/speed.png"
         }
     ]
     applyPlayerColors()
@@ -804,19 +804,19 @@ end sub
 
 sub updateTrackControlIcons()
     if m.selectedAudioTrack <> invalid
-        m.controls[3].iconUri = "pkg:/images/icons/player-audio.png"
-        m.controls[3].focusedIconUri = "pkg:/images/icons/player-audio.png"
+        m.controls[3].iconUri = "pkg:/images/icons/audio-on.png"
+        m.controls[3].focusedIconUri = "pkg:/images/icons/audio-on.png"
     else
-        m.controls[3].iconUri = "pkg:/images/icons/player-audio-off.png"
-        m.controls[3].focusedIconUri = "pkg:/images/icons/player-audio-off.png"
+        m.controls[3].iconUri = "pkg:/images/icons/audio-off.png"
+        m.controls[3].focusedIconUri = "pkg:/images/icons/audio-off.png"
     end if
 
     if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> ""
-        m.controls[4].iconUri = "pkg:/images/icons/player-captions.png"
-        m.controls[4].focusedIconUri = "pkg:/images/icons/player-captions.png"
+        m.controls[4].iconUri = "pkg:/images/icons/captions-on.png"
+        m.controls[4].focusedIconUri = "pkg:/images/icons/captions-on.png"
     else
-        m.controls[4].iconUri = "pkg:/images/icons/player-captions-off.png"
-        m.controls[4].focusedIconUri = "pkg:/images/icons/player-captions-off.png"
+        m.controls[4].iconUri = "pkg:/images/icons/captions-off.png"
+        m.controls[4].focusedIconUri = "pkg:/images/icons/captions-off.png"
     end if
 end sub
 
@@ -1022,9 +1022,9 @@ end function
 
 sub updatePlayIcon()
     if m.video.state = "playing" or m.video.state = "buffering"
-        m.controls[1].icon.uri = "pkg:/images/icons/player-pause.png"
+        m.controls[1].icon.uri = "pkg:/images/icons/pause.png"
     else
-        m.controls[1].icon.uri = "pkg:/images/icons/player-play.png"
+        m.controls[1].icon.uri = "pkg:/images/icons/play.png"
     end if
 end sub
 

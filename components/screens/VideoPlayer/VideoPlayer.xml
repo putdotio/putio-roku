@@ -82,7 +82,8 @@
           translation="[112,56]"
           width="22"
           height="22"
-          uri="pkg:/images/icons/player-pause-circle.png"
+          loadDisplayMode="scaleToFit"
+          uri="pkg:/images/icons/pause-circle.png"
           visible="false"
         />
 
@@ -159,7 +160,8 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-goback15.png"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/icons/skip-back.png"
           />
           <Label
             id="rewindLabel"
@@ -195,7 +197,8 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-play.png"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/icons/play.png"
           />
         </Group>
 
@@ -223,7 +226,8 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-goforward15.png"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/icons/skip-forward.png"
           />
           <Label
             id="fastForwardLabel"
@@ -269,7 +273,8 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-audio.png"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/icons/audio-on.png"
           />
         </Group>
 
@@ -307,7 +312,8 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-captions-off.png"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/icons/captions-off.png"
           />
         </Group>
 
@@ -345,7 +351,8 @@
             translation="[16,16]"
             width="56"
             height="56"
-            uri="pkg:/images/icons/player-speed.png"
+            loadDisplayMode="scaleToFit"
+            uri="pkg:/images/icons/speed.png"
           />
         </Group>
       </Group>

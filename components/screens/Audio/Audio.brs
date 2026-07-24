@@ -28,20 +28,20 @@ function init()
     m.focusOrder = [
         {
             component: m.playButton,
-            normalUri: "pkg:/images/icons/play-4.png",
-            activeUri: "pkg:/images/icons/pause-4.png",
+            normalUri: "pkg:/images/icons/play.png",
+            activeUri: "pkg:/images/icons/pause.png",
             callback: playOrPause,
         },
         {
             component: m.fastForwardButton,
-            normalUri: "pkg:/images/icons/goforward15.png",
-            activeUri: "pkg:/images/icons/goforward15.png",
+            normalUri: "pkg:/images/icons/skip-forward.png",
+            activeUri: "pkg:/images/icons/skip-forward.png",
             callback: fastforward,
         },
         {
             component: m.rewindButton,
-            normalUri: "pkg:/images/icons/goback15.png",
-            activeUri: "pkg:/images/icons/goback15.png",
+            normalUri: "pkg:/images/icons/skip-back.png",
+            activeUri: "pkg:/images/icons/skip-back.png",
             callback: rewind,
         },
     ]

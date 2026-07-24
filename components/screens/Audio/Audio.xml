@@ -41,21 +41,24 @@
           id="rewind"
           width="96"
           height="96"
-          uri="pkg:/images/icons/goback15.png"
+          loadDisplayMode="scaleToFit"
+          uri="pkg:/images/icons/skip-back.png"
           audioGuideText="Rewind"
         />
         <Poster
           id="play"
           width="128"
           height="128"
-          uri="pkg:/images/icons/play-4.png"
+          loadDisplayMode="scaleToFit"
+          uri="pkg:/images/icons/play.png"
           audioGuideText="Play or Pause"
         />
         <Poster
           id="fastforward"
           width="96"
           height="96"
-          uri="pkg:/images/icons/goforward15.png"
+          loadDisplayMode="scaleToFit"
+          uri="pkg:/images/icons/skip-forward.png"
           audioGuideText="Fast Forward"
         />
       </LayoutGroup>

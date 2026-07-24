@@ -3,9 +3,11 @@ import {
   checkRokuAssets,
   checkRokuDesign,
   checkRokuFormat,
+  checkRokuIcons,
   checkRokuLive,
   checkRokuStatic,
   clean,
+  icons,
   packageRoku,
   testLive,
   verify,
@@ -76,9 +78,11 @@ const tasks: Record<string, Task> = {
   "check-roku-design": checkRokuDesign,
   "check-roku-dev-target": checkRokuDevTarget,
   "check-roku-format": checkRokuFormat,
+  "check-roku-icons": checkRokuIcons,
   "check-roku-live": checkRokuLive,
   "check-roku-static": checkRokuStatic,
   clean,
+  icons,
   console: attachConsole,
   "debug-snapshot": debugSnapshot,
   "device-info": deviceInfo,
@@ -141,7 +145,7 @@ function printHelp(): void {
   console.log(`Usage: pnpm roku <task>
 
 Common:
-  verify smoke test-live build build-dev build-lab artifact run clean
+  verify smoke test-live build build-dev build-lab artifact run clean icons
 
 Device:
   check-roku-dev-target install launch remove console active-app device-info

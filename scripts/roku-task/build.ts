@@ -3,6 +3,7 @@ import { join } from "node:path";
 import process from "node:process";
 import { generateRokuAssets } from "../generate-roku-assets.ts";
 import { generateRokuDesign } from "../generate-roku-design.ts";
+import { generateRokuIcons } from "../generate-roku-icons.ts";
 import { packageRokuApp } from "../package-roku.ts";
 import {
   appZipFile,
@@ -84,11 +85,26 @@ export async function checkRokuAssets(): Promise<void> {
   run("git", ["diff", "--exit-code", "--", "images/generated"]);
 }
 
+export async function icons(): Promise<void> {
+  const outputs = await generateRokuIcons(repoRoot);
+  console.log(`Generated ${outputs.length} Roku icon assets from config/phosphor-icons.json`);
+}
+
+export async function checkRokuIcons(): Promise<void> {
+  const outputs = await generateRokuIcons(repoRoot);
+  for (const outputPath of outputs) {
+    assertFile(outputPath);
+  }
+  assertFile("third-party/phosphor-icons/LICENSE");
+  run("git", ["diff", "--exit-code", "--", "images/icons", "third-party/phosphor-icons"]);
+}
+
 export async function verify(): Promise<void> {
   clean();
   checkRokuLive();
   await checkRokuDesign();
   await checkRokuAssets();
+  await checkRokuIcons();
   testLive();
   checkRokuFormat();
   checkRokuStatic();
