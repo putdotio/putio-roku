@@ -16,15 +16,15 @@ function init()
     m.items = {
         show_only_media_files: {
             title: "Only Show Media Files",
-            iconName: "align-left-1",
+            iconName: "media-filter",
         },
         show_history: {
             title: "Keep populating the history page with your activities",
-            iconName: "history-1",
+            iconName: "history",
         },
         playback_type: {
             title: "Video playback type",
-            iconName: "file_type_video",
+            iconName: "file-video",
         },
         logout: {
             title: "Log out",

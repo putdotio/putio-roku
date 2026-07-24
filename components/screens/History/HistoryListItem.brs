@@ -30,8 +30,13 @@ sub itemContentChanged()
     m.title.text = contentMap.title(event)
     m.description.text = contentMap.description(event)
     if contentMap.icon <> invalid
-        iconFolderPath = "pkg:/images/icons/"
-        m.icon.uri = iconFolderPath + contentMap.icon + ".png" 'iconFileName
+        m.icon.uri = "pkg:/images/icons/" + contentMap.icon + ".png"
+
+        iconColor = contentMap.iconColor
+        if iconColor = invalid or iconColor = ""
+            iconColor = "text"
+        end if
+        setDialogNodeColor(m.icon, iconColor)
     end if
     applyListItemLoading(m.spinner, m.spinnerAnimation, isLoading)
 end sub

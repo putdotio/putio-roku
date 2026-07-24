@@ -12,7 +12,8 @@ function init()
         {
             key: "files",
             title: "Your Files",
-            iconName: "file_type_folder",
+            iconName: "file-folder",
+            iconColor: "primary",
         },
         {
             key: "search",
@@ -22,7 +23,7 @@ function init()
         {
             key: "history",
             title: "History",
-            iconName: "history-1",
+            iconName: "history",
             isEnabled: false
         },
         {
@@ -74,6 +75,9 @@ sub renderList()
             listItemData.key = item.key
             listItemData.title = item.title
             listItemData.iconName = item.iconName
+            if item.iconColor <> invalid
+                listItemData.iconColor = item.iconColor
+            end if
         end if
     end for
 

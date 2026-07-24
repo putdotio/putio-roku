@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-07-23T11:35:16.000Z",
+  "updatedAt": "2026-07-24T00:00:00.000Z",
   "screenshots": [
     {
       "id": "auth",
@@ -15,8 +15,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/auth.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 27375,
+      "capturedAt": "2026-05-20T21:36:44.000Z",
+      "sizeBytes": 21748,
       "tags": [
         "auth",
         "activation-code",
@@ -24,7 +24,7 @@
       ],
       "notes": [
         "Auth screen with the activation code tiles redacted for public-safe review.",
-        "Captured from v2.11.1 on the live device before restoring the shared test account."
+        "Captured from the live device before restoring the test account."
       ]
     },
     {
@@ -38,8 +38,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/home.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 26897,
+      "capturedAt": "2026-05-20T20:56:58.000Z",
+      "sizeBytes": 24367,
       "tags": [
         "home",
         "navigation"
@@ -60,8 +60,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/files.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 49993,
+      "capturedAt": "2026-05-20T20:56:58.000Z",
+      "sizeBytes": 47437,
       "tags": [
         "files",
         "list",
@@ -83,16 +83,16 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/history.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 24749,
+      "capturedAt": "2026-05-20T20:56:58.000Z",
+      "sizeBytes": 22303,
       "tags": [
         "history",
         "list",
         "focus"
       ],
       "notes": [
-        "History page with the current synthetic README test-account event visible.",
-        "Captured from the shared test account on v2.11.1."
+        "History page with a seeded transfer_completed event visible.",
+        "The TV filter matches tv-native: file_shared and transfer_completed events only."
       ]
     },
     {
@@ -106,15 +106,15 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/image.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 157386,
+      "capturedAt": "2026-05-20T19:37:45.000Z",
+      "sizeBytes": 55184,
       "tags": [
         "image",
         "viewer",
         "scale-to-fit"
       ],
       "notes": [
-        "Image screen rendering the public-safe forest fixture.",
+        "Image screen rendering a synthetic test-account poster.",
         "The rendered image uses a viewport-sized Poster with scaleToFit."
       ]
     },
@@ -129,8 +129,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/file-delete-dialog.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 44882,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 37173,
       "tags": [
         "files",
         "dialog",
@@ -152,8 +152,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-empty.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 35971,
+      "capturedAt": "2026-05-20T20:15:19.213Z",
+      "sizeBytes": 33635,
       "tags": [
         "search",
         "keyboard",
@@ -175,16 +175,16 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-no-results.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 30613,
+      "capturedAt": "2026-05-20T20:17:36.106Z",
+      "sizeBytes": 32285,
       "tags": [
         "search",
         "keyboard",
         "empty"
       ],
       "notes": [
-        "Search screen after entering a synthetic query with no matching files.",
-        "The v2.11.1 empty-state node is present but laid out off-screen, leaving the results pane blank."
+        "Search screen after entering a query with no matching files.",
+        "Uses the shared empty state for no-result feedback."
       ]
     },
     {
@@ -198,8 +198,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-results.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 48679,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 43879,
       "tags": [
         "search",
         "keyboard"
@@ -220,8 +220,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-result-focused.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 46583,
+      "capturedAt": "2026-05-20T20:56:58.000Z",
+      "sizeBytes": 43437,
       "tags": [
         "search",
         "focus"
@@ -242,8 +242,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/settings.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 43525,
+      "capturedAt": "2026-05-20T20:56:58.000Z",
+      "sizeBytes": 39662,
       "tags": [
         "settings",
         "list",
@@ -265,8 +265,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/exit-app-dialog.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 27437,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 24711,
       "tags": [
         "home",
         "dialog",
@@ -274,7 +274,7 @@
       ],
       "notes": [
         "Exit confirmation dialog opened from the Home page with Back.",
-        "OK focus is shown after moving up from the safe default Cancel action."
+        "Cancel is focused by default so Back or Select can dismiss safely."
       ]
     },
     {
@@ -288,8 +288,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/lab-app-dialog-empty.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 21153,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 53760,
       "tags": [
         "lab",
         "dialog",
@@ -297,7 +297,7 @@
       ],
       "notes": [
         "Lab story for the shared AppDialog with title and two actions.",
-        "Captured through the direct Lab story route with the component isolated on the app background."
+        "The preview keeps the surrounding Lab chrome visible for component context."
       ]
     },
     {
@@ -311,8 +311,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/lab-app-dialog-message.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 29239,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 57846,
       "tags": [
         "lab",
         "dialog",
@@ -320,7 +320,7 @@
       ],
       "notes": [
         "Lab story for the shared AppDialog with title, body message, and one action.",
-        "Captured through the direct Lab story route with the component isolated on the app background."
+        "The preview keeps the surrounding Lab chrome visible for component context."
       ]
     },
     {
@@ -334,8 +334,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-audio-menu.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 29076,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 27072,
       "tags": [
         "player",
         "track-menu",
@@ -343,7 +343,7 @@
       ],
       "notes": [
         "Audio track menu opened from the player controls on a synthetic multi-audio test file.",
-        "The current fixture exposes Spanish and Italian tracks on the live Roku."
+        "Kept as a curated reference because later runs on this Roku did not consistently expose multiple audio tracks."
       ]
     },
     {
@@ -357,8 +357,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-progress.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 22978,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 23119,
       "tags": [
         "player",
         "progress",
@@ -380,8 +380,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-subtitle-button.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 21821,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 20955,
       "tags": [
         "player",
         "subtitles",
@@ -403,8 +403,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-subtitle-menu.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 36808,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 35106,
       "tags": [
         "player",
         "track-menu",
@@ -426,8 +426,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-progress-focus.jpg",
-      "capturedAt": "2026-07-23T11:35:16.000Z",
-      "sizeBytes": 23653,
+      "capturedAt": "2026-05-20T12:12:40.467Z",
+      "sizeBytes": 22593,
       "tags": [
         "player",
         "progress",

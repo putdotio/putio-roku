@@ -4,6 +4,7 @@
     <field id="data" type="assocarray" />
     <field id="key" type="string" />
     <field id="iconName" type="string" />
+    <field id="iconColor" type="string" value="primary" />
     <field id="title" type="string" />
     <field id="description" type="string" />
     <field id="valueAlign" type="string" />

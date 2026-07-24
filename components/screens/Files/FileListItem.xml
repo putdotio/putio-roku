@@ -54,9 +54,10 @@
 			<Group>
 				<Poster
 					id="watchedEye"
-					translation="[0, 9]"
-					width="50"
-					height="33"
+					translation="[5, 5]"
+					width="40"
+					height="40"
+					loadDisplayMode="scaleToFit"
 					uri="pkg:/images/icons/eye.png"
 					visible="false"
 				/>

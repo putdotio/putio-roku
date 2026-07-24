@@ -11,6 +11,7 @@
 - [Contributing](./CONTRIBUTING.md)
 - [Live Test](./live-test/README.md)
 - [Roku Visual Reference](./.vref/README.md)
+- [Icon system](./docs/ICONS.md)
 - [Security](./SECURITY.md)
 
 ## Commands
@@ -20,6 +21,7 @@
 - `pnpm artifact`
 - `pnpm sideload`
 - `pnpm roku help`
+- `pnpm roku icons`
 - `pnpm roku secrets-setup`
 - `pnpm roku live-test`
 - `pnpm roku live-test-control`
@@ -62,6 +64,7 @@ missing or stale.
 - Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
 - Live app regressions are grouped as flow suites: use `pnpm roku live-test-flow-smoke` for auth/files/dialogs/settings/get-new-code coverage and `pnpm roku live-test-flow-full` before shipping broad routing/player/image refactors
 - `STORY=<story-id> pnpm roku lab-install` and `STORY=<story-id> pnpm roku lab-screenshot` open isolated Lab stories for modal/component UI work; use them before broader authenticated flows when the change can be proven in Lab
+- Product glyphs use the pinned Phosphor pipeline in [Icon system](./docs/ICONS.md): edit `config/phosphor-icons.json`, run `pnpm roku icons`, and the `check-roku-icons` gate in `pnpm verify` blocks drift. Generated `images/icons/*.png` are white 128px templates tinted at runtime via `blendColor`/`designTokenColor`; do not hand-edit them, and keep brand/channel/splash art outside the icon set
 - Curated Roku screenshots live in `.vref/`; use `NAME=<short-screen-name> pnpm roku visual-capture`, `pnpm roku visual-capture-pages`, or `pnpm roku visual-capture-lab`, update public-safe references manually, validate with `pnpm roku visual-validate`, and rebuild the gallery with `pnpm roku visual-gallery`. `pnpm roku visual-capture-lab` captures stable AppDialog stories by default; pass explicit `STORIES` or `ALL=1` only when probing heavier Lab components deliberately.
 
 ## CI
