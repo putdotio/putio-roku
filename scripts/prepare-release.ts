@@ -2,6 +2,7 @@
 import { spawnSync } from "node:child_process";
 import {
   copyFileSync,
+  cpSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -167,6 +168,34 @@ function stageReleaseFiles(): void {
   copyFileSync(sourceZip, "dist/public/v2.zip");
   copyFileSync(sourceZip, `dist/public/releases/v2/${version}.zip`);
   copyFileSync(sourceZip, `dist/release/putio-roku-v${version}.zip`);
+
+  stageVisualReference();
+
+  // Root landing: redirect the bare domain (and unknown paths, via errorPage) to
+  // the visual reference gallery instead of a raw S3 AccessDenied response.
+  const siteRoot = "infra/site-root/index.html";
+  requireExists(siteRoot, "site root landing");
+  copyFileSync(siteRoot, "dist/public/index.html");
+}
+
+// Publish the curated visual reference gallery alongside the hosted ZIP so it
+// is served at <ROKU_DOMAIN>/vref/. index.html embeds the screenshots by
+// relative path, so only it, the manifest, and screenshots/ are needed.
+function stageVisualReference(): void {
+  requireExists(".vref/index.html", "visual reference gallery");
+  requireExists(".vref/manifest.json", "visual reference manifest");
+  requireExists(".vref/screenshots", "visual reference screenshots");
+
+  mkdirSync("dist/public/vref", { recursive: true });
+  copyFileSync(".vref/index.html", "dist/public/vref/index.html");
+  copyFileSync(".vref/manifest.json", "dist/public/vref/manifest.json");
+  cpSync(".vref/screenshots", "dist/public/vref/screenshots", { recursive: true });
+}
+
+function requireExists(path: string, label: string): void {
+  if (!existsSync(path)) {
+    throw new Error(`missing ${label}: ${path}`);
+  }
 }
 
 syncVersion();
@@ -174,6 +203,8 @@ runArtifact();
 stageReleaseFiles();
 
 console.log(`Prepared Roku release ${version}`);
+console.log("- dist/public/index.html (redirect -> /vref/index.html)");
 console.log("- dist/public/v2.zip");
 console.log(`- dist/public/releases/v2/${version}.zip`);
+console.log("- dist/public/vref/index.html");
 console.log(`- dist/release/putio-roku-v${version}.zip`);

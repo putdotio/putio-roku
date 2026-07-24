@@ -5,6 +5,10 @@ import { AWS_WILDCARD_CERT_ARN, ROKU_DOMAIN, putioDns } from "./shared.js";
 export function createRokuSite() {
   return new sst.aws.StaticSite("putio-roku", {
     path: "dist/public",
+    // Serve the redirect landing for the bare domain and for any unknown path,
+    // so visitors reach the visual reference gallery instead of a raw S3 error.
+    indexPage: "index.html",
+    errorPage: "index.html",
     domain: {
       name: ROKU_DOMAIN,
       cert: AWS_WILDCARD_CERT_ARN,
@@ -13,6 +17,10 @@ export function createRokuSite() {
     assets: {
       purge: false,
       fileOptions: [
+        {
+          files: "index.html",
+          cacheControl: "public,max-age=300",
+        },
         {
           files: "v2.zip",
           cacheControl: "public,max-age=300",
@@ -23,10 +31,24 @@ export function createRokuSite() {
           cacheControl: "public,max-age=31536000,immutable",
           contentType: "application/zip",
         },
+        {
+          // Top-level gallery files (index.html, manifest.json); `*` avoids the
+          // `**/` globstar not matching files directly under vref/.
+          files: "vref/*.html",
+          cacheControl: "public,max-age=300",
+        },
+        {
+          files: "vref/*.json",
+          cacheControl: "public,max-age=300",
+        },
+        {
+          files: "vref/**/*.jpg",
+          cacheControl: "public,max-age=86400",
+        },
       ],
     },
     invalidation: {
-      paths: ["/v2.zip", "/releases/v2/*"],
+      paths: ["/", "/index.html", "/v2.zip", "/releases/v2/*", "/vref/*"],
       wait: true,
     },
   });
