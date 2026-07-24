@@ -2,6 +2,7 @@
 import { spawnSync } from "node:child_process";
 import {
   copyFileSync,
+  cpSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -167,6 +168,18 @@ function stageReleaseFiles(): void {
   copyFileSync(sourceZip, "dist/public/v2.zip");
   copyFileSync(sourceZip, `dist/public/releases/v2/${version}.zip`);
   copyFileSync(sourceZip, `dist/release/putio-roku-v${version}.zip`);
+
+  stageVisualReference();
+}
+
+// Publish the curated visual reference gallery alongside the hosted ZIP so it
+// is served at <ROKU_DOMAIN>/vref/. index.html embeds the screenshots by
+// relative path, so only it, the manifest, and screenshots/ are needed.
+function stageVisualReference(): void {
+  mkdirSync("dist/public/vref", { recursive: true });
+  copyFileSync(".vref/index.html", "dist/public/vref/index.html");
+  copyFileSync(".vref/manifest.json", "dist/public/vref/manifest.json");
+  cpSync(".vref/screenshots", "dist/public/vref/screenshots", { recursive: true });
 }
 
 syncVersion();
@@ -176,4 +189,5 @@ stageReleaseFiles();
 console.log(`Prepared Roku release ${version}`);
 console.log("- dist/public/v2.zip");
 console.log(`- dist/public/releases/v2/${version}.zip`);
+console.log("- dist/public/vref/index.html");
 console.log(`- dist/release/putio-roku-v${version}.zip`);

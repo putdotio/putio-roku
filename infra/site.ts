@@ -23,10 +23,22 @@ export function createRokuSite() {
           cacheControl: "public,max-age=31536000,immutable",
           contentType: "application/zip",
         },
+        {
+          files: "vref/**/*.html",
+          cacheControl: "public,max-age=300",
+        },
+        {
+          files: "vref/**/*.json",
+          cacheControl: "public,max-age=300",
+        },
+        {
+          files: "vref/**/*.jpg",
+          cacheControl: "public,max-age=86400",
+        },
       ],
     },
     invalidation: {
-      paths: ["/v2.zip", "/releases/v2/*"],
+      paths: ["/v2.zip", "/releases/v2/*", "/vref/*"],
       wait: true,
     },
   });

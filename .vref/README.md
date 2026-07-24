@@ -5,6 +5,10 @@ submission prep, and design comparison. It is intentionally lighter than a
 visual regression suite: raw captures stay in `dist/tmp/`, and only curated
 screenshots with stable names are committed here.
 
+On each release the committed gallery is published to
+`https://<ROKU_DOMAIN>/vref/` (served by the SST site alongside the hosted ZIP),
+so everything here must stay public-safe — see [Rules](#rules).
+
 ## Structure
 
 - `manifest.json` lists the curated screenshots and their capture metadata.
