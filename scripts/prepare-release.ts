@@ -187,7 +187,16 @@ function stageVisualReference(): void {
   requireExists(".vref/screenshots", "visual reference screenshots");
 
   mkdirSync("dist/public/vref", { recursive: true });
-  copyFileSync(".vref/index.html", "dist/public/vref/index.html");
+  // Inject <base href="/vref/"> so the gallery's relative asset paths resolve
+  // whether the page is served at /vref, /vref/, or /vref/index.html. (The site
+  // serves the gallery at the bare /vref URL, where relative paths would
+  // otherwise resolve against the domain root.) The committed .vref/index.html
+  // stays relative so `vref serve` works locally at the root.
+  const gallery = readFileSync(".vref/index.html", "utf8").replace(
+    /<head>/i,
+    '<head>\n<base href="/vref/">',
+  );
+  writeFileSync("dist/public/vref/index.html", gallery);
   copyFileSync(".vref/manifest.json", "dist/public/vref/manifest.json");
   cpSync(".vref/screenshots", "dist/public/vref/screenshots", { recursive: true });
 }

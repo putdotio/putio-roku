@@ -165,9 +165,12 @@ jobs:
           cp "${release_zip}" dist/public/v2.zip
           cp "${release_zip}" "dist/public/releases/v2/${RELEASE_VERSION}.zip"
 
-          # Publish the curated visual reference gallery at /vref
+          # Publish the curated visual reference gallery at /vref. Inject
+          # <base href="/vref/"> so the gallery's relative asset paths resolve
+          # whether it is served at /vref, /vref/, or /vref/index.html.
           mkdir -p dist/public/vref
-          cp .vref/index.html .vref/manifest.json dist/public/vref/
+          sed 's#<head>#<head><base href="/vref/">#' .vref/index.html > dist/public/vref/index.html
+          cp .vref/manifest.json dist/public/vref/
           cp -R .vref/screenshots dist/public/vref/
 
           # Root landing: redirect bare domain + unknown paths to the gallery
