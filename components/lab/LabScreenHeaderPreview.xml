@@ -2,7 +2,7 @@
 
 <!--
   Declares ScreenHeader the way the eight real screens do: fields set as XML attributes
-  rather than assigned in BrightScript. That distinction matters -- an initial attribute
+  rather than assigned in BrightScript. That distinction matters: an initial attribute
   value does not reach an onChange handler with the component's children resolved, so a
   header that forwards showOptions only from its handler renders no options affordance
   here while looking correct when a story assigns the field programmatically.
