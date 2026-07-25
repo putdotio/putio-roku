@@ -14,10 +14,10 @@ sub init()
 
     applyAppOverhangColors(m.overhang)
 
-    ' Screens set showOptions as an XML attribute, and an initial value does not reach
-    ' onScreenHeaderOptionsChange with m.overhang resolved, so forward it once here or the
+    ' Screens set these as XML attributes, and an initial value does not reach
+    ' onScreenHeaderOptionsChange with m.overhang resolved, so forward them once here or the
     ' options affordance never appears. The handler still covers later writes.
-    m.overhang.showOptions = m.top.showOptions
+    forwardScreenHeaderOptions()
 
     m.logoDivider.translation = [uiSnap(507), uiSnap(81)]
     m.logoDivider.width = uiBorderWidth()
@@ -38,11 +38,17 @@ sub onScreenHeaderTitleChange()
 end sub
 
 sub onScreenHeaderOptionsChange()
-    if m.overhang <> invalid
-        m.overhang.showOptions = m.top.showOptions
+    forwardScreenHeaderOptions()
+    renderScreenHeaderTitle()
+end sub
+
+sub forwardScreenHeaderOptions()
+    if m.overhang = invalid
+        return
     end if
 
-    renderScreenHeaderTitle()
+    m.overhang.showOptions = m.top.showOptions
+    m.overhang.optionsAvailable = m.top.optionsAvailable
 end sub
 
 sub renderScreenHeaderTitle()
@@ -62,12 +68,17 @@ sub renderScreenHeaderTitle()
     ' at nothing. Files and Audio set their title after init, so this tracks every change.
     m.logoDivider.visible = title <> ""
 
-    ' Built-in Overhang laid title and options out together; this title is a plain Label,
-    ' so it has to reserve the options region itself or a long one (Files sets the title to
-    ' the folder name) runs under the "Delete *" affordance on the right.
+    ' Built-in Overhang laid title and options out together; this title is a plain Label, so
+    ' it has to reserve the options region itself or a long one (Files sets the title to the
+    ' folder name) runs under the "Delete *" affordance on the right.
+    '
+    ' Overhang only draws that affordance when showOptions AND optionsAvailable are both
+    ' set, so reserve on the same condition. Most screens keep showOptions with
+    ' optionsAvailable false and draw nothing there; giving up the gutter for them would
+    ' truncate Audio and Image early, since both set the title to a file name.
     titleX = m.titleLabel.translation[0]
     available = uiScreenWidth() - titleX - uiPageMargin()
-    if m.top.showOptions
+    if m.top.showOptions and m.top.optionsAvailable
         available = available - uiSnap(300)
     end if
 
