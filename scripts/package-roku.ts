@@ -1,7 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { createPackageZip } from "@putdotio/rokit";
-import { inspectBrandFonts } from "./sync-brand-fonts.ts";
+import { inspectBrandFonts, readBrandFontManifest } from "./sync-brand-fonts.ts";
 
 export type RokuVariant = "production" | "development" | "lab";
 
@@ -36,11 +36,9 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
   // nothing matters: a partial set would flip the flag on and leave individual roles
   // resolving to missing pkg:/fonts URIs, which Roku renders in the system font per label
   // and shows as mixed typography.
-  const brandFontsBundled = await hasVerifiedBrandFonts(repoRoot);
-  const roots: string[] = [...appRoots];
-  if (brandFontsBundled) {
-    roots.push(fontsRoot);
-  }
+  const brandFontRoots = await verifiedBrandFontRoots(repoRoot);
+  const brandFontsBundled = brandFontRoots.length > 0;
+  const roots: string[] = [...appRoots, ...brandFontRoots];
   const result = await createPackageZip({
     exclude: (path) => !shouldIncludeFile(path, options.variant),
     outFile,
@@ -173,13 +171,29 @@ function brightScriptString(value: string): string {
   return value.replace(/"/g, "\"\"");
 }
 
-export async function hasVerifiedBrandFonts(repoRoot: string): Promise<boolean> {
-  // Filename presence is not enough: a stale or truncated face would advertise the brand
-  // face while its pkg:/fonts URI renders as the system font. Availability therefore means
-  // every pinned face present AND matching its digest, with no unlisted face that would
-  // ship unverified alongside them.
+// The individual faces to bundle, or empty when the brand face is unavailable.
+//
+// Returning files rather than the fonts/ directory is deliberate: roots are copied
+// recursively, so adding the directory would ship whatever else is in it -- a nested
+// fonts/backup/unlicensed.otf, or a name the unlisted check does not recognise -- while
+// only the pinned faces had been digest-checked. Listing the manifest files makes what
+// ships exactly what was verified.
+//
+// Availability is all-or-nothing: filename presence is not enough, because a stale or
+// truncated face would advertise the brand face while its pkg:/fonts URI falls back to the
+// system font per label.
+export async function verifiedBrandFontRoots(repoRoot: string): Promise<readonly string[]> {
   const status = await inspectBrandFonts(repoRoot);
-  return status.missing.length === 0 && status.stale.length === 0 && status.unlisted.length === 0;
+  if (status.missing.length > 0 || status.stale.length > 0 || status.unlisted.length > 0) {
+    return [];
+  }
+
+  const manifest = await readBrandFontManifest(repoRoot);
+  return manifest.files.map((file) => `${fontsRoot}/${file.name}`);
+}
+
+export async function hasVerifiedBrandFonts(repoRoot: string): Promise<boolean> {
+  return (await verifiedBrandFontRoots(repoRoot)).length > 0;
 }
 
 async function fileExists(filePath: string): Promise<boolean> {

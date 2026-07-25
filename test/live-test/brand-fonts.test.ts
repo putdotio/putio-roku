@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { hasVerifiedBrandFonts } from "../../scripts/package-roku.ts";
+import { hasVerifiedBrandFonts, verifiedBrandFontRoots } from "../../scripts/package-roku.ts";
 import { parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
 import { listRepoFiles, readRepoFile, repoRoot } from "./repo-files.ts";
 
@@ -109,6 +109,23 @@ describe("brand font availability", () => {
     ).resolves.toBe(false);
   });
 
+  // Package roots are copied recursively, so bundling the fonts/ directory would ship
+  // whatever else sits in it while only the pinned faces had been digest-checked.
+  it("bundles the pinned faces individually, never the fonts directory", async () => {
+    const root = fixture({ [a]: face(a), [b]: face(b) });
+    await expect(verifiedBrandFontRoots(root)).resolves.toEqual([`fonts/${a}`, `fonts/${b}`]);
+
+    // A nested file is not reported as unlisted (the scan is one level deep), so the roots
+    // themselves have to stay exactly the manifest files or it would ship.
+    mkdirSync(join(root, "fonts", "backup"), { recursive: true });
+    writeFileSync(join(root, "fonts", "backup", "unlicensed.otf"), "not licensed");
+    await expect(verifiedBrandFontRoots(root)).resolves.toEqual([`fonts/${a}`, `fonts/${b}`]);
+
+    // An unlisted face beside them, uppercase included, withdraws the brand face entirely.
+    writeFileSync(join(root, "fonts", "EXTRA.OTF"), "stray");
+    await expect(verifiedBrandFontRoots(root)).resolves.toEqual([]);
+  });
+
   it("treats a missing fonts directory as unavailable", async () => {
     const root = fixture({ [a]: face(a) });
     rmSync(join(root, "fonts"), { recursive: true, force: true });
@@ -132,9 +149,8 @@ describe("brand font boundary", () => {
   });
 
   it("has the importer own every extension the verify gate rejects", () => {
-    // Packaging bundles the whole fonts/ root, so any extension the importer does not
-    // prune or count as unlisted would ship unverified. Keep it in step with .gitignore
-    // and checkRokuFontBinaries.
+    // An extension the importer does not prune or count as unlisted sits in fonts/
+    // unnoticed and unverified. Keep it in step with .gitignore and checkRokuFontBinaries.
     const importer = readRepoFile("scripts/sync-brand-fonts.ts");
     const declared = /const fontExtensions = \[([^\]]+)\]/.exec(importer)?.[1] ?? "";
 

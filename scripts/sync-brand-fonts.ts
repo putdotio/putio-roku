@@ -267,7 +267,10 @@ async function pruneUnlistedFonts(
 }
 
 function isFontFile(entry: string): boolean {
-  return fontExtensions.some((extension) => entry.endsWith(extension));
+  // Case-insensitive so a hand-dropped EXTRA.OTF is reported as unlisted rather than
+  // sitting in fonts/ unnoticed.
+  const name = entry.toLowerCase();
+  return fontExtensions.some((extension) => name.endsWith(extension));
 }
 
 function sha256(contents: Buffer): string {
