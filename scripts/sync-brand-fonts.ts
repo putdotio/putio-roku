@@ -1,7 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process from "node:process";
 
@@ -10,6 +9,8 @@ const manifestPath = "config/brand-fonts.json";
 // Roku's Font node accepts TrueType/OpenType only, so these are the extensions the
 // importer owns and prunes inside the destination directory.
 const fontsOutputDir = "fonts";
+// Gitignored, and on the same filesystem as fonts/ so staged moves are atomic renames.
+const stagingParentDir = "dist/tmp";
 const fontExtensions = [".otf", ".ttf"] as const;
 
 const fontFileNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:otf|ttf)$/;
@@ -61,11 +62,14 @@ export async function syncBrandFonts(repoRoot: string): Promise<BrandFontStatus>
     return before;
   }
 
-  requireGitHubCli(manifest.source.repository);
-
-  // Stage every download in a temp directory and move the set into place only once all
-  // of it verifies, so an interrupted sync can never leave a mixed old/new set behind.
-  const stagingDir = await mkdtemp(join(tmpdir(), "putio-roku-brand-fonts-"));
+  // Stage every download and move the set into place only once all of it verifies, so an
+  // interrupted sync cannot leave a mixed old/new set behind. The staging directory lives
+  // under the gitignored dist/ tree rather than the system temp dir so the moves are
+  // same-filesystem renames; os.tmpdir() can be a different mount (notably on CI), where
+  // rename fails with EXDEV.
+  const stagingRoot = resolve(repoRoot, stagingParentDir);
+  await mkdir(stagingRoot, { recursive: true });
+  const stagingDir = await mkdtemp(join(stagingRoot, "brand-fonts-"));
   try {
     for (const file of outdated) {
       await writeFile(join(stagingDir, file.name), downloadVerifiedFont(manifest, file));
@@ -213,7 +217,11 @@ function downloadVerifiedFont(manifest: BrandFontManifest, file: BrandFontFile):
   }
   if (result.status !== 0) {
     throw new Error(
-      `gh api failed for ${file.name} (status ${result.status ?? "unknown"}); check access to ${manifest.source.repository}. ${String(result.stderr).trim()}`,
+      [
+        `gh api failed for ${file.name} (status ${result.status ?? "unknown"}).`,
+        `Check that gh is authenticated (gh auth login, or GH_TOKEN in CI) as an account that can read ${manifest.source.repository}.`,
+        String(result.stderr).trim(),
+      ].join(" "),
     );
   }
 
@@ -229,20 +237,6 @@ function downloadVerifiedFont(manifest: BrandFontManifest, file: BrandFontFile):
   return contents;
 }
 
-function requireGitHubCli(repository: string): void {
-  const result = spawnSync("gh", ["auth", "status"], { encoding: "utf8" });
-  if (result.error !== undefined) {
-    throw new Error(
-      "gh CLI not found. Install the GitHub CLI from https://cli.github.com and run gh auth login.",
-      { cause: result.error },
-    );
-  }
-  if (result.status !== 0) {
-    throw new Error(
-      `gh is not authenticated. Run gh auth login with an account that can read ${repository}.`,
-    );
-  }
-}
 
 async function listUnlistedFonts(
   directory: string,

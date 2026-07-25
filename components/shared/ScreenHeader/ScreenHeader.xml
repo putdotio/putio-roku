@@ -3,7 +3,10 @@
 <component name="ScreenHeader" extends="Group">
   <interface>
     <field id="title" type="string" onChange="onScreenHeaderTitleChange" />
-    <field id="showOptions" type="bool" value="false" alias="overhang.showOptions" />
+    <!-- showOptions is forwarded in BrightScript rather than aliased: the title has to
+         reserve the options region, and an aliased field fires no onChange to recompute
+         it when a screen sets showOptions after title. -->
+    <field id="showOptions" type="bool" value="false" onChange="onScreenHeaderOptionsChange" />
     <field id="optionsAvailable" type="bool" value="false" alias="overhang.optionsAvailable" />
     <field id="optionsText" type="string" alias="overhang.optionsText" />
   </interface>

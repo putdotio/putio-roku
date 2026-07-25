@@ -1,5 +1,8 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { hasAllPinnedBrandFonts } from "../../scripts/package-roku.ts";
 import { parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
 import { listRepoFiles, readRepoFile, repoRoot } from "./repo-files.ts";
 
@@ -54,6 +57,40 @@ describe("brand font manifest", () => {
     expect(() => parseBrandFontManifest(validManifest([{ ...validFile(), extra: 1 }]))).toThrow(
       "only name, path and sha256",
     );
+  });
+});
+
+describe("brand font availability", () => {
+  // A partial fonts/ directory must NOT flip the compiled availability flag on: individual
+  // roles would then resolve to missing pkg:/fonts URIs, which Roku renders in the system
+  // font per label and shows as mixed typography.
+  function fixture(faceNames: readonly string[]): string {
+    const root = mkdtempSync(join(tmpdir(), "putio-roku-fonts-fixture-"));
+    mkdirSync(join(root, "config"), { recursive: true });
+    writeFileSync(join(root, "config/brand-fonts.json"), readRepoFile("config/brand-fonts.json"));
+    mkdirSync(join(root, "fonts"), { recursive: true });
+    for (const name of faceNames) {
+      writeFileSync(join(root, "fonts", name), "stub");
+    }
+
+    return root;
+  }
+
+  const allFaces = manifest.files.map((file) => file.name);
+
+  it("requires every pinned face before enabling the brand flag", async () => {
+    await expect(hasAllPinnedBrandFonts(fixture(allFaces))).resolves.toBe(true);
+    await expect(hasAllPinnedBrandFonts(fixture(allFaces.slice(0, 1)))).resolves.toBe(false);
+    await expect(hasAllPinnedBrandFonts(fixture([]))).resolves.toBe(false);
+    await expect(hasAllPinnedBrandFonts(fixture(["gt-america-standard-black.otf"]))).resolves.toBe(false);
+  });
+
+  it("treats a missing fonts directory as unavailable", async () => {
+    const root = mkdtempSync(join(tmpdir(), "putio-roku-fonts-fixture-"));
+    mkdirSync(join(root, "config"), { recursive: true });
+    writeFileSync(join(root, "config/brand-fonts.json"), readRepoFile("config/brand-fonts.json"));
+
+    await expect(hasAllPinnedBrandFonts(root)).resolves.toBe(false);
   });
 });
 
