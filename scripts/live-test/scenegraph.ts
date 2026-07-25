@@ -30,16 +30,34 @@ export function assertNamedNodeAbsent(xml: string, nodeName: string): void {
   assertNamedNodeState(xml, nodeName, "absent");
 }
 
+// playerTitle has no explicit height, so it measures from whichever font the h1 role
+// resolved to. GT America's line box is taller than the Roku system font's (hhea
+// ascent+descent is 1.258em against roughly 1.02em), so the same role measures 58 in a
+// build with the licensed faces bundled and 46 in a fonts-less one. Both are correct; the
+// suite has to pass against either package, so accept both and let
+// assertTitleDoesNotOverlapAuxiliaryControls guard the layout itself.
+const playerTitleHeights = [58, 46] as const;
+
+function assertPlayerTitleBox(xml: string): void {
+  const bounds = readNamedNodeBounds(xml, "playerTitle");
+  if (bounds === undefined) {
+    throw new Error("expected bounds for playerTitle");
+  }
+
+  const [, , width, height] = bounds;
+  if (width !== 1360 || !(playerTitleHeights as readonly number[]).includes(height)) {
+    throw new Error(
+      `expected playerTitle 1360x${playerTitleHeights.join(" (brand) or ")} (system font), got ${width}x${height}`,
+    );
+  }
+}
+
 export function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
   assertNamedNodeAbsent(xml, "bottomShadeSoft0");
   assertNodeTranslation(xml, "bottomShade", 0, 800);
   assertNodeSize(xml, "bottomShade", 1920, 280);
   assertNodeTranslation(xml, "playerTitle", 96, 900);
-  // playerTitle has no explicit height, so it measures from the font. GT America's line
-  // box is taller than the Roku system font's (hhea ascent+descent is 1.258em against
-  // roughly 1.02em), which takes the h1 role from 46 to 58. The overlap assertion below
-  // is what guards the layout; this only pins the measured box.
-  assertNodeSize(xml, "playerTitle", 1360, 58);
+  assertPlayerTitleBox(xml);
   assertNodeTranslation(xml, "controls", 0, 870);
   assertNamedNodeHidden(xml, "rewindButton");
   assertNamedNodeHidden(xml, "playButton");

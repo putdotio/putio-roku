@@ -14,6 +14,11 @@ sub init()
 
     applyAppOverhangColors(m.overhang)
 
+    ' Screens set showOptions as an XML attribute, and an initial value does not reach
+    ' onScreenHeaderOptionsChange with m.overhang resolved, so forward it once here or the
+    ' options affordance never appears. The handler still covers later writes.
+    m.overhang.showOptions = m.top.showOptions
+
     m.logoDivider.translation = [uiSnap(507), uiSnap(81)]
     m.logoDivider.width = uiBorderWidth()
     m.logoDivider.height = uiSnap(42)
