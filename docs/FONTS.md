@@ -43,9 +43,10 @@ per face. Each entry maps a destination file name in `fonts/` to its upstream pa
 
 - `pnpm roku fonts-setup` fetches every missing or changed face into `fonts/`. It needs the
   GitHub CLI authenticated as an account that can read `putdotio/putio-static`
-  (`gh auth login`), verifies each download against its pinned digest **before** writing,
-  stages the whole set in a temp directory so an interrupted sync cannot leave a mixed set,
-  and prunes any face `fonts/` holds that the manifest does not list
+  (`gh auth login`, or `GH_TOKEN` in CI), verifies each download against its pinned digest
+  **before** writing, stages the whole set under the gitignored `dist/tmp` so the moves into
+  `fonts/` are same-filesystem renames and an interrupted sync cannot leave a mixed set, and
+  prunes any face `fonts/` holds that the manifest does not list
 - `pnpm roku fonts-check` is offline and reports the state of `fonts/`
 
 `fonts-check` treats absent faces as a legitimate optional state and succeeds. It fails
@@ -66,9 +67,8 @@ manifest is present, and compiles the same answer into the generated
 all-or-nothing on purpose: a partial directory would flip the flag on and leave individual
 roles pointing at missing `pkg:/fonts/...` URIs, which Roku resolves to the system font per
 label and shows as mixed typography. The runtime reads that flag rather than probing the
-filesystem, so a build either has the brand faces or deliberately uses the built-in
-`font:*SystemFont` values — it never silently renders a missing `pkg:/fonts/...` URI, which
-Roku would resolve to the system font with no error.
+filesystem, so a build either has the complete set of brand faces or deliberately uses the
+built-in `font:*SystemFont` values.
 
 Any build packaged without the faces logs a line saying so, so a sideload or a screenshot
 session cannot quietly capture the wrong typeface.
