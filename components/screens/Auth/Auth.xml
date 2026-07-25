@@ -4,6 +4,8 @@
   <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Auth/Auth.brs" />
 
   <interface>
@@ -31,7 +33,6 @@
 
       <Label
         id="description"
-        font="font:SmallSystemFont"
 				width="920"
 				height="44"
 				text="use this activation code to log in"
@@ -53,34 +54,33 @@
 					>
 						<Group id="codeTile0">
 							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar0" width="96" height="96" font="font:LargeBoldSystemFont" horizAlign="center" vertAlign="center" />
+							<Label id="codeChar0" width="96" height="96" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile1">
 							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar1" width="96" height="96" font="font:LargeBoldSystemFont" horizAlign="center" vertAlign="center" />
+							<Label id="codeChar1" width="96" height="96" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile2">
 							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar2" width="96" height="96" font="font:LargeBoldSystemFont" horizAlign="center" vertAlign="center" />
+							<Label id="codeChar2" width="96" height="96" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile3">
 							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar3" width="96" height="96" font="font:LargeBoldSystemFont" horizAlign="center" vertAlign="center" />
+							<Label id="codeChar3" width="96" height="96" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile4">
 							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar4" width="96" height="96" font="font:LargeBoldSystemFont" horizAlign="center" vertAlign="center" />
+							<Label id="codeChar4" width="96" height="96" horizAlign="center" vertAlign="center" />
 						</Group>
 						<Group id="codeTile5">
 							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar5" width="96" height="96" font="font:LargeBoldSystemFont" horizAlign="center" vertAlign="center" />
+							<Label id="codeChar5" width="96" height="96" horizAlign="center" vertAlign="center" />
 						</Group>
 					</LayoutGroup>
 
 					<Label
 						id="code"
 						text="Loading..."
-						font="font:LargeBoldSystemFont"
 						width="656"
 						height="96"
 						horizAlign="center"
@@ -100,7 +100,6 @@
 						height="36"
 						horizAlign="center"
 						vertAlign="center"
-						font="font:SmallSystemFont"
 					/>
 
 					<Label
@@ -110,7 +109,6 @@
 						height="56"
 						horizAlign="center"
 						vertAlign="center"
-						font="font:LargeBoldSystemFont"
 					/>
 
 					<Label
@@ -123,7 +121,6 @@
 						horizAlign="center"
 						vertAlign="center"
 						lineSpacing="10.0"
-						font="font:SmallSystemFont"
 					/>
 				</LayoutGroup>
 
@@ -142,7 +139,6 @@
 					<Label
 						id="refreshButtonLabel"
 						text="Get new code"
-						font="font:MediumBoldSystemFont"
 						translation="[116,0]"
 						width="270"
 						height="72"

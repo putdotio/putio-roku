@@ -1,6 +1,5 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.audio = m.top.findNode("audio")
     m.overhang = m.top.findNode("overhang")
@@ -17,6 +16,8 @@ function init()
     m.duration = m.top.findNode("duration")
     setDialogNodeColor(m.position, "text")
     setDialogNodeColor(m.duration, "text")
+    applyTypography(m.position, "h2")
+    applyTypography(m.duration, "h2")
     setDialogNodeFieldColor(m.progressBar, "emptyBarBlendColor", "border")
     setDialogNodeFieldColor(m.progressBar, "filledBarBlendColor", "primary")
 

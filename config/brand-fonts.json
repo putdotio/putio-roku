@@ -1,0 +1,24 @@
+{
+  "$description": "Licensed GT America faces synced at dev time from the private putdotio/putio-static repo by scripts/sync-brand-fonts.ts. The binaries are gitignored and must never be committed to this public repo. See docs/FONTS.md.",
+  "source": {
+    "repository": "putdotio/putio-static",
+    "ref": "373041b4fb3adfee6aabb4dc0d5f95f001d0c498"
+  },
+  "files": [
+    {
+      "name": "gt-america-standard-regular.otf",
+      "path": "public/fonts/gt-america/desktop/otf/gt-america-standard-regular.otf",
+      "sha256": "6b1eb2a461e5c827ac615bc8aca268ec6b67250d61fc87f100671aca3db82515"
+    },
+    {
+      "name": "gt-america-standard-medium.otf",
+      "path": "public/fonts/gt-america/desktop/otf/gt-america-standard-medium.otf",
+      "sha256": "9938e387bbf094e02daf2f8f577f39537e2ff1133da5746be190c1ec4a43d73d"
+    },
+    {
+      "name": "gt-america-standard-bold.otf",
+      "path": "public/fonts/gt-america/desktop/otf/gt-america-standard-bold.otf",
+      "sha256": "988b273ddc1d85ad9d2065e40999611f477cc6c855062a2c1f2aa665bc6e6a8c"
+    }
+  ]
+}

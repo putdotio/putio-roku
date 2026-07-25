@@ -86,6 +86,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The licensed GT America faces are gitignored, so the checkout has none of them and
+      # the packaged app would silently fall back to the Roku system font. Sync them from
+      # private putio-static before semantic-release builds the artifact. fonts-setup fails
+      # the release on any download or checksum problem, so reaching the build means every
+      # pinned face is on disk; fonts-check re-verifies those bytes before packaging.
+      - name: Mint putio-static read token
+        id: static-read
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.PUTIO_RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.PUTIO_RELEASE_BOT_PRIVATE_KEY }}
+          owner: putdotio
+          repositories: putio-static
+          permission-contents: read
+
+      - name: Sync licensed brand fonts
+        env:
+          GH_TOKEN: ${{ steps.static-read.outputs.token }}
+        run: |
+          pnpm roku fonts-setup
+          pnpm roku fonts-check
+
       - name: Release Roku package
         id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0

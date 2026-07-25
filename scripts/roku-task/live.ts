@@ -319,10 +319,12 @@ function storyTitle(story: string): string | undefined {
     "list-item-files": "FileListItem",
     "list-item-generic": "ListItem",
     "list-item-history": "HistoryListItem",
+    "screen-header": "ScreenHeader / branded title",
     "track-menu-audio": "TrackMenu / audio",
     "track-menu-speed": "TrackMenu / playback speed",
     "track-menu-subtitles": "TrackMenu / subtitles",
     "track-menu-subtitles-scroll": "TrackMenu / subtitles scroll",
+    "typography-gt-america": "Typography / GT America",
   };
 
   return titles[story];

@@ -50,12 +50,21 @@ describe("Roku package variants", () => {
 
   it("renders variant manifest and build config overrides", async () => {
     const manifest = await renderVariantManifest(repoRoot, "lab", "put.io Lab");
-    const buildConfig = renderBuildConfig("lab", "9999");
+    const buildConfig = renderBuildConfig("lab", "9999", true);
 
     expect(manifest).toContain("title=put.io Lab");
     expect(buildConfig).toContain('return "lab"');
     expect(buildConfig).toContain("return true");
     expect(buildConfig).toContain('return "9999"');
+  });
+
+  it("compiles brand font availability into the build config", () => {
+    expect(renderBuildConfig("production", "3776", true)).toContain(
+      "function buildConfigBrandFontsAvailable() as boolean\n    return true",
+    );
+    expect(renderBuildConfig("production", "3776", false)).toContain(
+      "function buildConfigBrandFontsAvailable() as boolean\n    return false",
+    );
   });
 
   it("writes a variant package ZIP", async () => {

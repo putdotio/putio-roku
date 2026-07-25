@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-07-24T00:00:00.000Z",
+  "updatedAt": "2026-07-24T20:21:45Z",
   "screenshots": [
     {
       "id": "auth",
@@ -15,16 +15,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/auth.jpg",
-      "capturedAt": "2026-05-20T21:36:44.000Z",
-      "sizeBytes": 21748,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 32536,
       "tags": [
         "auth",
         "activation-code",
-        "redacted"
+        "redacted",
+        "gt-america"
       ],
       "notes": [
         "Auth screen with the activation code tiles redacted for public-safe review.",
-        "Captured from the live device before restoring the test account."
+        "Captured from the live device before restoring the test account.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -38,15 +40,17 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/home.jpg",
-      "capturedAt": "2026-05-20T20:56:58.000Z",
-      "sizeBytes": 24367,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 26419,
       "tags": [
         "home",
-        "navigation"
+        "navigation",
+        "gt-america"
       ],
       "notes": [
         "Home menu with Files, Search, History, and Settings visible.",
-        "Captured against the live test account after seeding a TV-visible history event."
+        "Captured against the live test account after seeding a TV-visible history event.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -60,16 +64,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/files.jpg",
-      "capturedAt": "2026-05-20T20:56:58.000Z",
-      "sizeBytes": 47437,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 49195,
       "tags": [
         "files",
         "list",
-        "focus"
+        "focus",
+        "gt-america"
       ],
       "notes": [
         "Files root list with the first item focused.",
-        "Uses synthetic test-account filenames."
+        "Uses synthetic test-account filenames.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -83,16 +89,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/history.jpg",
-      "capturedAt": "2026-05-20T20:56:58.000Z",
-      "sizeBytes": 22303,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 24802,
       "tags": [
         "history",
         "list",
-        "focus"
+        "focus",
+        "gt-america"
       ],
       "notes": [
         "History page with a seeded transfer_completed event visible.",
-        "The TV filter matches tv-native: file_shared and transfer_completed events only."
+        "The TV filter matches tv-native: file_shared and transfer_completed events only.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -106,16 +114,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/image.jpg",
-      "capturedAt": "2026-05-20T19:37:45.000Z",
-      "sizeBytes": 55184,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 157455,
       "tags": [
         "image",
         "viewer",
-        "scale-to-fit"
+        "scale-to-fit",
+        "gt-america"
       ],
       "notes": [
         "Image screen rendering a synthetic test-account poster.",
-        "The rendered image uses a viewport-sized Poster with scaleToFit."
+        "The rendered image uses a viewport-sized Poster with scaleToFit.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -129,16 +139,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/file-delete-dialog.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 37173,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 43995,
       "tags": [
         "files",
         "dialog",
-        "destructive"
+        "destructive",
+        "gt-america"
       ],
       "notes": [
         "Delete confirmation dialog opened from the Files page.",
-        "The capture dismisses the dialog without deleting the focused item."
+        "The capture dismisses the dialog without deleting the focused item.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -152,16 +164,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-empty.jpg",
-      "capturedAt": "2026-05-20T20:15:19.213Z",
-      "sizeBytes": 33635,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 37161,
       "tags": [
         "search",
         "keyboard",
-        "empty"
+        "empty",
+        "gt-america"
       ],
       "notes": [
         "Search screen before entering a query.",
-        "Shows the shared empty state when there are no recent searches."
+        "Shows the shared empty state when there are no recent searches.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -175,16 +189,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-no-results.jpg",
-      "capturedAt": "2026-05-20T20:17:36.106Z",
-      "sizeBytes": 32285,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 30621,
       "tags": [
         "search",
         "keyboard",
-        "empty"
+        "empty",
+        "gt-america"
       ],
       "notes": [
         "Search screen after entering a query with no matching files.",
-        "Uses the shared empty state for no-result feedback."
+        "Uses the shared empty state for no-result feedback.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -198,15 +214,17 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-results.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 43879,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 48343,
       "tags": [
         "search",
-        "keyboard"
+        "keyboard",
+        "gt-america"
       ],
       "notes": [
         "Query entered through the Roku MiniKeyboard.",
-        "Search results are visible while the keyboard still has focus."
+        "Search results are visible while the keyboard still has focus.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -220,15 +238,17 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-result-focused.jpg",
-      "capturedAt": "2026-05-20T20:56:58.000Z",
-      "sizeBytes": 43437,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 46021,
       "tags": [
         "search",
-        "focus"
+        "focus",
+        "gt-america"
       ],
       "notes": [
         "First result is focused after moving focus from the MiniKeyboard to the results list.",
-        "The query uses synthetic public-safe filenames."
+        "The query uses synthetic public-safe filenames.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -242,16 +262,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/settings.jpg",
-      "capturedAt": "2026-05-20T20:56:58.000Z",
-      "sizeBytes": 39662,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 42977,
       "tags": [
         "settings",
         "list",
-        "device"
+        "device",
+        "gt-america"
       ],
       "notes": [
         "Settings page with version, device, and logout rows visible.",
-        "Logout remains the last row."
+        "Logout remains the last row.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -265,16 +287,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/exit-app-dialog.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 24711,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 26863,
       "tags": [
         "home",
         "dialog",
-        "exit"
+        "exit",
+        "gt-america"
       ],
       "notes": [
         "Exit confirmation dialog opened from the Home page with Back.",
-        "Cancel is focused by default so Back or Select can dismiss safely."
+        "Cancel is focused by default so Back or Select can dismiss safely.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -288,16 +312,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/lab-app-dialog-empty.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 53760,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 20573,
       "tags": [
         "lab",
         "dialog",
-        "app-dialog"
+        "app-dialog",
+        "gt-america"
       ],
       "notes": [
         "Lab story for the shared AppDialog with title and two actions.",
-        "The preview keeps the surrounding Lab chrome visible for component context."
+        "The preview keeps the surrounding Lab chrome visible for component context.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -311,16 +337,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/lab-app-dialog-message.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 57846,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 29162,
       "tags": [
         "lab",
         "dialog",
-        "app-dialog"
+        "app-dialog",
+        "gt-america"
       ],
       "notes": [
         "Lab story for the shared AppDialog with title, body message, and one action.",
-        "The preview keeps the surrounding Lab chrome visible for component context."
+        "The preview keeps the surrounding Lab chrome visible for component context.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -334,16 +362,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-audio-menu.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 27072,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 28666,
       "tags": [
         "player",
         "track-menu",
-        "audio"
+        "audio",
+        "gt-america"
       ],
       "notes": [
         "Audio track menu opened from the player controls on a synthetic multi-audio test file.",
-        "Kept as a curated reference because later runs on this Roku did not consistently expose multiple audio tracks."
+        "Kept as a curated reference because later runs on this Roku did not consistently expose multiple audio tracks.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -357,16 +387,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-progress.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 23119,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 23078,
       "tags": [
         "player",
         "progress",
-        "focus"
+        "focus",
+        "gt-america"
       ],
       "notes": [
         "Player OSD with the progress bar focused on a synthetic playback file.",
-        "Captured through the hardware-backed player UI screenshot flow."
+        "Captured through the hardware-backed player UI screenshot flow.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -380,16 +412,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-subtitle-button.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 20955,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 21199,
       "tags": [
         "player",
         "subtitles",
-        "focus"
+        "focus",
+        "gt-america"
       ],
       "notes": [
         "Player OSD with the subtitle control focused.",
-        "Captured before opening the subtitle track menu."
+        "Captured before opening the subtitle track menu.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -403,16 +437,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-subtitle-menu.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 35106,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 35061,
       "tags": [
         "player",
         "track-menu",
-        "subtitles"
+        "subtitles",
+        "gt-america"
       ],
       "notes": [
         "Subtitle track menu opened from the player controls on a synthetic subtitled test file.",
-        "Shows the scroll separator and selected custom subtitle row."
+        "Shows the scroll separator and selected custom subtitle row.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     },
     {
@@ -426,16 +462,18 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/player-progress-focus.jpg",
-      "capturedAt": "2026-05-20T12:12:40.467Z",
-      "sizeBytes": 22593,
+      "capturedAt": "2026-07-24T20:21:45Z",
+      "sizeBytes": 22146,
       "tags": [
         "player",
         "progress",
-        "subtitles"
+        "subtitles",
+        "gt-america"
       ],
       "notes": [
         "Player OSD after leaving the subtitle menu and returning focus to progress.",
-        "Captured as the final state of the player UI screenshot flow."
+        "Captured as the final state of the player UI screenshot flow.",
+        "Recorded with the licensed GT America brand faces bundled."
       ]
     }
   ]

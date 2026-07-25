@@ -35,7 +35,11 @@ export function assertPlayerOsdLayout(xml: string, progressFocused = true): void
   assertNodeTranslation(xml, "bottomShade", 0, 800);
   assertNodeSize(xml, "bottomShade", 1920, 280);
   assertNodeTranslation(xml, "playerTitle", 96, 900);
-  assertNodeSize(xml, "playerTitle", 1360, 46);
+  // playerTitle has no explicit height, so it measures from the font. GT America's line
+  // box is taller than the Roku system font's (hhea ascent+descent is 1.258em against
+  // roughly 1.02em), which takes the h1 role from 46 to 58. The overlap assertion below
+  // is what guards the layout; this only pins the measured box.
+  assertNodeSize(xml, "playerTitle", 1360, 58);
   assertNodeTranslation(xml, "controls", 0, 870);
   assertNamedNodeHidden(xml, "rewindButton");
   assertNamedNodeHidden(xml, "playButton");

@@ -9,3 +9,7 @@ end function
 function buildConfigPutioAppId() as string
     return "3776"
 end function
+
+function buildConfigBrandFontsAvailable() as boolean
+    return false
+end function

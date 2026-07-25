@@ -187,6 +187,24 @@ export function run(command: string, args: readonly string[], env: EnvMap = proc
   }
 }
 
+export function runCapture(command: string, args: readonly string[], env: EnvMap = process.env): string {
+  const result = spawnSync(command, [...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env,
+  });
+
+  if (result.error !== undefined) {
+    throw result.error;
+  }
+
+  if (result.status !== 0) {
+    throw new Error(`${command} ${args.join(" ")} failed with status ${result.status ?? "unknown"}`);
+  }
+
+  return result.stdout;
+}
+
 export function runPnpm(args: readonly string[], env: EnvMap = process.env): void {
   run("pnpm", args, env);
 }

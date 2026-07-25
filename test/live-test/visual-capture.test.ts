@@ -90,7 +90,7 @@ describe("visual Lab capture sequence", () => {
       "launch:app-dialog-empty",
       "capture:app-dialog-empty",
       "return",
-      "navigate:0->1:app-dialog-message",
+      "navigate:2->3:app-dialog-message",
       "open:app-dialog-message",
       "capture:app-dialog-message",
       "restart",

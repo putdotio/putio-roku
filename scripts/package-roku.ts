@@ -1,4 +1,4 @@
-import { readFile, stat } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { createPackageZip } from "@putdotio/rokit";
 
@@ -13,6 +13,7 @@ export interface RokuPackageOptions {
 }
 
 export interface RokuPackageResult {
+  readonly brandFontsBundled: boolean;
   readonly fileCount: number;
   readonly files: readonly string[];
   readonly outFile: string;
@@ -21,11 +22,22 @@ export interface RokuPackageResult {
 }
 
 const appRoots = ["manifest", "source", "components", "images"] as const;
+const fontsRoot = "fonts";
+const fontExtensions = [".otf", ".ttf"] as const;
 
 export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuPackageResult> {
   const repoRoot = resolve(options.repoRoot);
   const title = options.appTitle ?? defaultTitleForVariant(options.variant);
   const outFile = resolve(repoRoot, options.outFile);
+  // Licensed brand fonts are optional (gitignored, synced at dev time). Bundle the
+  // fonts/ root only when it actually holds faces, so public/CI builds fall back to the
+  // Roku system font exactly as the app does at runtime when the faces are absent. The
+  // same answer is compiled into BuildConfig so the runtime never has to guess.
+  const brandFontsBundled = await hasBrandFontFiles(join(repoRoot, fontsRoot));
+  const roots: string[] = [...appRoots];
+  if (brandFontsBundled) {
+    roots.push(fontsRoot);
+  }
   const result = await createPackageZip({
     exclude: (path) => !shouldIncludeFile(path, options.variant),
     outFile,
@@ -35,15 +47,16 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
         path: "manifest",
       },
       {
-        contents: renderBuildConfig(options.variant, options.putioAppId ?? "3776"),
+        contents: renderBuildConfig(options.variant, options.putioAppId ?? "3776", brandFontsBundled),
         path: "source/BuildConfig.brs",
       },
     ],
     rootDir: repoRoot,
-    roots: appRoots,
+    roots,
   });
 
   return {
+    brandFontsBundled,
     fileCount: result.fileCount,
     files: result.files,
     outFile,
@@ -103,7 +116,11 @@ export async function renderVariantManifest(
   return manifest;
 }
 
-export function renderBuildConfig(variant: RokuVariant, putioAppId: string): string {
+export function renderBuildConfig(
+  variant: RokuVariant,
+  putioAppId: string,
+  brandFontsAvailable: boolean,
+): string {
   return `function buildConfigVariant() as string
     return "${brightScriptString(variant)}"
 end function
@@ -114,6 +131,10 @@ end function
 
 function buildConfigPutioAppId() as string
     return "${brightScriptString(putioAppId)}"
+end function
+
+function buildConfigBrandFontsAvailable() as boolean
+    return ${brandFontsAvailable ? "true" : "false"}
 end function
 `;
 }
@@ -147,6 +168,19 @@ function escapeRegExp(value: string): string {
 
 function brightScriptString(value: string): string {
   return value.replace(/"/g, "\"\"");
+}
+
+async function hasBrandFontFiles(directory: string): Promise<boolean> {
+  try {
+    const entries = await readdir(directory);
+    return entries.some((entry) => fontExtensions.some((extension) => entry.endsWith(extension)));
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return false;
+    }
+
+    throw error;
+  }
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
