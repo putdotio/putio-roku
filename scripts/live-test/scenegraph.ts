@@ -31,10 +31,11 @@ export function assertNamedNodeAbsent(xml: string, nodeName: string): void {
 }
 
 // playerTitle has no explicit height, so it measures from whichever font the h1 role
-// resolved to. GT America's line box is taller than the Roku system font's (hhea
-// ascent+descent is 1.258em against roughly 1.02em), so the same role measures 58 in a
-// build with the licensed faces bundled and 46 in a fonts-less one. Both are correct; the
-// suite has to pass against either package, so accept both and let
+// resolved to, and GT America's line box is the taller of the two. Both numbers below were
+// measured on device at h1 (45px): 58 with the licensed faces bundled, 46 without. They are
+// close to the fonts' ascent+descent ratios (~1.26em and ~1.02em) but do not reproduce
+// exactly from them, so treat them as measurements and re-measure if the h1 size changes.
+// Both are correct and the suite has to pass against either package, so accept both and let
 // assertTitleDoesNotOverlapAuxiliaryControls guard the layout itself.
 const playerTitleHeights = [58, 46] as const;
 

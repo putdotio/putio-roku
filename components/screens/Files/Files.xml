@@ -17,7 +17,7 @@
   </interface>
 
   <children>
-    <ScreenHeader id="overhang" title="Your Files" showOptions="true" optionsAvailable="true" optionsText="Delete" />
+    <ScreenHeader id="screenHeader" title="Your Files" showOptions="true" optionsAvailable="true" optionsText="Delete" />
 
     <LoadingIndicator
       id="loading"

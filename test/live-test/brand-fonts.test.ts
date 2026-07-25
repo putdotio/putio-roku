@@ -184,6 +184,45 @@ describe("brand font references", () => {
 
     expect(offenders).toEqual([]);
   });
+
+  // The audit above only sees literal URIs, and the shipping path has none: brandFontUri
+  // builds them by concatenation, so a repin to renamed faces would leave every component
+  // requesting names the manifest no longer contains -- a whole-app silent fallback with the
+  // availability flag still true. Compose the URI the way the runtime does and check it.
+  it("resolves every role through brandFontUri to a pinned face", () => {
+    const typography = readRepoFile(typographyPath);
+    const shape = /return "(pkg:\/fonts\/[^"]*)" \+ face \+ "(\.[A-Za-z]+)"/.exec(typography);
+
+    expect(shape, "brandFontUri no longer composes prefix + face + extension; update this audit").not.toBeNull();
+    const [, prefix, extension] = shape ?? [];
+    const faces = new Set(Array.from(typography.matchAll(/face: "(\w+)"/g), (match) => match[1]));
+
+    expect(faces.size).toBeGreaterThan(0);
+    const offenders = Array.from(faces)
+      .map((face) => `${prefix}${face}${extension}`.replace("pkg:/fonts/", ""))
+      .filter((name) => !manifestNames.has(name));
+
+    expect(offenders).toEqual([]);
+  });
+
+  // Unknown roles resolve to body silently, and the XML font attributes that used to pin
+  // these labels are gone, so a typo would leave a label on the wrong role with no signal.
+  it("only applies roles the scale defines", () => {
+    const roles = new Set(
+      Array.from(readRepoFile(typographyPath).matchAll(/^\s{8}(\w+): \{ face:/gm), (match) => match[1]),
+    );
+    const offenders: string[] = [];
+
+    for (const file of listRepoFiles(join(repoRoot, "components"))) {
+      for (const [, role] of readRepoFile(file).matchAll(/applyTypography\([^,]+,\s*"(\w+)"\)/g)) {
+        if (!roles.has(role)) {
+          offenders.push(`${file}: ${role}`);
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });
 
 describe("type scale", () => {

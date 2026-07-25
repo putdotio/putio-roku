@@ -1,7 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { createPackageZip } from "@putdotio/rokit";
-import { inspectBrandFonts, readBrandFontManifest } from "./sync-brand-fonts.ts";
+import { inspectBrandFonts } from "./sync-brand-fonts.ts";
 
 export type RokuVariant = "production" | "development" | "lab";
 
@@ -29,13 +29,11 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
   const repoRoot = resolve(options.repoRoot);
   const title = options.appTitle ?? defaultTitleForVariant(options.variant);
   const outFile = resolve(repoRoot, options.outFile);
-  // Licensed brand fonts are optional (gitignored, synced at dev time). Bundle the fonts/
-  // root only when *every* pinned face is present, so public/CI builds fall back to the
-  // Roku system font exactly as the app does at runtime when the faces are absent. The
-  // same answer is compiled into BuildConfig so the runtime never has to guess. All-or-
-  // nothing matters: a partial set would flip the flag on and leave individual roles
-  // resolving to missing pkg:/fonts URIs, which Roku renders in the system font per label
-  // and shows as mixed typography.
+  // Licensed brand fonts are optional (gitignored, synced at dev time), so public and CI
+  // builds fall back to the Roku system font exactly as the app does at runtime when the
+  // faces are absent. See verifiedBrandFontRoots for what "available" means and why the
+  // faces are listed individually; the same answer is compiled into BuildConfig so the
+  // runtime never has to guess.
   const brandFontRoots = await verifiedBrandFontRoots(repoRoot);
   const brandFontsBundled = brandFontRoots.length > 0;
   const roots: string[] = [...appRoots, ...brandFontRoots];
@@ -188,8 +186,7 @@ export async function verifiedBrandFontRoots(repoRoot: string): Promise<readonly
     return [];
   }
 
-  const manifest = await readBrandFontManifest(repoRoot);
-  return manifest.files.map((file) => `${fontsRoot}/${file.name}`);
+  return status.verified.map((name) => `${fontsRoot}/${name}`);
 }
 
 export async function hasVerifiedBrandFonts(repoRoot: string): Promise<boolean> {

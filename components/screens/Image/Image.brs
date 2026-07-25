@@ -3,7 +3,7 @@ function init()
 
     m.image = m.top.findNode("renderedImage")
     m.loading = m.top.findNode("loading")
-    m.overhang = m.top.findNode("overhang")
+    m.overhang = m.top.findNode("screenHeader")
 
     m.image.observeField("loadStatus", "onImageLoad")
     layoutImage()

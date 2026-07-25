@@ -161,7 +161,7 @@ sub onFetchStartFromResponse(obj)
 end sub
 
 sub setTitle(title)
-    m.top.findNode("overhang").title = title
+    m.top.findNode("screenHeader").title = title
 end sub
 
 sub showLoading()
