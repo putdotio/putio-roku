@@ -44,4 +44,9 @@ sub renderScreenHeaderTitle()
     end if
 
     m.titleLabel.text = title
+
+    ' Overhang only drew the divider when it had a title to separate from the logo. Match
+    ' that: screens without one (Home) show the logo alone rather than a divider pointing
+    ' at nothing. Files and Audio set their title after init, so this tracks every change.
+    m.logoDivider.visible = title <> ""
 end sub
