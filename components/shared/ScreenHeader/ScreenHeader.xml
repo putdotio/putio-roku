@@ -32,7 +32,7 @@
 
     <!-- Overhang only draws its own logo divider when it renders a title, so with the
          title emptied we draw the divider too. Geometry lives in ScreenHeader.brs. -->
-    <Rectangle id="logoDivider" />
+    <Rectangle id="logoDivider" visible="false" />
 
     <Label id="titleLabel" />
   </children>

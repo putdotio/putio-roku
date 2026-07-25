@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-07-24T20:21:45Z",
+  "updatedAt": "2026-07-25T06:12:40Z",
   "screenshots": [
     {
       "id": "auth",
@@ -40,8 +40,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/home.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
-      "sizeBytes": 26419,
+      "capturedAt": "2026-07-25T06:12:40Z",
+      "sizeBytes": 26347,
       "tags": [
         "home",
         "navigation",
