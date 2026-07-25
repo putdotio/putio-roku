@@ -2,7 +2,6 @@ function init()
     m.top.observeField("visible", "onVisibleChange")
     m.top.observeField("routeShown", "onRouteShown")
     m.global.observeField("user", "modifyList")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.list = m.top.findNode("list")
     setDialogNodeFieldColor(m.list, "focusBitmapBlendColor", "focus")

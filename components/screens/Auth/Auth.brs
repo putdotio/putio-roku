@@ -30,9 +30,16 @@ sub applyAuthColors()
     setDialogNodeColor(m.linkLabel, "primary")
     setDialogNodeColor(m.messageLabel, "textMuted")
     setDialogNodeColor(m.refreshButtonLabel, "text")
+    applyTypography(m.descriptionLabel, "small")
+    applyTypography(m.codeLabel, "h1")
+    applyTypography(m.stepsLabel, "small")
+    applyTypography(m.linkLabel, "h1")
+    applyTypography(m.messageLabel, "small")
+    applyTypography(m.refreshButtonLabel, "h2")
 
     for each codeChar in m.codeChars
         setDialogNodeColor(codeChar, "textInverse")
+        applyTypography(codeChar, "h1")
     end for
 end sub
 

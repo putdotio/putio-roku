@@ -24,6 +24,22 @@ sub init()
 
     m.stories = [
         {
+            id: "typography-gt-america",
+            title: "Typography / GT America",
+            listTitle: "Type / GT America",
+            section: "Foundations",
+            description: "Brand-font probe. Renders sample strings in the Roku system font (today) next to GT America (regular/medium/bold) at the sizes the app uses, to judge on-device legibility.",
+            component: "typography",
+        },
+        {
+            id: "screen-header",
+            title: "ScreenHeader / branded title",
+            listTitle: "Type / header",
+            section: "Foundations",
+            description: "Overhang keeps the logo, options affordance and background; the title is a GT America Label of our own. Checks the brand title lands where the built-in one did and that the logo divider still draws with an empty Overhang title.",
+            component: "screenHeader",
+        },
+        {
             id: "app-dialog-empty",
             title: "AppDialog / no message",
             listTitle: "App / empty",
@@ -376,7 +392,11 @@ sub renderStory(index as integer)
     showDetailMode()
     hideStories()
 
-    if story.id = "app-dialog-empty"
+    if story.id = "typography-gt-america"
+        renderTypographyStory()
+    else if story.id = "screen-header"
+        renderScreenHeaderStory()
+    else if story.id = "app-dialog-empty"
         renderAppDialogStory("Exit put.io?", "", ["OK", "Cancel"], 1)
     else if story.id = "app-dialog-message"
         renderAppDialogStory("Settings not saved", "Video playback type could not be saved. Please try again.", ["OK"], 0)
@@ -578,6 +598,103 @@ sub renderHistoryListItemStory()
     list.jumpToItem = 0
     addPreviewNode(list, invalid, true)
 end sub
+
+sub renderTypographyStory()
+    group = createObject("roSGNode", "Group")
+
+    ' GT America's x-height is 50% of its em against a 71% cap height, which reads smaller
+    ' than the Roku system font at an identical pixel size. Each row renders the built-in
+    ' face beside GT America at that same size and at one and two 3px grid steps up, so a
+    ' single screenshot settles the whole scale instead of guessing per role.
+    columnX = [290, 655, 1020, 1385]
+    columnWidth = 360
+    headers = ["SYSTEM (today)", "GT AMERICA", "GT +3px", "GT +6px"]
+    for index = 0 to 3
+        group.appendChild(makeTypeLabel(headers[index], "font:SmallBoldSystemFont", [columnX[index], 0], columnWidth, "primary"))
+    end for
+
+    rows = [
+        { role: "h1", sys: "font:LargeBoldSystemFont", weight: "bold", text: "Your Files" },
+        { role: "h2", sys: "font:MediumBoldSystemFont", weight: "medium", text: "Your Files" },
+        { role: "body", sys: "font:MediumSystemFont", weight: "regular", text: "Delete this file?" },
+        { role: "small", sys: "font:SmallSystemFont", weight: "regular", text: "1.4 GB - May 16" },
+        { role: "label", sys: "font:SmallBoldSystemFont", weight: "medium", text: "15" },
+        { role: "caption", sys: "font:SmallestSystemFont", weight: "regular", text: "1.4 GB - May 16" },
+        { role: "türkçe", sys: "font:MediumSystemFont", weight: "regular", text: "Ayşe'nin Düğünü İĞŞ" },
+    ]
+
+    print "--- typography calibration (authored FHD px) ---"
+    y = 54
+    for each row in rows
+        base = systemFontSize(row.sys)
+        print "  "; row.role; " <- "; row.sys; " size="; base
+
+        group.appendChild(makeTypeLabel(row.role + "  " + Str(base).Trim() + "px", "font:SmallSystemFont", [0, y + 6], 270, "textMuted"))
+        group.appendChild(makeTypeLabel(row.text, row.sys, [columnX[0], y], columnWidth, "text"))
+        group.appendChild(makeGtLabel(row.text, row.weight, base, [columnX[1], y], columnWidth))
+        group.appendChild(makeGtLabel(row.text, row.weight, base + 3, [columnX[2], y], columnWidth))
+        group.appendChild(makeGtLabel(row.text, row.weight, base + 6, [columnX[3], y], columnWidth))
+
+        y = y + base + 48
+    end for
+
+    addPreviewNode(group, [110, 48])
+end sub
+
+sub renderScreenHeaderStory()
+    header = createObject("roSGNode", "ScreenHeader")
+    header.title = "Your Files"
+    header.showOptions = true
+    header.optionsAvailable = true
+    header.optionsText = "Delete"
+
+    ' Rendered at its real screen position so the logo, divider and title relationship is
+    ' judged exactly as it appears on a screen rather than inside the preview area.
+    addPreviewNode(header, [0, 0])
+end sub
+
+function systemFontSize(fontUri as string) as integer
+    probe = createObject("roSGNode", "Label")
+    probe.font = fontUri
+    if probe.font <> invalid and probe.font.size <> invalid
+        return probe.font.size
+    end if
+
+    return 0
+end function
+
+function makeTypeLabel(text as string, fontUri as string, translation as object, width as integer, colorToken as string) as object
+    label = createObject("roSGNode", "Label")
+    label.text = text
+    label.font = fontUri
+    label.width = width
+    label.translation = translation
+    setDialogNodeColor(label, colorToken)
+    return label
+end function
+
+function makeGtLabel(text as string, weight as string, size as integer, translation as object, width as integer) as object
+    label = createObject("roSGNode", "Label")
+    label.text = text
+    label.font = makeGtFont(weight, size)
+    label.width = width
+    label.translation = translation
+    setDialogNodeColor(label, "text")
+    return label
+end function
+
+function makeGtFont(weight as string, size as integer) as object
+    font = createObject("roSGNode", "Font")
+    uri = "pkg:/fonts/gt-america-standard-regular.otf"
+    if weight = "medium"
+        uri = "pkg:/fonts/gt-america-standard-medium.otf"
+    else if weight = "bold"
+        uri = "pkg:/fonts/gt-america-standard-bold.otf"
+    end if
+    font.uri = uri
+    font.size = size
+    return font
+end function
 
 function createPreviewMarkupList(itemComponentName as string) as object
     list = createObject("roSGNode", "MarkupList")

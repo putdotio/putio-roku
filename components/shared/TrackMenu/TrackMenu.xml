@@ -11,6 +11,8 @@
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/TrackMenu/TrackMenu.brs" />
 
   <children>
@@ -70,7 +72,6 @@
         translation="[48,45]"
         width="726"
         height="45"
-        font="font:LargeBoldSystemFont"
       />
 
       <Rectangle
@@ -84,50 +85,50 @@
       <Group id="trackRows" translation="[48,108]">
         <Group id="trackMenuRow0" visible="false">
           <Rectangle id="trackMenuRow0Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow0Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow0Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow0Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow0Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow1" visible="false">
           <Rectangle id="trackMenuRow1Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow1Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow1Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow1Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow1Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow2" visible="false">
           <Rectangle id="trackMenuRow2Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow2Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow2Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow2Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow2Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow3" visible="false">
           <Rectangle id="trackMenuRow3Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow3Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow3Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow3Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow3Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow4" visible="false">
           <Rectangle id="trackMenuRow4Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow4Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow4Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow4Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow4Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow5" visible="false">
           <Rectangle id="trackMenuRow5Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow5Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow5Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow5Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow5Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow6" visible="false">
           <Rectangle id="trackMenuRow6Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow6Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow6Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow6Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow6Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
 
         <Group id="trackMenuRow7" visible="false">
           <Rectangle id="trackMenuRow7Background" width="726" height="63" visible="false" />
-          <Label id="trackMenuRow7Label" translation="[24,12]" width="600" height="63" font="font:MediumSystemFont" />
-          <Label id="trackMenuRow7Check" translation="[660,9]" width="45" height="63" font="font:LargeBoldSystemFont" horizAlign="center" text="✓" visible="false" />
+          <Label id="trackMenuRow7Label" translation="[24,12]" width="600" height="63" />
+          <Poster id="trackMenuRow7Check" translation="[660,9]" width="45" height="45" loadDisplayMode="scaleToFit" uri="pkg:/images/icons/check.png" visible="false" />
         </Group>
       </Group>
 

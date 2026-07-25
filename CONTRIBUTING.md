@@ -106,6 +106,7 @@ fresh app ZIP for the selected variant.
 - Author Roku UI in 1920x1080 logical coordinates, but keep visible edges and common spacing on the 3px grid exposed by `components/shared/UiMetrics/UiMetrics.brs`; many Roku devices output 1280x720 screenshots from the FHD scene and scale by 2/3
 - Product glyphs use the pinned Phosphor icon system; edit `config/phosphor-icons.json` and run `pnpm roku icons` rather than hand-editing `images/icons/*.png`. See [Icon system](./docs/ICONS.md)
 - Reserve source comments for device quirks, invariants, and external constraints the code cannot express, such as a Roku model's HLS behavior or a put.io API field's meaning. Do not add `''' Section` banners, restate the function name below them, or leave commented-out debug code; name a value instead of annotating a magic number
+- Brand typography uses commercially licensed GT America faces that are **not** part of this repo. They are optional: a clone without them builds, verifies, and runs, rendering in the Roku system font instead. Never commit font binaries — `pnpm verify` fails if git tracks an `.otf`, `.ttf`, or `.ttc`. Maintainers with access to private `putio-static` fetch them with `pnpm roku fonts-setup`. See [Font system](./docs/FONTS.md)
 - Prefer repo-relative doc links when adding or updating documentation
 - Update docs when sideloading, validation, CI, or release expectations change
 

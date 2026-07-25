@@ -4,6 +4,8 @@
   <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Audio/Audio.brs" />
 
 	<interface>
@@ -16,15 +18,7 @@
   </interface>
 
 	<children>
-    <Overhang
-      id="overhang"
-      showClock="false"
-      title="Your Files"
-      logoUri="pkg:/images/OverhangLogo.png"
-      logoBaselineOffset="9"
-      showOptions="true"
-      optionsAvailable="false"
-	  />
+    <ScreenHeader id="overhang" title="Your Files" showOptions="true" />
 
     <LayoutGroup
       id="audioPlayer"
@@ -72,7 +66,6 @@
       >
         <Label
 					id="position"
-					font="font:MediumBoldSystemFont"
 					text="..:.."
 					width="128"
 				/>
@@ -84,7 +77,6 @@
 
         <Label
 					id="duration"
-					font="font:MediumBoldSystemFont"
 					text="..:.."
 					width="128"
 				/>

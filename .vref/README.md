@@ -71,3 +71,8 @@ pnpm roku visual-validate
 - Use synthetic or public-safe filenames and account state.
 - Do not commit IP addresses, tokens, device passwords, or private account data.
 - Prefer exact Roku screenshots over reconstructed browser mockups.
+- Record with the brand faces bundled. Run `pnpm roku fonts-setup` before capturing and
+  confirm the build did not log "Packaged without licensed brand fonts" — a fonts-less
+  build silently falls back to the Roku system font, and `pnpm roku visual-validate`
+  checks the manifest and files only, never pixels. Entries carry a `gt-america` tag so a
+  mis-recorded batch is visible in the committed manifest. See [Font system](../docs/FONTS.md).

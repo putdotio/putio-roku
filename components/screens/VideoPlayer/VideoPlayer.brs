@@ -166,11 +166,17 @@ sub applyPlayerColors()
     setDialogNodeColor(m.progressFocusBottom, "transparent")
     setDialogNodeColor(m.durationLabel, "textMuted")
     setDialogNodeColor(m.bufferingScrim, "scrim")
+    applyTypography(m.title, "h1")
+    applyTypography(m.trackSummary, "body")
+    applyTypography(m.positionLabel, "small")
+    applyTypography(m.durationLabel, "small")
 
     for each control in m.controls
         setDialogNodeColor(control.focusBar, "transparent")
         setDialogNodeColor(control.label, "text")
         setDialogNodeColor(control.focusLabel, "textMuted")
+        applyTypography(control.label, "label")
+        applyTypography(control.focusLabel, "small")
     end for
 end sub
 

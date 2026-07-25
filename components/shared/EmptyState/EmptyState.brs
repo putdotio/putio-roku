@@ -5,6 +5,8 @@ function init()
 
     setDialogLabelColor(m.heading, "text")
     setDialogLabelColor(m.body, "textMuted")
+    applyTypography(m.heading, "h1")
+    applyTypography(m.body, "body")
 
     render()
 end function

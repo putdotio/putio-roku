@@ -1,6 +1,5 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.image = m.top.findNode("renderedImage")
     m.loading = m.top.findNode("loading")
