@@ -24,8 +24,9 @@ const fontFileNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:otf|ttf)$/;
 const sha256Pattern = /^[0-9a-f]{64}$/;
 const commitRefPattern = /^[0-9a-f]{40}$/;
 
-// GitHub's raw contents endpoint tops out well below this; the cap only stops a
-// surprise HTML error page from being buffered without bound.
+// A ceiling on what a single response may buffer. Well above these faces (~200KB each) and
+// below the Contents API's 100MB blob limit, so it bounds a surprise error page without
+// silently truncating a real font.
 const downloadMaxBytes = 32 * 1024 * 1024;
 
 interface BrandFontFile {
@@ -53,8 +54,8 @@ export async function syncBrandFonts(repoRoot: string): Promise<BrandFontStatus>
   const targetDir = resolve(repoRoot, fontsOutputDir);
   await mkdir(targetDir, { recursive: true });
 
-  // Prune before fetching: the packaged ZIP bundles every font file in this directory,
-  // so a face left behind by an older manifest would ship unlisted and unverified.
+  // Prune before fetching: a face left behind by an older manifest counts as unlisted,
+  // which withdraws the brand face from every build until someone notices.
   for (const entry of await pruneUnlistedFonts(targetDir, manifest.files)) {
     console.log(`  removed unlisted ${entry}`);
   }
@@ -69,11 +70,12 @@ export async function syncBrandFonts(repoRoot: string): Promise<BrandFontStatus>
     return before;
   }
 
-  // Stage every download and move the set into place only once all of it verifies, so an
-  // interrupted sync cannot leave a mixed old/new set behind. The staging directory lives
-  // under the gitignored dist/ tree rather than the system temp dir so the moves are
-  // same-filesystem renames; os.tmpdir() can be a different mount (notably on CI), where
-  // rename fails with EXDEV.
+  // Download and verify every outdated face before moving any of them, so a failed or
+  // rejected download leaves fonts/ untouched. The staging directory lives under the
+  // gitignored dist/ tree rather than the system temp dir so the moves are same-filesystem
+  // renames; os.tmpdir() can be a different mount (notably on CI), where rename fails with
+  // EXDEV. An interrupt between the renames themselves can still leave a partial set -- the
+  // digest check on the next run reports it, and availability stays off until it is fixed.
   const stagingRoot = resolve(repoRoot, stagingParentDir);
   await mkdir(stagingRoot, { recursive: true });
   const stagingDir = await mkdtemp(join(stagingRoot, "brand-fonts-"));

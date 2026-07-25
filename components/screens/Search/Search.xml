@@ -17,7 +17,7 @@
   </interface>
 
   <children>
-    <ScreenHeader id="overhang" title="Search" showOptions="true" />
+    <ScreenHeader id="screenHeader" title="Search" showOptions="true" />
 
     <LayoutGroup
       translation="[81, 180]"

@@ -117,9 +117,11 @@ jobs:
 
       # The licensed GT America faces are gitignored, so the checkout has none of them and
       # the packaged app would silently fall back to the Roku system font. Sync them from
-      # private putio-static before semantic-release builds the artifact. fonts-setup fails
-      # the release on any download or checksum problem, so reaching the build means every
-      # pinned face is on disk; fonts-check re-verifies those bytes before packaging.
+      # private putio-static before semantic-release builds the artifact. fonts-setup is the
+      # gate: it fails on any download or checksum problem, so reaching the build means every
+      # pinned face is on disk. fonts-check then re-verifies those bytes, but note it treats
+      # absence as a legitimate optional state, so it would not by itself catch a step that
+      # silently synced nothing.
       - name: Mint putio-static read token
         if: github.event_name != 'workflow_dispatch'
         id: static-read

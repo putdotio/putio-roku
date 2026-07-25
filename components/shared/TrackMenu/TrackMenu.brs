@@ -145,9 +145,6 @@ sub updateTrackMenuLayout(rowCount as integer)
         row.label.translation = [24, 12]
         row.label.width = 600
         row.label.height = m.rowHeight
-        row.check.translation = [660, 9]
-        row.check.width = 45
-        row.check.height = 45
     end for
 end sub
 

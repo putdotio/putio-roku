@@ -20,11 +20,10 @@
       "tags": [
         "auth",
         "activation-code",
-        "redacted",
         "gt-america"
       ],
       "notes": [
-        "Auth screen with the activation code tiles redacted for public-safe review.",
+        "Auth screen showing a pairing code; device codes are short-lived and expire, so the visible code is inert.",
         "Captured from the live device before restoring the test account.",
         "Recorded with the licensed GT America brand faces bundled."
       ]

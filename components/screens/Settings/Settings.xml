@@ -18,7 +18,7 @@
   </interface>
 
 	<children>
-    <ScreenHeader id="overhang" title="Settings" showOptions="true" />
+    <ScreenHeader id="screenHeader" title="Settings" showOptions="true" />
 
 		<MarkupList
 			id="settingsList"

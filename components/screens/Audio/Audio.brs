@@ -2,7 +2,7 @@ function init()
     m.top.observeField("visible", "onVisibleChange")
 
     m.audio = m.top.findNode("audio")
-    m.overhang = m.top.findNode("overhang")
+    m.overhang = m.top.findNode("screenHeader")
     m.loading = m.top.findNode("loading")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.rewindButton = m.top.findNode("rewind")

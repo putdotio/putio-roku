@@ -114,12 +114,13 @@ cap-height strings, 105-107% on digits). One step up measured 6-9% oversized. Ke
 sizes fixed means every Label height, character-count wrap budget and list-row baseline
 stays valid, so the brand face is a drop-in.
 
-Note that GT America is *narrower* than the Roku system font at the same size, so the
-character-count wrapping in `AppDialog`, `DeleteFileDialog` and `ContinueWatchingPrompt`
-under-fills its lines slightly rather than overflowing them. Those constants are left as
-they are deliberately: they are counted in characters, so wrap and truncation points are
-unchanged from the system font, and raising them would trade a guaranteed-safe margin for
-a clipping risk.
+The character-count wrapping in `AppDialog`, `DeleteFileDialog` and
+`ContinueWatchingPrompt` is left exactly as it was, deliberately: the budgets are counted in
+characters, so wrap and truncation points are identical to the system font and the migration
+cannot change where a string breaks. Raising them would be a behaviour change needing its
+own measurement — note that while GT America is narrower on average, its digits measure
+105-107%, so a digit-heavy file name is *wider* than the system font rendered it and there
+is no blanket safety margin to spend.
 
 To change the scale, edit the role table and re-shoot the Lab story:
 
