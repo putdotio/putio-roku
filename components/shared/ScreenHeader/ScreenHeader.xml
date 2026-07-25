@@ -3,11 +3,12 @@
 <component name="ScreenHeader" extends="Group">
   <interface>
     <field id="title" type="string" onChange="onScreenHeaderTitleChange" />
-    <!-- showOptions is forwarded in BrightScript rather than aliased: the title has to
-         reserve the options region, and an aliased field fires no onChange to recompute
-         it when a screen sets showOptions after title. -->
+    <!-- showOptions and optionsAvailable are forwarded in BrightScript rather than aliased:
+         the title reserves the options region only when the affordance is actually drawn,
+         which depends on both, and an aliased field fires no onChange to recompute the
+         width when a screen sets either of them after title. -->
     <field id="showOptions" type="bool" value="false" onChange="onScreenHeaderOptionsChange" />
-    <field id="optionsAvailable" type="bool" value="false" alias="overhang.optionsAvailable" />
+    <field id="optionsAvailable" type="bool" value="false" onChange="onScreenHeaderOptionsChange" />
     <field id="optionsText" type="string" alias="overhang.optionsText" />
   </interface>
 
