@@ -649,17 +649,15 @@ sub renderTypographyStory()
 end sub
 
 sub renderScreenHeaderStory()
-    header = createObject("roSGNode", "ScreenHeader")
-    ' A long folder name plus an active options affordance is the case that pushes the two
-    ' together; Files sets its title from the folder name, so this is realistic.
-    header.title = "Camera Uploads / 2026 / Trip to Amsterdam and Rotterdam"
-    header.showOptions = true
-    header.optionsAvailable = true
-    header.optionsText = "Delete"
+    ' Instantiated from markup rather than assigned field by field, so this exercises the
+    ' same XML-attribute path the eight real screens use. A long folder name plus an active
+    ' options affordance is the case that pushes title and options together; Files sets its
+    ' title from the folder name, so it is realistic.
+    preview = createObject("roSGNode", "LabScreenHeaderPreview")
 
     ' Rendered at its real screen position so the logo, divider and title relationship is
     ' judged exactly as it appears on a screen rather than inside the preview area.
-    addPreviewNode(header, [0, 0])
+    addPreviewNode(preview, [0, 0])
 end sub
 
 function systemFontSize(fontUri as string) as integer
