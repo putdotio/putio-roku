@@ -2,7 +2,7 @@
   "version": 1,
   "title": "put.io Roku visual reference",
   "description": "Curated Roku screenshots captured from the app for review, store submission prep, and design comparison. Raw timestamped captures stay in dist/tmp; this directory keeps only public-safe references.",
-  "updatedAt": "2026-07-25T06:12:40Z",
+  "updatedAt": "2026-07-25T17:33:49Z",
   "screenshots": [
     {
       "id": "auth",
@@ -15,8 +15,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/auth.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
-      "sizeBytes": 32536,
+      "capturedAt": "2026-07-25T17:33:49Z",
+      "sizeBytes": 32394,
       "tags": [
         "auth",
         "activation-code",
@@ -39,7 +39,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/home.jpg",
-      "capturedAt": "2026-07-25T06:12:40Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 26347,
       "tags": [
         "home",
@@ -63,7 +63,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/files.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 49195,
       "tags": [
         "files",
@@ -88,7 +88,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/history.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 24802,
       "tags": [
         "history",
@@ -113,8 +113,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/image.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
-      "sizeBytes": 157455,
+      "capturedAt": "2026-07-25T17:33:49Z",
+      "sizeBytes": 157386,
       "tags": [
         "image",
         "viewer",
@@ -138,7 +138,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/file-delete-dialog.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 43995,
       "tags": [
         "files",
@@ -163,7 +163,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-empty.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 37161,
       "tags": [
         "search",
@@ -213,7 +213,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-results.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 48343,
       "tags": [
         "search",
@@ -237,7 +237,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/search-result-focused.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 46021,
       "tags": [
         "search",
@@ -261,7 +261,7 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/settings.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
+      "capturedAt": "2026-07-25T17:33:49Z",
       "sizeBytes": 42977,
       "tags": [
         "settings",
@@ -286,8 +286,8 @@
         "height": 720
       },
       "file": "screenshots/roku-720p/exit-app-dialog.jpg",
-      "capturedAt": "2026-07-24T20:21:45Z",
-      "sizeBytes": 26863,
+      "capturedAt": "2026-07-25T17:33:49Z",
+      "sizeBytes": 29502,
       "tags": [
         "home",
         "dialog",
