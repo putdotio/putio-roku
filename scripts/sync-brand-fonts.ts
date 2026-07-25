@@ -6,12 +6,14 @@ import process from "node:process";
 
 const manifestPath = "config/brand-fonts.json";
 
-// Roku's Font node accepts TrueType/OpenType only, so these are the extensions the
-// importer owns and prunes inside the destination directory.
 const fontsOutputDir = "fonts";
 // Gitignored, and on the same filesystem as fonts/ so staged moves are atomic renames.
 const stagingParentDir = "dist/tmp";
-const fontExtensions = [".otf", ".ttf"] as const;
+// The extensions this importer owns: what it prunes, and what counts as unlisted. Must
+// cover everything checkRokuFontBinaries treats as a font binary, collections included,
+// because packaging bundles the whole fonts/ root -- an extension missing here would ship
+// unlisted and unverified.
+const fontExtensions = [".otf", ".ttf", ".ttc"] as const;
 
 const fontFileNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:otf|ttf)$/;
 const sha256Pattern = /^[0-9a-f]{64}$/;

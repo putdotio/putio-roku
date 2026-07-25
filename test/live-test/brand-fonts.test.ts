@@ -131,6 +131,18 @@ describe("brand font boundary", () => {
     expect(gitignore).toContain("/fonts/*.ttc");
   });
 
+  it("has the importer own every extension the verify gate rejects", () => {
+    // Packaging bundles the whole fonts/ root, so any extension the importer does not
+    // prune or count as unlisted would ship unverified. Keep it in step with .gitignore
+    // and checkRokuFontBinaries.
+    const importer = readRepoFile("scripts/sync-brand-fonts.ts");
+    const declared = /const fontExtensions = \[([^\]]+)\]/.exec(importer)?.[1] ?? "";
+
+    for (const extension of [".otf", ".ttf", ".ttc"]) {
+      expect(declared, `fontExtensions must include ${extension}`).toContain(extension);
+    }
+  });
+
   it("carries synced faces into agent worktrees", () => {
     expect(readRepoFile(".worktreeinclude")).toContain("/fonts");
   });
