@@ -134,11 +134,22 @@ for what a role is being compared against. Keep every size a multiple of the 3px
 
 ## Glyph coverage
 
-GT America Standard covers Latin, Turkish (including the dotted `İ` and dotless `ı` via its
-`locl` forms), and the accented Latin the app renders in user file names. It does **not**
-include symbol glyphs — notably no `✓` (U+2713), `✔`, `★`, or `▶`. Interface symbols come
-from the Phosphor icon set instead (see [Icon system](./ICONS.md)); do not reintroduce
-symbol characters as text.
+GT America Standard carries **523 codepoints**: Latin, Turkish (including the dotted `İ` and
+dotless `ı` via its `locl` forms), and accented Latin. It has no Greek, Cyrillic, Hebrew,
+Arabic, Thai, CJK, Hiragana, Katakana, Hangul or emoji, and no symbol glyphs — notably no
+`✓` (U+2713), `✔`, `★`, or `▶`. Interface symbols come from the Phosphor icon set instead
+(see [Icon system](./ICONS.md)); do not reintroduce symbol characters as text.
+
+File names are user content and are frequently not Latin, so be clear about what happens
+there. Roku's `Font` node does not fall back per glyph, so a character the face lacks renders
+as a placeholder box rather than as text. **This is not specific to the brand face**: the
+`typography-gt-america` Lab story renders Cyrillic and Japanese file names in both faces
+side by side, and the Roku system font shows hollow placeholder boxes for exactly the same
+characters where GT America shows crosshatched ones. Non-Latin file names were unreadable on
+this device before the migration and are equally unreadable after it — the brand face neither
+causes nor fixes that. Serving those names properly would need a coverage-adequate face for
+user content, which is a separate piece of work; the Lab row exists so the state is visible
+rather than assumed.
 
 Its figures are proportional, and unevenly so (`1` is about 60% the width of `0`), so text
 whose digits change in place — clocks, counters, progress — needs a fixed-width container

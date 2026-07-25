@@ -628,6 +628,11 @@ sub renderTypographyStory()
         { role: "label", sys: "font:SmallBoldSystemFont", weight: "medium", text: "15" },
         { role: "caption", sys: "font:SmallestSystemFont", weight: "regular", text: "1.4 GB - May 16" },
         { role: "türkçe", sys: "font:MediumSystemFont", weight: "regular", text: "Ayşe'nin Düğünü İĞŞ" },
+        ' GT America Standard carries 523 codepoints: Latin, Turkish and accented Latin only.
+        ' File names are user content and routinely are not Latin, so this row shows what the
+        ' brand face does with scripts it has no glyphs for, beside the built-in that covers them.
+        { role: "кириллица", sys: "font:MediumSystemFont", weight: "regular", text: "Аватар 2009.mkv" },
+        { role: "日本語", sys: "font:MediumSystemFont", weight: "regular", text: "千と千尋の神隠し.mkv" },
     ]
 
     print "--- typography calibration (authored FHD px) ---"
