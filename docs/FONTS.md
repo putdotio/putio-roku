@@ -16,9 +16,7 @@ The faces are licensed for use in the app. The rule this repo enforces is that *
 repository never becomes a distribution point**:
 
 - Font binaries are never committed. `.gitignore` covers `/fonts/*.otf`, `/fonts/*.ttf` and
-  `/fonts/*.ttc`,
-  and `pnpm verify` fails outright if `git ls-files` ever reports an `.otf`, `.ttf`, or
-  `.ttc`
+  `/fonts/*.ttc`, and `pnpm verify` fails outright if `git ls-files` ever reports one
 - Nothing lands in git history, nothing is search-indexable, and contributors and CI
   clones never receive the faces
 - The built app bundles them, as does the CDN that already serves the family to the web
