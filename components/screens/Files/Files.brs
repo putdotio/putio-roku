@@ -75,8 +75,8 @@ sub hideLoading()
 end sub
 
 sub showFileList()
-    overhang = m.top.findNode("screenHeader")
-    overhang.title = m.parent.name
+    screenHeader = m.top.findNode("screenHeader")
+    screenHeader.title = m.parent.name
 
     content = createObject("roSGNode", "ContentNode")
 

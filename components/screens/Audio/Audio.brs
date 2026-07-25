@@ -2,7 +2,7 @@ function init()
     m.top.observeField("visible", "onVisibleChange")
 
     m.audio = m.top.findNode("audio")
-    m.overhang = m.top.findNode("screenHeader")
+    m.screenHeader = m.top.findNode("screenHeader")
     m.loading = m.top.findNode("loading")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.rewindButton = m.top.findNode("rewind")
@@ -52,7 +52,7 @@ end function
 
 sub onVisibleChange()
     if m.top.visible
-        m.overhang.title = m.top.params.fileName
+        m.screenHeader.title = m.top.params.fileName
         m.audio.observeField("state", "onAudioStateChange")
         m.audio.observeField("position", "onPositionChange")
         m.audio.observeField("duration", "onDurationChange")
