@@ -60,9 +60,12 @@ and asserts components only reference faces the manifest pins.
 
 ## Packaging and fallback
 
-`scripts/package-roku.ts` bundles the `fonts/` root only when it actually holds faces, and
-compiles the same answer into the generated `source/BuildConfig.brs` as
-`buildConfigBrandFontsAvailable()`. The runtime reads that flag rather than probing the
+`scripts/package-roku.ts` bundles the `fonts/` root only when **every** face pinned in the
+manifest is present, and compiles the same answer into the generated
+`source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`. Availability is
+all-or-nothing on purpose: a partial directory would flip the flag on and leave individual
+roles pointing at missing `pkg:/fonts/...` URIs, which Roku resolves to the system font per
+label and shows as mixed typography. The runtime reads that flag rather than probing the
 filesystem, so a build either has the brand faces or deliberately uses the built-in
 `font:*SystemFont` values — it never silently renders a missing `pkg:/fonts/...` URI, which
 Roku would resolve to the system font with no error.

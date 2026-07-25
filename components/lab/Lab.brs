@@ -643,7 +643,9 @@ end sub
 
 sub renderScreenHeaderStory()
     header = createObject("roSGNode", "ScreenHeader")
-    header.title = "Your Files"
+    ' A long folder name plus an active options affordance is the case that pushes the two
+    ' together; Files sets its title from the folder name, so this is realistic.
+    header.title = "Camera Uploads / 2026 / Trip to Amsterdam and Rotterdam"
     header.showOptions = true
     header.optionsAvailable = true
     header.optionsText = "Delete"
