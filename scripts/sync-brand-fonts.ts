@@ -9,12 +9,17 @@ const manifestPath = "config/brand-fonts.json";
 const fontsOutputDir = "fonts";
 // Gitignored, and on the same filesystem as fonts/ so staged moves are atomic renames.
 const stagingParentDir = "dist/tmp";
-// The extensions this importer owns: what it prunes, and what counts as unlisted. Must
-// cover everything checkRokuFontBinaries treats as a font binary, collections included,
-// because packaging bundles the whole fonts/ root -- an extension missing here would ship
-// unlisted and unverified.
+// The next two do different jobs and are deliberately not the same list.
+//
+// fontExtensions is what the importer owns inside fonts/: pruned, and counted as unlisted.
+// It has to cover everything checkRokuFontBinaries (scripts/roku-task/build.ts) rejects,
+// collections included, because packaging bundles the whole fonts/ root -- an extension
+// missing here would ship unlisted and unverified.
 const fontExtensions = [".otf", ".ttf", ".ttc"] as const;
 
+// fontFileNamePattern is what a manifest entry may pin, and is narrower on purpose. A .ttc
+// is a font collection while Roku's Font.uri takes a single face, so a collection is
+// something to detect and clean up, never something to pin as a brand face.
 const fontFileNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:otf|ttf)$/;
 const sha256Pattern = /^[0-9a-f]{64}$/;
 const commitRefPattern = /^[0-9a-f]{40}$/;
