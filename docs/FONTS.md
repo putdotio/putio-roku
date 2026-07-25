@@ -15,7 +15,8 @@ will not work here — the Roku app uses the OTF cuts from `putio-static`.
 The faces are licensed for use in the app. The rule this repo enforces is that **the
 repository never becomes a distribution point**:
 
-- Font binaries are never committed. `.gitignore` covers `/fonts/*.otf` and `/fonts/*.ttf`,
+- Font binaries are never committed. `.gitignore` covers `/fonts/*.otf`, `/fonts/*.ttf` and
+  `/fonts/*.ttc`,
   and `pnpm verify` fails outright if `git ls-files` ever reports an `.otf`, `.ttf`, or
   `.ttc`
 - Nothing lands in git history, nothing is search-indexable, and contributors and CI
@@ -62,7 +63,7 @@ and asserts components only reference faces the manifest pins.
 ## Packaging and fallback
 
 `scripts/package-roku.ts` bundles the `fonts/` root only when **every** face pinned in the
-manifest is present, and compiles the same answer into the generated
+manifest is present *and matches its digest*, and compiles the same answer into the generated
 `source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`. Availability is
 all-or-nothing on purpose: a partial directory would flip the flag on and leave individual
 roles pointing at missing `pkg:/fonts/...` URIs, which Roku resolves to the system font per

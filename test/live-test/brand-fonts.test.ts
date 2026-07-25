@@ -1,8 +1,9 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { hasAllPinnedBrandFonts } from "../../scripts/package-roku.ts";
+import { hasVerifiedBrandFonts } from "../../scripts/package-roku.ts";
 import { parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
 import { listRepoFiles, readRepoFile, repoRoot } from "./repo-files.ts";
 
@@ -61,36 +62,58 @@ describe("brand font manifest", () => {
 });
 
 describe("brand font availability", () => {
-  // A partial fonts/ directory must NOT flip the compiled availability flag on: individual
-  // roles would then resolve to missing pkg:/fonts URIs, which Roku renders in the system
-  // font per label and shows as mixed typography.
-  function fixture(faceNames: readonly string[]): string {
+  // Availability must mean "every pinned face present AND matching its digest". A partial or
+  // corrupt directory would flip the compiled flag on and leave roles resolving to missing
+  // pkg:/fonts URIs, which Roku renders in the system font per label as mixed typography.
+  // The fixture mints its own manifest so the digests are real and no repo fonts/ is needed.
+  function fixture(faces: Readonly<Record<string, string>>, pinned?: readonly string[]): string {
     const root = mkdtempSync(join(tmpdir(), "putio-roku-fonts-fixture-"));
+    const names = pinned ?? Object.keys(faces);
     mkdirSync(join(root, "config"), { recursive: true });
-    writeFileSync(join(root, "config/brand-fonts.json"), readRepoFile("config/brand-fonts.json"));
+    writeFileSync(
+      join(root, "config/brand-fonts.json"),
+      JSON.stringify({
+        files: names.map((name) => ({
+          name,
+          path: `public/fonts/gt-america/desktop/otf/${name}`,
+          sha256: createHash("sha256").update(`bytes-of-${name}`).digest("hex"),
+        })),
+        source: { ref: validRef, repository: "putdotio/putio-static" },
+      }),
+    );
+
     mkdirSync(join(root, "fonts"), { recursive: true });
-    for (const name of faceNames) {
-      writeFileSync(join(root, "fonts", name), "stub");
+    for (const [name, contents] of Object.entries(faces)) {
+      writeFileSync(join(root, "fonts", name), contents);
     }
 
     return root;
   }
 
-  const allFaces = manifest.files.map((file) => file.name);
+  const face = (name: string): string => `bytes-of-${name}`;
+  const a = "gt-america-standard-regular.otf";
+  const b = "gt-america-standard-medium.otf";
 
-  it("requires every pinned face before enabling the brand flag", async () => {
-    await expect(hasAllPinnedBrandFonts(fixture(allFaces))).resolves.toBe(true);
-    await expect(hasAllPinnedBrandFonts(fixture(allFaces.slice(0, 1)))).resolves.toBe(false);
-    await expect(hasAllPinnedBrandFonts(fixture([]))).resolves.toBe(false);
-    await expect(hasAllPinnedBrandFonts(fixture(["gt-america-standard-black.otf"]))).resolves.toBe(false);
+  it("enables the flag only when every pinned face verifies", async () => {
+    await expect(hasVerifiedBrandFonts(fixture({ [a]: face(a), [b]: face(b) }))).resolves.toBe(true);
+  });
+
+  it("rejects a partial, corrupt or polluted fonts directory", async () => {
+    // present but only one of two pinned faces
+    await expect(hasVerifiedBrandFonts(fixture({ [a]: face(a) }, [a, b]))).resolves.toBe(false);
+    // both present, one with the wrong bytes
+    await expect(hasVerifiedBrandFonts(fixture({ [a]: face(a), [b]: "corrupted" }))).resolves.toBe(false);
+    // all pinned faces verify, but an unlisted face would ship unverified beside them
+    await expect(
+      hasVerifiedBrandFonts(fixture({ [a]: face(a), "gt-america-standard-black.otf": "x" }, [a])),
+    ).resolves.toBe(false);
   });
 
   it("treats a missing fonts directory as unavailable", async () => {
-    const root = mkdtempSync(join(tmpdir(), "putio-roku-fonts-fixture-"));
-    mkdirSync(join(root, "config"), { recursive: true });
-    writeFileSync(join(root, "config/brand-fonts.json"), readRepoFile("config/brand-fonts.json"));
+    const root = fixture({ [a]: face(a) });
+    rmSync(join(root, "fonts"), { recursive: true, force: true });
 
-    await expect(hasAllPinnedBrandFonts(root)).resolves.toBe(false);
+    await expect(hasVerifiedBrandFonts(root)).resolves.toBe(false);
   });
 });
 
@@ -101,8 +124,11 @@ describe("brand font boundary", () => {
   it("gitignores every font extension the importer owns", () => {
     const gitignore = readRepoFile(".gitignore");
 
+    // Must cover every extension checkRokuFontBinaries fails on, so the ignore rules and
+    // the verify gate agree on what "a font binary" is.
     expect(gitignore).toContain("/fonts/*.otf");
     expect(gitignore).toContain("/fonts/*.ttf");
+    expect(gitignore).toContain("/fonts/*.ttc");
   });
 
   it("carries synced faces into agent worktrees", () => {

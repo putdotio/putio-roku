@@ -613,6 +613,13 @@ sub renderTypographyStory()
         group.appendChild(makeTypeLabel(headers[index], "font:SmallBoldSystemFont", [columnX[index], 0], columnWidth, "primary"))
     end for
 
+    ' Without the licensed faces bundled the three GT columns render the system font, which
+    ' would make this screenshot look like a passing A/B. Say so on screen rather than let a
+    ' calibration capture silently compare a face against itself.
+    if not buildConfigBrandFontsAvailable()
+        group.appendChild(makeTypeLabel("NO BRAND FONTS IN THIS BUILD - GT columns are the system font. Run pnpm roku fonts-setup.", "font:SmallBoldSystemFont", [0, 570], 1700, "danger"))
+    end if
+
     rows = [
         { role: "h1", sys: "font:LargeBoldSystemFont", weight: "bold", text: "Your Files" },
         { role: "h2", sys: "font:MediumBoldSystemFont", weight: "medium", text: "Your Files" },

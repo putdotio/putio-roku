@@ -1,7 +1,7 @@
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { createPackageZip } from "@putdotio/rokit";
-import { readBrandFontManifest } from "./sync-brand-fonts.ts";
+import { inspectBrandFonts } from "./sync-brand-fonts.ts";
 
 export type RokuVariant = "production" | "development" | "lab";
 
@@ -36,7 +36,7 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
   // nothing matters: a partial set would flip the flag on and leave individual roles
   // resolving to missing pkg:/fonts URIs, which Roku renders in the system font per label
   // and shows as mixed typography.
-  const brandFontsBundled = await hasAllPinnedBrandFonts(repoRoot);
+  const brandFontsBundled = await hasVerifiedBrandFonts(repoRoot);
   const roots: string[] = [...appRoots];
   if (brandFontsBundled) {
     roots.push(fontsRoot);
@@ -173,22 +173,13 @@ function brightScriptString(value: string): string {
   return value.replace(/"/g, "\"\"");
 }
 
-export async function hasAllPinnedBrandFonts(repoRoot: string): Promise<boolean> {
-  const manifest = await readBrandFontManifest(repoRoot);
-  const present = new Set(await readdirOrEmpty(join(repoRoot, fontsRoot)));
-  return manifest.files.every((file) => present.has(file.name));
-}
-
-async function readdirOrEmpty(directory: string): Promise<readonly string[]> {
-  try {
-    return await readdir(directory);
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return [];
-    }
-
-    throw error;
-  }
+export async function hasVerifiedBrandFonts(repoRoot: string): Promise<boolean> {
+  // Filename presence is not enough: a stale or truncated face would advertise the brand
+  // face while its pkg:/fonts URI renders as the system font. Availability therefore means
+  // every pinned face present AND matching its digest, with no unlisted face that would
+  // ship unverified alongside them.
+  const status = await inspectBrandFonts(repoRoot);
+  return status.missing.length === 0 && status.stale.length === 0 && status.unlisted.length === 0;
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
