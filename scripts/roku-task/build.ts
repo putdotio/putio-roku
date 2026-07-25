@@ -48,7 +48,15 @@ export async function fontsCheck(): Promise<void> {
 }
 
 export function checkRokuFontBinaries(): void {
-  const tracked = runCapture("git", ["ls-files", "--", "*.otf", "*.ttf", "*.ttc"]).trim();
+  // :(icase) matters: git pathspecs are case-sensitive, so a tracked GT-America.OTF would
+  // slip past a lowercase-only glob and land in this public repo.
+  const tracked = runCapture("git", [
+    "ls-files",
+    "--",
+    ":(icase)*.otf",
+    ":(icase)*.ttf",
+    ":(icase)*.ttc",
+  ]).trim();
   if (tracked !== "") {
     throw new Error(
       `Licensed font binaries must never be committed to this public repo (see docs/FONTS.md):\n${tracked}`,
