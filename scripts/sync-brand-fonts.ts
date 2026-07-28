@@ -209,10 +209,21 @@ async function downloadBrandFont(manifest: BrandFontManifest, name: string): Pro
     );
   }
 
-  const contents = Buffer.from(await response.arrayBuffer());
-  if (contents.byteLength > downloadMaxBytes) {
-    throw new Error(`${url} returned ${contents.byteLength} bytes, above the ${downloadMaxBytes} ceiling`);
+  // Read incrementally and stop at the ceiling. Buffering the whole body first and then
+  // checking its size would let a misrouted large object exhaust the process before the
+  // check ever ran, which makes the ceiling decorative.
+  const chunks: Buffer[] = [];
+  let received = 0;
+  for await (const chunk of response.body ?? []) {
+    received += chunk.byteLength;
+    if (received > downloadMaxBytes) {
+      throw new Error(`${url} exceeded the ${downloadMaxBytes} byte ceiling; refusing to buffer it`);
+    }
+
+    chunks.push(Buffer.from(chunk));
   }
+
+  const contents = Buffer.concat(chunks);
 
   // Validate before the bytes are allowed anywhere near the destination directory. A CDN can
   // answer 200 with an error page or a redirect body, and writing that to fonts/ would leave
@@ -328,8 +339,17 @@ function readFontFamilies(contents: Buffer, tables: Map<string, SfntTable>): rea
     }
 
     // Platform 3 is Windows, whose name strings are UTF-16BE; platform 1 is Macintosh Roman.
+    // A UTF-16 record with an odd byte count is malformed, and decoding it would throw --
+    // which would abort packaging instead of classifying the face invalid and falling back to
+    // the system font. Skipping it leaves the face with no readable family, which is exactly
+    // the rejection it deserves.
     const raw = contents.subarray(start, start + length);
-    const value = contents.readUInt16BE(record) === 3 ? decodeUtf16Be(raw) : raw.toString("latin1");
+    const platformId = contents.readUInt16BE(record);
+    if (platformId === 3 && raw.byteLength % 2 !== 0) {
+      continue;
+    }
+
+    const value = platformId === 3 ? decodeUtf16Be(raw) : raw.toString("latin1");
     if (value !== "") {
       families.push(value);
     }
