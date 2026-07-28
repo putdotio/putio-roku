@@ -25,15 +25,23 @@ function validManifest(overrides: Record<string, unknown> = {}): Record<string, 
 // carrying every table the validator requires, and a name table declaring the family. Built
 // here rather than read from fonts/ so these tests hold on a fonts-less clone, which is the
 // state CI runs in.
-function sfnt(options: { family?: string; omit?: readonly string[]; truncateBy?: number } = {}): Buffer {
+function sfnt(
+  options: {
+    family?: string;
+    omit?: readonly string[];
+    truncateBy?: number;
+    platformId?: number;
+    declaredNameLength?: number;
+  } = {},
+): Buffer {
   const value = Buffer.from(options.family ?? family, "latin1");
   const nameTable = Buffer.alloc(18 + value.length);
   nameTable.writeUInt16BE(0, 0); // format
   nameTable.writeUInt16BE(1, 2); // record count
   nameTable.writeUInt16BE(18, 4); // string storage offset
-  nameTable.writeUInt16BE(1, 6); // platform 1 (Macintosh)
+  nameTable.writeUInt16BE(options.platformId ?? 1, 6); // platform 1 (Macintosh), 3 (Windows)
   nameTable.writeUInt16BE(1, 12); // nameID 1 (family)
-  nameTable.writeUInt16BE(value.length, 14);
+  nameTable.writeUInt16BE(options.declaredNameLength ?? value.length, 14);
   value.copy(nameTable, 18);
 
   const tables: readonly (readonly [string, Buffer])[] = (
@@ -116,6 +124,16 @@ describe("brand font validation", () => {
   it("refuses a truncated face, down to a single lost byte", () => {
     expect(brandFontRejection(sfnt({ truncateBy: 1 }), family)).toMatch("truncated");
     expect(brandFontRejection(sfnt({ truncateBy: 8 }), family)).toMatch("truncated");
+  });
+
+  // A malformed face must be classified, never thrown on. Decoding a UTF-16 name record with
+  // an odd byte count throws RangeError out of Buffer.swap16, which would abort packaging and
+  // verify instead of letting the build fall back to the system font.
+  it("classifies a malformed name record instead of throwing", () => {
+    const malformed = sfnt({ declaredNameLength: 9, platformId: 3 });
+
+    expect(() => brandFontRejection(malformed, family)).not.toThrow();
+    expect(brandFontRejection(malformed, family)).toMatch("no readable family name");
   });
 });
 
