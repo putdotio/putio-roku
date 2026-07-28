@@ -2,72 +2,87 @@
 
 Product typography uses **GT America**, the put.io brand typeface from the public design
 system (`@putdotio/design` sets `typography.fontFamily.sans` to it), matching the web and
-iOS apps. The faces are commercially licensed, so unlike icons they are not checked in:
-the Roku app pins them by digest, syncs them from the private `putdotio/putio-static` repo
-at development and release time, and falls back to the Roku system font when they are
-absent.
+iOS apps. The faces are commercially licensed, so unlike icons they are not checked in: the
+Roku app fetches them from put.io's own CDN at development and release time, and falls back
+to the Roku system font when they are absent.
 
 Roku's `Font` node accepts TrueType/OpenType only. The `woff2` files the web surfaces load
-will not work here — the Roku app uses the OTF cuts from `putio-static`.
+will not work here — the Roku app uses the desktop OTF cuts.
 
 ## Licensing boundary
 
-The faces are licensed for use in the app. The rule this repo enforces is that **the
+The faces are licensed for use in the app. The rule this repo enforces is that **this
 repository never becomes a distribution point**:
 
 - Font binaries are never committed. `.gitignore` covers `/fonts/*.otf`, `/fonts/*.ttf` and
   `/fonts/*.ttc`, and `pnpm verify` fails outright if `git ls-files` ever reports one
-- Nothing lands in git history, nothing is search-indexable, and contributors and CI
-  clones never receive the faces
+- Nothing lands in git history and nothing is search-indexable from here
 - The built app bundles them, as does the CDN that already serves the family to the web
   surfaces; that is inherent to shipping a typeface
-- Do not subset, rename, convert, or re-host the faces, and do not add them to
-  `@putdotio/design` — `putio-static` is the single source
+- Do not subset, convert, rename, or re-host the faces, and do not add them to
+  `@putdotio/design` — `static.put.io` is the single source
+
+Note what this boundary does **not** claim. `static.put.io` serves the faces over plain
+HTTPS with no credential, so anyone who can read this repo can also run
+`pnpm roku fonts-setup` and obtain them. That is unchanged by anything here — the same CDN
+already serves the family to every web surface — and it is the reason the rule is scoped to
+git rather than to access. What the repo controls is that the binaries are not in its tree,
+its history, or its packages.
 
 A clone without the faces is a fully working development setup. Every check in
 `pnpm verify` passes without them, and the app renders in the Roku system font.
 
 ## Syncing the faces
 
-`config/brand-fonts.json` pins the source repository, the exact commit, and a sha256 digest
-per face. Each entry maps a destination file name in `fonts/` to its upstream path:
+`config/brand-fonts.json` names the CDN directory, the expected family, and the faces to
+fetch:
 
 ```json
 {
-  "name": "gt-america-standard-regular.otf",
-  "path": "public/fonts/gt-america/desktop/otf/gt-america-standard-regular.otf",
-  "sha256": "6b1eb2a461e5c827ac615bc8aca268ec6b67250d61fc87f100671aca3db82515"
+  "baseUrl": "https://static.put.io/fonts/gt-america/desktop/otf",
+  "family": "GT America",
+  "files": ["gt-america-standard-regular.otf"]
 }
 ```
 
-- `pnpm roku fonts-setup` fetches every missing or changed face into `fonts/`. It needs the
-  GitHub CLI authenticated as an account that can read `putdotio/putio-static`
-  (`gh auth login`, or `GH_TOKEN` in CI), verifies each download against its pinned digest
-  **before** writing, stages the whole set under the gitignored `dist/tmp` so the moves into
-  `fonts/` are same-filesystem renames and an interrupted sync cannot leave a mixed set, and
-  prunes any face `fonts/` holds that the manifest does not list
+- `pnpm roku fonts-setup` fetches every missing or invalid face into `fonts/`. It needs no
+  credential and no tooling beyond Node — just network access to `static.put.io`. Each
+  download is validated **before** writing, the whole set is staged under the gitignored
+  `dist/tmp` so the moves into `fonts/` are same-filesystem renames and an interrupted sync
+  cannot leave a mixed set, and any face `fonts/` holds that the manifest does not list is
+  pruned
 - `pnpm roku fonts-check` is offline and reports the state of `fonts/`
 
-`fonts-check` treats absent faces as a legitimate optional state and succeeds. It fails
-when a face is present but does not match its pinned digest, or when `fonts/` holds a face
-the manifest does not list — either would ship unverified bytes. It is deliberately **not**
-part of `pnpm verify`, because `pnpm verify` must pass on a fonts-less clone.
+Validation is what replaced digest pinning, and it is deliberately about *usability* rather
+than tamper-resistance — the bytes come from put.io's own CDN over TLS. A face is accepted
+only when it is a single OpenType/TrueType face (not a `.ttc` collection), every table in
+its directory lies inside the file, the tables Roku needs to render are present, and its
+name table declares the expected family. That covers the failure modes a CDN actually
+produces: a `200` carrying an error page, a half-finished download, or the wrong typeface
+under the right filename. The truncation case is the one worth naming — a partial file often
+keeps its name table intact, so the family reads fine while the outlines are gone, and only
+the table-bounds check catches it.
 
-To change the pinned faces, update `config/brand-fonts.json` with the new commit, upstream
-paths, and digests, then run `pnpm roku fonts-setup`. A Vitest contract test
-(`test/live-test/brand-fonts.test.ts`) validates the manifest, enforces the ignore rules,
-and asserts components only reference faces the manifest pins.
+`fonts-check` treats absent faces as a legitimate optional state and succeeds. It fails when
+a present face does not validate, or when `fonts/` holds a face the manifest does not list —
+either would ship bytes nothing has checked. It is deliberately **not** part of
+`pnpm verify`, because `pnpm verify` must pass on a fonts-less clone.
+
+To change the faces, edit `config/brand-fonts.json` and run `pnpm roku fonts-setup`. A
+Vitest contract test (`test/live-test/brand-fonts.test.ts`) validates the manifest, exercises
+the validator against error pages, truncation and wrong families, enforces the ignore rules,
+and asserts components only reference faces the manifest lists.
 
 ## Packaging and fallback
 
 `scripts/package-roku.ts` bundles the **manifest-listed faces individually**, and only when
-every one of them is present *and matches its digest*. It compiles the same answer into the
-generated `source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`.
+every one of them is present *and validates*. It compiles the same answer into the generated
+`source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`.
 
 Two properties matter here. Package roots are copied recursively, so bundling the `fonts/`
 directory would ship whatever else happened to be inside it — a nested
-`fonts/backup/unlicensed.otf`, say — while only the pinned faces had been digest-checked;
-listing the files makes what ships exactly what was verified. And availability is
+`fonts/backup/unlicensed.otf`, say — while only the listed faces had been validated; listing
+the files makes what ships exactly what was checked. And availability is
 all-or-nothing, because a partial or corrupt set would flip the flag on while individual
 roles resolved to missing `pkg:/fonts/...` URIs, which Roku renders in the system font per
 label and shows as mixed typography. The runtime reads the flag rather than probing the
@@ -82,10 +97,11 @@ instead of silently falling back.
 
 ## Release builds
 
-The [Release](../.github/workflows/release.yml) workflow mints a `putio-static`
-contents:read token and runs `pnpm roku fonts-setup` before semantic-release builds the
-artifact, so the published `v2.zip` ships GT America. `fonts-setup` fails the release on any
-download or digest problem, so reaching the build means every pinned face is on disk.
+The [Release](../.github/workflows/release.yml) workflow runs `pnpm roku fonts-setup` before
+semantic-release builds the artifact, so the published `v2.zip` ships GT America. No
+credential or token is involved — the faces come from `static.put.io` over plain HTTPS.
+`fonts-setup` fails the release on any download or validation problem, so reaching the build
+means every listed face is on disk and is a real GT America face.
 
 [CI](../.github/workflows/ci.yml) is verify-only and stays deliberately fonts-less: it is
 the standing proof that the system-font fallback still works.

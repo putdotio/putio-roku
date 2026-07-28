@@ -115,28 +115,16 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         run: pnpm install --frozen-lockfile
 
-      # The licensed GT America faces are gitignored, so the checkout has none of them and
-      # the packaged app would silently fall back to the Roku system font. Sync them from
-      # private putio-static before semantic-release builds the artifact. fonts-setup is the
-      # gate: it fails on any download or checksum problem, so reaching the build means every
-      # pinned face is on disk. fonts-check then re-verifies those bytes, but note it treats
-      # absence as a legitimate optional state, so it would not by itself catch a step that
-      # silently synced nothing.
-      - name: Mint putio-static read token
-        if: github.event_name != 'workflow_dispatch'
-        id: static-read
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          client-id: ${{ vars.PUTIO_RELEASE_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.PUTIO_RELEASE_BOT_PRIVATE_KEY }}
-          owner: putdotio
-          repositories: putio-static
-          permission-contents: read
-
+      # The licensed GT America faces are gitignored, so the checkout has none of them and the
+      # packaged app would silently fall back to the Roku system font. Fetch them from put.io's
+      # own CDN before semantic-release builds the artifact. No credential is involved: the
+      # faces are served over plain HTTPS from static.put.io. fonts-setup is the gate -- it
+      # fails on any download or validation problem, so reaching the build means every listed
+      # face is on disk and is a real GT America face. fonts-check then re-checks those bytes,
+      # but note it treats absence as a legitimate optional state, so it would not by itself
+      # catch a step that silently synced nothing.
       - name: Sync licensed brand fonts
         if: github.event_name != 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ steps.static-read.outputs.token }}
         run: |
           pnpm roku fonts-setup
           pnpm roku fonts-check

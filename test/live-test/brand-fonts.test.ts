@@ -1,85 +1,135 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { hasVerifiedBrandFonts, verifiedBrandFontRoots } from "../../scripts/package-roku.ts";
-import { parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
+import { brandFontRejection, parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
 import { listRepoFiles, readRepoFile, repoRoot } from "./repo-files.ts";
 
 const manifest = parseBrandFontManifest(JSON.parse(readRepoFile("config/brand-fonts.json")));
-const manifestNames = new Set(manifest.files.map((file) => file.name));
+const manifestNames = new Set(manifest.files);
 const fontReference = /pkg:\/fonts\/([A-Za-z0-9_.-]+\.(?:otf|ttf))/g;
 const typographyPath = "components/shared/Typography/Typography.brs";
-const validRef = "0".repeat(40);
+const family = "GT America";
 
-function validFile(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function validManifest(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name: "gt-america-standard-regular.otf",
-    path: "public/fonts/gt-america/desktop/otf/gt-america-standard-regular.otf",
-    sha256: "a".repeat(64),
+    baseUrl: "https://static.put.io/fonts/gt-america/desktop/otf",
+    family,
+    files: ["gt-america-standard-regular.otf"],
     ...overrides,
   };
 }
 
-function validManifest(files: readonly unknown[]): Record<string, unknown> {
-  return { files, source: { ref: validRef, repository: "putdotio/putio-static" } };
+// A minimal but structurally real sfnt: correct OTTO version, an in-bounds table directory
+// carrying every table the validator requires, and a name table declaring the family. Built
+// here rather than read from fonts/ so these tests hold on a fonts-less clone, which is the
+// state CI runs in.
+function sfnt(options: { family?: string; omit?: readonly string[]; truncateBy?: number } = {}): Buffer {
+  const value = Buffer.from(options.family ?? family, "latin1");
+  const nameTable = Buffer.alloc(18 + value.length);
+  nameTable.writeUInt16BE(0, 0); // format
+  nameTable.writeUInt16BE(1, 2); // record count
+  nameTable.writeUInt16BE(18, 4); // string storage offset
+  nameTable.writeUInt16BE(1, 6); // platform 1 (Macintosh)
+  nameTable.writeUInt16BE(1, 12); // nameID 1 (family)
+  nameTable.writeUInt16BE(value.length, 14);
+  value.copy(nameTable, 18);
+
+  const tables: readonly (readonly [string, Buffer])[] = (
+    [
+      ["CFF ", Buffer.alloc(4)],
+      ["cmap", Buffer.alloc(4)],
+      ["head", Buffer.alloc(4)],
+      ["hhea", Buffer.alloc(4)],
+      ["hmtx", Buffer.alloc(4)],
+      ["maxp", Buffer.alloc(4)],
+      ["name", nameTable],
+    ] as const
+  ).filter(([tag]) => !(options.omit ?? []).includes(tag));
+
+  const directory = Buffer.alloc(tables.length * 16);
+  const body: Buffer[] = [];
+  let cursor = 12 + tables.length * 16;
+  tables.forEach(([tag, data], index) => {
+    directory.write(tag, index * 16, 4, "latin1");
+    directory.writeUInt32BE(cursor, index * 16 + 8);
+    directory.writeUInt32BE(data.length, index * 16 + 12);
+    body.push(data);
+    cursor += data.length;
+  });
+
+  const header = Buffer.alloc(12);
+  header.write("OTTO", 0, 4, "latin1");
+  header.writeUInt16BE(tables.length, 4);
+
+  const full = Buffer.concat([header, directory, ...body]);
+  return options.truncateBy === undefined ? full : full.subarray(0, full.byteLength - options.truncateBy);
 }
 
 describe("brand font manifest", () => {
-  it("pins the private source repository at a full commit SHA", () => {
-    expect(manifest.source.repository).toBe("putdotio/putio-static");
-    expect(manifest.source.ref).toMatch(/^[0-9a-f]{40}$/);
+  it("fetches from an https CDN base and names the expected family", () => {
+    expect(manifest.baseUrl).toBe("https://static.put.io/fonts/gt-america/desktop/otf");
+    expect(manifest.family).toBe(family);
     expect(manifest.files.length).toBeGreaterThan(0);
   });
 
-  it("pins every face to an upstream path and a sha256 digest", () => {
-    const offenders = manifest.files.filter(
-      (file) =>
-        !/^[0-9a-f]{64}$/.test(file.sha256) ||
-        !file.path.startsWith("public/fonts/") ||
-        !file.path.endsWith(file.name),
-    );
+  it("rejects malformed manifests", () => {
+    expect(() => parseBrandFontManifest(validManifest({ baseUrl: undefined }))).toThrow("baseUrl");
+    // Plain HTTP would make the fetch trivially interceptable, and the family check is the
+    // only thing standing behind it now that digests are gone.
+    expect(() => parseBrandFontManifest(validManifest({ baseUrl: "http://static.put.io/f" }))).toThrow("baseUrl");
+    expect(() => parseBrandFontManifest(validManifest({ baseUrl: "https://static.put.io/f/" }))).toThrow("baseUrl");
+    expect(() => parseBrandFontManifest(validManifest({ family: "" }))).toThrow("family");
+    expect(() => parseBrandFontManifest(validManifest({ files: [] }))).toThrow("at least one font file");
+    expect(() => parseBrandFontManifest(validManifest({ files: undefined }))).toThrow("files array");
+    expect(() => parseBrandFontManifest(validManifest({ files: ["a.otf", "a.otf"] }))).toThrow("Duplicate");
+    expect(() => parseBrandFontManifest(validManifest({ files: ["GT.woff2"] }))).toThrow("file name");
+    // A collection holds several faces while Roku's Font.uri takes one, so .ttc may be
+    // detected in fonts/ but never listed as a brand face.
+    expect(() => parseBrandFontManifest(validManifest({ files: ["gt.ttc"] }))).toThrow("file name");
+  });
+});
 
-    expect(offenders).toEqual([]);
+// Digest pinning is gone, so this is what stands between a bad response and a build that
+// advertises the brand face while rendering the system font. Every case here is one the
+// importer must refuse to write and the availability gate must refuse to enable.
+describe("brand font validation", () => {
+  it("accepts a real face of the expected family", () => {
+    expect(brandFontRejection(sfnt(), family)).toBeUndefined();
+    // The Windows-platform record carries a weight suffix, so a prefix match is required.
+    expect(brandFontRejection(sfnt({ family: "GT America Rg" }), family)).toBeUndefined();
   });
 
-  it("rejects malformed manifests", () => {
-    expect(() => parseBrandFontManifest({ files: [validFile()] })).toThrow("source.repository");
-    expect(() =>
-      parseBrandFontManifest({ files: [validFile()], source: { ref: "abc", repository: "a/b" } }),
-    ).toThrow("40-character commit SHA");
-    expect(() => parseBrandFontManifest(validManifest([]))).toThrow("at least one font file");
-    expect(() => parseBrandFontManifest({ source: { ref: validRef, repository: "a/b" } })).toThrow("files array");
-    expect(() => parseBrandFontManifest(validManifest([validFile(), validFile()]))).toThrow("Duplicate");
-    expect(() => parseBrandFontManifest(validManifest([validFile({ sha256: "nope" })]))).toThrow("sha256");
-    expect(() => parseBrandFontManifest(validManifest([validFile({ name: "GT.woff2" })]))).toThrow("file name");
-    expect(() => parseBrandFontManifest(validManifest([validFile({ path: "../etc/passwd" })]))).toThrow("source path");
-    expect(() => parseBrandFontManifest(validManifest([{ ...validFile(), extra: 1 }]))).toThrow(
-      "only name, path and sha256",
-    );
+  it("refuses anything that is not a usable face of that family", () => {
+    // A CDN answering 200 with an error page is the failure this replaced digests for.
+    expect(brandFontRejection(Buffer.from("<!DOCTYPE html><title>404</title>"), family)).toMatch("not a single");
+    expect(brandFontRejection(Buffer.alloc(0), family)).toMatch("too short");
+    expect(brandFontRejection(sfnt({ family: "Comic Sans MS" }), family)).toMatch("expected");
+    expect(brandFontRejection(sfnt({ omit: ["name"] }), family)).toMatch("missing required name");
+    expect(brandFontRejection(sfnt({ omit: ["CFF "] }), family)).toMatch("missing required CFF");
+  });
+
+  // A truncated download is the case a digest caught for free and a header check does not:
+  // the name table sits early enough to read cleanly while the outlines are gone, so magic
+  // and family both pass. Table bounds are what close it.
+  it("refuses a truncated face, down to a single lost byte", () => {
+    expect(brandFontRejection(sfnt({ truncateBy: 1 }), family)).toMatch("truncated");
+    expect(brandFontRejection(sfnt({ truncateBy: 8 }), family)).toMatch("truncated");
   });
 });
 
 describe("brand font availability", () => {
-  // Availability must mean "every pinned face present AND matching its digest". A partial or
-  // corrupt directory would flip the compiled flag on and leave roles resolving to missing
-  // pkg:/fonts URIs, which Roku renders in the system font per label as mixed typography.
-  // The fixture mints its own manifest so the digests are real and no repo fonts/ is needed.
-  function fixture(faces: Readonly<Record<string, string>>, pinned?: readonly string[]): string {
+  // Availability must mean "every listed face present AND a real face of the family". A
+  // partial or corrupt directory would flip the compiled flag on and leave roles resolving to
+  // missing pkg:/fonts URIs, which Roku renders in the system font per label as mixed
+  // typography. The fixture mints its own manifest so no repo fonts/ is needed.
+  function fixture(faces: Readonly<Record<string, Buffer>>, listed?: readonly string[]): string {
     const root = mkdtempSync(join(tmpdir(), "putio-roku-fonts-fixture-"));
-    const names = pinned ?? Object.keys(faces);
     mkdirSync(join(root, "config"), { recursive: true });
     writeFileSync(
       join(root, "config/brand-fonts.json"),
-      JSON.stringify({
-        files: names.map((name) => ({
-          name,
-          path: `public/fonts/gt-america/desktop/otf/${name}`,
-          sha256: createHash("sha256").update(`bytes-of-${name}`).digest("hex"),
-        })),
-        source: { ref: validRef, repository: "putdotio/putio-static" },
-      }),
+      JSON.stringify(validManifest({ files: listed ?? Object.keys(faces) })),
     );
 
     mkdirSync(join(root, "fonts"), { recursive: true });
@@ -90,29 +140,36 @@ describe("brand font availability", () => {
     return root;
   }
 
-  const face = (name: string): string => `bytes-of-${name}`;
   const a = "gt-america-standard-regular.otf";
   const b = "gt-america-standard-medium.otf";
 
-  it("enables the flag only when every pinned face verifies", async () => {
-    await expect(hasVerifiedBrandFonts(fixture({ [a]: face(a), [b]: face(b) }))).resolves.toBe(true);
+  it("enables the flag only when every listed face validates", async () => {
+    await expect(hasVerifiedBrandFonts(fixture({ [a]: sfnt(), [b]: sfnt() }))).resolves.toBe(true);
   });
 
   it("rejects a partial, corrupt or polluted fonts directory", async () => {
-    // present but only one of two pinned faces
-    await expect(hasVerifiedBrandFonts(fixture({ [a]: face(a) }, [a, b]))).resolves.toBe(false);
-    // both present, one with the wrong bytes
-    await expect(hasVerifiedBrandFonts(fixture({ [a]: face(a), [b]: "corrupted" }))).resolves.toBe(false);
-    // all pinned faces verify, but an unlisted face would ship unverified beside them
+    // present but only one of two listed faces
+    await expect(hasVerifiedBrandFonts(fixture({ [a]: sfnt() }, [a, b]))).resolves.toBe(false);
+    // both present, one holding a CDN error page
     await expect(
-      hasVerifiedBrandFonts(fixture({ [a]: face(a), "gt-america-standard-black.otf": "x" }, [a])),
+      hasVerifiedBrandFonts(fixture({ [a]: sfnt(), [b]: Buffer.from("<html>404</html>") })),
+    ).resolves.toBe(false);
+    // both present, one truncated mid-download
+    await expect(hasVerifiedBrandFonts(fixture({ [a]: sfnt(), [b]: sfnt({ truncateBy: 1 }) }))).resolves.toBe(false);
+    // both present, one is a different typeface entirely
+    await expect(
+      hasVerifiedBrandFonts(fixture({ [a]: sfnt(), [b]: sfnt({ family: "Helvetica" }) })),
+    ).resolves.toBe(false);
+    // all listed faces validate, but an unlisted face would ship unvalidated beside them
+    await expect(
+      hasVerifiedBrandFonts(fixture({ [a]: sfnt(), "gt-america-standard-black.otf": sfnt() }, [a])),
     ).resolves.toBe(false);
   });
 
   // Package roots are copied recursively, so bundling the fonts/ directory would ship
-  // whatever else sits in it while only the pinned faces had been digest-checked.
-  it("bundles the pinned faces individually, never the fonts directory", async () => {
-    const root = fixture({ [a]: face(a), [b]: face(b) });
+  // whatever else sits in it while only the listed faces had been validated.
+  it("bundles the listed faces individually, never the fonts directory", async () => {
+    const root = fixture({ [a]: sfnt(), [b]: sfnt() });
     await expect(verifiedBrandFontRoots(root)).resolves.toEqual([`fonts/${a}`, `fonts/${b}`]);
 
     // A nested file is not reported as unlisted (the scan is one level deep), so the roots
@@ -122,12 +179,12 @@ describe("brand font availability", () => {
     await expect(verifiedBrandFontRoots(root)).resolves.toEqual([`fonts/${a}`, `fonts/${b}`]);
 
     // An unlisted face beside them, uppercase included, withdraws the brand face entirely.
-    writeFileSync(join(root, "fonts", "EXTRA.OTF"), "stray");
+    writeFileSync(join(root, "fonts", "EXTRA.OTF"), sfnt());
     await expect(verifiedBrandFontRoots(root)).resolves.toEqual([]);
   });
 
   it("treats a missing fonts directory as unavailable", async () => {
-    const root = fixture({ [a]: face(a) });
+    const root = fixture({ [a]: sfnt() });
     rmSync(join(root, "fonts"), { recursive: true, force: true });
 
     await expect(hasVerifiedBrandFonts(root)).resolves.toBe(false);
