@@ -173,16 +173,16 @@ function brightScriptString(value: string): string {
 //
 // Returning files rather than the fonts/ directory is deliberate: roots are copied
 // recursively, so adding the directory would ship whatever else is in it -- a nested
-// fonts/backup/unlicensed.otf, or a name the unlisted check does not recognise -- while
-// only the pinned faces had been digest-checked. Listing the manifest files makes what
-// ships exactly what was verified.
+// fonts/backup/unlicensed.otf, or a name the unlisted check does not recognise -- while only
+// the manifest-listed faces had been validated. Listing the manifest files makes what ships
+// exactly what was verified.
 //
-// Availability is all-or-nothing: filename presence is not enough, because a stale or
-// truncated face would advertise the brand face while its pkg:/fonts URI falls back to the
-// system font per label.
+// Availability is all-or-nothing: filename presence is not enough, because a truncated face
+// or a CDN error page saved under the right name would advertise the brand face while its
+// pkg:/fonts URI falls back to the system font per label.
 export async function verifiedBrandFontRoots(repoRoot: string): Promise<readonly string[]> {
   const status = await inspectBrandFonts(repoRoot);
-  if (status.missing.length > 0 || status.stale.length > 0 || status.unlisted.length > 0) {
+  if (status.missing.length > 0 || status.invalid.length > 0 || status.unlisted.length > 0) {
     return [];
   }
 

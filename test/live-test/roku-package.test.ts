@@ -91,7 +91,7 @@ describe("Roku package variants", () => {
     expect(result.brandFontsBundled).toBe(bundledFaces.length > 0);
     if (result.brandFontsBundled) {
       const manifest = parseBrandFontManifest(JSON.parse(readFileSync(join(repoRoot, "config/brand-fonts.json"), "utf8")));
-      expect(bundledFaces.slice().sort()).toEqual(manifest.files.map((file) => `fonts/${file.name}`).sort());
+      expect(bundledFaces.slice().sort()).toEqual(manifest.files.map((name) => `fonts/${name}`).sort());
     }
   });
 

@@ -1,5 +1,3 @@
-import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import process from "node:process";
@@ -13,39 +11,37 @@ const stagingParentDir = "dist/tmp";
 //
 // fontExtensions is what the importer owns inside fonts/: pruned, and counted as unlisted.
 // It has to cover everything checkRokuFontBinaries (scripts/roku-task/build.ts) rejects,
-// collections included, because packaging bundles the whole fonts/ root -- an extension
-// missing here would ship unlisted and unverified.
+// collections included, so a stray face can never sit in fonts/ unnoticed.
 const fontExtensions = [".otf", ".ttf", ".ttc"] as const;
 
-// fontFileNamePattern is what a manifest entry may pin, and is narrower on purpose. A .ttc
+// fontFileNamePattern is what a manifest entry may name, and is narrower on purpose. A .ttc
 // is a font collection while Roku's Font.uri takes a single face, so a collection is
-// something to detect and clean up, never something to pin as a brand face.
+// something to detect and clean up, never something to list as a brand face.
 const fontFileNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:otf|ttf)$/;
-const sha256Pattern = /^[0-9a-f]{64}$/;
-const commitRefPattern = /^[0-9a-f]{40}$/;
 
 // A ceiling on what a single response may buffer. Well above these faces (~200KB each) and
-// below the Contents API's 100MB blob limit, so it bounds a surprise error page without
-// silently truncating a real font.
+// far below anything that would exhaust memory, so it bounds a surprise error page or a
+// misrouted large object without truncating a real font.
 const downloadMaxBytes = 32 * 1024 * 1024;
 
-interface BrandFontFile {
-  readonly name: string;
-  readonly path: string;
-  readonly sha256: string;
-}
+// Accepted sfnt version tags. OTTO is CFF-based OpenType, which is what GT America ships as;
+// 0x00010000 and "true" are TrueType, accepted because the manifest may name a .ttf. A
+// collection tag ("ttcf") is deliberately absent -- Roku's Font.uri takes a single face.
+const sfntVersions = new Set([0x4f54544f, 0x00010000, 0x74727565]);
 
 interface BrandFontManifest {
-  readonly source: { readonly repository: string; readonly ref: string };
-  readonly files: readonly BrandFontFile[];
+  readonly baseUrl: string;
+  readonly family: string;
+  readonly files: readonly string[];
 }
 
 export interface BrandFontStatus {
   readonly directory: string;
+  readonly family: string;
   readonly total: number;
   readonly verified: readonly string[];
   readonly missing: readonly string[];
-  readonly stale: readonly string[];
+  readonly invalid: readonly string[];
   readonly unlisted: readonly string[];
 }
 
@@ -62,30 +58,30 @@ export async function syncBrandFonts(repoRoot: string): Promise<BrandFontStatus>
 
   const before = await inspectBrandFonts(repoRoot, manifest);
   const outdated = manifest.files.filter(
-    (file) => before.missing.includes(file.name) || before.stale.includes(file.name),
+    (name) => before.missing.includes(name) || before.invalid.includes(name),
   );
 
   if (outdated.length === 0) {
-    console.log(`Brand fonts already up to date (${manifest.files.length} files).`);
+    console.log(`Brand fonts already present (${manifest.files.length} files).`);
     return before;
   }
 
-  // Download and verify every outdated face before moving any of them, so a failed or
+  // Download and validate every outdated face before moving any of them, so a failed or
   // rejected download leaves fonts/ untouched. The staging directory lives under the
   // gitignored dist/ tree rather than the system temp dir so the moves are same-filesystem
   // renames; os.tmpdir() can be a different mount (notably on CI), where rename fails with
   // EXDEV. An interrupt between the renames themselves can still leave a partial set -- the
-  // digest check on the next run reports it, and availability stays off until it is fixed.
+  // validity check on the next run reports it, and availability stays off until it is fixed.
   const stagingRoot = resolve(repoRoot, stagingParentDir);
   await mkdir(stagingRoot, { recursive: true });
   const stagingDir = await mkdtemp(join(stagingRoot, "brand-fonts-"));
   try {
-    for (const file of outdated) {
-      await writeFile(join(stagingDir, file.name), downloadVerifiedFont(manifest, file));
+    for (const name of outdated) {
+      await writeFile(join(stagingDir, name), await downloadBrandFont(manifest, name));
     }
-    for (const file of outdated) {
-      await rename(join(stagingDir, file.name), join(targetDir, file.name));
-      console.log(`  synced ${file.name}`);
+    for (const name of outdated) {
+      await rename(join(stagingDir, name), join(targetDir, name));
+      console.log(`  synced ${name}`);
     }
   } finally {
     await rm(stagingDir, { force: true, recursive: true });
@@ -98,11 +94,12 @@ export async function syncBrandFonts(repoRoot: string): Promise<BrandFontStatus>
 export async function checkBrandFonts(repoRoot: string): Promise<BrandFontStatus> {
   const status = await inspectBrandFonts(repoRoot);
 
-  // Drift where a present file is wrong, or an extra face would ship, is a hard failure.
-  // Faces being absent is a legitimate state: the app falls back to the Roku system font.
-  if (status.stale.length > 0 || status.unlisted.length > 0) {
+  // Drift where a present file is not the face it claims to be, or an extra face would
+  // ship, is a hard failure. Faces being absent is a legitimate state: the app falls back
+  // to the Roku system font.
+  if (status.invalid.length > 0 || status.unlisted.length > 0) {
     const details = [
-      ...status.stale.map((name) => `  stale checksum: ${name}`),
+      ...status.invalid.map((name) => `  not a usable ${status.family} face: ${name}`),
       ...status.unlisted.map((name) => `  unlisted: ${name}`),
     ];
     throw new Error(
@@ -117,7 +114,7 @@ export async function checkBrandFonts(repoRoot: string): Promise<BrandFontStatus
     return status;
   }
 
-  console.log(`Brand fonts present and verified (${status.total} files).`);
+  console.log(`Brand fonts present and valid (${status.total} files).`);
   return status;
 }
 
@@ -130,23 +127,24 @@ export async function inspectBrandFonts(
 
   const verified: string[] = [];
   const missing: string[] = [];
-  const stale: string[] = [];
+  const invalid: string[] = [];
 
-  for (const file of manifest.files) {
-    const contents = await readFileOrUndefined(join(directory, file.name));
+  for (const name of manifest.files) {
+    const contents = await readFileOrUndefined(join(directory, name));
     if (contents === undefined) {
-      missing.push(file.name);
-    } else if (sha256(contents) === file.sha256) {
-      verified.push(file.name);
+      missing.push(name);
+    } else if (brandFontRejection(contents, manifest.family) === undefined) {
+      verified.push(name);
     } else {
-      stale.push(file.name);
+      invalid.push(name);
     }
   }
 
   return {
     directory,
+    family: manifest.family,
+    invalid,
     missing,
-    stale,
     total: manifest.files.length,
     unlisted: await listUnlistedFonts(directory, manifest.files),
     verified,
@@ -163,12 +161,14 @@ export function parseBrandFontManifest(parsed: unknown): BrandFontManifest {
     throw new Error(`Expected an object in ${manifestPath}`);
   }
 
-  const source = parsed.source;
-  if (!isObject(source) || typeof source.repository !== "string" || source.repository === "") {
-    throw new Error(`${manifestPath} must pin source.repository as an owner/name string`);
+  const { baseUrl, family } = parsed;
+  if (typeof baseUrl !== "string" || !baseUrl.startsWith("https://") || baseUrl.endsWith("/")) {
+    throw new Error(
+      `${manifestPath} must set baseUrl to an https URL with no trailing slash: ${JSON.stringify(baseUrl)}`,
+    );
   }
-  if (typeof source.ref !== "string" || !commitRefPattern.test(source.ref)) {
-    throw new Error(`${manifestPath} must pin source.ref to a full 40-character commit SHA`);
+  if (typeof family !== "string" || family === "") {
+    throw new Error(`${manifestPath} must name the expected font family`);
   }
 
   if (!Array.isArray(parsed.files)) {
@@ -179,86 +179,183 @@ export function parseBrandFontManifest(parsed: unknown): BrandFontManifest {
   }
 
   const names = new Set<string>();
-  const files = parsed.files.map((entry, index) => validateFontFile(entry, index, names));
+  for (const name of parsed.files) {
+    if (typeof name !== "string" || !fontFileNamePattern.test(name)) {
+      throw new Error(`Invalid brand font file name: ${JSON.stringify(name)}`);
+    }
+    if (names.has(name)) {
+      throw new Error(`Duplicate brand font file: ${name}`);
+    }
 
-  return { files, source: { ref: source.ref, repository: source.repository } };
+    names.add(name);
+  }
+
+  return { baseUrl, family, files: [...names] };
 }
 
-function validateFontFile(entry: unknown, index: number, names: Set<string>): BrandFontFile {
-  if (!isObject(entry)) {
-    throw new Error(`Font at index ${index} must be an object`);
+async function downloadBrandFont(manifest: BrandFontManifest, name: string): Promise<Buffer> {
+  const url = `${manifest.baseUrl}/${name}`;
+
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error(`Could not reach ${url}. Check your network connection.`, { cause: error });
   }
 
-  const keys = Object.keys(entry).sort();
-  if (keys.join(",") !== "name,path,sha256") {
-    throw new Error(`Font at index ${index} must contain only name, path and sha256`);
-  }
-
-  const { name, path, sha256: digest } = entry;
-  if (typeof name !== "string" || !fontFileNamePattern.test(name)) {
-    throw new Error(`Invalid brand font file name: ${JSON.stringify(name)}`);
-  }
-  if (typeof path !== "string" || path === "" || path.startsWith("/") || path.includes("..")) {
-    throw new Error(`Invalid brand font source path for ${name}: ${JSON.stringify(path)}`);
-  }
-  if (typeof digest !== "string" || !sha256Pattern.test(digest)) {
-    throw new Error(`Invalid brand font sha256 for ${name}: ${JSON.stringify(digest)}`);
-  }
-  if (names.has(name)) {
-    throw new Error(`Duplicate brand font file: ${name}`);
-  }
-
-  names.add(name);
-  return { name, path, sha256: digest };
-}
-
-function downloadVerifiedFont(manifest: BrandFontManifest, file: BrandFontFile): Buffer {
-  const endpoint = `repos/${manifest.source.repository}/contents/${file.path}?ref=${manifest.source.ref}`;
-  const result = spawnSync("gh", ["api", endpoint, "--header", "Accept: application/vnd.github.raw"], {
-    maxBuffer: downloadMaxBytes,
-  });
-
-  if (result.error !== undefined) {
+  if (!response.ok) {
     throw new Error(
-      `Could not run gh to fetch ${file.name}. Install the GitHub CLI from https://cli.github.com and run gh auth login.`,
-      { cause: result.error },
-    );
-  }
-  if (result.status !== 0) {
-    throw new Error(
-      [
-        `gh api failed for ${file.name} (status ${result.status ?? "unknown"}).`,
-        `Check that gh is authenticated (gh auth login, or GH_TOKEN in CI) as an account that can read ${manifest.source.repository}.`,
-        String(result.stderr).trim(),
-      ].join(" "),
+      `${url} returned HTTP ${response.status} ${response.statusText}. Check that the face is still published at ${manifest.baseUrl}.`,
     );
   }
 
-  // Verify before the bytes are allowed anywhere near the destination directory.
-  const contents = result.stdout;
-  const actual = sha256(contents);
-  if (actual !== file.sha256) {
-    throw new Error(
-      `${file.name}: checksum mismatch (expected ${file.sha256}, got ${actual}); refusing to write`,
-    );
+  const contents = Buffer.from(await response.arrayBuffer());
+  if (contents.byteLength > downloadMaxBytes) {
+    throw new Error(`${url} returned ${contents.byteLength} bytes, above the ${downloadMaxBytes} ceiling`);
+  }
+
+  // Validate before the bytes are allowed anywhere near the destination directory. A CDN can
+  // answer 200 with an error page or a redirect body, and writing that to fonts/ would leave
+  // Roku silently falling back to the system font for the roles using this face -- mixed
+  // typography on device, with the availability flag still on.
+  const rejection = brandFontRejection(contents, manifest.family);
+  if (rejection !== undefined) {
+    throw new Error(`${url}: ${rejection}; refusing to write`);
   }
 
   return contents;
 }
 
+// Returns a reason string when the bytes are not a usable face of the expected family, or
+// undefined when they are. This is what replaced digest pinning: the faces are fetched from
+// put.io's own CDN over TLS, so the job here is catching a wrong or non-font response rather
+// than defending against tampering.
+export function brandFontRejection(contents: Buffer, family: string): string | undefined {
+  if (contents.byteLength < 12) {
+    return `only ${contents.byteLength} bytes, too short to be a font`;
+  }
+
+  const version = contents.readUInt32BE(0);
+  if (!sfntVersions.has(version)) {
+    return `not a single OpenType/TrueType face (sfnt version 0x${version.toString(16).padStart(8, "0")})`;
+  }
+
+  const tables = readTableDirectory(contents);
+  if (tables === undefined) {
+    return "its table directory runs past the end of the file";
+  }
+
+  // Every table must lie inside the file. This is what catches a truncated download: the
+  // name table often sits early enough to read cleanly while the glyph outlines are gone,
+  // so magic and family alone would happily accept a half-downloaded face.
+  const clipped = [...tables].filter(([, table]) => table.offset + table.length > contents.byteLength);
+  if (clipped.length > 0) {
+    return `truncated: ${clipped.map(([tag]) => tag.trim()).join(", ")} run past the end of the file`;
+  }
+
+  // A face Roku can actually render needs its metrics and character map, plus outlines in
+  // whichever flavour the sfnt version promised.
+  const required = ["cmap", "head", "hhea", "hmtx", "maxp", "name", ...(version === 0x4f54544f ? ["CFF "] : ["glyf", "loca"])];
+  const absent = required.filter((tag) => !tables.has(tag));
+  if (absent.length > 0) {
+    return `missing required ${absent.map((tag) => tag.trim()).join(", ")} table${absent.length > 1 ? "s" : ""}`;
+  }
+
+  const families = readFontFamilies(contents, tables);
+  if (families.length === 0) {
+    return "no readable family name in its name table";
+  }
+  // The Windows-platform family record carries the weight suffix ("GT America Rg") while the
+  // typographic family record is clean ("GT America"), so match on the prefix.
+  if (!families.some((candidate) => candidate.startsWith(family))) {
+    return `family is ${families.map((name) => JSON.stringify(name)).join(" / ")}, expected ${JSON.stringify(family)}`;
+  }
+
+  return undefined;
+}
+
+interface SfntTable {
+  readonly offset: number;
+  readonly length: number;
+}
+
+// Reads the sfnt table directory, or undefined when the directory itself is clipped.
+function readTableDirectory(contents: Buffer): Map<string, SfntTable> | undefined {
+  const tableCount = contents.readUInt16BE(4);
+  if (12 + tableCount * 16 > contents.byteLength) {
+    return undefined;
+  }
+
+  const tables = new Map<string, SfntTable>();
+  for (let index = 0; index < tableCount; index += 1) {
+    const record = 12 + index * 16;
+    tables.set(contents.toString("latin1", record, record + 4), {
+      length: contents.readUInt32BE(record + 12),
+      offset: contents.readUInt32BE(record + 8),
+    });
+  }
+
+  return tables;
+}
+
+// Reads the sfnt name table and returns every family candidate it holds: nameID 16
+// (typographic family) and nameID 1 (family).
+function readFontFamilies(contents: Buffer, tables: Map<string, SfntTable>): readonly string[] {
+  const nameTableOffset = tables.get("name")?.offset;
+  if (nameTableOffset === undefined || nameTableOffset + 6 > contents.byteLength) {
+    return [];
+  }
+
+  const recordCount = contents.readUInt16BE(nameTableOffset + 2);
+  const storageOffset = nameTableOffset + contents.readUInt16BE(nameTableOffset + 4);
+  const families: string[] = [];
+
+  for (let index = 0; index < recordCount; index += 1) {
+    const record = nameTableOffset + 6 + index * 12;
+    if (record + 12 > contents.byteLength) {
+      break;
+    }
+
+    const nameId = contents.readUInt16BE(record + 6);
+    if (nameId !== 1 && nameId !== 16) {
+      continue;
+    }
+
+    const length = contents.readUInt16BE(record + 8);
+    const start = storageOffset + contents.readUInt16BE(record + 10);
+    if (start + length > contents.byteLength) {
+      continue;
+    }
+
+    // Platform 3 is Windows, whose name strings are UTF-16BE; platform 1 is Macintosh Roman.
+    const raw = contents.subarray(start, start + length);
+    const value = contents.readUInt16BE(record) === 3 ? decodeUtf16Be(raw) : raw.toString("latin1");
+    if (value !== "") {
+      families.push(value);
+    }
+  }
+
+  return families;
+}
+
+function decodeUtf16Be(raw: Buffer): string {
+  const swapped = Buffer.from(raw);
+  swapped.swap16();
+  return swapped.toString("utf16le");
+}
 
 async function listUnlistedFonts(
   directory: string,
-  files: readonly BrandFontFile[],
+  files: readonly string[],
 ): Promise<readonly string[]> {
-  const expected = new Set(files.map((file) => file.name));
+  const expected = new Set(files);
   const entries = await readdirOrEmpty(directory);
   return entries.filter((entry) => isFontFile(entry) && !expected.has(entry));
 }
 
 async function pruneUnlistedFonts(
   directory: string,
-  files: readonly BrandFontFile[],
+  files: readonly string[],
 ): Promise<readonly string[]> {
   const unlisted = await listUnlistedFonts(directory, files);
   for (const entry of unlisted) {
@@ -273,10 +370,6 @@ function isFontFile(entry: string): boolean {
   // sitting in fonts/ unnoticed.
   const name = entry.toLowerCase();
   return fontExtensions.some((extension) => name.endsWith(extension));
-}
-
-function sha256(contents: Buffer): string {
-  return createHash("sha256").update(contents).digest("hex");
 }
 
 async function readFileOrUndefined(path: string): Promise<Buffer | undefined> {
