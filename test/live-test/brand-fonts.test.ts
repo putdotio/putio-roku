@@ -243,6 +243,56 @@ describe("brand font boundary", () => {
   });
 });
 
+// GT America carries no dingbats: no check, cross, star, or media triangle. A symbol typed as
+// text renders as nothing on the brand face, and this is not a hypothetical -- TrackMenu once
+// used text="✓" as the only indication of the active audio, subtitle and speed track, so the
+// brand face would have blanked all eight of them. Symbols must be icons.
+//
+// Matching symbol blocks rather than the font's own cmap keeps this honest on a fonts-less
+// clone, which is what CI runs. Lab is exempt: its typography story deliberately renders
+// uncovered text to document the limitation.
+describe("symbol glyphs", () => {
+  // Arrows, misc technical (media controls), box drawing, geometric shapes, misc symbols and
+  // dingbats, supplemental arrows, the variation selector, then the emoji planes as a
+  // surrogate pair. Written as escapes so the ranges are reviewable rather than a wall of
+  // glyphs, and without the u flag so the lone-surrogate range stays legal.
+  const symbolBlocks =
+    /[\u2190-\u21FF\u2300-\u23FF\u2500-\u257F\u25A0-\u25FF\u2600-\u27BF\u2B00-\u2BFF\uFE0F]|[\uD83C-\uD83E][\uDC00-\uDFFF]/g;
+
+  it("keeps symbol characters out of product components", () => {
+    const offenders: string[] = [];
+
+    for (const directory of ["components", "source"]) {
+      for (const file of listRepoFiles(join(repoRoot, directory))) {
+        // Source only: reading the checked-in PNGs as text turns arbitrary bytes into
+        // arbitrary codepoints, and one of them decodes as U+26A0.
+        if (file.includes("/lab/") || !/\.(?:brs|bs|xml)$/.test(file)) {
+          continue;
+        }
+
+        for (const [symbol] of readRepoFile(file).matchAll(symbolBlocks)) {
+          const codepoint = symbol.codePointAt(0)?.toString(16).toUpperCase().padStart(4, "0");
+          offenders.push(`${file}: U+${codepoint} ${symbol} — use an icon from config/phosphor-icons.json`);
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("recognises the glyphs GT America cannot render", () => {
+    // Guards the pattern itself: the exact characters this rule exists to catch must match.
+    for (const symbol of ["✓", "✔", "★", "☆", "▶", "●", "→", "⏸", "🎬"]) {
+      expect(symbol.match(symbolBlocks), `${symbol} should be caught`).not.toBeNull();
+    }
+
+    // Covered characters must not trip it, or Turkish and Central European names would fail.
+    for (const covered of ["İ", "ğ", "ş", "ł", "ą", "é", "ü", "–", "•", "…"]) {
+      expect(covered.match(symbolBlocks), `${covered} is covered and must pass`).toBeNull();
+    }
+  });
+});
+
 describe("brand font references", () => {
   it("only references faces the manifest pins", () => {
     const offenders: string[] = [];
