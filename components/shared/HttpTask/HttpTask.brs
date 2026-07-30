@@ -4,6 +4,7 @@ sub init()
 end sub
 
 function request()
+    requestTimeoutMs = 10000
     port = createObject("roMessagePort")
     m.http = createObject("roUrlTransfer")
     m.http.RetainBodyOnError(true)
@@ -12,7 +13,6 @@ function request()
     m.http.enablehostverification(false)
     m.http.enablepeerverification(false)
 
-    ' Inject Token
     storage = CreateObject("roRegistrySection", "userConfig")
     if storage.Exists("token") and shouldAddAuthorizationHeader(m.top.url)
         m.http.AddHeader("Authorization", "token " + storage.Read("token"))
@@ -20,13 +20,10 @@ function request()
 
     m.http.InitClientCertificates()
 
-    ' Set URL
     m.http.SetUrl(m.global.apiURL + m.top.url)
 
-    ' Set Request Method
     m.http.SetRequest(m.top.method)
 
-    ' Make Request
     if m.top.method = "POST" or m.top.method = "PUT"
         body = ""
 
@@ -36,12 +33,12 @@ function request()
         end if
 
         if m.http.AsyncPostFromString(body) then
-            msg = wait(10000, port) ' I guess this is something like timeout
+            msg = wait(requestTimeoutMs, port)
             onResponse(msg)
         end if
     else
         if m.http.AsyncGetToString() then
-            msg = wait(10000, port) ' I guess this is something like timeout
+            msg = wait(requestTimeoutMs, port)
             onResponse(msg)
         end if
     end if
@@ -53,9 +50,6 @@ function shouldAddAuthorizationHeader(url as string) as boolean
 end function
 
 sub onResponse(msg)
-    ' ? "HttpTask Message: "; msg.getstring()
-    ' ? "HttpTask ResponseCode: "; msg.getresponsecode()
-
     if (type(msg) = "roUrlEvent")
         if (msg.getresponsecode() > 0 and msg.getresponsecode() < 400)
             m.top.response = msg.getstring()

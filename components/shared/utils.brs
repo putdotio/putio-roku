@@ -3,7 +3,6 @@ function toBool(str) as boolean
 end function
 
 function convertSize(file_size) as string
-    ' Size
     u = 0
     s = 1024
     b = file_size
@@ -23,7 +22,6 @@ function convertSize(file_size) as string
 end function
 
 function convertDate(datetime)
-    ' Date
     date = CreateObject("roDateTime")
     date.FromISO8601String(datetime)
     return date.AsDateString("short-month-no-weekday")
@@ -33,7 +31,6 @@ function isFileSupported(file) as boolean
     return (file.file_type = "FOLDER" or file.file_type = "VIDEO" or file.file_type = "IMAGE" or file.file_type = "AUDIO")
 end function
 
-''' send a callback to override navigation behaviour
 function navigateToFile(file, immediateBackFileId = invalid)
     screen = getScreenFromFileType(file.file_type)
     navigateTo(screen, file, immediateBackFileId)
@@ -63,7 +60,6 @@ function getScreenFromFileType(file_type) as string
     return invalid
 end function
 
-''' File Not Supported Dialog
 function showFileNotSupportedDialog(callback = invalid)
     m.fileNotSupportedDialogCallback = callback
     m.fileNotSupportedDialog = createObject("roSGNode", "AppDialog")

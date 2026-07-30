@@ -22,7 +22,6 @@ end sub
 
 
 sub updateLayout()
-    ' check for parent node and set observers
     if m.top.getParent() <> invalid
         m.top.getParent().observeField("width", "updateLayout")
         m.top.getParent().observeField("height", "updateLayout")
@@ -61,7 +60,6 @@ sub updateLayout()
 
     m.image.scaleRotateCenter = [m.image.width / 2, m.image.height / 2]
 
-    ' position loading group, image and text at the center
     m.loadingGroup.translation = [(componentWidth - loadingGroupWidth) / 2, (componentHeight - loadingGroupHeight) / 2]
     m.image.translation = [(loadingGroupWidth - m.image.width) / 2, 0]
     m.text.translation = [0, m.image.height + m.top.spacing]
@@ -168,7 +166,6 @@ sub onControlChange()
         m.loadingIndicatorGroup.opacity = 1
         startAnimation()
     else if m.top.control = "stop"
-        ' if there is fadeInterval set, fully dispose component before stopping spinning animation
         if m.top.fadeInterval > 0
             m.fadeAnimation.duration = m.top.fadeInterval
             m.fadeAnimation.observeField("state", "onFadeAnimationStateChange")

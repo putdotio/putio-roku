@@ -50,6 +50,7 @@ missing or stale.
 
 - Keep checked-in defaults open-source-safe
 - Private device details, passwords, and signing keys stay out of git
+- Source comments carry device quirks, invariants, and external constraints only; no section banners, no code narration, no commented-out debug code
 - Update docs when setup, validation, or delivery expectations change
 
 ## Build And Config

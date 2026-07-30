@@ -66,7 +66,6 @@ sub onFetchFilesResponse(obj)
     end if
 end sub
 
-''' UI
 sub showLoading()
     hideEmptyState()
     m.top.findNode("loading").visible = "true"
@@ -196,7 +195,6 @@ function normalizeFocusedIndex(value)
     return invalid
 end function
 
-''' Error Dialog
 sub showFetchFilesErrorDialog(data)
     m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
     m.fetchFilesErrorDialog.error = data
@@ -213,7 +211,6 @@ sub onFileNotSupportedDialogClosed()
     m.fileList.setFocus(true)
 end sub
 
-''' Delete File Dialog
 sub showDeleteFileDialog()
     focusedFile = getFocusedFile()
 
@@ -256,7 +253,6 @@ sub onDeleteFileDialogClosed()
     end if
 end sub
 
-''' Key Handler
 function onKeyEvent(key as string, press as boolean) as boolean
     if shouldTrapModalInput(m.top, [m.deleteFileDialog])
         return true

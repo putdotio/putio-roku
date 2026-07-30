@@ -68,7 +68,6 @@ sub onFetchHistoryResponse(obj)
     end if
 end sub
 
-''' UI
 sub showLoading()
     hideEmptyState()
     m.top.findNode("loading").visible = "true"
@@ -163,7 +162,6 @@ sub onFetchFilesResponse(obj)
     end if
 end sub
 
-''' Error Dialog
 sub showFetchFilesErrorDialog(data)
     m.fetchFilesErrorDialog = createObject("roSGNode", "ErrorDialog")
     m.fetchFilesErrorDialog.error = data
@@ -185,7 +183,6 @@ function shouldShowHistoryEvent(event) as boolean
     return event <> invalid and (event.type = "file_shared" or event.type = "transfer_completed")
 end function
 
-''' Error Dialog
 sub showFetchHistoryErrorDialog(data)
     m.fetchHistoryErrorDialog = createObject("roSGNode", "ErrorDialog")
     m.fetchHistoryErrorDialog.error = data
@@ -202,7 +199,6 @@ sub onFileNotSupportedDialogClosed()
     m.historyList.setFocus(true)
 end sub
 
-''' Key Handler
 function onKeyEvent(key as string, press as boolean) as boolean
     if shouldTrapModalInput(m.top)
         return true
