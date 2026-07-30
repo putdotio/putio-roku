@@ -129,7 +129,6 @@ sub onSearchResponse(obj)
     hideLoading()
 end sub
 
-''' Events
 sub onFileSelected(obj)
     file = m.searchFileList.content.getChild(obj.getData()).file
 
@@ -151,7 +150,6 @@ sub onFileNotSupportedDialogClosed()
     m.searchFileList.setFocus(true)
 end sub
 
-''' UI
 sub showLoading()
     hideEmptyState()
     m.loading.visible = "true"
@@ -193,7 +191,6 @@ sub hideEmptyState()
     m.emptyState.visible = "false"
 end sub
 
-''' Error Dialog
 sub showErrorDialog(data)
     m.errorDialog = createObject("roSGNode", "ErrorDialog")
     m.errorDialog.error = data
@@ -205,7 +202,6 @@ sub onErrorDialogClosed()
     m.errorDialog.unobserveField("wasClosed")
 end sub
 
-''' API
 sub fetchSearchHistory()
     m.fetchSearchHistory.observeField("response", "onFetchSearchHistory")
     m.fetchSearchHistory.url = "/config/search_history"
@@ -226,7 +222,7 @@ end sub
 
 sub onPutSearchHistory()
     m.putSearchHistory.unobserveField("response")
-    ' if there is an error, just skip
+    ' Search history is best-effort; refetch regardless of whether the PUT failed.
     fetchSearchHistory()
 end sub
 

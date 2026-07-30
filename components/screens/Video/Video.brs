@@ -49,7 +49,6 @@ sub cancelHttpTasks()
     m.conversionStatus.control = "stop"
 end sub
 
-''' API
 sub fetchFile(fileId)
     m.phase = "loadingFile"
     m.fetchFileTask.observeField("response", "onFetchFileResponse")
@@ -162,7 +161,6 @@ sub onFetchStartFromResponse(obj)
     end if
 end sub
 
-''' UI
 sub setTitle(title)
     m.top.findNode("overhang").title = title
 end sub
@@ -181,7 +179,6 @@ sub hideOverlays()
     m.conversionStatus.control = "stop"
 end sub
 
-''' Error Dialog
 sub showFetchFileErrorDialog(data)
     m.fetchFileErrorDialog = createObject("roSGNode", "ErrorDialog")
     m.fetchFileErrorDialog.error = data
@@ -208,7 +205,6 @@ sub onPlaybackUnavailableDialogClosed()
     m.top.navigateBack = true
 end sub
 
-''' Video Conversion
 sub showVideoConversionStatus()
     m.phase = "conversion"
     m.conversionStatus.control = "stop"
@@ -237,7 +233,6 @@ sub onVideoConversionCompleted()
     handleFetchedFile()
 end sub
 
-''' Resume Prompt
 sub showContinueWatchingPrompt()
     m.phase = "resumePrompt"
     m.continueWatchingPrompt.fileName = m.file.name

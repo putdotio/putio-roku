@@ -6,7 +6,6 @@ sub SubtitleWithDate(createdAt, subtitleText = invalid) as string
     return date
 end sub
 
-' Upload
 sub HistoryEventUploadTitle(event) as string
     return "You've uploaded " + event.file_name
 end sub
@@ -16,7 +15,6 @@ sub HistoryEventUploadDescription(event) as string
     return SubtitleWithDate(event.created_at, size)
 end sub
 
-' File shared
 sub HistoryEventFileSharedTitle(event) as string
     return event.file_name
 end sub
@@ -25,7 +23,6 @@ sub HistoryEventFileSharedDescription(event) as string
     return SubtitleWithDate(event.created_at, "shared by " + event.sharing_user_name)
 end sub
 
-' Transfer completed
 sub HistoryEventTransferCompletedTitle(event) as string
     return event.transfer_name
 end sub
@@ -35,7 +32,6 @@ sub HistoryEventTransferCompletedDescription(event) as string
     return SubtitleWithDate(event.created_at, size)
 end sub
 
-' Transfer error
 sub HistoryEventTransferErrorTitle(event) as string
     return "Error in transfer " + event.transfer_name
 end sub
@@ -44,7 +40,6 @@ sub HistoryEventTransferErrorDescription(event) as string
     return SubtitleWithDate(event.created_at)
 end sub
 
-' File from RSS deleted
 sub HistoryEventFileFromRSSDeletedTitle(event) as string
     return "We had to delete " + event.file_name + " per your instructions, since there wasn't enough free space."
 end sub
@@ -54,7 +49,6 @@ sub HistoryEventFileFromRSSDeletedDescription(event) as string
     return SubtitleWithDate(event.created_at, size)
 end sub
 
-' RSS paused
 sub HistoryEventRSSPausedTitle(event) as string
     return event.rss_filter_title + " is paused because we couldn't reach the source"
 end sub
@@ -63,7 +57,6 @@ sub HistoryEventRSSPausedDescription(event) as string
     return SubtitleWithDate(event.created_at)
 end sub
 
-' Transfer from RSS error
 sub HistoryEventRSSTransferErrorTitle(event) as string
     return "Error in transfer from RSS for " + event.transfer_name
 end sub
@@ -72,7 +65,6 @@ sub HistoryEventRSSTransferErrorDescription(event) as string
     return SubtitleWithDate(event.created_at)
 end sub
 
-'Transfer callback error
 sub HistoryEventTransferCallbackErrorTitle(event) as string
     return "Error in transfer callback for " + event.transfer_name
 end sub
@@ -81,7 +73,6 @@ sub HistoryEventTransferCallbackErrorDescription(event) as string
     return SubtitleWithDate(event.created_at, event.message)
 end sub
 
-' Private torrent pin
 sub HistoryEventPrivateTorrentPinTitle(event) as string
     return "Your private IP `" + event.pinned_host_ip + "` was temporarily down, we had to use `" + event.new_host_ip + "` for " + event.user_download_name
 end sub
@@ -90,7 +81,6 @@ sub HistoryEventPrivateTorrentPinDescription(event) as string
     return SubtitleWithDate(event.created_at)
 end sub
 
-' Voucher
 sub HistoryEventVoucherTitle(event) as string
     return "Hey there. Welcome to put.io. We've made you and " + event.voucher_owner_name + " friends. You can see their shares now."
 end sub
@@ -99,7 +89,6 @@ sub HistoryEventVoucherDescription(event) as string
     return SubtitleWithDate(event.created_at)
 end sub
 
-' Default - Any
 sub HistoryEventAnyTitle(event) as string
     return event.type
 end sub
@@ -108,7 +97,6 @@ sub HistoryEventAnyDescription(event) as string
     return SubtitleWithDate(event.created_at)
 end sub
 
-' Map
 sub GetMapFromHistoryEventType(eventType) as object
     eventMap = {
         upload: {
