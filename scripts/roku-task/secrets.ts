@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
@@ -11,9 +10,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, isAbsolute, join, normalize, sep } from "node:path";
+import { basename, dirname, join } from "node:path";
 import process from "node:process";
-import { envOr, repoRoot, requireEnv, run } from "./runtime.ts";
+import { repoRoot, requireEnv, run } from "./runtime.ts";
 
 const secretKeys = [
   "AUDIO_CONTENT_ID",
@@ -38,7 +37,7 @@ const numericSecretKeys = new Set<string>([
   "SUBTITLE_CONTENT_ID",
 ]);
 
-export interface RokuSecretPayload {
+interface RokuSecretPayload {
   readonly AUDIO_CONTENT_ID: string;
   readonly IMAGE_CONTENT_ID: string;
   readonly PLAYBACK_CONTENT_ID: string;
@@ -53,22 +52,23 @@ export interface RokuSecretPayload {
   readonly SUBTITLE_CONTENT_ID: string;
 }
 
-type DecryptPayload = (ciphertext: string, output: string) => void;
-
-export function secretsSetup(decryptPayload: DecryptPayload = decryptSopsPayload): void {
+export function secretsSetup(): void {
   const ciphertext = requireEnv(
     "PUTIO_ROKU_SOPS_FILE",
     "PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup",
   );
-  const output = safeOutputPath(envOr("SECRETS_OUTPUT", ".env.local"));
+  const output = ".env.local";
   assertRegularFile(ciphertext, "ciphertext input");
+  if (existsSync(output)) {
+    assertRegularFile(output, "output");
+  }
 
   const tempDir = mkdtempSync(join(tmpdir(), "putio-roku-secrets-"));
   chmodSync(tempDir, 0o700);
   const decryptedFile = join(tempDir, "payload.json");
   const renderedFile = join(tempDir, "env");
   try {
-    decryptPayload(ciphertext, decryptedFile);
+    decryptSopsPayload(ciphertext, decryptedFile);
     assertRegularFile(decryptedFile, "decrypted payload");
     chmodSync(decryptedFile, 0o600);
     const payload = parseSecretPayload(readFileSync(decryptedFile, "utf8"));
@@ -79,7 +79,7 @@ export function secretsSetup(decryptPayload: DecryptPayload = decryptSopsPayload
   }
 }
 
-export function parseSecretPayload(serialized: string): RokuSecretPayload {
+function parseSecretPayload(serialized: string): RokuSecretPayload {
   let decoded: unknown;
   try {
     decoded = JSON.parse(serialized);
@@ -114,7 +114,7 @@ export function parseSecretPayload(serialized: string): RokuSecretPayload {
   };
 }
 
-export function renderSecretPayload(payload: RokuSecretPayload): string {
+function renderSecretPayload(payload: RokuSecretPayload): string {
   return `${secretKeys.map((key) => `${key}=${JSON.stringify(payload[key])}`).join("\n")}\n`;
 }
 
@@ -169,36 +169,6 @@ function assertRegularFile(path: string, label: string): void {
   if (!status.isFile() || status.isSymbolicLink()) {
     throw new Error(`${label} must be one regular non-symlink file: ${path}`);
   }
-}
-
-function safeOutputPath(output: string): string {
-  const normalizedOutput = normalize(output);
-  if (output === "" || isAbsolute(output) || normalizedOutput === ".." || normalizedOutput.startsWith("../")) {
-    throw new Error("SECRETS_OUTPUT must be a repository-relative ignored path");
-  }
-
-  const ignored = spawnSync("git", ["check-ignore", "-q", "--", normalizedOutput], {
-    cwd: repoRoot,
-    stdio: "ignore",
-  });
-  if (ignored.status !== 0) {
-    throw new Error(`SECRETS_OUTPUT is not gitignored: ${output}`);
-  }
-
-  let component = repoRoot;
-  for (const segment of dirname(normalizedOutput).split(sep).filter((value) => value !== ".")) {
-    component = join(component, segment);
-    if (existsSync(component) && lstatSync(component).isSymbolicLink()) {
-      throw new Error(`SECRETS_OUTPUT path must not contain symlinks: ${output}`);
-    }
-  }
-
-  const absoluteOutput = join(repoRoot, normalizedOutput);
-  if (existsSync(absoluteOutput)) {
-    assertRegularFile(absoluteOutput, "SECRETS_OUTPUT");
-  }
-
-  return normalizedOutput;
 }
 
 function installSecretFile(source: string, output: string): void {
