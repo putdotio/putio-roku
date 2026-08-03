@@ -53,6 +53,10 @@ interface RokuSecretPayload {
 }
 
 export function secretsSetup(): void {
+  if (process.env.SECRETS_OUTPUT !== undefined) {
+    throw new Error("SECRETS_OUTPUT is no longer supported; setup writes .env.local");
+  }
+
   const ciphertext = requireEnv(
     "PUTIO_ROKU_SOPS_FILE",
     "PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup",
