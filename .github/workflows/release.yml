@@ -67,6 +67,20 @@ jobs:
           private-key: ${{ secrets.PUTIO_RELEASE_BOT_PRIVATE_KEY }}
           permission-contents: write
 
+      - name: Resolve release bot identity
+        id: release-bot-identity
+        env:
+          GH_TOKEN: ${{ steps.release-bot.outputs.token }}
+          APP_SLUG: ${{ steps.release-bot.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          user_id="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
+          if [[ ! "$user_id" =~ ^[0-9]+$ ]]; then
+            echo "failed to resolve numeric bot user id for ${APP_SLUG}[bot]" >&2
+            exit 1
+          fi
+          echo "user-id=${user_id}" >> "$GITHUB_OUTPUT"
+
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -86,6 +100,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The licensed GT America faces are gitignored, so the checkout has none of them and the
+      # packaged app would silently fall back to the Roku system font. Fetch them from put.io's
+      # own CDN before semantic-release builds the artifact. No credential is involved: the
+      # faces are served over plain HTTPS from static.put.io. fonts-setup is the gate -- it
+      # fails on any download or validation problem, so reaching the build means every listed
+      # face is on disk and is a real GT America face. fonts-check then re-checks those bytes,
+      # but note it treats absence as a legitimate optional state, so it would not by itself
+      # catch a step that silently synced nothing.
+      - name: Sync licensed brand fonts
+        run: |
+          pnpm roku fonts-setup
+          pnpm roku fonts-check
+
       - name: Release Roku package
         id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
@@ -100,9 +127,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.release-bot.outputs.token }}
           GIT_AUTHOR_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
-          GIT_AUTHOR_EMAIL: 283001373+${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
+          GIT_AUTHOR_EMAIL: ${{ steps.release-bot-identity.outputs.user-id }}+${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
-          GIT_COMMITTER_EMAIL: 283001373+${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
+          GIT_COMMITTER_EMAIL: ${{ steps.release-bot-identity.outputs.user-id }}+${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
 
       # Attach the sideload ZIP with the gh CLI instead of @semantic-release/github's
       # octokit uploader, which intermittently fails on large assets with
