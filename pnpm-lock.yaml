@@ -12,8 +12,8 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       '@putdotio/design':
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: ^2.0.1
+        version: 2.0.1
       '@putdotio/rokit':
         specifier: 2.4.2
         version: 2.4.2(ioredis@5.10.1)
@@ -209,8 +209,8 @@ packages:
   '@postman/tunnel-agent@0.6.8':
     resolution: {integrity: sha512-2U42SmZW5G+suEcS++zB94sBWNO4qD4bvETGFRFDTqSpYl5ksfjcPqzYpgQgXgUmb6dfz+fAGbkcRamounGm0w==}
 
-  '@putdotio/design@1.4.0':
-    resolution: {integrity: sha512-NdW4esNv/set4UAs0VX/KfXbFuqGZdyNb5deGViaNK/SXc/2vv4tHCuofzms73TAp7zTwmI/yVgm1VnDamWU7A==}
+  '@putdotio/design@2.0.1':
+    resolution: {integrity: sha512-ZXy7opHsluAtDMgFp5SaZWUnsjsX9PNJTivOgCcHpVU487SHoMsDcDe8tonSRQtImVST82NRKaKOdBX8CgxjkQ==}
 
   '@putdotio/rokit@2.4.2':
     resolution: {integrity: sha512-GVSiqnrAezbWxSQnlSMv/7byLTowcowLw0L5gltsGSWNo65t0EJW8GQ9iMq7hE+x6bXgNEMKbp03c5l47j4czA==}
@@ -2061,7 +2061,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  '@putdotio/design@1.4.0': {}
+  '@putdotio/design@2.0.1': {}
 
   '@putdotio/rokit@2.4.2(ioredis@5.10.1)':
     dependencies:
