@@ -5,19 +5,18 @@ proof from a real Roku device instead of only a ZIP build.
 
 ## Setup
 
-If your onboarding includes Infisical access, render the shared testing-account
-and fixture values first, then fill in the local device values in the generated
-file:
+If a maintainer gave you access to the shared encrypted test payload, render
+the testing-account and fixture values first:
 
 ```bash
-pnpm roku secrets-setup
+PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup
 ```
 
-`pnpm roku secrets-setup` writes `.env.local` from the repo-owned Infisical path.
-Set the onboarding-provided `PUTIO_ROKU_INFISICAL_*` variables in this repo or
-worktree shell before running the command. The generated file includes the
-approved put.io CLI profile, harness credentials, OAuth fields, and the file IDs
-used by `pnpm roku live-test-flow-full`.
+`pnpm roku secrets-setup` decrypts the SOPS payload and atomically writes an
+ignored mode-`0600` `.env.local`. SOPS must be able to discover your authorized
+age identity. The generated file includes the approved put.io CLI profile,
+harness credentials, OAuth fields, Roku Developer Mode password, and the file
+IDs used by `pnpm roku live-test-flow-full`.
 
 If you are using your own local device or credentials, copy the sample
 environment file:
@@ -67,6 +66,9 @@ PUTIO_CLIENT_SECRET_FIRST_PARTY=<oauth-client-secret>
 Keep `.env` and `.env.local` local. Device IPs, Developer Mode passwords,
 signing keys, and download tokens do not belong in git. `.putio-cli/` is ignored
 and may contain local put.io CLI auth state for the testing account.
+
+Keep the device IP in `.env`; rerunning `secrets-setup` replaces `.env.local`.
+The SOPS setup command is only needed when you are using the shared fixtures.
 
 Install the repo toolchain before running smoke or install checks:
 
