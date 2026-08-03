@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, isAbsolute, join, normalize } from "node:path";
+import { basename, dirname, isAbsolute, join, normalize, sep } from "node:path";
 import process from "node:process";
 import { envOr, repoRoot, requireEnv, run } from "./runtime.ts";
 
@@ -60,9 +60,8 @@ export function secretsSetup(decryptPayload: DecryptPayload = decryptSopsPayload
     "PUTIO_ROKU_SOPS_FILE",
     "PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup",
   );
-  const output = envOr("SECRETS_OUTPUT", ".env.local");
+  const output = safeOutputPath(envOr("SECRETS_OUTPUT", ".env.local"));
   assertRegularFile(ciphertext, "ciphertext input");
-  assertSafeOutput(output);
 
   const tempDir = mkdtempSync(join(tmpdir(), "putio-roku-secrets-"));
   chmodSync(tempDir, 0o700);
@@ -172,7 +171,7 @@ function assertRegularFile(path: string, label: string): void {
   }
 }
 
-function assertSafeOutput(output: string): void {
+function safeOutputPath(output: string): string {
   const normalizedOutput = normalize(output);
   if (output === "" || isAbsolute(output) || normalizedOutput === ".." || normalizedOutput.startsWith("../")) {
     throw new Error("SECRETS_OUTPUT must be a repository-relative ignored path");
@@ -187,7 +186,7 @@ function assertSafeOutput(output: string): void {
   }
 
   let component = repoRoot;
-  for (const segment of dirname(normalizedOutput).split("/").filter((value) => value !== ".")) {
+  for (const segment of dirname(normalizedOutput).split(sep).filter((value) => value !== ".")) {
     component = join(component, segment);
     if (existsSync(component) && lstatSync(component).isSymbolicLink()) {
       throw new Error(`SECRETS_OUTPUT path must not contain symlinks: ${output}`);
@@ -198,6 +197,8 @@ function assertSafeOutput(output: string): void {
   if (existsSync(absoluteOutput)) {
     assertRegularFile(absoluteOutput, "SECRETS_OUTPUT");
   }
+
+  return normalizedOutput;
 }
 
 function installSecretFile(source: string, output: string): void {

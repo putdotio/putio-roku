@@ -93,6 +93,22 @@ describe("Roku SOPS payload", () => {
     expect(rokuSecretTempDirs()).toEqual(before);
   });
 
+  it("installs to the validated normalized output path", () => {
+    const tempDir = makeTempDir();
+    const ciphertext = join(tempDir, "roku.sops.env");
+    writeFileSync(ciphertext, "ciphertext");
+    const output = `.env.local.sops-normalized-${process.pid}-${Date.now()}`;
+    outputs.push(output);
+    vi.stubEnv("PUTIO_ROKU_SOPS_FILE", ciphertext);
+    vi.stubEnv("SECRETS_OUTPUT", `missing/../${output}`);
+
+    secretsSetup((_input, decryptedOutput) => {
+      writeFileSync(decryptedOutput, JSON.stringify(validPayload), { mode: 0o600 });
+    });
+
+    expect(parseEnv(readFileSync(output, "utf8"))).toEqual(validPayload);
+  });
+
   it("rejects symlinked ciphertext and output paths", () => {
     const tempDir = makeTempDir();
     const ciphertext = join(tempDir, "roku.sops.env");
