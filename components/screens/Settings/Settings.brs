@@ -2,7 +2,6 @@ function init()
     m.storage = CreateObject("roRegistrySection", "userConfig")
 
     m.top.observeField("visible", "onVisibleChange")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.list = m.top.findNode("settingsList")
     setDialogNodeFieldColor(m.list, "focusBitmapBlendColor", "focus")

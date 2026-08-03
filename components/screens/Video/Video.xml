@@ -18,15 +18,7 @@
   </interface>
 
 	<children>
-		<Overhang
-			id="overhang"
-			showClock="false"
-      title="Your Files"
-			logoUri="pkg:/images/OverhangLogo.png"
-			logoBaselineOffset="9"
-			showOptions="true"
-			optionsAvailable="false"
-		/>
+		<ScreenHeader id="screenHeader" title="Your Files" showOptions="true" />
 
     <LoadingIndicator
       id="loading"

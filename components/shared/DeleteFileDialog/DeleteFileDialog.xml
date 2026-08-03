@@ -11,6 +11,8 @@
   <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DeleteFileDialog/DeleteFileDialog.brs" />
 
   <children>
@@ -71,7 +73,6 @@
       translation="[492,357]"
       width="936"
       height="45"
-      font="font:LargeBoldSystemFont"
       text="Delete file?"
       horizAlign="center"
     />
@@ -90,7 +91,6 @@
       width="936"
       height="56"
       wrap="true"
-      font="font:SmallSystemFont"
       text=""
       horizAlign="center"
       visible="false"
@@ -102,7 +102,6 @@
       width="936"
       height="45"
       wrap="true"
-      font="font:SmallSystemFont"
       horizAlign="center"
     />
 
@@ -117,7 +116,6 @@
           id="deleteButtonLabel"
           width="936"
           height="78"
-          font="font:MediumBoldSystemFont"
           text="Delete file"
           horizAlign="center"
           vertAlign="center"
@@ -134,7 +132,6 @@
           id="cancelButtonLabel"
           width="936"
           height="78"
-          font="font:MediumBoldSystemFont"
           text="Cancel"
           horizAlign="center"
           vertAlign="center"

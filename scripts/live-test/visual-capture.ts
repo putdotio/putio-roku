@@ -27,6 +27,8 @@ import {
 import { retryAsync, sleep } from "./timing.ts";
 
 export const visualLabStories = [
+  ["typography-gt-america", "Typography / GT America"],
+  ["screen-header", "ScreenHeader / branded title"],
   ["app-dialog-empty", "AppDialog / no message"],
   ["app-dialog-message", "AppDialog / message"],
   ["delete-dialog-short", "DeleteFileDialog / short file"],

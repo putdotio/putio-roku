@@ -1,9 +1,8 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.audio = m.top.findNode("audio")
-    m.overhang = m.top.findNode("overhang")
+    m.screenHeader = m.top.findNode("screenHeader")
     m.loading = m.top.findNode("loading")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.rewindButton = m.top.findNode("rewind")
@@ -17,6 +16,8 @@ function init()
     m.duration = m.top.findNode("duration")
     setDialogNodeColor(m.position, "text")
     setDialogNodeColor(m.duration, "text")
+    applyTypography(m.position, "h2")
+    applyTypography(m.duration, "h2")
     setDialogNodeFieldColor(m.progressBar, "emptyBarBlendColor", "border")
     setDialogNodeFieldColor(m.progressBar, "filledBarBlendColor", "primary")
 
@@ -51,7 +52,7 @@ end function
 
 sub onVisibleChange()
     if m.top.visible
-        m.overhang.title = m.top.params.fileName
+        m.screenHeader.title = m.top.params.fileName
         m.audio.observeField("state", "onAudioStateChange")
         m.audio.observeField("position", "onPositionChange")
         m.audio.observeField("duration", "onDurationChange")

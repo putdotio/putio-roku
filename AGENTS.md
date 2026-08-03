@@ -12,6 +12,7 @@
 - [Live Test](./live-test/README.md)
 - [Roku Visual Reference](./.vref/README.md)
 - [Icon system](./docs/ICONS.md)
+- [Font system](./docs/FONTS.md)
 - [Security](./SECURITY.md)
 
 ## Commands
@@ -22,6 +23,8 @@
 - `pnpm sideload`
 - `pnpm roku help`
 - `pnpm roku icons`
+- `pnpm roku fonts-setup`
+- `pnpm roku fonts-check`
 - `pnpm roku secrets-setup`
 - `pnpm roku live-test`
 - `pnpm roku live-test-control`
@@ -42,9 +45,10 @@
 
 ## Worktrees
 
-`.worktreeinclude` carries `.env` files into Codex and Claude worktrees. Run
-`pnpm install --frozen-lockfile`; use `pnpm roku secrets-setup` if they are
-missing or stale and a maintainer supplied a SOPS payload.
+`.worktreeinclude` carries `.env` files and synced `fonts/` into Codex and Claude
+worktrees. Run `pnpm install --frozen-lockfile`; use `pnpm roku secrets-setup` if
+env files are missing or stale and a maintainer supplied a SOPS payload, and
+`pnpm roku fonts-setup` if the brand faces are.
 
 ## Rules
 
@@ -66,6 +70,7 @@ missing or stale and a maintainer supplied a SOPS payload.
 - Live app regressions are grouped as flow suites: use `pnpm roku live-test-flow-smoke` for auth/files/dialogs/settings/get-new-code coverage and `pnpm roku live-test-flow-full` before shipping broad routing/player/image refactors
 - `STORY=<story-id> pnpm roku lab-install` and `STORY=<story-id> pnpm roku lab-screenshot` open isolated Lab stories for modal/component UI work; use them before broader authenticated flows when the change can be proven in Lab
 - Product glyphs use the pinned Phosphor pipeline in [Icon system](./docs/ICONS.md): edit `config/phosphor-icons.json`, run `pnpm roku icons`, and the `check-roku-icons` gate in `pnpm verify` blocks drift. Generated `images/icons/*.png` are white 128px templates tinted at runtime via `blendColor`/`designTokenColor`; do not hand-edit them, and keep brand/channel/splash art outside the icon set
+- Brand typography uses licensed GT America faces per [Font system](./docs/FONTS.md): `config/brand-fonts.json` lists them, `pnpm roku fonts-setup` fetches them from `static.put.io` over plain HTTPS with no credential, and they are **never committed** — `pnpm verify` fails if git ever tracks an `.otf`/`.ttf`/`.ttc`. A clone without them is fully working: packaging bundles the manifest-listed faces individually and only when every one validates as a real single GT America face (sfnt version, in-bounds tables, required tables, name-table family), and compiles `buildConfigBrandFontsAvailable()` into `source/BuildConfig.brs` so the runtime falls back to `font:*SystemFont`. Dropping a face into `fonts/` by hand is not enough — it must be listed and it must validate. `pnpm roku fonts-check` is intentionally outside `pnpm verify`
 - Curated Roku screenshots live in `.vref/`; use `NAME=<short-screen-name> pnpm roku visual-capture`, `pnpm roku visual-capture-pages`, or `pnpm roku visual-capture-lab`, update public-safe references manually, validate with `pnpm roku visual-validate`, and rebuild the gallery with `pnpm roku visual-gallery`. `pnpm roku visual-capture-lab` captures stable AppDialog stories by default; pass explicit `STORIES` or `ALL=1` only when probing heavier Lab components deliberately.
 
 ## CI

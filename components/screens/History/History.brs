@@ -3,7 +3,6 @@ function init()
 
     m.top.observeField("visible", "onVisibleChange")
     m.top.observeField("routeShown", "onRouteShown")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.parent = {}
     m.history = []

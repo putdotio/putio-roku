@@ -1,6 +1,5 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.file = {}
     m.subtitles = []
@@ -162,7 +161,7 @@ sub onFetchStartFromResponse(obj)
 end sub
 
 sub setTitle(title)
-    m.top.findNode("overhang").title = title
+    m.top.findNode("screenHeader").title = title
 end sub
 
 sub showLoading()

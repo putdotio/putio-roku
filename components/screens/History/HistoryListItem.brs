@@ -12,6 +12,8 @@ sub ensureHistoryListItemNodes()
         m.spinnerAnimation = m.top.FindNode("spinnerAnimation")
         setDialogNodeColor(m.title, "text")
         setDialogNodeColor(m.description, "textMuted")
+        applyTypography(m.title, "h2")
+        applyTypography(m.description, "caption")
     end if
 
     applyListItemFocusBackground(m.focusBackground)

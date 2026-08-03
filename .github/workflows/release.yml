@@ -86,6 +86,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The licensed GT America faces are gitignored, so the checkout has none of them and the
+      # packaged app would silently fall back to the Roku system font. Fetch them from put.io's
+      # own CDN before semantic-release builds the artifact. No credential is involved: the
+      # faces are served over plain HTTPS from static.put.io. fonts-setup is the gate -- it
+      # fails on any download or validation problem, so reaching the build means every listed
+      # face is on disk and is a real GT America face. fonts-check then re-checks those bytes,
+      # but note it treats absence as a legitimate optional state, so it would not by itself
+      # catch a step that silently synced nothing.
+      - name: Sync licensed brand fonts
+        run: |
+          pnpm roku fonts-setup
+          pnpm roku fonts-check
+
       - name: Release Roku package
         id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0

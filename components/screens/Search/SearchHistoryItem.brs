@@ -1,5 +1,7 @@
 sub init()
-    setDialogNodeColor(m.top.findNode("title"), "text")
+    title = m.top.findNode("title")
+    setDialogNodeColor(title, "text")
+    applyTypography(title, "h2")
 end sub
 
 sub itemContentChanged()

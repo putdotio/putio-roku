@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--
+  Declares ScreenHeader the way the eight real screens do: fields set as XML attributes
+  rather than assigned in BrightScript. That distinction matters: an initial attribute
+  value does not reach an onChange handler with the component's children resolved, so a
+  header that forwards showOptions only from its handler renders no options affordance
+  here while looking correct when a story assigns the field programmatically.
+
+  Both option states are shown, because the title reserves the right-hand gutter only when
+  the affordance is actually drawn. Top is Files (optionsAvailable true, so "Delete" draws
+  and the title must stop short of it). Bottom is Audio or Image (optionsAvailable false,
+  nothing drawn, so the title should run the full width). Same long title in both, so the
+  difference in truncation point is the thing to look at.
+-->
+<component name="LabScreenHeaderPreview" extends="Group">
+  <children>
+    <ScreenHeader
+      id="withOptions"
+      title="Camera Uploads / 2026 / Trip to Amsterdam and Rotterdam"
+      showOptions="true"
+      optionsAvailable="true"
+      optionsText="Delete"
+    />
+
+    <ScreenHeader
+      id="withoutOptions"
+      translation="[0,222]"
+      title="Camera Uploads / 2026 / Trip to Amsterdam and Rotterdam"
+      showOptions="true"
+      optionsAvailable="false"
+    />
+  </children>
+</component>

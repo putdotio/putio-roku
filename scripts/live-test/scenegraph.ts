@@ -30,12 +30,35 @@ export function assertNamedNodeAbsent(xml: string, nodeName: string): void {
   assertNamedNodeState(xml, nodeName, "absent");
 }
 
+// playerTitle has no explicit height, so it measures from whichever font the h1 role
+// resolved to, and GT America's line box is the taller of the two. Both numbers below were
+// measured on device at h1 (45px): 58 with the licensed faces bundled, 46 without. They are
+// close to the fonts' ascent+descent ratios (~1.26em and ~1.02em) but do not reproduce
+// exactly from them, so treat them as measurements and re-measure if the h1 size changes.
+// Both are correct and the suite has to pass against either package, so accept both and let
+// assertTitleDoesNotOverlapAuxiliaryControls guard the layout itself.
+const playerTitleHeights = [58, 46] as const;
+
+function assertPlayerTitleBox(xml: string): void {
+  const bounds = readNamedNodeBounds(xml, "playerTitle");
+  if (bounds === undefined) {
+    throw new Error("expected bounds for playerTitle");
+  }
+
+  const [, , width, height] = bounds;
+  if (width !== 1360 || !(playerTitleHeights as readonly number[]).includes(height)) {
+    throw new Error(
+      `expected playerTitle 1360x${playerTitleHeights.join(" (brand) or ")} (system font), got ${width}x${height}`,
+    );
+  }
+}
+
 export function assertPlayerOsdLayout(xml: string, progressFocused = true): void {
   assertNamedNodeAbsent(xml, "bottomShadeSoft0");
   assertNodeTranslation(xml, "bottomShade", 0, 800);
   assertNodeSize(xml, "bottomShade", 1920, 280);
   assertNodeTranslation(xml, "playerTitle", 96, 900);
-  assertNodeSize(xml, "playerTitle", 1360, 46);
+  assertPlayerTitleBox(xml);
   assertNodeTranslation(xml, "controls", 0, 870);
   assertNamedNodeHidden(xml, "rewindButton");
   assertNamedNodeHidden(xml, "playButton");

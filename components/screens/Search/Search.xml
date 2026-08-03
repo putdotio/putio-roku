@@ -17,15 +17,7 @@
   </interface>
 
   <children>
-    <Overhang
-      id="overhang"
-      showClock="false"
-      logoUri="pkg:/images/OverhangLogo.png"
-      logoBaselineOffset="9"
-      title="Search"
-      showOptions="true"
-      optionsAvailable="false"
-    />
+    <ScreenHeader id="screenHeader" title="Search" showOptions="true" />
 
     <LayoutGroup
       translation="[81, 180]"

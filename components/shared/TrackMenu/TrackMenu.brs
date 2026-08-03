@@ -17,6 +17,7 @@ sub init()
     applyDialogScrim(m.scrim)
     applyDialogPanelColors(m.panelFill, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
     applyDialogTextColors(m.titleLabel, invalid)
+    applyTypography(m.titleLabel, "h1")
     setDialogNodeColor(m.topSeparator, "border")
     setDialogNodeColor(m.bottomSeparator, "border")
     m.rowNodes = createTrackMenuRows()
@@ -35,6 +36,7 @@ function createTrackMenuRows() as object
         setDialogNodeColor(background, "focus")
         setDialogNodeColor(label, "text")
         setDialogNodeColor(check, "primary")
+        applyTypography(label, "body")
 
         rows.push({
             node: row,
@@ -86,15 +88,10 @@ sub renderTrackMenu()
             row.label.text = getTrackMenuItemLabel(item)
             row.check.visible = selected
 
-            if focused
-                row.background.visible = true
-                row.label.color = dialogColor("text")
-                row.check.color = dialogColor("primary")
-            else
-                row.background.visible = false
-                row.label.color = dialogColor("text")
-                row.check.color = dialogColor("primary")
-            end if
+            ' The selected-track check is a Phosphor Poster tinted once in
+            ' createTrackMenuRows; only the row background reacts to focus.
+            row.background.visible = focused
+            row.label.color = dialogColor("text")
         else
             row.node.visible = false
             row.label.text = ""
@@ -148,9 +145,6 @@ sub updateTrackMenuLayout(rowCount as integer)
         row.label.translation = [24, 12]
         row.label.width = 600
         row.label.height = m.rowHeight
-        row.check.translation = [660, 9]
-        row.check.width = 45
-        row.check.height = m.rowHeight
     end for
 end sub
 

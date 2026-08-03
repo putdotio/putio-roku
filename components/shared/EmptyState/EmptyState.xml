@@ -3,6 +3,8 @@
   <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
   <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/EmptyState/EmptyState.brs" />
 
   <interface>
@@ -20,14 +22,12 @@
       <Label
         id="heading"
         height="48"
-        font="font:LargeBoldSystemFont"
         horizAlign="center"
       />
 
       <Label
         id="body"
         height="40"
-        font="font:MediumSystemFont"
         horizAlign="center"
       />
     </LayoutGroup>

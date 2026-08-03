@@ -14,6 +14,8 @@ sub ensureFileListItemNodes()
         setDialogNodeColor(m.title, "text")
         setDialogNodeColor(m.description, "textMuted")
         setDialogNodeColor(m.watchedEye, "textMuted")
+        applyTypography(m.title, "h2")
+        applyTypography(m.description, "caption")
     end if
 
     applyListItemFocusBackground(m.focusBackground)
