@@ -9,18 +9,17 @@ Prerequisites:
 - Node.js from `.node-version`
 - `pnpm`
 
-Optional local overrides live in `.env` or `.env.local`. If your onboarding
-includes Infisical access, render the shared testing-account values first:
+Optional local overrides live in `.env` or `.env.local`. If a maintainer gave
+you access to the shared encrypted test payload, render it first:
 
 ```bash
-pnpm roku secrets-setup
+PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup
 ```
 
-That reads the repo-owned Infisical path and writes an ignored `.env.local` with
-the shared put.io test account, OAuth fields, and live-test fixture IDs. Set the
-onboarding-provided `PUTIO_ROKU_INFISICAL_*` variables in this repo or worktree
-shell before running the command. Keep using that same account for
-hardware-backed Roku checks so
+That decrypts the SOPS payload and atomically writes an ignored mode-`0600`
+`.env.local` with the shared put.io test account, OAuth fields, Roku Developer
+Mode password, and live-test fixture IDs. SOPS must be able to discover your
+authorized age identity. Keep using that same account for hardware-backed Roku checks so
 screenshots, file navigation, playback, and track-selection flows exercise
 stable fixtures.
 
@@ -30,8 +29,9 @@ If you are using your own local device or credentials, copy the sample file:
 cp .env.example .env
 ```
 
-Then fill in the device and fixture values you have locally. The Infisical
-setup command is only needed when you are using the shared test fixtures.
+Then fill in the device and fixture values you have locally. Keep the device IP
+in `.env`; rerunning `secrets-setup` replaces `.env.local`. The SOPS setup
+command is only needed when you are using the shared test fixtures.
 
 Supported variables:
 
@@ -39,7 +39,7 @@ Supported variables:
 - `ROKU_DEV_PASSWORD` or `ROKIT_PASSWORD` for the Roku Developer Mode password when authenticated installs are required
 - `ROKU_APP_ECP_ID` for the ECP app id to launch during live tests; defaults to `dev` for sideloaded packages
 - `PLAYBACK_CONTENT_ID`, `IMAGE_CONTENT_ID`, `AUDIO_CONTENT_ID`, and `SUBTITLE_CONTENT_ID` for the full hardware-backed live-test sweep
-- `PUTIO_CLI_PROFILE`, `PUTIO_CLI_CONFIG_PATH`, `PUTIO_TEST_USERNAME`, `PUTIO_TEST_PASSWORD`, `PUTIO_TEST_TOTP_REFERENCE`, `PUTIO_CLIENT_ID_FIRST_PARTY`, and `PUTIO_CLIENT_SECRET_FIRST_PARTY` for the Infisical-backed put.io CLI harness
+- `PUTIO_CLI_PROFILE`, `PUTIO_CLI_CONFIG_PATH`, `PUTIO_TEST_USERNAME`, `PUTIO_TEST_PASSWORD`, `PUTIO_TEST_TOTP_REFERENCE`, `PUTIO_CLIENT_ID_FIRST_PARTY`, and `PUTIO_CLIENT_SECRET_FIRST_PARTY` for the put.io CLI harness
 
 If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/SIDELOADING.md)
 

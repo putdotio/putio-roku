@@ -44,7 +44,7 @@
 
 `.worktreeinclude` carries `.env` files into Codex and Claude worktrees. Run
 `pnpm install --frozen-lockfile`; use `pnpm roku secrets-setup` if they are
-missing or stale.
+missing or stale and a maintainer supplied a SOPS payload.
 
 ## Rules
 
@@ -56,7 +56,7 @@ missing or stale.
 ## Build And Config
 
 - Local overrides flow through optional `.env` and ignored `.env.local`; `.env.local` wins when both are present
-- `pnpm roku secrets-setup` writes shared test-account, OAuth, and fixture values from maintainer-supplied `PUTIO_ROKU_INFISICAL_*` values; local Roku device values still belong in `.env.local`
+- `PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup` decrypts a maintainer-supplied SOPS payload into ignored mode-`0600` `.env.local`; keep the local Roku target in `.env`
 - `.env.example` must stay sanitized and safe to publish
 - `pnpm verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP
 - `pnpm roku test-live` runs the Vitest contract tests for live-test flow wiring, fixture argument parsing, and Lab visual-capture registry drift
