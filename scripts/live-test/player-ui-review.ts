@@ -543,10 +543,10 @@ async function copyPlayerUiReferenceImages(outputDir: string): Promise<ReviewIma
     join(
       process.cwd(),
       "..",
-      "putio-frontend-workspace",
+      "putio-frontend",
       "docs",
       "specs",
-      "tv-native",
+      "tv-app",
       "android-tv",
     );
   const references: Array<ReviewImage & { source: string }> = [
