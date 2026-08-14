@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing stable tag to resume or redeploy, for example v2.14.1
+        required: true
+        type: string
 
 concurrency:
   group: roku-release-${{ github.ref }}
@@ -43,7 +48,14 @@ jobs:
         run: pnpm verify
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        (
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]'))
+        )
+      }}
     name: Publish GitHub release
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -100,10 +112,12 @@ jobs:
           cache: false
 
       - name: Install dependencies
+        if: github.event_name != 'workflow_dispatch'
         run: pnpm install --frozen-lockfile
 
 
       - name: Release Roku package
+        if: github.event_name != 'workflow_dispatch'
         id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         with:
@@ -126,31 +140,14 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.release-bot.outputs.token }}
           NEW_RELEASE_TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+          REQUESTED_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
           git fetch origin main --tags --force
 
-          tag="$NEW_RELEASE_TAG"
+          tag="${REQUESTED_RELEASE_TAG:-$NEW_RELEASE_TAG}"
           if [[ -z "$tag" ]]; then
-            matches=""
-            while IFS= read -r candidate; do
-              candidate_commit="$(git rev-parse "${candidate}^{commit}")"
-              candidate_parent="$(git rev-parse "${candidate}^{commit}^" 2>/dev/null || true)"
-              if [[ "$candidate_commit" == "$GITHUB_SHA" || "$candidate_parent" == "$GITHUB_SHA" ]]; then
-                matches="${matches}${candidate}"$'\n'
-              fi
-            done < <(git tag --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
-
-            match_count="$(printf '%s' "$matches" | awk 'NF { count++ } END { print count + 0 }')"
-            if (( match_count > 1 )); then
-              echo "multiple release tags match workflow commit $GITHUB_SHA" >&2
-              exit 1
-            fi
-            tag="$(printf '%s' "$matches" | awk 'NF { print; exit }')"
-          fi
-
-          if [[ -z "$tag" ]]; then
-            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "state=absent" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -162,22 +159,7 @@ jobs:
             exit 1
           fi
 
-          release=""
-          release_error_file="$(mktemp)"
-          trap 'rm -f "$release_error_file"' EXIT
-          for attempt in {1..12}; do
-            if release="$(gh release view "$tag" --json databaseId,isDraft,isPrerelease,tagName 2>"$release_error_file")"; then
-              break
-            fi
-            if (( attempt == 12 )); then
-              cat "$release_error_file" >&2
-              echo "release $tag lookup failed after $attempt attempts" >&2
-              exit 1
-            fi
-            sleep 5
-          done
-          rm -f "$release_error_file"
-          trap - EXIT
+          release="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets,isDraft,isPrerelease,tagName)"
 
           if [[ "$(jq -r .tagName <<<"$release")" != "$tag" ]]; then
             echo "release lookup returned the wrong tag" >&2
@@ -189,18 +171,32 @@ jobs:
           fi
 
           is_draft="$(jq -r .isDraft <<<"$release")"
+          if [[ "$is_draft" == "false" ]]; then
+            expected="putio-roku-${tag}.zip"
+            [[ "$(jq -r --arg expected "$expected" '[.assets[].name] == [$expected]' <<<"$release")" == "true" ]]
+          fi
           {
-            echo "present=true"
             echo "tag=$tag"
             echo "version=${tag#v}"
-            echo "draft=$is_draft"
-            echo "published=$([[ "$is_draft" == "false" ]] && echo true || echo false)"
+            echo "state=$([[ "$is_draft" == "true" ]] && echo draft || echo published)"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Check out recovery tag
+        if: github.event_name == 'workflow_dispatch' && steps.release-target.outputs.state == 'draft'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: refs/tags/${{ steps.release-target.outputs.tag }}
+          token: ${{ steps.release-bot.outputs.token }}
+
+      - name: Install recovery dependencies
+        if: github.event_name == 'workflow_dispatch' && steps.release-target.outputs.state == 'draft'
+        run: pnpm install --frozen-lockfile
 
       # The GitHub CLI uploader avoids the undici content-length failures seen in
       # @semantic-release/github. Assets stay on the mutable draft until verified.
       - name: Attach sideload ZIP to the release
-        if: steps.release-target.outputs.draft == 'true'
+        if: steps.release-target.outputs.state == 'draft'
         env:
           GH_TOKEN: ${{ steps.release-bot.outputs.token }}
           RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
@@ -212,19 +208,10 @@ jobs:
             node scripts/prepare-release.ts "$RELEASE_VERSION"
           fi
           test -f "$zip"
-          for attempt in 1 2 3; do
-            if gh release upload "$RELEASE_TAG" "$zip" --clobber; then
-              echo "attached $zip to $RELEASE_TAG"
-              exit 0
-            fi
-            echo "upload attempt ${attempt} failed; retrying in 5s..." >&2
-            sleep 5
-          done
-          echo "::error::failed to attach ${zip} after 3 attempts" >&2
-          exit 1
+          gh release upload "$RELEASE_TAG" "$zip" --repo "$GITHUB_REPOSITORY" --clobber
 
       - name: Verify and publish draft release
-        if: steps.release-target.outputs.draft == 'true'
+        if: steps.release-target.outputs.state == 'draft'
         env:
           GH_TOKEN: ${{ steps.release-bot.outputs.token }}
           RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
@@ -232,36 +219,16 @@ jobs:
         run: |
           set -euo pipefail
           expected="putio-roku-v${RELEASE_VERSION}.zip"
-          release="$(gh release view "$RELEASE_TAG" --json assets,isDraft,isPrerelease)"
+          release="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets,isDraft,isPrerelease)"
           [[ "$(jq -r .isDraft <<<"$release")" == "true" ]]
           [[ "$(jq -r .isPrerelease <<<"$release")" == "false" ]]
           [[ "$(jq -r --arg expected "$expected" '[.assets[].name] == [$expected]' <<<"$release")" == "true" ]]
-          gh release edit "$RELEASE_TAG" --draft=false --latest
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
 
-      - name: Verify published release
-        if: steps.release-target.outputs.present == 'true'
+      - name: Mark release ready
+        if: steps.release-target.outputs.state != 'absent'
         id: finalized
-        env:
-          GH_TOKEN: ${{ steps.release-bot.outputs.token }}
-          RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
-          RELEASE_VERSION: ${{ steps.release-target.outputs.version }}
-        run: |
-          set -euo pipefail
-          expected="putio-roku-v${RELEASE_VERSION}.zip"
-          for attempt in {1..12}; do
-            release="$(gh release view "$RELEASE_TAG" --json assets,isDraft,isPrerelease)"
-            if [[ "$(jq -r .isDraft <<<"$release")" == "false" ]] &&
-               [[ "$(jq -r .isPrerelease <<<"$release")" == "false" ]] &&
-               [[ "$(jq -r --arg expected "$expected" '[.assets[].name] == [$expected]' <<<"$release")" == "true" ]]; then
-              echo "ready=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            if (( attempt == 12 )); then
-              echo "release $RELEASE_TAG did not reach the expected published state" >&2
-              exit 1
-            fi
-            sleep 5
-          done
+        run: echo "ready=true" >> "$GITHUB_OUTPUT"
 
   deploy:
     if: ${{ needs.release.outputs.release_ready == 'true' }}
@@ -285,6 +252,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.release.outputs.release_tag }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6

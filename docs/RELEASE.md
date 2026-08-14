@@ -9,7 +9,7 @@ Official Roku sideload releases are semantic-release driven from `main`.
 - GitHub Releases attach `putio-roku-v<version>.zip`, for example [putio-roku-v2.8.4.zip](https://github.com/putdotio/putio-roku/releases/download/v2.8.4/putio-roku-v2.8.4.zip)
 
 `v2.zip` updates only from a verified published GitHub Release. Regular `main`
-pushes that do not produce or resume a release leave the public ZIP unchanged.
+pushes that do not produce a release leave the public ZIP unchanged.
 
 The Roku sideload release line follows the version encoded in `manifest`; semantic-release publishes matching `v<major>.<minor>.<build>` tags.
 
@@ -51,11 +51,11 @@ of GitHub Actions artifact storage.
 
 ## Recover
 
-Rerun the failed release workflow. It resolves the release tag associated with
-the original workflow commit, retries exact draft visibility, rebuilds a missing
-ZIP, and resumes the same draft. An already-published Release is never mutated;
-the rerun verifies its asset and resumes only the production deploy. A tag whose
-expected Release remains invisible fails closed with the final lookup error.
+Run the release workflow from `main` with the exact existing tag. Recovery
+validates that the stable tag belongs to `main`, checks out that tag, and resumes
+its draft or production deploy. A draft rebuilds its ZIP only when needed and is
+published after exact asset validation. An already-published Release is
+validated but never mutated. An unavailable expected Release fails closed.
 
 ## GitHub Configuration
 
