@@ -8,7 +8,8 @@ Official Roku sideload releases are semantic-release driven from `main`.
 - Immutable hosted releases: `https://roku.put.io/releases/v2/<version>.zip`, for example [2.8.4](https://roku.put.io/releases/v2/2.8.4.zip)
 - GitHub Releases attach `putio-roku-v<version>.zip`, for example [putio-roku-v2.8.4.zip](https://github.com/putdotio/putio-roku/releases/download/v2.8.4/putio-roku-v2.8.4.zip)
 
-`v2.zip` updates only when semantic-release creates a new release. Regular `main` pushes that do not produce a release leave the public ZIP unchanged.
+`v2.zip` updates only from a verified published GitHub Release. Regular `main`
+pushes that do not produce or resume a release leave the public ZIP unchanged.
 
 The Roku sideload release line follows the version encoded in `manifest`; semantic-release publishes matching `v<major>.<minor>.<build>` tags.
 
@@ -35,14 +36,26 @@ and app id, ignoring local development or Lab variant overrides.
    - `dist/public/v2.zip`
    - `dist/public/releases/v2/<version>.zip`
    - `dist/release/putio-roku-v<version>.zip`
-5. The release bot commits the synced version fields back to `main`
-6. The GitHub Release receives the `dist/release` ZIP
-7. The production deploy job downloads the GitHub Release ZIP, verifies it, stages it as `dist/public/v2.zip` and `dist/public/releases/v2/<version>.zip`, then publishes `dist/public` to [roku.put.io](https://roku.put.io/v2.zip) with SST
+5. The release bot commits the synced version fields back to `main` and creates
+   a draft GitHub Release
+6. The workflow resolves the exact tag, uploads the ZIP to that mutable draft,
+   verifies the one-asset manifest, and publishes the Release
+7. The production deploy job downloads the verified published ZIP, stages it as
+   `dist/public/v2.zip` and `dist/public/releases/v2/<version>.zip`, then
+   publishes `dist/public` to [roku.put.io](https://roku.put.io/v2.zip) with SST
 
 Release and production deploy jobs run fresh dependency installs with
 package-manager caching disabled before publishing artifacts or assuming the AWS
 deploy role. The deploy handoff uses the GitHub Release asset directly instead
 of GitHub Actions artifact storage.
+
+## Recover
+
+Rerun the failed release workflow. It resolves the release tag associated with
+the original workflow commit, retries exact draft visibility, rebuilds a missing
+ZIP, and resumes the same draft. An already-published Release is never mutated;
+the rerun verifies its asset and resumes only the production deploy. A tag whose
+expected Release remains invisible fails closed with the final lookup error.
 
 ## GitHub Configuration
 

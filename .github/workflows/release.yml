@@ -55,8 +55,9 @@ jobs:
     permissions:
       contents: read
     outputs:
-      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+      release_ready: ${{ steps.finalized.outputs.ready }}
+      release_tag: ${{ steps.release-target.outputs.tag }}
+      release_version: ${{ steps.release-target.outputs.version }}
 
     steps:
       - name: Create release bot token
@@ -120,22 +121,100 @@ jobs:
           GIT_COMMITTER_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
           GIT_COMMITTER_EMAIL: ${{ steps.release-bot-identity.outputs.user_id }}+${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
 
-      # Attach the sideload ZIP with the gh CLI instead of @semantic-release/github's
-      # octokit uploader, which intermittently fails on large assets with
-      # "invalid content-length header" (undici) and blocks the deploy. prepareCmd
-      # (scripts/prepare-release.ts) built dist/release/*.zip earlier in this job.
-      - name: Attach sideload ZIP to the release
-        if: steps.semantic.outputs.new_release_published == 'true'
+      - name: Resolve exact release target
+        id: release-target
         env:
           GH_TOKEN: ${{ steps.release-bot.outputs.token }}
-          RELEASE_VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          NEW_RELEASE_TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+        run: |
+          set -euo pipefail
+          git fetch origin main --tags --force
+
+          tag="$NEW_RELEASE_TAG"
+          if [[ -z "$tag" ]]; then
+            matches=""
+            while IFS= read -r candidate; do
+              candidate_commit="$(git rev-parse "${candidate}^{commit}")"
+              candidate_parent="$(git rev-parse "${candidate}^{commit}^" 2>/dev/null || true)"
+              if [[ "$candidate_commit" == "$GITHUB_SHA" || "$candidate_parent" == "$GITHUB_SHA" ]]; then
+                matches="${matches}${candidate}"$'\n'
+              fi
+            done < <(git tag --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
+
+            match_count="$(printf '%s' "$matches" | awk 'NF { count++ } END { print count + 0 }')"
+            if (( match_count > 1 )); then
+              echo "multiple release tags match workflow commit $GITHUB_SHA" >&2
+              exit 1
+            fi
+            tag="$(printf '%s' "$matches" | awk 'NF { print; exit }')"
+          fi
+
+          if [[ -z "$tag" ]]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "unsupported release tag: $tag" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$tag" origin/main; then
+            echo "release tag is not on origin/main: $tag" >&2
+            exit 1
+          fi
+
+          release=""
+          release_error_file="$(mktemp)"
+          trap 'rm -f "$release_error_file"' EXIT
+          for attempt in {1..12}; do
+            if release="$(gh release view "$tag" --json databaseId,isDraft,isPrerelease,tagName 2>"$release_error_file")"; then
+              break
+            fi
+            if (( attempt == 12 )); then
+              cat "$release_error_file" >&2
+              echo "release $tag lookup failed after $attempt attempts" >&2
+              exit 1
+            fi
+            sleep 5
+          done
+          rm -f "$release_error_file"
+          trap - EXIT
+
+          if [[ "$(jq -r .tagName <<<"$release")" != "$tag" ]]; then
+            echo "release lookup returned the wrong tag" >&2
+            exit 1
+          fi
+          if [[ "$(jq -r .isPrerelease <<<"$release")" != "false" ]]; then
+            echo "stable release tag resolved to a prerelease: $tag" >&2
+            exit 1
+          fi
+
+          is_draft="$(jq -r .isDraft <<<"$release")"
+          {
+            echo "present=true"
+            echo "tag=$tag"
+            echo "version=${tag#v}"
+            echo "draft=$is_draft"
+            echo "published=$([[ "$is_draft" == "false" ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+      # The GitHub CLI uploader avoids the undici content-length failures seen in
+      # @semantic-release/github. Assets stay on the mutable draft until verified.
+      - name: Attach sideload ZIP to the release
+        if: steps.release-target.outputs.draft == 'true'
+        env:
+          GH_TOKEN: ${{ steps.release-bot.outputs.token }}
+          RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release-target.outputs.version }}
         run: |
           set -euo pipefail
           zip="dist/release/putio-roku-v${RELEASE_VERSION}.zip"
+          if [[ ! -f "$zip" ]]; then
+            node scripts/prepare-release.ts "$RELEASE_VERSION"
+          fi
           test -f "$zip"
           for attempt in 1 2 3; do
-            if gh release upload "v${RELEASE_VERSION}" "$zip" --clobber; then
-              echo "attached $zip to v${RELEASE_VERSION}"
+            if gh release upload "$RELEASE_TAG" "$zip" --clobber; then
+              echo "attached $zip to $RELEASE_TAG"
               exit 0
             fi
             echo "upload attempt ${attempt} failed; retrying in 5s..." >&2
@@ -144,8 +223,48 @@ jobs:
           echo "::error::failed to attach ${zip} after 3 attempts" >&2
           exit 1
 
+      - name: Verify and publish draft release
+        if: steps.release-target.outputs.draft == 'true'
+        env:
+          GH_TOKEN: ${{ steps.release-bot.outputs.token }}
+          RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release-target.outputs.version }}
+        run: |
+          set -euo pipefail
+          expected="putio-roku-v${RELEASE_VERSION}.zip"
+          release="$(gh release view "$RELEASE_TAG" --json assets,isDraft,isPrerelease)"
+          [[ "$(jq -r .isDraft <<<"$release")" == "true" ]]
+          [[ "$(jq -r .isPrerelease <<<"$release")" == "false" ]]
+          [[ "$(jq -r --arg expected "$expected" '[.assets[].name] == [$expected]' <<<"$release")" == "true" ]]
+          gh release edit "$RELEASE_TAG" --draft=false --latest
+
+      - name: Verify published release
+        if: steps.release-target.outputs.present == 'true'
+        id: finalized
+        env:
+          GH_TOKEN: ${{ steps.release-bot.outputs.token }}
+          RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release-target.outputs.version }}
+        run: |
+          set -euo pipefail
+          expected="putio-roku-v${RELEASE_VERSION}.zip"
+          for attempt in {1..12}; do
+            release="$(gh release view "$RELEASE_TAG" --json assets,isDraft,isPrerelease)"
+            if [[ "$(jq -r .isDraft <<<"$release")" == "false" ]] &&
+               [[ "$(jq -r .isPrerelease <<<"$release")" == "false" ]] &&
+               [[ "$(jq -r --arg expected "$expected" '[.assets[].name] == [$expected]' <<<"$release")" == "true" ]]; then
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if (( attempt == 12 )); then
+              echo "release $RELEASE_TAG did not reach the expected published state" >&2
+              exit 1
+            fi
+            sleep 5
+          done
+
   deploy:
-    if: ${{ needs.release.outputs.new_release_published == 'true' }}
+    if: ${{ needs.release.outputs.release_ready == 'true' }}
     name: Deploy released ZIP
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -183,7 +302,7 @@ jobs:
       - name: Prepare hosted release payload
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ needs.release.outputs.new_release_version }}
+          RELEASE_VERSION: ${{ needs.release.outputs.release_version }}
         run: |
           set -euo pipefail
 
