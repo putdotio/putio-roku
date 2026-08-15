@@ -15,14 +15,7 @@
   </interface>
 
 	<children>
-		<Overhang
-			id="overhang"
-			showClock="false"
-			logoUri="pkg:/images/OverhangLogo.png"
-			logoBaselineOffset="9"
-			showOptions="true"
-			optionsAvailable="false"
-		/>
+		<ScreenHeader id="screenHeader" showOptions="true" />
 
 		<MarkupList
 			id="list"

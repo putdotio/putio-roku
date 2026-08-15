@@ -37,9 +37,14 @@ sub initAppDialog()
     applyDialogScrim(m.scrim)
     applyDialogPanelColors(m.panel, m.panelShadow, m.panelBorderTop, m.panelBorderRight, m.panelBorderBottom, m.panelBorderLeft)
     applyDialogTextColors(m.titleLabel, invalid)
+    applyTypography(m.titleLabel, "h1")
     setDialogNodeColor(m.divider, "border")
     for each label in m.messageLabels
         setDialogNodeColor(label, "textMuted")
+        applyTypography(label, "body")
+    end for
+    for each button in m.buttonNodes
+        applyTypography(button.label, "h2")
     end for
     updateDialogContent()
     updateDialogButtons()

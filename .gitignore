@@ -11,3 +11,9 @@ out/
 *.pkg
 *.zip
 dist/
+
+# Licensed brand fonts (GT America, etc.) are synced at dev time from the
+# private putio-static repo and must never be committed to this public repo.
+/fonts/*.otf
+/fonts/*.ttf
+/fonts/*.ttc

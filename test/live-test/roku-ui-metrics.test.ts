@@ -29,6 +29,22 @@ describe("Roku UI metrics", () => {
     }
   });
 
+  // "--" inside an XML comment is invalid XML, and Roku only reports it at sideload time as
+  // "Install Failure: Error parsing XML component <file>", long after verify has passed.
+  it("keeps component XML comments free of double hyphens", () => {
+    const offenders: string[] = [];
+
+    for (const filePath of listRepoFiles(componentsRoot, ".xml")) {
+      for (const comment of readRepoFile(filePath).matchAll(/<!--([\s\S]*?)-->/g)) {
+        if (comment[1].includes("--")) {
+          offenders.push(filePath);
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   it("keeps DialogStyle consumers wired to the shared FHD metrics helper", () => {
     const dialogStyleXmlFiles = listRepoFiles(componentsRoot, ".xml").filter((filePath) =>
       readRepoFile(filePath).includes("DialogStyle/DialogStyle.brs"),

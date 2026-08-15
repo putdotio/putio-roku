@@ -13,6 +13,9 @@ sub ensureListItemNodes()
         setDialogNodeColor(m.title, "text")
         setDialogNodeColor(m.description, "textMuted")
         setDialogNodeColor(m.value, "textMuted")
+        applyTypography(m.title, "h2")
+        applyTypography(m.description, "small")
+        applyTypography(m.value, "small")
     end if
 end sub
 

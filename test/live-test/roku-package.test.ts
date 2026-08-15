@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
 import {
   defaultTitleForVariant,
   packageRokuApp,
@@ -50,12 +51,21 @@ describe("Roku package variants", () => {
 
   it("renders variant manifest and build config overrides", async () => {
     const manifest = await renderVariantManifest(repoRoot, "lab", "put.io Lab");
-    const buildConfig = renderBuildConfig("lab", "9999");
+    const buildConfig = renderBuildConfig("lab", "9999", true);
 
     expect(manifest).toContain("title=put.io Lab");
     expect(buildConfig).toContain('return "lab"');
     expect(buildConfig).toContain("return true");
     expect(buildConfig).toContain('return "9999"');
+  });
+
+  it("compiles brand font availability into the build config", () => {
+    expect(renderBuildConfig("production", "3776", true)).toContain(
+      "function buildConfigBrandFontsAvailable() as boolean\n    return true",
+    );
+    expect(renderBuildConfig("production", "3776", false)).toContain(
+      "function buildConfigBrandFontsAvailable() as boolean\n    return false",
+    );
   });
 
   it("writes a variant package ZIP", async () => {
@@ -72,6 +82,17 @@ describe("Roku package variants", () => {
     expect(result.outFile).toBe(join(repoRoot, outFile));
     expect(result.files).toContain("source/BuildConfig.brs");
     expect(existsSync(join(repoRoot, outFile))).toBe(true);
+
+    // The compiled availability flag and the payload must agree: a build advertising the
+    // brand face without bundling it leaves every migrated label resolving a missing
+    // pkg:/fonts URI. Holds in both states, so it is meaningful on a fonts-less CI checkout
+    // and on a maintainer machine with the faces synced.
+    const bundledFaces = result.files.filter((file) => file.startsWith("fonts/"));
+    expect(result.brandFontsBundled).toBe(bundledFaces.length > 0);
+    if (result.brandFontsBundled) {
+      const manifest = parseBrandFontManifest(JSON.parse(readFileSync(join(repoRoot, "config/brand-fonts.json"), "utf8")));
+      expect(bundledFaces.slice().sort()).toEqual(manifest.files.map((name) => `fonts/${name}`).sort());
+    }
   });
 
   it("defaults lab-enabled builds to Lab on normal app launch", () => {

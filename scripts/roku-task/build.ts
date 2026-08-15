@@ -5,12 +5,14 @@ import { generateRokuAssets } from "../generate-roku-assets.ts";
 import { generateRokuDesign } from "../generate-roku-design.ts";
 import { generateRokuIcons } from "../generate-roku-icons.ts";
 import { packageRokuApp } from "../package-roku.ts";
+import { checkBrandFonts, syncBrandFonts } from "../sync-brand-fonts.ts";
 import {
   appZipFile,
   artifactName,
   assertFile,
   repoRoot,
   run,
+  runCapture,
   runPnpm,
   selectedVariantConfig,
   tmpDir,
@@ -30,6 +32,36 @@ export async function packageRoku(config: VariantConfig): Promise<void> {
   });
   assertFile(outFile);
   console.log(`Packaged ${result.title} (${result.variant}) with ${result.fileCount} source files: ${result.outFile}`);
+  if (!result.brandFontsBundled) {
+    console.log(
+      "Packaged without licensed brand fonts; labels render in the Roku system font. Run pnpm roku fonts-setup to bundle GT America.",
+    );
+  }
+}
+
+export async function fontsSetup(): Promise<void> {
+  await syncBrandFonts(repoRoot);
+}
+
+export async function fontsCheck(): Promise<void> {
+  await checkBrandFonts(repoRoot);
+}
+
+export function checkRokuFontBinaries(): void {
+  // :(icase) matters: git pathspecs are case-sensitive, so a tracked GT-America.OTF would
+  // slip past a lowercase-only glob and land in this public repo.
+  const tracked = runCapture("git", [
+    "ls-files",
+    "--",
+    ":(icase)*.otf",
+    ":(icase)*.ttf",
+    ":(icase)*.ttc",
+  ]).trim();
+  if (tracked !== "") {
+    throw new Error(
+      `Licensed font binaries must never be committed to this public repo (see docs/FONTS.md):\n${tracked}`,
+    );
+  }
 }
 
 export function clean(): void {
@@ -101,6 +133,7 @@ export async function checkRokuIcons(): Promise<void> {
 
 export async function verify(): Promise<void> {
   clean();
+  checkRokuFontBinaries();
   checkRokuLive();
   await checkRokuDesign();
   await checkRokuAssets();

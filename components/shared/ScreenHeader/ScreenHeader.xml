@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="ScreenHeader" extends="Group">
+  <interface>
+    <field id="title" type="string" onChange="onScreenHeaderTitleChange" />
+    <!-- showOptions and optionsAvailable are forwarded in BrightScript rather than aliased:
+         the title reserves the options region only when the affordance is actually drawn,
+         which depends on both, and an aliased field fires no onChange to recompute the
+         width when a screen sets either of them after title. -->
+    <field id="showOptions" type="bool" value="false" onChange="onScreenHeaderOptionsChange" />
+    <field id="optionsAvailable" type="bool" value="false" onChange="onScreenHeaderOptionsChange" />
+    <field id="optionsText" type="string" alias="overhang.optionsText" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/ScreenHeader/ScreenHeader.brs" />
+
+  <children>
+    <!--
+      Roku's Overhang has no font field, so its title can never carry the brand face. It
+      keeps everything whose placement is resolution-sensitive - the logo and its baseline
+      offset, the options affordance, the background - and renders an empty title; the
+      title below is ours.
+    -->
+    <Overhang
+      id="overhang"
+      showClock="false"
+      logoUri="pkg:/images/OverhangLogo.png"
+      logoBaselineOffset="9"
+      title=""
+    />
+
+    <!-- Overhang only draws its own logo divider when it renders a title, so with the
+         title emptied we draw the divider too. Geometry lives in ScreenHeader.brs. -->
+    <Rectangle id="logoDivider" visible="false" />
+
+    <Label id="titleLabel" />
+  </children>
+</component>

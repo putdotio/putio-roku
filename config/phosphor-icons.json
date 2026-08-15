@@ -11,6 +11,7 @@
     { "asset": "file-text", "name": "file-text", "weight": "regular" },
     { "asset": "file-other", "name": "file", "weight": "regular" },
     { "asset": "eye", "name": "eye", "weight": "regular" },
+    { "asset": "check", "name": "check", "weight": "regular" },
     { "asset": "media-filter", "name": "funnel", "weight": "regular" },
     { "asset": "history", "name": "clock-counter-clockwise", "weight": "regular" },
     { "asset": "logout", "name": "sign-out", "weight": "regular" },

@@ -7,6 +7,8 @@
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerTrackMenu.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayer.brs" />
 
 	<interface>
@@ -55,14 +57,12 @@
         id="playerTitle"
         translation="[96,900]"
         width="1360"
-        font="font:LargeBoldSystemFont"
       />
 
       <Label
         id="trackSummary"
         translation="[96,923]"
         width="1360"
-        font="font:MediumSystemFont"
         visible="false"
       />
 
@@ -74,7 +74,6 @@
           id="playerPosition"
           translation="[0,52]"
           width="180"
-          font="font:SmallSystemFont"
           text="..:.."
         />
         <Poster
@@ -126,7 +125,6 @@
           id="playerDuration"
           translation="[1548,52]"
           width="180"
-          font="font:SmallSystemFont"
           horizAlign="right"
           text="..:.."
         />
@@ -167,7 +165,6 @@
             id="rewindLabel"
             translation="[0,0]"
             width="0"
-            font="font:SmallBoldSystemFont"
             text="15"
             visible="false"
           />
@@ -233,7 +230,6 @@
             id="fastForwardLabel"
             translation="[0,0]"
             width="0"
-            font="font:SmallBoldSystemFont"
             text="15"
             visible="false"
           />
@@ -249,7 +245,6 @@
             translation="[-86,-44]"
             width="260"
             height="36"
-            font="font:SmallSystemFont"
             horizAlign="center"
             text="Language"
             visible="false"
@@ -288,7 +283,6 @@
             translation="[-86,-44]"
             width="260"
             height="36"
-            font="font:SmallSystemFont"
             horizAlign="center"
             text="Subtitles"
             visible="false"
@@ -327,7 +321,6 @@
             translation="[-86,-44]"
             width="260"
             height="36"
-            font="font:SmallSystemFont"
             horizAlign="center"
             text="Speed"
             visible="false"

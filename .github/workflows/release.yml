@@ -115,6 +115,19 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         run: pnpm install --frozen-lockfile
 
+      # The licensed GT America faces are gitignored, so the checkout has none of them and the
+      # packaged app would silently fall back to the Roku system font. Fetch them from put.io's
+      # own CDN before semantic-release builds the artifact. No credential is involved: the
+      # faces are served over plain HTTPS from static.put.io. fonts-setup is the gate -- it
+      # fails on any download or validation problem, so reaching the build means every listed
+      # face is on disk and is a real GT America face. fonts-check then re-checks those bytes,
+      # but note it treats absence as a legitimate optional state, so it would not by itself
+      # catch a step that silently synced nothing.
+      - name: Sync licensed brand fonts
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          pnpm roku fonts-setup
+          pnpm roku fonts-check
 
       - name: Release Roku package
         if: github.event_name != 'workflow_dispatch'
@@ -192,6 +205,14 @@ jobs:
       - name: Install recovery dependencies
         if: github.event_name == 'workflow_dispatch' && steps.release-target.outputs.state == 'draft'
         run: pnpm install --frozen-lockfile
+
+      - name: Sync licensed brand fonts for recovery
+        if: github.event_name == 'workflow_dispatch' && steps.release-target.outputs.state == 'draft'
+        run: |
+          if [[ -f config/brand-fonts.json ]]; then
+            pnpm roku fonts-setup
+            pnpm roku fonts-check
+          fi
 
       # The GitHub CLI uploader avoids the undici content-length failures seen in
       # @semantic-release/github. Assets stay on the mutable draft until verified.

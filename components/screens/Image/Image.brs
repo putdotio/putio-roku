@@ -1,10 +1,9 @@
 function init()
     m.top.observeField("visible", "onVisibleChange")
-    applyAppOverhangColors(m.top.findNode("overhang"))
 
     m.image = m.top.findNode("renderedImage")
     m.loading = m.top.findNode("loading")
-    m.overhang = m.top.findNode("overhang")
+    m.screenHeader = m.top.findNode("screenHeader")
 
     m.image.observeField("loadStatus", "onImageLoad")
     layoutImage()
@@ -16,7 +15,7 @@ sub onVisibleChange()
         m.image.visible = "false"
         m.loading.visible = "true"
         m.image.uri = (m.global.apiURL + "/files/" + m.top.params.fileId.toStr() + "/download?oauth_token=" + m.global.user.download_token.toStr() + "")
-        m.overhang.title = m.top.params.fileName
+        m.screenHeader.title = m.top.params.fileName
     else
         m.image.uri = ""
     end if

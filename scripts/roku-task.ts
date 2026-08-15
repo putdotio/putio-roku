@@ -2,11 +2,14 @@ import {
   artifact,
   checkRokuAssets,
   checkRokuDesign,
+  checkRokuFontBinaries,
   checkRokuFormat,
   checkRokuIcons,
   checkRokuLive,
   checkRokuStatic,
   clean,
+  fontsCheck,
+  fontsSetup,
   icons,
   packageRoku,
   testLive,
@@ -77,6 +80,7 @@ const tasks: Record<string, Task> = {
   "check-roku-assets": checkRokuAssets,
   "check-roku-design": checkRokuDesign,
   "check-roku-dev-target": checkRokuDevTarget,
+  "check-roku-font-binaries": checkRokuFontBinaries,
   "check-roku-format": checkRokuFormat,
   "check-roku-icons": checkRokuIcons,
   "check-roku-live": checkRokuLive,
@@ -86,6 +90,8 @@ const tasks: Record<string, Task> = {
   console: attachConsole,
   "debug-snapshot": debugSnapshot,
   "device-info": deviceInfo,
+  "fonts-check": fontsCheck,
+  "fonts-setup": fontsSetup,
   install,
   "lab-install": labInstall,
   "lab-launch": labLaunch,
@@ -145,7 +151,7 @@ function printHelp(): void {
   console.log(`Usage: pnpm roku <task>
 
 Common:
-  verify smoke test-live build build-dev build-lab artifact run clean icons
+  verify smoke test-live build build-dev build-lab artifact run clean
 
 Device:
   check-roku-dev-target install launch remove console active-app device-info
@@ -157,6 +163,9 @@ Live:
 Lab and visuals:
   lab-install lab-screenshot visual-capture visual-capture-pages
   visual-capture-lab visual-validate visual-gallery
+
+Assets:
+  icons fonts-setup fonts-check
 
 Auth:
   secrets-setup secrets-clean putio-auth-status putio-auth-prepare

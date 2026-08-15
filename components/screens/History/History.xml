@@ -17,15 +17,7 @@
   </interface>
 
   <children>
-    <Overhang
-      id="overhang"
-      showClock="false"
-      title="History"
-      logoUri="pkg:/images/OverhangLogo.png"
-      logoBaselineOffset="9"
-      showOptions="true"
-      optionsAvailable="false"
-    />
+    <ScreenHeader id="screenHeader" title="History" showOptions="true" />
 
     <LoadingIndicator
       id="loading"

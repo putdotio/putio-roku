@@ -1,0 +1,10 @@
+{
+  "$description": "Licensed GT America faces fetched at dev time from put.io's own CDN by scripts/sync-brand-fonts.ts. The binaries are gitignored and must never be committed to this public repo. See docs/FONTS.md.",
+  "baseUrl": "https://static.put.io/fonts/gt-america/desktop/otf",
+  "family": "GT America",
+  "files": [
+    "gt-america-standard-regular.otf",
+    "gt-america-standard-medium.otf",
+    "gt-america-standard-bold.otf"
+  ]
+}

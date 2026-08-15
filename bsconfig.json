@@ -3,7 +3,8 @@
     "manifest",
     "source/**/*.*",
     "components/**/*.*",
-    "images/**/*.*"
+    "images/**/*.*",
+    "fonts/**/*.*"
   ],
   "plugins": ["@rokucommunity/bslint"],
   "lintConfig": "bslint.json",
