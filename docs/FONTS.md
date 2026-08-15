@@ -98,10 +98,12 @@ instead of silently falling back.
 ## Release builds
 
 The [Release](../.github/workflows/release.yml) workflow runs `pnpm roku fonts-setup` before
-semantic-release builds the artifact, so the published `v2.zip` ships GT America. No
-credential or token is involved — the faces come from `static.put.io` over plain HTTPS.
-`fonts-setup` fails the release on any download or validation problem, so reaching the build
-means every listed face is on disk and is a real GT America face.
+semantic-release builds the artifact and before reconstructing a font-enabled draft during
+release recovery, so the published `v2.zip` ships GT America. Recovery skips this step for
+older tags that have no brand-font manifest. No credential or token is involved — the faces
+come from `static.put.io` over plain HTTPS. `fonts-setup` fails the release on any download
+or validation problem, so reaching the build means every listed face is on disk and is a
+real GT America face.
 
 [CI](../.github/workflows/ci.yml) is verify-only and stays deliberately fonts-less: it is
 the standing proof that the system-font fallback still works.

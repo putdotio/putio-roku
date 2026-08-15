@@ -206,6 +206,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && steps.release-target.outputs.state == 'draft'
         run: pnpm install --frozen-lockfile
 
+      - name: Sync licensed brand fonts for recovery
+        if: github.event_name == 'workflow_dispatch' && steps.release-target.outputs.state == 'draft'
+        run: |
+          if [[ -f config/brand-fonts.json ]]; then
+            pnpm roku fonts-setup
+            pnpm roku fonts-check
+          fi
+
       # The GitHub CLI uploader avoids the undici content-length failures seen in
       # @semantic-release/github. Assets stay on the mutable draft until verified.
       - name: Attach sideload ZIP to the release

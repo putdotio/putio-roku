@@ -54,8 +54,11 @@ of GitHub Actions artifact storage.
 Run the release workflow from `main` with the exact existing tag. Recovery
 validates that the stable tag belongs to `main`, checks out that tag, and resumes
 its draft or production deploy. A draft rebuilds its ZIP only when needed and is
-published after exact asset validation. An already-published Release is
-validated but never mutated. An unavailable expected Release fails closed.
+published after exact asset validation. When the tag contains the brand-font
+manifest, recovery syncs and validates the licensed faces before rebuilding;
+older tags without that manifest keep their original font behavior. An
+already-published Release is validated but never mutated. An unavailable
+expected Release fails closed.
 
 ## GitHub Configuration
 
