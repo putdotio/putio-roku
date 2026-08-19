@@ -1332,8 +1332,8 @@ async function main(): Promise<void> {
   } else if (command === "auth-refresh-smoke") {
     await authRefreshSmoke(target);
   } else if (command === "auth-prepare") {
-    const [profile = process.env.PUTIO_CLI_PROFILE ?? "default"] = args;
-    await waitForAuthReady(target, profile);
+    const [rawProfile] = args;
+    await waitForAuthReady(target, putioProfileFromArg(rawProfile));
   } else if (command === "flow-smoke") {
     const [rawArtifactDir] = args;
     await runNamedFlowSuite(
