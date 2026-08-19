@@ -8,7 +8,7 @@ import { execFile as execFileCallback } from "node:child_process";
 
 const execFile = promisify(execFileCallback);
 
-const defaultProfile = "devs-fe-auto";
+const defaultProfile = "default";
 const defaultApiBaseUrl = "https://api.put.io";
 const totpAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
@@ -71,9 +71,9 @@ function usage(): never {
   node scripts/putio-auth-harness.ts auth-approve-device <device-code> [profile]
 
 environment:
-  PUTIO_CLI_PROFILE=devs-fe-auto
-  PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
-  PUTIO_TEST_USERNAME=devs+fe+auto@put.io
+  PUTIO_CLI_PROFILE=<profile-name>
+  PUTIO_CLI_CONFIG_PATH=.putio-cli/<profile-name>.json
+  PUTIO_TEST_USERNAME=<testing-account-email>
   PUTIO_TEST_PASSWORD=<secret>
   PUTIO_TEST_TOTP_REFERENCE=<base32-secret>
   PUTIO_CLIENT_ID_FIRST_PARTY=<oauth-client-id>

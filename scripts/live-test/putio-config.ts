@@ -13,7 +13,7 @@ type PutioCliConfig = {
 };
 
 export function putioProfileFromArg(rawProfile?: string): string {
-  return rawProfile?.trim() || process.env.PUTIO_CLI_PROFILE?.trim() || "devs-fe-auto";
+  return rawProfile?.trim() || process.env.PUTIO_CLI_PROFILE?.trim() || "default";
 }
 
 export async function setPlaybackTypeConfig(

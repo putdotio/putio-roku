@@ -19,7 +19,7 @@ export const zipDir = join(distDir, "apps");
 export const tmpDir = join(distDir, "tmp");
 export const artifactName = "putio-roku-v2.zip";
 
-const defaultProfile = "devs-fe-auto";
+const defaultProfile = "default";
 
 export function loadEnvFiles(paths: readonly string[]): void {
   for (let index = paths.length - 1; index >= 0; index -= 1) {

@@ -29,8 +29,8 @@ export function usage(): never {
 environment:
   ROKU_DEV_TARGET=<roku-ip> or ROKIT_TARGET=<roku-ip>
   ROKU_DEV_PASSWORD=<developer-mode-password> or ROKIT_PASSWORD=<developer-mode-password>
-  PUTIO_CLI_PROFILE=devs-fe-auto
-  PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
+  PUTIO_CLI_PROFILE=<profile-name>
+  PUTIO_CLI_CONFIG_PATH=.putio-cli/<profile-name>.json
   IMAGE_CONTENT_ID=<optional-image-file-id-for-image-flow-and-visual-pages>
   PLAYER_UI_REFERENCE_IMAGE=<optional-reference-image-path>`);
   process.exit(1);

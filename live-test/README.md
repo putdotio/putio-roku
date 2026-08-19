@@ -54,14 +54,18 @@ PLAYER_UI_REFERENCE_IMAGE=<path-to-reference-image>
 Optional for authenticated harness setup:
 
 ```bash
-PUTIO_CLI_PROFILE=devs-fe-auto
-PUTIO_CLI_CONFIG_PATH=.putio-cli/devs-fe-auto.json
+PUTIO_CLI_PROFILE=<profile-name>
+PUTIO_CLI_CONFIG_PATH=.putio-cli/<profile-name>.json
 PUTIO_TEST_USERNAME=<testing-account-username>
 PUTIO_TEST_PASSWORD=<testing-account-password>
 PUTIO_TEST_TOTP_REFERENCE=<testing-account-totp-secret>
 PUTIO_CLIENT_ID_FIRST_PARTY=<oauth-client-id>
 PUTIO_CLIENT_SECRET_FIRST_PARTY=<oauth-client-secret>
 ```
+
+Pick any local profile name; when unset, harness scripts fall back to the
+`default` profile at `.putio-cli/default.json`. Maintainers get the real
+profile values from the SOPS payload via `pnpm roku secrets-setup`.
 
 Keep `.env` and `.env.local` local. Device IPs, Developer Mode passwords,
 signing keys, and download tokens do not belong in git. `.putio-cli/` is ignored

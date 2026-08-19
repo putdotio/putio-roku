@@ -1332,7 +1332,7 @@ async function main(): Promise<void> {
   } else if (command === "auth-refresh-smoke") {
     await authRefreshSmoke(target);
   } else if (command === "auth-prepare") {
-    const [profile = process.env.PUTIO_CLI_PROFILE ?? "devs-fe-auto"] = args;
+    const [profile = process.env.PUTIO_CLI_PROFILE ?? "default"] = args;
     await waitForAuthReady(target, profile);
   } else if (command === "flow-smoke") {
     const [rawArtifactDir] = args;
