@@ -22,7 +22,11 @@ function designTokenColor(name as string) as string
         text: "0xEDEDEDFF",
         textInverse: "0x2A1E09FF",
         textMuted: "0xA0A0A0FF",
+        textOnVideo: "0xFFFFFFFF",
         transparent: "0x00000000",
+        videoBackground: "0x000000FF",
+        videoHeroScrimBottom: "0x050403FF",
+        videoHeroScrimTop: "0x1A1612FF",
     }
 
     if colors.doesExist(name)
