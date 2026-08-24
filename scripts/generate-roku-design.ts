@@ -38,7 +38,11 @@ const rokuTokens: readonly RokuToken[] = [
   { name: "text", key: "color.neutral.dark.text" },
   { name: "textInverse", key: "component.button.primary.foreground" },
   { name: "textMuted", key: "color.neutral.dark.textSecondary" },
+  { name: "textOnVideo", key: "tv.video.textOnVideo" },
   { name: "transparent", key: "surface.dark.listItemBg" },
+  { name: "videoBackground", key: "tv.video.background" },
+  { name: "videoHeroScrimBottom", key: "tv.video.heroScrimBottom" },
+  { name: "videoHeroScrimTop", key: "tv.video.heroScrimTop" },
 ];
 
 export async function generateRokuDesign(repoRoot: string): Promise<string> {
