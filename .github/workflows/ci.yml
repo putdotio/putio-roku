@@ -15,7 +15,7 @@ permissions:
 jobs:
   verify:
     name: Verify Roku app
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     permissions:
       contents: read
