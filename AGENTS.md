@@ -56,6 +56,8 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Private device details, passwords, and signing keys stay out of git
 - Source comments carry device quirks, invariants, and external constraints only; no section banners, no code narration, no commented-out debug code
 - Update docs when setup, validation, or delivery expectations change
+- Finish edits, `pnpm verify`, and Lab or live-test proof without pausing; ask before sideloading to a device someone else may be using, release actions, and secret changes
+- Done means `pnpm verify` passed and the change was proven in Lab or the matching live-test flow, with screenshots captured for visual changes
 
 ## Build And Config
 
