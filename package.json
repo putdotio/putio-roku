@@ -18,8 +18,8 @@
   "devDependencies": {
     "@phosphor-icons/core": "2.1.1",
     "@putdotio/design": "^3.0.0",
-    "@putdotio/rokit": "2.4.2",
-    "@putdotio/vref": "1.1.1",
+    "@putdotio/rokit": "2.4.6",
+    "@putdotio/vref": "1.2.4",
     "@resvg/resvg-js": "^2.6.2",
     "@rokucommunity/bslint": "0.8.44",
     "@types/node": "^26.1.2",
