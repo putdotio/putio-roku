@@ -5,6 +5,8 @@ export type StartFromChoice = "continue" | "beginning";
 
 export type AppFlowOptions = {
   readonly profile: string;
+  readonly filesFolderName?: string;
+  readonly filesFolderIndex?: number;
   readonly playbackContentId?: string;
   readonly imageContentId?: string;
   readonly audioContentId?: string;
@@ -25,6 +27,8 @@ export function appFlowOptionsFromArgs(args: readonly string[]): AppFlowOptions 
 
   return {
     profile: putioProfileFromArg(),
+    filesFolderName: emptyStringAsUndefined(process.env.FILES_FOLDER_NAME),
+    filesFolderIndex: filesFolderIndexFromEnv(process.env.FILES_FOLDER_INDEX),
     playbackContentId: emptyStringAsUndefined(rawPlaybackContentId),
     imageContentId: emptyStringAsUndefined(process.env.IMAGE_CONTENT_ID),
     audioContentId: emptyStringAsUndefined(rawAudioContentId),
@@ -46,4 +50,14 @@ export function startFromChoiceFromArg(value: string): StartFromChoice {
 export function emptyStringAsUndefined(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed === undefined || trimmed === "" ? undefined : trimmed;
+}
+
+function filesFolderIndexFromEnv(value: string | undefined): number | undefined {
+  const input = emptyStringAsUndefined(value);
+  if (input === undefined) return undefined;
+  const index = Number(input);
+  if (!/^\d+$/u.test(input) || !Number.isSafeInteger(index)) {
+    throw new Error("FILES_FOLDER_INDEX must be a non-negative integer");
+  }
+  return index;
 }

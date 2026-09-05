@@ -150,6 +150,19 @@ ids are `PLAYBACK_CONTENT_ID`, `IMAGE_CONTENT_ID`, `AUDIO_CONTENT_ID`, and
 need them. Failure snapshots go under `.local/roku-debug/` when ECP is still
 reachable.
 
+The `files` flow requires `FILES_FOLDER_NAME` and `FILES_FOLDER_INDEX` (zero-based).
+Prepare a root-level folder with that unique name at the configured row in the test
+account's current ordering. Its name must differ from the root title. Keep the fixture
+stable during the run; the harness does not create or modify it. For example:
+
+```bash
+FILES_FOLDER_NAME="Navigation fixture" FILES_FOLDER_INDEX=2 FLOWS=files pnpm roku live-test-flow
+```
+
+The flow requires the visible Files header to change to the exact fixture name, then
+requires Back to restore the original header and selected row. This also applies to
+the smoke and full suites, which include `files`. A missing fixture fails the run.
+
 ### Lab And Visuals
 
 | Use | Command | Inputs |

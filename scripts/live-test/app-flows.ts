@@ -9,6 +9,7 @@ import type { AppFlowOptions } from "./flow-options.ts";
 import type { FlowId, FlowRunContext } from "./flow-suite.ts";
 import {
   pressKey,
+  querySceneGraph,
   waitForSceneGraphAssertion,
 } from "./rokit-device.ts";
 import {
@@ -16,6 +17,7 @@ import {
   assertNamedNodeVisible,
   hasVisibleComponent,
   readListFocusIndex,
+  readNamedNodeIntegerAttribute,
 } from "./scenegraph.ts";
 import { rokuDesignColor } from "./design-colors.ts";
 
@@ -75,7 +77,7 @@ export async function runAppFlow(
       await driver.waitForAuthReady(context.target, options.profile);
       return;
     case "files":
-      await filesNavigationFlowSmoke(context.target, driver);
+      await filesNavigationFlowSmoke(context.target, options, driver);
       return;
     case "history":
       await historyFlowSmoke(context.target, options.historyExpectedText, driver);
@@ -169,19 +171,23 @@ async function authFlowSmoke(
 
 async function filesNavigationFlowSmoke(
   target: string,
+  options: AppFlowOptions,
   driver: Pick<
     AppFlowDriver,
-    | "assertListHasItems"
-    | "focusListItemByIndex"
-    | "openHomeItem"
-    | "returnToHomeScreen"
-    | "waitForAnyRouteScreenVisible"
+    "assertListHasItems" | "focusListItemByIndex" | "openHomeItem" | "returnToHomeScreen"
   >,
 ): Promise<void> {
+  const { filesFolderName, filesFolderIndex } = options;
+  if (filesFolderName === undefined || filesFolderIndex === undefined) {
+    throw new Error("files flow requires FILES_FOLDER_NAME and FILES_FOLDER_INDEX for a prepared root folder");
+  }
   await driver.returnToHomeScreen(target);
   await driver.openHomeItem(target, 0, "filesScreen");
   const fileCount = await driver.assertListHasItems(target, "fileList");
-  console.log(`asserted files list is populated: ${fileCount} item(s)`);
+  const originalTitle = readFilesFolderTitle(await querySceneGraph(target));
+  if (originalTitle === filesFolderName) {
+    throw new Error("files fixture must have a different title from the root folder");
+  }
 
   await driver.focusListItemByIndex(target, "fileList", 0);
   const visibleFileRows = 6;
@@ -202,15 +208,49 @@ async function filesNavigationFlowSmoke(
   } else {
     console.log(`files wrap check skipped: requires more than ${visibleFileRows} items`);
   }
+  await driver.focusListItemByIndex(target, "fileList", filesFolderIndex);
+  await waitForSceneGraphAssertion(target, "expected fixture folder focus", (xml) => {
+    assertFilesFolder(xml, originalTitle, filesFolderIndex);
+  }, 15_000);
   await pressKey(target, "Select");
-  await driver.waitForAnyRouteScreenVisible(
-    target,
-    ["filesScreen", "videoScreen", "audioScreen", "imageScreen", "videoPlayerScreen"],
-    30_000,
-  );
+  await waitForSceneGraphAssertion(target, "expected fixture folder destination", (xml) => {
+    assertFilesFolder(xml, filesFolderName);
+  }, 30_000);
   await pressKey(target, "Back");
-  await driver.waitForAnyRouteScreenVisible(target, ["filesScreen", "homeScreen"], 30_000);
-  console.log("asserted first files item opens and Back returns to a stable route");
+  await waitForSceneGraphAssertion(target, "expected original folder and focus after Back", (xml) => {
+    assertFilesFolder(xml, originalTitle, filesFolderIndex);
+  }, 30_000);
+  console.log("asserted fixture folder opens and Back restores the parent and selected row");
+}
+
+function filesScreenXml(xml: string): string {
+  const screen = /<FilesScreen\b[^>]*>[\s\S]*?<\/FilesScreen>/u.exec(xml)?.[0];
+  if (screen === undefined || !hasVisibleComponent(screen, "FilesScreen")) {
+    throw new Error("expected visible Files screen");
+  }
+  return screen;
+}
+
+function readFilesFolderTitle(xml: string): string {
+  const screen = filesScreenXml(xml);
+  const title = readNamedNodeAttribute(screen, "titleLabel", "text");
+  if (title === undefined || title === "") throw new Error("expected Files folder title");
+  return title;
+}
+
+function assertFilesFolder(xml: string, expectedTitle: string, focusIndex?: number): void {
+  const screen = filesScreenXml(xml);
+  assertNamedNodeText(screen, "titleLabel", expectedTitle);
+  assertNamedNodeHidden(screen, "loading");
+  if (focusIndex !== undefined) {
+    assertNamedNodeVisible(screen, "fileList");
+    const focusAttribute = readNamedNodeAttribute(screen, "fileList", "focusItem") === undefined
+      ? "itemFocused"
+      : "focusItem";
+    if (readNamedNodeIntegerAttribute(screen, "fileList", focusAttribute) !== focusIndex) {
+      throw new Error("expected Files selection to return to the fixture row");
+    }
+  }
 }
 
 async function historyFlowSmoke(
