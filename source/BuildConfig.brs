@@ -13,3 +13,7 @@ end function
 function buildConfigBrandFontsAvailable() as boolean
     return false
 end function
+
+function buildConfigSentryDsn() as string
+    return ""
+end function

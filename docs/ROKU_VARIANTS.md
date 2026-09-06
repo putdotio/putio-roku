@@ -35,6 +35,8 @@ Variant selection happens at the packaging boundary:
 - `ROKU_VARIANT=production|development|lab`
 - `ROKU_APP_TITLE` overrides the variant title
 - `PUTIO_ROKU_APP_ID` sets the put.io OAuth/app id in the generated build config
+- `PUTIO_ROKU_SENTRY_DSN` compiles the public Sentry DSN into the build config;
+  unset or empty disables runtime error reporting (see [Error reporting](#error-reporting))
 
 [scripts/package-roku.ts](../scripts/package-roku.ts) renders the variant
 manifest and `source/BuildConfig.brs` as package-time overrides, then delegates
@@ -72,3 +74,30 @@ Normal builds use the installed package, not a sibling checkout.
   [UiMetrics.brs](../components/shared/UiMetrics/UiMetrics.brs).
 - Do not generate Roku-native token files inside `putio-design`; this repo owns
   the Roku adaptation.
+
+## Error reporting
+
+Sentry has no BrightScript SDK, so the app posts envelopes straight to the
+Sentry ingest API:
+
+- [components/shared/Sentry/Sentry.brs](../components/shared/Sentry/Sentry.brs)
+  builds events with release, environment, device, OS, and user context on the
+  render thread and hands each one to a
+  [SentryTask](../components/shared/SentryTask/SentryTask.brs), which POSTs it
+  from a Task thread; screens never wait on the network
+- [components/shared/Sentry/PlaybackTelemetry.brs](../components/shared/Sentry/PlaybackTelemetry.brs)
+  turns a terminal `Video` failure into a `playback_failure` event that mirrors
+  the putio-web telemetry contract (`schema_version` 1): tags for grouping such
+  as `playback_failure_mode`, `roku_error_code`, `source_kind`, `stream_format`,
+  `video_codec`, and `roku_model`, plus extra with Roku `errorInfo`, the
+  redacted stream URL, and the file `media_info`
+- `VideoPlayer` reports before it stops the Video node because `control = "stop"`
+  clears `errorInfo`; `Video` reports failed file requests separately
+- Reporting is a no-op unless the package was built with `PUTIO_ROKU_SENTRY_DSN`;
+  the checked-in `source/BuildConfig.brs` keeps it empty so open-source clones
+  and local builds send nothing. The release workflow sets it from the
+  `PUTIO_ROKU_SENTRY_DSN` repository variable. A DSN carries only the public key
+  and is safe to ship, but packaging rejects values that do not look like
+  `https://<publicKey>@<host>/<projectId>` so a typo cannot silently drop every
+  report
+

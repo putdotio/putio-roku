@@ -51,7 +51,7 @@ end sub
 sub fetchFile(fileId)
     m.phase = "loadingFile"
     m.fetchFileTask.observeField("response", "onFetchFileResponse")
-    m.fetchFileTask.url = ("/files/list?parent_id=" + fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1&video_metadata_parent=1")
+    m.fetchFileTask.url = ("/files/list?parent_id=" + fileId.toStr() + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1&video_metadata_parent=1&media_info_parent=1&codecs_parent=1")
     m.fetchFileTask.method = "GET"
     m.fetchFileTask.control = "RUN"
 end sub
@@ -66,8 +66,39 @@ sub onFetchFileResponse(obj)
         handleFetchedFile()
     else
         hideLoading()
+        reportFetchFileFailure(data)
         showFetchFileErrorDialog(data)
     end if
+end sub
+
+sub reportFetchFileFailure(data)
+    if sentryIsEnabled() = false
+        return
+    end if
+
+    errorType = "none"
+    errorMessage = ""
+    if data <> invalid
+        if data.error_type <> invalid
+            errorType = data.error_type.toStr()
+        end if
+        if data.error_message <> invalid
+            errorMessage = data.error_message.toStr()
+        end if
+    end if
+
+    event = sentryCreateEvent("Roku video file request failed: " + errorType, "error")
+    event.fingerprint = ["roku-video-fetch-error", "error-type:" + errorType]
+    sentryAddTags(event, {
+        telemetry_event: "playback_source_request_failure",
+        source_request_error_type: errorType,
+    })
+    sentryAddExtra(event, {
+        file_id: m.top.params.fileId,
+        error_type: errorType,
+        error_message: errorMessage,
+    })
+    sentryCaptureEvent(event)
 end sub
 
 sub handleFetchedFile()

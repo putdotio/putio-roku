@@ -28,10 +28,14 @@ export async function packageRoku(config: VariantConfig): Promise<void> {
     outFile,
     putioAppId: process.env.PUTIO_ROKU_APP_ID,
     repoRoot,
+    sentryDsn: process.env.PUTIO_ROKU_SENTRY_DSN,
     variant: config.variant,
   });
   assertFile(outFile);
   console.log(`Packaged ${result.title} (${result.variant}) with ${result.fileCount} source files: ${result.outFile}`);
+  if (!result.sentryEnabled) {
+    console.log("Packaged without a Sentry DSN; runtime error reporting is disabled.");
+  }
   if (!result.brandFontsBundled) {
     console.log(
       "Packaged without licensed brand fonts; labels render in the Roku system font. Run pnpm roku fonts-setup to bundle GT America.",

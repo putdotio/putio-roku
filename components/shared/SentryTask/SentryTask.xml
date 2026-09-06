@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SentryTask" extends="task">
+  <script type="text/brightscript" uri="pkg:/components/shared/SentryTask/SentryTask.brs" />
+
+  <interface>
+    <field id="dsn" type="string" />
+    <field id="event" type="assocarray" />
+    <field id="responseCode" type="integer" value="0" />
+    <field id="done" type="bool" value="false" alwaysNotify="true" />
+  </interface>
+</component>
