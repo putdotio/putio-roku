@@ -24,11 +24,9 @@ sub send()
     http = createObject("roUrlTransfer")
     http.setPort(port)
     http.retainBodyOnError(true)
-    ' Mirrors HttpTask: older Roku OS CA bundles reject some modern chains, and the
-    ' payload carries no credential worth protecting from an active attacker.
+    ' Events carry the user id and file names, so unlike HttpTask this keeps peer and
+    ' host verification on; a failed handshake drops the event instead of leaking it.
     http.setCertificatesFile("common:/certs/ca-bundle.crt")
-    http.enableHostVerification(false)
-    http.enablePeerVerification(false)
     http.initClientCertificates()
     http.setUrl(dsn.envelopeUrl)
     http.addHeader("Content-Type", "application/x-sentry-envelope")

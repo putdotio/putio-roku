@@ -10,24 +10,46 @@ sub sentryCaptureEvent(event as object)
         return
     end if
 
-    if m.sentryTasks = invalid
-        m.sentryTasks = []
-    end if
-
-    ' Keep in-flight tasks referenced; an unreferenced Task node can be collected mid-request.
-    activeTasks = []
-    for each task in m.sentryTasks
-        if task.done = false
-            activeTasks.push(task)
-        end if
-    end for
-    m.sentryTasks = activeTasks
-
     task = createObject("roSGNode", "SentryTask")
+    task.id = "sentryTask"
     task.dsn = buildConfigSentryDsn()
     task.event = event
+    sentryRetainTask(task)
     task.control = "RUN"
-    m.sentryTasks.push(task)
+end sub
+
+' An unreferenced Task node can be collected mid-request, and the reporting screen is
+' popped as soon as its failure dialog closes, so in-flight tasks hang off the scene's
+' sentryTasks group rather than the screen. Finished tasks are pruned on the next capture.
+sub sentryRetainTask(task as object)
+    holder = invalid
+    scene = m.top.getScene()
+    if scene <> invalid
+        holder = scene.findNode("sentryTasks")
+    end if
+
+    if holder = invalid
+        if m.sentryTasks = invalid
+            m.sentryTasks = []
+        end if
+        activeTasks = []
+        for each activeTask in m.sentryTasks
+            if activeTask.done = false
+                activeTasks.push(activeTask)
+            end if
+        end for
+        activeTasks.push(task)
+        m.sentryTasks = activeTasks
+        return
+    end if
+
+    for i = holder.getChildCount() - 1 to 0 step -1
+        child = holder.getChild(i)
+        if child.done
+            holder.removeChildIndex(i)
+        end if
+    end for
+    holder.appendChild(task)
 end sub
 
 function sentryCreateEvent(message as string, level as string) as object
