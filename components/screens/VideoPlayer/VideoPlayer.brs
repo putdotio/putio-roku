@@ -152,6 +152,8 @@ function init()
     m.errorDialog = invalid
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
+    m.playbackStarted = false
+    m.playbackAttemptTimer = CreateObject("roTimespan")
 end function
 
 sub applyPlayerColors()
@@ -310,6 +312,8 @@ sub resetPlaybackState()
     m.errorDialog = invalid
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
+    m.playbackStarted = false
+    m.playbackAttemptTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
@@ -406,6 +410,10 @@ sub onPlayerStateChanged(obj)
 
     if state = "playing" or state = "buffering"
         enforcePlaybackSpeed()
+    end if
+
+    if state = "playing"
+        m.playbackStarted = true
     end if
 
     updatePlayIcon()
@@ -1318,11 +1326,30 @@ sub handlePlaybackError()
     m.hasPlaybackError = true
     updateBufferingOverlay(false)
     m.osdTimer.control = "stop"
+    reportPlaybackFailure()
     m.video.control = "stop"
 
     if m.errorDialogShown = false
         showPlaybackErrorDialog()
     end if
+end sub
+
+' Reads the Video node before control = "stop" clears errorInfo, then hands off to a task.
+sub reportPlaybackFailure()
+    if m.errorDialogShown or sentryIsEnabled() = false
+        return
+    end if
+
+    sentryCaptureEvent(createPlaybackFailureEvent({
+        video: m.video,
+        file: m.top.params.file,
+        streamInfo: m.currentStreamInfo,
+        playbackType: getConfiguredPlaybackType(),
+        playbackStarted: m.playbackStarted,
+        position: getDisplayedPosition(),
+        duration: m.duration,
+        timeToErrorMs: m.playbackAttemptTimer.totalMilliseconds(),
+    }))
 end sub
 
 function hasVideoErrorInfo() as boolean
@@ -1348,23 +1375,7 @@ sub showPlaybackErrorDialog()
 end sub
 
 function getPlaybackErrorDialogMessage() as string
-    message = getSafeVideoErrorMessage()
-    if message = ""
-        message = "Roku could not play this video."
-    end if
-
-    sourceLabel = getCurrentPlaybackSourceLabel()
-    if sourceLabel <> ""
-        message = message + chr(10) + "Source: " + sourceLabel
-    end if
-
-    code = getSafeVideoErrorCode()
-    if code <> ""
-        message = message + chr(10) + "Roku error code: " + code
-    end if
-
-    message = message + chr(10) + chr(10) + "Try another video playback type in Settings if this keeps happening."
-    return message
+    return buildPlaybackErrorDialogMessage(getSafeVideoErrorMessage(), getCurrentPlaybackSourceLabel(), getSafeVideoErrorCode())
 end function
 
 function getSafeVideoErrorMessage() as string

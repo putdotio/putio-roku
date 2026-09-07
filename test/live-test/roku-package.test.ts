@@ -8,6 +8,7 @@ import {
   parseVariant,
   renderBuildConfig,
   renderVariantManifest,
+  validatedSentryDsn,
 } from "../../scripts/package-roku.ts";
 
 const repoRoot = process.cwd();
@@ -66,6 +67,19 @@ describe("Roku package variants", () => {
     expect(renderBuildConfig("production", "3776", false)).toContain(
       "function buildConfigBrandFontsAvailable() as boolean\n    return false",
     );
+  });
+
+  it("compiles the Sentry DSN into the build config and rejects malformed values", () => {
+    expect(renderBuildConfig("production", "3776", false)).toContain(
+      'function buildConfigSentryDsn() as string\n    return ""',
+    );
+    expect(
+      renderBuildConfig("production", "3776", false, "https://abc123@o804.ingest.us.sentry.io/4509999"),
+    ).toContain('return "https://abc123@o804.ingest.us.sentry.io/4509999"');
+    expect(validatedSentryDsn("  ")).toBe("");
+    expect(() => validatedSentryDsn("https://abc123@o804.ingest.us.sentry.io/")).toThrow("PUTIO_ROKU_SENTRY_DSN");
+    expect(() => validatedSentryDsn("abc123@o804.ingest.us.sentry.io/1")).toThrow("PUTIO_ROKU_SENTRY_DSN");
+    expect(() => validatedSentryDsn('https://a"b@host/1')).toThrow("PUTIO_ROKU_SENTRY_DSN");
   });
 
   it("writes a variant package ZIP", async () => {

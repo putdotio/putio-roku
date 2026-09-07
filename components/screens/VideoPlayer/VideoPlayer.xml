@@ -5,9 +5,12 @@
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/PlaybackErrorMessage.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerTrackMenu.brs" />
   <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Sentry/Sentry.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Sentry/PlaybackTelemetry.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayer.brs" />
 

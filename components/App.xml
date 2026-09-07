@@ -20,5 +20,7 @@
       id="appDialog"
       visible="false"
     />
+
+    <Group id="sentryTasks" />
   </children>
 </component>

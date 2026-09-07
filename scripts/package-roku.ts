@@ -10,6 +10,8 @@ export interface RokuPackageOptions {
   readonly outFile: string;
   readonly putioAppId?: string;
   readonly repoRoot: string;
+  // Public Sentry DSN compiled into the package. Empty disables reporting at runtime.
+  readonly sentryDsn?: string;
   readonly variant: RokuVariant;
 }
 
@@ -18,6 +20,7 @@ export interface RokuPackageResult {
   readonly fileCount: number;
   readonly files: readonly string[];
   readonly outFile: string;
+  readonly sentryEnabled: boolean;
   readonly title: string;
   readonly variant: RokuVariant;
 }
@@ -46,7 +49,7 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
         path: "manifest",
       },
       {
-        contents: renderBuildConfig(options.variant, options.putioAppId ?? "3776", brandFontsBundled),
+        contents: renderBuildConfig(options.variant, options.putioAppId ?? "3776", brandFontsBundled, options.sentryDsn ?? ""),
         path: "source/BuildConfig.brs",
       },
     ],
@@ -59,6 +62,7 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
     fileCount: result.fileCount,
     files: result.files,
     outFile,
+    sentryEnabled: validatedSentryDsn(options.sentryDsn ?? "") !== "",
     title,
     variant: options.variant,
   };
@@ -119,6 +123,7 @@ export function renderBuildConfig(
   variant: RokuVariant,
   putioAppId: string,
   brandFontsAvailable: boolean,
+  sentryDsn = "",
 ): string {
   return `function buildConfigVariant() as string
     return "${brightScriptString(variant)}"
@@ -135,7 +140,26 @@ end function
 function buildConfigBrandFontsAvailable() as boolean
     return ${brandFontsAvailable ? "true" : "false"}
 end function
+
+function buildConfigSentryDsn() as string
+    return "${brightScriptString(validatedSentryDsn(sentryDsn))}"
+end function
 `;
+}
+
+// A DSN carries only the public key, so it is safe to ship, but a typo would make every
+// report silently vanish: reject anything that is not https://<key>@<host>/<projectId>.
+export function validatedSentryDsn(value: string): string {
+  const dsn = value.trim();
+  if (dsn === "") {
+    return "";
+  }
+
+  if (!/^https:\/\/[A-Za-z0-9]+@[A-Za-z0-9.-]+(?::\d+)?(?:\/[A-Za-z0-9._-]+)*\/\d+$/.test(dsn)) {
+    throw new Error("PUTIO_ROKU_SENTRY_DSN must look like https://<publicKey>@<host>/<projectId>");
+  }
+
+  return dsn;
 }
 
 function shouldIncludeFile(relativePath: string, variant: RokuVariant): boolean {

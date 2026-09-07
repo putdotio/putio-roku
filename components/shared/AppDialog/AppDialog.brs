@@ -15,7 +15,7 @@ sub initAppDialog()
     m.titleLabel = m.top.findNode("titleLabel")
     m.divider = m.top.findNode("divider")
     m.messageLabels = []
-    for i = 0 to 5
+    for i = 0 to 7
         m.messageLabels.push(m.top.findNode("messageLine" + i.toStr()))
     end for
     m.buttonsGroup = m.top.findNode("buttonsGroup")
@@ -293,7 +293,8 @@ end sub
 
 function wrapAppDialogMessageLines(message as string, maxLineLength as integer) as object
     lines = []
-    maxLines = 6
+    ' 8 body lines plus two buttons is 807px in FHD; anything taller crowds the 1080 frame.
+    maxLines = 8
 
     if message = invalid or message = ""
         return lines
@@ -355,7 +356,8 @@ sub appendWrappedAppDialogLines(lines as object, text as string, maxLineLength a
         end if
     end while
 
-    if (remaining <> "" or hasMoreText) and lines.count() > 0
+    ' Only a hard line cap truncates; a paragraph followed by more text is not cut off.
+    if lines.count() >= maxLines and (remaining <> "" or hasMoreText)
         lines[lines.count() - 1] = abbreviateAppDialogLine(lines[lines.count() - 1], maxLineLength)
     end if
 end sub

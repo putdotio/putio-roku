@@ -31,6 +31,7 @@ export const visualLabStories = [
   ["screen-header", "ScreenHeader / branded title"],
   ["app-dialog-empty", "AppDialog / no message"],
   ["app-dialog-message", "AppDialog / message"],
+  ["app-dialog-playback-error", "AppDialog / playback error"],
   ["delete-dialog-short", "DeleteFileDialog / short file"],
   ["delete-dialog-long", "DeleteFileDialog / long file"],
   ["continue-watching", "ContinueWatchingPrompt"],
@@ -53,6 +54,7 @@ export type VisualLabStory = (typeof visualLabStories)[number];
 export const defaultVisualLabStoryIds = new Set<string>([
   "app-dialog-empty",
   "app-dialog-message",
+  "app-dialog-playback-error",
 ]);
 
 const labLaunchRetryCount = 24;

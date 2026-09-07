@@ -142,6 +142,7 @@ jobs:
             conventional-changelog-conventionalcommits@9.1.0
         env:
           GITHUB_TOKEN: ${{ steps.release-bot.outputs.token }}
+          PUTIO_ROKU_SENTRY_DSN: ${{ vars.PUTIO_ROKU_SENTRY_DSN }}
           GIT_AUTHOR_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
           GIT_AUTHOR_EMAIL: ${{ steps.release-bot-identity.outputs.user_id }}+${{ steps.release-bot.outputs.app-slug }}[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: ${{ steps.release-bot.outputs.app-slug }}[bot]
@@ -219,6 +220,7 @@ jobs:
         if: steps.release-target.outputs.state == 'draft'
         env:
           GH_TOKEN: ${{ steps.release-bot.outputs.token }}
+          PUTIO_ROKU_SENTRY_DSN: ${{ vars.PUTIO_ROKU_SENTRY_DSN }}
           RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
           RELEASE_VERSION: ${{ steps.release-target.outputs.version }}
         run: |

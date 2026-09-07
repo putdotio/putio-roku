@@ -308,6 +308,7 @@ function storyTitle(story: string): string | undefined {
   const titles: Record<string, string> = {
     "app-dialog-empty": "AppDialog / no message",
     "app-dialog-message": "AppDialog / message",
+    "app-dialog-playback-error": "AppDialog / playback error",
     "continue-watching": "ContinueWatchingPrompt",
     "continue-watching-beginning": "ContinueWatchingPrompt / beginning",
     "conversion-status-converting": "VideoConversionStatus / converting",

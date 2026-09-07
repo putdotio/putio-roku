@@ -140,6 +140,24 @@
         visible="false"
       />
 
+      <Label
+        id="messageLine6"
+        translation="[48,432]"
+        width="804"
+        height="45"
+        horizAlign="center"
+        visible="false"
+      />
+
+      <Label
+        id="messageLine7"
+        translation="[48,480]"
+        width="804"
+        height="45"
+        horizAlign="center"
+        visible="false"
+      />
+
       <Group id="buttonsGroup" translation="[48,135]">
         <Group id="button0">
           <Rectangle
