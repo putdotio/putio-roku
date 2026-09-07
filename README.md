@@ -33,6 +33,9 @@ After installation, sign in with your put.io account to:
 - adjust app settings
 - stream supported media on Roku
 
+Long file lists wrap around: press Up on the first item to reach the last,
+or Down on the last item to return to the first.
+
 ## Docs
 
 - [Sideloading guide](./docs/SIDELOADING.md) for device setup and ZIP installation

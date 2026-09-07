@@ -15,6 +15,7 @@ import {
   assertNamedNodeHidden,
   assertNamedNodeVisible,
   hasVisibleComponent,
+  readListFocusIndex,
 } from "./scenegraph.ts";
 import { rokuDesignColor } from "./design-colors.ts";
 
@@ -183,6 +184,23 @@ async function filesNavigationFlowSmoke(
   console.log(`asserted files list is populated: ${fileCount} item(s)`);
 
   await driver.focusListItemByIndex(target, "fileList", 0);
+  if (fileCount > 6) {
+    await pressKey(target, "Up");
+    await waitForSceneGraphAssertion(target, "files wrap from first to last", (xml) => {
+      if (readListFocusIndex(xml, "fileList") !== fileCount - 1) {
+        throw new Error("expected Up from the first file to focus the last file");
+      }
+    });
+    await pressKey(target, "Down");
+    await waitForSceneGraphAssertion(target, "files wrap from last to first", (xml) => {
+      if (readListFocusIndex(xml, "fileList") !== 0) {
+        throw new Error("expected Down from the last file to focus the first file");
+      }
+    });
+    console.log("asserted files list wraps in both directions");
+  } else {
+    console.log("files wrap check skipped: requires more than six items");
+  }
   await pressKey(target, "Select");
   await driver.waitForAnyRouteScreenVisible(
     target,
