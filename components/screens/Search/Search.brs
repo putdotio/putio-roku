@@ -221,8 +221,7 @@ end sub
 
 sub onPutSearchHistory()
     m.putSearchHistory.unobserveField("response")
-    ' Search history is best-effort; refetch regardless of whether the PUT failed.
-    fetchSearchHistory()
+    ' Keep local history after a best-effort save; a failed write must not restart initialization.
 end sub
 
 sub onFetchSearchHistory(obj)
@@ -234,7 +233,8 @@ sub onFetchSearchHistory(obj)
             m.searchHistoryItems = data.value
             updateSearchHistoryButtons(m.keyboard.text)
         else if data.status_code = 404 or data.status = "OK"
-            putSearchHistory(invalid)
+            m.searchHistoryItems = []
+            updateSearchHistoryButtons(m.keyboard.text)
         end if
     end if
 end sub
