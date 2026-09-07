@@ -223,12 +223,31 @@ async function filesNavigationFlowSmoke(
   console.log("asserted fixture folder opens and Back restores the parent and selected row");
 }
 
+// The inspector flattens the scene into self-closing tags in document order and links each
+// node to its parent through _sn/_psn serials, so a screen's subtree is the run of tags
+// whose parent chain reaches it. Some leaf nodes omit _psn and stay inside the current
+// subtree. The topmost visible Files screen is the last one listed.
 function filesScreenXml(xml: string): string {
-  const screen = /<FilesScreen\b[^>]*>[\s\S]*?<\/FilesScreen>/u.exec(xml)?.[0];
-  if (screen === undefined || !hasVisibleComponent(screen, "FilesScreen")) {
-    throw new Error("expected visible Files screen");
+  const tags = xml.match(/<[A-Za-z_][^>]*>/gu) ?? [];
+  const serialOf = (tag: string, attribute: "_sn" | "_psn"): string | undefined =>
+    new RegExp(`\\b${attribute}="([^"]*)"`, "u").exec(tag)?.[1];
+  let screenIndex = -1;
+  for (const [index, tag] of tags.entries()) {
+    if (/^<FilesScreen\b/u.test(tag) && !tag.includes('visible="false"')) screenIndex = index;
   }
-  return screen;
+  if (screenIndex === -1) throw new Error("expected visible Files screen");
+  const screenSerial = serialOf(tags[screenIndex] ?? "", "_sn");
+  if (screenSerial === undefined) throw new Error("expected Files screen serial");
+  const subtree = new Set([screenSerial]);
+  const scoped = [tags[screenIndex] ?? ""];
+  for (const tag of tags.slice(screenIndex + 1)) {
+    const parent = serialOf(tag, "_psn");
+    if (parent !== undefined && !subtree.has(parent)) break;
+    const serial = serialOf(tag, "_sn");
+    if (serial !== undefined) subtree.add(serial);
+    scoped.push(tag);
+  }
+  return scoped.join("\n");
 }
 
 function readFilesFolderTitle(xml: string): string {

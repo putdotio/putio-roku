@@ -8,12 +8,27 @@ const device = vi.hoisted(() => ({
   selectWorks: true,
   backWorks: true,
   restoreFocus: true,
+  extraHiddenFilesScreen: false,
   keys: [] as string[],
 }));
 
 function snapshot(): string {
   const focus = device.focusAttribute ? `${device.focusAttribute}="${device.focus}"` : "";
-  return `<Scene><SearchScreen visible="false"><Label name="titleLabel" text="Fixture folder" /></SearchScreen><FilesScreen name="filesScreen" visible="true"><ScreenHeader><Label name="titleLabel" text="${device.folder}" /></ScreenHeader><LoadingIndicator name="loading" visible="false" /><MarkupList name="fileList" visible="true" ${focus} count="4" /></FilesScreen></Scene>`;
+  return [
+    ...(device.extraHiddenFilesScreen
+      ? ['<FilesScreen _psn="1" _sn="20" name="filesScreen" visible="false"/>', '<Label _psn="20" _sn="21" name="titleLabel" text="Stale"/>']
+      : []),
+    '<SearchScreen _psn="1" _sn="2" name="searchScreen" visible="false"/>',
+    '<Label _psn="2" _sn="3" name="titleLabel" text="Fixture folder"/>',
+    '<FilesScreen _psn="1" _sn="4" name="filesScreen"/>',
+    '<ScreenHeader _psn="4" _sn="5" name="screenHeader"/>',
+    `<Label _psn="5" _sn="6" name="titleLabel" text="${device.folder}"/>`,
+    '<Rectangle _sn="99" visible="false"/>',
+    '<LoadingIndicator _psn="4" _sn="7" name="loading" visible="false"/>',
+    `<MarkupList _psn="4" _sn="8" name="fileList" ${focus} count="4"/>`,
+    '<HistoryScreen _psn="1" _sn="9" name="historyScreen" visible="false"/>',
+    '<Label _psn="9" _sn="10" name="titleLabel" text="History"/>',
+  ].join("\n");
 }
 
 vi.mock("../../scripts/live-test/rokit-device.ts", () => ({
@@ -56,7 +71,7 @@ const run = () => runAppFlow("files", { target: "synthetic", artifactDir: "unuse
 
 describe("Files navigation proof", () => {
   beforeEach(() => {
-    Object.assign(device, { folder: "Your Files", focus: 2, focusAttribute: "focusItem", selectWorks: true, backWorks: true, restoreFocus: true, keys: [] });
+    Object.assign(device, { folder: "Your Files", focus: 2, focusAttribute: "focusItem", selectWorks: true, backWorks: true, restoreFocus: true, extraHiddenFilesScreen: false, keys: [] });
   });
 
   it("requires a prepared fixture before sending keys", async () => {
@@ -73,6 +88,12 @@ describe("Files navigation proof", () => {
     device.selectWorks = false;
     await expect(run()).rejects.toThrow();
     expect(device.keys).toEqual(["Select"]);
+  });
+
+  it("scopes to the topmost visible Files screen when a hidden one precedes it", async () => {
+    device.extraHiddenFilesScreen = true;
+    await run();
+    expect(device.keys).toEqual(["Select", "Back"]);
   });
 
   it("accepts the inspector's itemFocused field", async () => {
