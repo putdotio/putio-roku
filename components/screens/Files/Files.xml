@@ -34,7 +34,7 @@
       drawFocusFeedback="true"
       drawFocusFeedbackOnTop="false"
       focusBitmapUri="pkg:/images/list-item-focus.9.png"
-      vertFocusAnimationStyle="fixedFocus"
+      vertFocusAnimationStyle="fixedFocusWrap"
       numRows="6"
     />
 
