@@ -184,7 +184,8 @@ async function filesNavigationFlowSmoke(
   console.log(`asserted files list is populated: ${fileCount} item(s)`);
 
   await driver.focusListItemByIndex(target, "fileList", 0);
-  if (fileCount > 6) {
+  const visibleFileRows = 6;
+  if (fileCount > visibleFileRows) {
     await pressKey(target, "Up");
     await waitForSceneGraphAssertion(target, "files wrap from first to last", (xml) => {
       if (readListFocusIndex(xml, "fileList") !== fileCount - 1) {
@@ -199,7 +200,7 @@ async function filesNavigationFlowSmoke(
     });
     console.log("asserted files list wraps in both directions");
   } else {
-    console.log("files wrap check skipped: requires more than six items");
+    console.log(`files wrap check skipped: requires more than ${visibleFileRows} items`);
   }
   await pressKey(target, "Select");
   await driver.waitForAnyRouteScreenVisible(
