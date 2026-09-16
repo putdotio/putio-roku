@@ -7,13 +7,13 @@ screenshots with stable names are committed here.
 
 On each release the committed gallery is published to
 `https://<ROKU_DOMAIN>/vref/` (served by the SST site alongside the hosted ZIP),
-so everything here must stay public-safe — see [Rules](#rules).
+so everything here must stay public-safe; see [Rules](#rules).
 
 The site retains objects (`purge: false`, so the versioned ZIP archive under
 `releases/` is never deleted). Screenshots use stable names and are overwritten
 in place each release, but a **removed or renamed** screenshot persists at its
 old URL until manually purged from the bucket. Treat the public-safe rule as the
-primary control — not after-the-fact removal (these files are already permanent
+primary control rather than after-the-fact removal (these files are already permanent
 in public git history regardless).
 
 ## Structure
@@ -72,7 +72,7 @@ pnpm roku visual-validate
 - Do not commit IP addresses, tokens, device passwords, or private account data.
 - Prefer exact Roku screenshots over reconstructed browser mockups.
 - Record with the brand faces bundled. Run `pnpm roku fonts-setup` before capturing and
-  confirm the build did not log "Packaged without licensed brand fonts" — a fonts-less
+  confirm the build did not log "Packaged without licensed brand fonts"; a fonts-less
   build silently falls back to the Roku system font, and `pnpm roku visual-validate`
   checks the manifest and files only, never pixels. Entries carry a `gt-america` tag so a
   mis-recorded batch is visible in the committed manifest. See [Font system](../docs/FONTS.md).

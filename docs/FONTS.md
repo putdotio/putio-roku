@@ -7,7 +7,7 @@ Roku app fetches them from put.io's own CDN at development and release time, and
 to the Roku system font when they are absent.
 
 Roku's `Font` node accepts TrueType/OpenType only. The `woff2` files the web surfaces load
-will not work here — the Roku app uses the desktop OTF cuts.
+will not work here; the Roku app uses the desktop OTF cuts.
 
 ## Licensing boundary
 
@@ -20,12 +20,12 @@ repository never becomes a distribution point**:
 - The built app bundles them, as does the CDN that already serves the family to the web
   surfaces; that is inherent to shipping a typeface
 - Do not subset, convert, rename, or re-host the faces, and do not add them to
-  `@putdotio/design` — `static.put.io` is the single source
+  `@putdotio/design`; `static.put.io` is the single source
 
 Note what this boundary does **not** claim. `static.put.io` serves the faces over plain
 HTTPS with no credential, so anyone who can read this repo can also run
-`pnpm roku fonts-setup` and obtain them. That is unchanged by anything here — the same CDN
-already serves the family to every web surface — and it is the reason the rule is scoped to
+`pnpm roku fonts-setup` and obtain them. That is unchanged by anything here (the same CDN
+already serves the family to every web surface), and it is the reason the rule is scoped to
 git rather than to access. What the repo controls is that the binaries are not in its tree,
 its history, or its packages.
 
@@ -43,7 +43,7 @@ fetch:
 ```
 
 - `pnpm roku fonts-setup` fetches every missing or invalid face into `fonts/`. It needs no
-  credential and no tooling beyond Node — just network access to `static.put.io`. Each
+  credential and no tooling beyond Node, just network access to `static.put.io`. Each
   download is validated **before** writing, the whole set is staged under the gitignored
   `dist/tmp` so the moves into `fonts/` are same-filesystem renames and an interrupted sync
   cannot leave a mixed set, and any face `fonts/` holds that the manifest does not list is
@@ -51,17 +51,17 @@ fetch:
 - `pnpm roku fonts-check` is offline and reports the state of `fonts/`
 
 Validation is what replaced digest pinning, and it is deliberately about *usability* rather
-than tamper-resistance — the bytes come from put.io's own CDN over TLS. A face is accepted
+than tamper-resistance; the bytes come from put.io's own CDN over TLS. A face is accepted
 only when it is a single OpenType/TrueType face (not a `.ttc` collection), every table in
 its directory lies inside the file, the tables Roku needs to render are present, and its
 name table declares the expected family. That covers the failure modes a CDN actually
 produces: a `200` carrying an error page, a half-finished download, or the wrong typeface
-under the right filename. The truncation case is the one worth naming — a partial file often
+under the right filename. The truncation case is the one worth naming: a partial file often
 keeps its name table intact, so the family reads fine while the outlines are gone, and only
 the table-bounds check catches it.
 
 `fonts-check` treats absent faces as a legitimate optional state and succeeds. It fails when
-a present face does not validate, or when `fonts/` holds a face the manifest does not list —
+a present face does not validate, or when `fonts/` holds a face the manifest does not list;
 either would ship bytes nothing has checked. It is deliberately **not** part of
 `pnpm verify`, because `pnpm verify` must pass on a fonts-less clone; that clone is a fully
 working development setup rendering in the Roku system font.
@@ -78,8 +78,8 @@ every one of them is present *and validates*. It compiles the same answer into t
 `source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`.
 
 Two properties matter here. Package roots are copied recursively, so bundling the `fonts/`
-directory would ship whatever else happened to be inside it — a nested
-`fonts/backup/unlicensed.otf`, say — while only the listed faces had been validated; listing
+directory would ship whatever else happened to be inside it (a nested
+`fonts/backup/unlicensed.otf`, say) while only the listed faces had been validated; listing
 the files makes what ships exactly what was checked. And availability is
 all-or-nothing, because a partial or corrupt set would flip the flag on while individual
 roles resolved to missing `pkg:/fonts/...` URIs, which Roku renders in the system font per
@@ -98,7 +98,7 @@ instead of silently falling back.
 The [Release](../.github/workflows/release.yml) workflow runs `pnpm roku fonts-setup` before
 semantic-release builds the artifact and before reconstructing a font-enabled draft during
 release recovery, so the published `v2.zip` ships GT America. Recovery skips this step for
-older tags that have no brand-font manifest. No credential or token is involved — the faces
+older tags that have no brand-font manifest. No credential or token is involved; the faces
 come from `static.put.io` over plain HTTPS. `fonts-setup` fails the release on any download
 or validation problem, so reaching the build means every listed face is on disk and is a
 real GT America face.
@@ -134,7 +134,7 @@ The character-count wrapping in `AppDialog`, `DeleteFileDialog` and
 `ContinueWatchingPrompt` is left exactly as it was, deliberately: the budgets are counted in
 characters, so wrap and truncation points are identical to the system font and the migration
 cannot change where a string breaks. Raising them would be a behaviour change needing its
-own measurement — note that while GT America is narrower on average, its digits measure
+own measurement. Note that while GT America is narrower on average, its digits measure
 105-107%, so a digit-heavy file name is *wider* than the system font rendered it and there
 is no blanket safety margin to spend.
 
@@ -152,7 +152,7 @@ for what a role is being compared against. Keep every size a multiple of the 3px
 
 GT America Standard carries **523 codepoints**: Latin, Turkish (including the dotted `İ` and
 dotless `ı` via its `locl` forms), and accented Latin. It has no Greek, Cyrillic, Hebrew,
-Arabic, Thai, CJK, Hiragana, Katakana, Hangul or emoji, and no symbol glyphs — notably no
+Arabic, Thai, CJK, Hiragana, Katakana, Hangul or emoji, and no symbol glyphs, notably no
 `✓` (U+2713), `✔`, `★`, or `▶`. Interface symbols come from the Phosphor icon set instead
 (see [Icon system](./ICONS.md)); do not reintroduce symbol characters as text.
 
@@ -162,11 +162,11 @@ as a placeholder box rather than as text. **This is not specific to the brand fa
 `typography-gt-america` Lab story renders Cyrillic and Japanese file names in both faces
 side by side, and the Roku system font shows hollow placeholder boxes for exactly the same
 characters where GT America shows crosshatched ones. Non-Latin file names were unreadable on
-this device before the migration and are equally unreadable after it — the brand face neither
+this device before the migration and are equally unreadable after it; the brand face neither
 causes nor fixes that. Serving those names properly would need a coverage-adequate face for
 user content, which is a separate piece of work; the Lab row exists so the state is visible
 rather than assumed.
 
 Its figures are proportional, and unevenly so (`1` is about 60% the width of `0`), so text
-whose digits change in place — clocks, counters, progress — needs a fixed-width container
+whose digits change in place (clocks, counters, progress) needs a fixed-width container
 or a measured layout rather than one that reflows per digit.
