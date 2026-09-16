@@ -6,8 +6,6 @@ If you believe you have found a security or privacy issue in this project, pleas
 
 - Email [devs@put.io](mailto:devs@put.io)
 
-Use private email for vulnerabilities or sensitive reports.
-
 ## Scope
 
 Useful reports usually include issues involving:
@@ -26,9 +24,7 @@ Useful reports usually include issues involving:
 
 ## Supported Versions
 
-This repo does not publish a separate supported-version matrix yet.
-
-Please report issues against the default branch or the latest deployed build when the issue is only reproducible there.
+Report issues against the default branch or the latest deployed build when the issue is only reproducible there.
 
 ## Disclosure
 

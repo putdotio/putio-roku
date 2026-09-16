@@ -13,7 +13,7 @@ PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup
 ```
 
 `pnpm roku secrets-setup` decrypts the SOPS payload and atomically writes an
-ignored mode-`0600` `.env.local`. SOPS must be able to discover your authorized
+ignored mode-`0600` `.env.local`; SOPS must be able to discover your authorized
 age identity. The generated file includes the approved put.io CLI profile,
 harness credentials, OAuth fields, Roku Developer Mode password, and the file
 IDs used by `pnpm roku live-test-flow-full`.
@@ -107,8 +107,7 @@ variables.
 | Attach BrightScript console | `pnpm roku console` | Optional: `ROKU_DEV_CONSOLE_PORT` |
 | Capture crash/debug state | `pnpm roku debug-snapshot` | Optional: `ROKU_DEBUG_ARTIFACT_DIR` |
 
-`pnpm smoke` type-checks the live-test harness, checks Roku formatting, runs
-BrighterScript/`bslint`, and builds a fresh sideload ZIP. `pnpm roku live-test`
+`pnpm smoke` is the same task as `pnpm verify`. `pnpm roku live-test`
 proves the Roku responds to ECP, exposes the developer installer, and returns
 active-app/device metadata.
 

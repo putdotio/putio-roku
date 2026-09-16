@@ -69,15 +69,7 @@ If you want to sideload a local branch instead of the published ZIP:
 3. Set `ROKU_DEV_PASSWORD` to the Developer Mode password if needed
 4. Run `pnpm sideload`
 
-Useful commands:
-
-- `pnpm smoke` runs the standard static checks and builds a fresh ZIP
-- `pnpm roku check-roku-dev-target` checks that the Roku developer endpoint is reachable
-- `pnpm roku live-test-install` builds, reinstalls, and launches this checkout on the device
-- `pnpm roku console` attaches to the BrightScript debug console on port `8085`
-- `pnpm verify` runs the Node-based Roku static checks and builds a fresh ZIP
-- `pnpm artifact` creates the production `dist/apps/putio-roku-v2.zip`
-
-Run `pnpm roku help` for the full task list. For hardware-backed debugging, see
-[Live Test](../live-test/README.md). For the full contributor workflow, see
-[Contributing](../CONTRIBUTING.md)
+`pnpm roku check-roku-dev-target` checks that the Roku developer endpoint is
+reachable; `pnpm roku help` lists the full task list. For hardware-backed
+debugging, see [Live Test](../live-test/README.md). For the full contributor
+workflow, see [Contributing](../CONTRIBUTING.md)

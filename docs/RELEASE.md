@@ -9,23 +9,18 @@ Official Roku sideload releases are semantic-release driven from `main`.
 - GitHub Releases attach `putio-roku-v<version>.zip`, for example [putio-roku-v2.8.4.zip](https://github.com/putdotio/putio-roku/releases/download/v2.8.4/putio-roku-v2.8.4.zip)
 
 `v2.zip` updates only from a verified published GitHub Release. Regular `main`
-pushes that do not produce a release leave the public ZIP unchanged.
-
-The Roku sideload release line follows the version encoded in `manifest`; semantic-release publishes matching `v<major>.<minor>.<build>` tags.
-
-Hosted immutable release ZIPs remain in the bucket after later releases. The SST deploy does not purge prior `releases/v2/` objects.
+pushes that do not produce a release leave the public ZIP unchanged. Hosted
+immutable release ZIPs remain in the bucket after later releases; the SST deploy
+does not purge prior `releases/v2/` objects.
 
 ## Versioning
 
-The Roku `manifest` is the source of truth for the checked-in app version. Release prep refuses to move the app backward from the manifest version, then syncs all version fields to the semantic-release version.
+The Roku `manifest` is the source of truth for the checked-in app version; semantic-release publishes matching `v<major>.<minor>.<build>` tags.
 
 - `manifest` owns `major_version`, `minor_version`, and zero-padded `build_version`
 - `package.json` uses the derived semantic version, for example `2.8.4`
 
-During a semantic-release run, `scripts/prepare-release.ts <version>` verifies that semantic-release is not trying to publish a version lower than the manifest, syncs the manifest and `package.json`, builds the ZIP with `pnpm artifact`, and stages the hosted and GitHub Release artifacts. The release bot then commits the version fields back to `main` with `[skip ci]`, so the Git tag, Roku manifest, and package metadata stay aligned.
-
-`pnpm artifact` always builds the production variant with the production title
-and app id, ignoring local development or Lab variant overrides.
+During a semantic-release run, `scripts/prepare-release.ts <version>` refuses to move the app backward from the manifest version, syncs the manifest and `package.json`, builds the ZIP with `pnpm artifact` (always the production variant, ignoring local development or Lab overrides), and stages the hosted and GitHub Release artifacts. The release bot then commits the version fields back to `main` with `[skip ci]`, so the Git tag, Roku manifest, and package metadata stay aligned.
 
 ## Flow
 
@@ -66,6 +61,7 @@ Release job environment: `release`
 
 - `PUTIO_RELEASE_BOT_CLIENT_ID`
 - `PUTIO_RELEASE_BOT_PRIVATE_KEY`
+- `PUTIO_ROKU_SENTRY_DSN` (see [Error reporting](./ROKU_VARIANTS.md#error-reporting))
 
 Production deploy job environment: `production`
 

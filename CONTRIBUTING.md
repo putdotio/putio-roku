@@ -16,12 +16,10 @@ you access to the shared encrypted test payload, render it first:
 PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup
 ```
 
-That decrypts the SOPS payload and atomically writes an ignored mode-`0600`
-`.env.local` with the shared put.io test account, OAuth fields, Roku Developer
-Mode password, and live-test fixture IDs. SOPS must be able to discover your
-authorized age identity. Keep using that same account for hardware-backed Roku checks so
-screenshots, file navigation, playback, and track-selection flows exercise
-stable fixtures.
+That writes an ignored mode-`0600` `.env.local` with the shared put.io test
+account, OAuth fields, Roku Developer Mode password, and live-test fixture IDs.
+Keep using that same account for hardware-backed Roku checks so screenshots,
+file navigation, playback, and track-selection flows exercise stable fixtures.
 
 If you are using your own local device or credentials, copy the sample file:
 
@@ -30,16 +28,8 @@ cp .env.example .env
 ```
 
 Then fill in the device and fixture values you have locally. Keep the device IP
-in `.env`; rerunning `secrets-setup` replaces `.env.local`. The SOPS setup
-command is only needed when you are using the shared test fixtures.
-
-Supported variables:
-
-- `ROKU_DEV_TARGET` or `ROKIT_TARGET` for the IP address of a developer-enabled Roku device
-- `ROKU_DEV_PASSWORD` or `ROKIT_PASSWORD` for the Roku Developer Mode password when authenticated installs are required
-- `ROKU_APP_ECP_ID` for the ECP app id to launch during live tests; defaults to `dev` for sideloaded packages
-- `PLAYBACK_CONTENT_ID`, `IMAGE_CONTENT_ID`, `AUDIO_CONTENT_ID`, and `SUBTITLE_CONTENT_ID` for the full hardware-backed live-test sweep
-- `PUTIO_CLI_PROFILE`, `PUTIO_CLI_CONFIG_PATH`, `PUTIO_TEST_USERNAME`, `PUTIO_TEST_PASSWORD`, `PUTIO_TEST_TOTP_REFERENCE`, `PUTIO_CLIENT_ID_FIRST_PARTY`, and `PUTIO_CLIENT_SECRET_FIRST_PARTY` for the put.io CLI harness
+in `.env`; rerunning `secrets-setup` replaces `.env.local`. The variables each
+check needs are listed in [Live Test setup](./live-test/README.md#setup).
 
 If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/SIDELOADING.md)
 
@@ -63,21 +53,10 @@ Build and reinstall the app on the configured Roku device:
 pnpm sideload
 ```
 
-`pnpm sideload` removes the previously installed developer app, builds a fresh ZIP, validates the target, and reinstalls the app.
+`pnpm sideload` removes the previously installed developer app, builds a fresh ZIP, validates the target, and reinstalls the app. `pnpm roku build-dev` and `pnpm roku build-lab` build explicit variants; `pnpm roku help` lists every helper task.
 
-Useful commands:
-
-- `pnpm verify` runs the full local gate and packages a fresh ZIP
-- `pnpm artifact` builds the production release-style ZIP
-- `pnpm sideload` builds, validates the target, and reinstalls the app
-- `pnpm roku help` lists Roku helper tasks
-- `pnpm roku build-dev` and `pnpm roku build-lab` build explicit variants
-- `pnpm roku live-test`, `pnpm roku live-test-control`, and
-  `CONTENT_ID=<file-id> pnpm roku live-test-playback` cover common hardware checks
-- `STORY=<story-id> pnpm roku lab-install` opens an isolated Lab story
-
-See [Live Test](./live-test/README.md) for the hardware-backed debugging flow.
-See [Roku variants and Lab](./docs/ROKU_VARIANTS.md) for the
+See [Live Test](./live-test/README.md) for hardware-backed checks and the
+debug loop, and [Roku variants and Lab](./docs/ROKU_VARIANTS.md) for the
 development/Lab packaging split and the Roku-specific design asset adapter.
 
 ## Validation
@@ -95,31 +74,23 @@ pnpm artifact
 ```
 
 `pnpm artifact` always rebuilds the production variant before writing
-`dist/apps/putio-roku-v2.zip`. `pnpm verify` always type-checks the live-test
+`dist/apps/putio-roku-v2.zip`. `pnpm verify` type-checks the live-test
 harness, checks Roku source formatting, runs Roku static checks, and creates a
 fresh app ZIP for the selected variant.
 
 ## Development Notes
 
-- Keep checked-in defaults open-source-safe
-- Keep device addresses, passwords, signing keys, and private release notes out of commits
-- Author Roku UI in 1920x1080 logical coordinates, but keep visible edges and common spacing on the 3px grid exposed by `components/shared/UiMetrics/UiMetrics.brs`; many Roku devices output 1280x720 screenshots from the FHD scene and scale by 2/3
-- Product glyphs use the pinned Phosphor icon system; edit `config/phosphor-icons.json` and run `pnpm roku icons` rather than hand-editing `images/icons/*.png`. See [Icon system](./docs/ICONS.md)
+- Source conventions, layout grid, icon and font pipelines, and secret boundaries: [Rules](./AGENTS.md#rules) and [Build And Config](./AGENTS.md#build-and-config) in `AGENTS.md`
 - Reserve source comments for device quirks, invariants, and external constraints the code cannot express, such as a Roku model's HLS behavior or a put.io API field's meaning. Do not add `''' Section` banners, restate the function name below them, or leave commented-out debug code; name a value instead of annotating a magic number
-- Brand typography uses commercially licensed GT America faces that are **not** part of this repo. They are optional: a clone without them builds, verifies, and runs, rendering in the Roku system font instead. Never commit font binaries — `pnpm verify` fails if git tracks an `.otf`, `.ttf`, or `.ttc`. Fetch them with `pnpm roku fonts-setup`, which pulls them from `static.put.io` and needs no credential. See [Font system](./docs/FONTS.md)
 - Prefer repo-relative doc links when adding or updating documentation
-- Update docs when sideloading, validation, CI, or release expectations change
 
 ## Pull Requests
 
 - Keep changes focused and explicit
 - Add or update validation when behavior changes
 - Prefer small follow-up pull requests over mixing unrelated cleanup into the same branch
-- Re-run `pnpm verify` before requesting review
 - Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; only curated `.vref/` references are committed
 
 ## CI And Delivery
 
-- [CI](https://github.com/putdotio/putio-roku/actions/workflows/ci.yml) runs `pnpm verify` on pull requests and pushes to `main`
-- [Release](https://github.com/putdotio/putio-roku/actions/workflows/release.yml) verifies first, then semantic-release publishes official ZIPs when Conventional Commits produce a release
-- Released ZIPs are published to [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and the [latest Roku v2 ZIP](https://roku.put.io/v2.zip)
+[CI](https://github.com/putdotio/putio-roku/actions/workflows/ci.yml) runs `pnpm verify` on pull requests and pushes to `main`. Release publishing, versioning, and recovery are in [Release workflow](./docs/RELEASE.md)

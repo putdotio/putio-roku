@@ -29,9 +29,6 @@ already serves the family to every web surface — and it is the reason the rule
 git rather than to access. What the repo controls is that the binaries are not in its tree,
 its history, or its packages.
 
-A clone without the faces is a fully working development setup. Every check in
-`pnpm verify` passes without them, and the app renders in the Roku system font.
-
 ## Syncing the faces
 
 `config/brand-fonts.json` names the CDN directory, the expected family, and the faces to
@@ -66,7 +63,8 @@ the table-bounds check catches it.
 `fonts-check` treats absent faces as a legitimate optional state and succeeds. It fails when
 a present face does not validate, or when `fonts/` holds a face the manifest does not list —
 either would ship bytes nothing has checked. It is deliberately **not** part of
-`pnpm verify`, because `pnpm verify` must pass on a fonts-less clone.
+`pnpm verify`, because `pnpm verify` must pass on a fonts-less clone; that clone is a fully
+working development setup rendering in the Roku system font.
 
 To change the faces, edit `config/brand-fonts.json` and run `pnpm roku fonts-setup`. A
 Vitest contract test (`test/live-test/brand-fonts.test.ts`) validates the manifest, exercises
