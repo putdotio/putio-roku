@@ -116,6 +116,7 @@ fresh app ZIP for the selected variant.
 - Add or update validation when behavior changes
 - Prefer small follow-up pull requests over mixing unrelated cleanup into the same branch
 - Re-run `pnpm verify` before requesting review
+- Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; only curated `.vref/` references are committed
 
 ## CI And Delivery
 
