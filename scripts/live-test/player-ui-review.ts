@@ -478,16 +478,22 @@ export function readImageDimensions(buffer: Buffer): { width: number; height: nu
 }
 
 function readWebpDimensions(buffer: Buffer): { width: number; height: number } {
+  const riffEnd = buffer.readUInt32LE(4) + 8;
   const chunk = buffer.toString("ascii", 12, 16);
+  const chunkSize = buffer.length >= 20 ? buffer.readUInt32LE(16) : 0;
+  // Chunks pad odd payloads to an even length.
+  const chunkEnd = 20 + chunkSize + (chunkSize % 2);
+  const hasBytes = (needed: number) =>
+    chunkSize >= needed && riffEnd <= buffer.length && chunkEnd <= riffEnd;
 
-  if (chunk === "VP8X" && buffer.length >= 30) {
+  if (chunk === "VP8X" && hasBytes(10)) {
     return {
       width: buffer.readUIntLE(24, 3) + 1,
       height: buffer.readUIntLE(27, 3) + 1,
     };
   }
 
-  if (chunk === "VP8L" && buffer.length >= 25 && buffer[20] === 0x2f) {
+  if (chunk === "VP8L" && hasBytes(5) && buffer[20] === 0x2f) {
     const bits = buffer.readUInt32LE(21);
     return {
       width: (bits & 0x3fff) + 1,
@@ -495,8 +501,7 @@ function readWebpDimensions(buffer: Buffer): { width: number; height: number } {
     };
   }
 
-  const hasVp8StartCode = buffer[23] === 0x9d && buffer[24] === 0x01 && buffer[25] === 0x2a;
-  if (chunk === "VP8 " && buffer.length >= 30 && hasVp8StartCode) {
+  if (chunk === "VP8 " && hasBytes(10) && buffer[23] === 0x9d && buffer[24] === 0x01 && buffer[25] === 0x2a) {
     return {
       width: buffer.readUInt16LE(26) & 0x3fff,
       height: buffer.readUInt16LE(28) & 0x3fff,
@@ -581,9 +586,11 @@ async function copyPlayerUiReferenceImages(outputDir: string): Promise<ReviewIma
     });
   }
 
-  const referenceDir =
-    process.env.PLAYER_UI_TV_NATIVE_REFERENCE_DIR ??
-    join(process.cwd(), "..", "putio-web", "apps", "tv-native", "docs", "captures", "android-tv");
+  const referenceDir = process.env.PLAYER_UI_TV_NATIVE_REFERENCE_DIR;
+  if (referenceDir === undefined) {
+    return referenceImages;
+  }
+
   const references: Array<ReviewImage & { source: string }> = [
     {
       alt: "tv-native Android player controls",
