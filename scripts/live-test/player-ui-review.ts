@@ -154,11 +154,17 @@ async function cleanupPlayerUiReviewArtifacts(outputDir: string): Promise<void> 
       "reference-tv-native.png",
       "reference-tv-native.webp",
       "reference-tv-native-audio-focus.png",
+      "reference-tv-native-audio-focus.webp",
       "reference-tv-native-audio-menu.png",
+      "reference-tv-native-audio-menu.webp",
       "reference-tv-native-controls.png",
+      "reference-tv-native-controls.webp",
       "reference-tv-native-progress.png",
+      "reference-tv-native-progress.webp",
       "reference-tv-native-speed-menu.png",
+      "reference-tv-native-speed-menu.webp",
       "reference-tv-native-subtitle-menu.png",
+      "reference-tv-native-subtitle-menu.webp",
       "review.html",
       "speed-button-focus.jpg",
       "speed-menu.jpg",
@@ -447,7 +453,7 @@ async function readPlayerUiImageMetadata(
   return metadata;
 }
 
-function readImageDimensions(buffer: Buffer): { width: number; height: number } {
+export function readImageDimensions(buffer: Buffer): { width: number; height: number } {
   const pngSignature = "89504e470d0a1a0a";
   if (buffer.subarray(0, 8).toString("hex") === pngSignature) {
     return {
@@ -460,7 +466,44 @@ function readImageDimensions(buffer: Buffer): { width: number; height: number } 
     return readJpegDimensions(buffer);
   }
 
+  if (
+    buffer.length >= 16 &&
+    buffer.toString("ascii", 0, 4) === "RIFF" &&
+    buffer.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return readWebpDimensions(buffer);
+  }
+
   throw new Error("unsupported image format in player UI review artifact");
+}
+
+function readWebpDimensions(buffer: Buffer): { width: number; height: number } {
+  const chunk = buffer.toString("ascii", 12, 16);
+
+  if (chunk === "VP8X" && buffer.length >= 30) {
+    return {
+      width: buffer.readUIntLE(24, 3) + 1,
+      height: buffer.readUIntLE(27, 3) + 1,
+    };
+  }
+
+  if (chunk === "VP8L" && buffer.length >= 25 && buffer[20] === 0x2f) {
+    const bits = buffer.readUInt32LE(21);
+    return {
+      width: (bits & 0x3fff) + 1,
+      height: ((bits >>> 14) & 0x3fff) + 1,
+    };
+  }
+
+  const hasVp8StartCode = buffer[23] === 0x9d && buffer[24] === 0x01 && buffer[25] === 0x2a;
+  if (chunk === "VP8 " && buffer.length >= 30 && hasVp8StartCode) {
+    return {
+      width: buffer.readUInt16LE(26) & 0x3fff,
+      height: buffer.readUInt16LE(28) & 0x3fff,
+    };
+  }
+
+  throw new Error("could not read WebP dimensions in player UI review artifact");
 }
 
 function readJpegDimensions(buffer: Buffer): { width: number; height: number } {
@@ -540,50 +583,42 @@ async function copyPlayerUiReferenceImages(outputDir: string): Promise<ReviewIma
 
   const referenceDir =
     process.env.PLAYER_UI_TV_NATIVE_REFERENCE_DIR ??
-    join(
-      process.cwd(),
-      "..",
-      "putio-frontend",
-      "docs",
-      "specs",
-      "tv-app",
-      "android-tv",
-    );
+    join(process.cwd(), "..", "putio-web", "apps", "tv-native", "docs", "captures", "android-tv");
   const references: Array<ReviewImage & { source: string }> = [
     {
       alt: "tv-native Android player controls",
-      filename: "reference-tv-native-controls.png",
-      source: "18-video-controls.png",
+      filename: "reference-tv-native-controls.webp",
+      source: "18-video-controls.webp",
       title: "tv-native controls reference",
     },
     {
       alt: "tv-native Android language button focus",
-      filename: "reference-tv-native-audio-focus.png",
-      source: "30-video-multi-audio-language-focus.png",
+      filename: "reference-tv-native-audio-focus.webp",
+      source: "30-video-multi-audio-language-focus.webp",
       title: "tv-native language focus reference",
     },
     {
       alt: "tv-native Android audio track picker",
-      filename: "reference-tv-native-audio-menu.png",
-      source: "31-video-language-picker.png",
+      filename: "reference-tv-native-audio-menu.webp",
+      source: "31-video-language-picker.webp",
       title: "tv-native audio menu reference",
     },
     {
       alt: "tv-native Android subtitle picker",
-      filename: "reference-tv-native-subtitle-menu.png",
-      source: "21-video-subtitles-picker.png",
+      filename: "reference-tv-native-subtitle-menu.webp",
+      source: "21-video-subtitles-picker.webp",
       title: "tv-native subtitle menu reference",
     },
     {
       alt: "tv-native Android speed picker",
-      filename: "reference-tv-native-speed-menu.png",
-      source: "20-video-speed-picker.png",
+      filename: "reference-tv-native-speed-menu.webp",
+      source: "20-video-speed-picker.webp",
       title: "tv-native speed menu reference",
     },
     {
       alt: "tv-native Android focused seek bar",
-      filename: "reference-tv-native-progress.png",
-      source: "28-video-seekbar-focused.png",
+      filename: "reference-tv-native-progress.webp",
+      source: "28-video-seekbar-focused.webp",
       title: "tv-native progress focus reference",
     },
   ];
