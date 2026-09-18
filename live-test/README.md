@@ -49,7 +49,12 @@ Optional for player UI screenshot review pages:
 
 ```bash
 PLAYER_UI_REFERENCE_IMAGE=<path-to-reference-image>
+PLAYER_UI_TV_NATIVE_REFERENCE_DIR=<path-to-android-tv-webp-captures>
 ```
+
+`PLAYER_UI_TV_NATIVE_REFERENCE_DIR` defaults to
+`../putio-web/apps/tv-native/docs/captures/android-tv` in a peer `putio-web`
+checkout; missing captures are skipped.
 
 Optional for authenticated harness setup:
 
