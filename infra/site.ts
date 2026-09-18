@@ -42,7 +42,7 @@ export function createRokuSite() {
           cacheControl: "public,max-age=300",
         },
         {
-          files: "vref/**/*.jpg",
+          files: "vref/**/*.webp",
           cacheControl: "public,max-age=86400",
         },
       ],
