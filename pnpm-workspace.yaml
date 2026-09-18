@@ -1,5 +1,6 @@
 allowBuilds:
   msgpackr-extract: true
+  sharp: true
 minimumReleaseAgeExclude:
   # First-party packages are trusted (we publish them), so exempt the whole
   # scope from the minimum-release-age policy that guards third-party publishes.
