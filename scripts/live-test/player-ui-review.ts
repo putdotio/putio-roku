@@ -481,8 +481,10 @@ function readWebpDimensions(buffer: Buffer): { width: number; height: number } {
   const riffEnd = buffer.readUInt32LE(4) + 8;
   const chunk = buffer.toString("ascii", 12, 16);
   const chunkSize = buffer.length >= 20 ? buffer.readUInt32LE(16) : 0;
-  const chunkEnd = 20 + chunkSize;
-  const hasBytes = (needed: number) => chunkSize >= needed && chunkEnd <= riffEnd && chunkEnd <= buffer.length;
+  // Chunks pad odd payloads to an even length.
+  const chunkEnd = 20 + chunkSize + (chunkSize % 2);
+  const hasBytes = (needed: number) =>
+    chunkSize >= needed && riffEnd <= buffer.length && chunkEnd <= riffEnd;
 
   if (chunk === "VP8X" && hasBytes(10)) {
     return {
