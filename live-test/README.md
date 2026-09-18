@@ -52,9 +52,10 @@ PLAYER_UI_REFERENCE_IMAGE=<path-to-reference-image>
 PLAYER_UI_TV_NATIVE_REFERENCE_DIR=<path-to-android-tv-webp-captures>
 ```
 
-`PLAYER_UI_TV_NATIVE_REFERENCE_DIR` defaults to
-`../putio-web/apps/tv-native/docs/captures/android-tv` in a peer `putio-web`
-checkout; missing captures are skipped.
+`PLAYER_UI_TV_NATIVE_REFERENCE_DIR` points at a folder of tv-native Android
+WebP captures (`18-video-controls.webp` and the other names listed in
+`scripts/live-test/player-ui-review.ts`). Unset, the review runs without those
+references; missing captures are skipped.
 
 Optional for authenticated harness setup:
 

@@ -51,4 +51,35 @@ describe("readImageDimensions", () => {
       /could not read WebP dimensions/,
     );
   });
+
+  it("rejects a chunk whose declared size is shorter than its header", () => {
+    const payload = Buffer.alloc(10);
+    payload.writeUIntLE(1920 - 1, 4, 3);
+    payload.writeUIntLE(1080 - 1, 7, 3);
+    const container = webpContainer("VP8X", payload);
+    container.writeUInt32LE(0, 16);
+
+    expect(() => readImageDimensions(container)).toThrow(/could not read WebP dimensions/);
+  });
+
+  it("rejects a chunk that extends past the declared RIFF size", () => {
+    const payload = Buffer.alloc(5);
+    payload[0] = 0x2f;
+    payload.writeUInt32LE((1920 - 1) | ((1080 - 1) << 14), 1);
+    const container = webpContainer("VP8L", payload);
+    container.writeUInt32LE(4, 4);
+
+    expect(() => readImageDimensions(container)).toThrow(/could not read WebP dimensions/);
+  });
+
+  it("rejects a truncated VP8 chunk", () => {
+    const payload = Buffer.alloc(10);
+    payload.set([0x9d, 0x01, 0x2a], 3);
+    payload.writeUInt16LE(1920, 6);
+    payload.writeUInt16LE(1080, 8);
+
+    expect(() => readImageDimensions(webpContainer("VP8 ", payload).subarray(0, 28))).toThrow(
+      /could not read WebP dimensions/,
+    );
+  });
 });
