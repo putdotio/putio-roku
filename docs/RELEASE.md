@@ -41,7 +41,7 @@ During a semantic-release run, `scripts/prepare-release.ts <version>` refuses to
 
 Release and production deploy jobs run fresh dependency installs with
 package-manager caching disabled and no persisted checkout credentials before
-publishing artifacts or assuming the AWS deploy role. The release App token is
+publishing artifacts or assuming the AWS deploy role. The GitHub App release token is
 minted after the initial install and font preparation; semantic-release receives
 it only at the release boundary. Recovery checkouts also leave Git credentials
 unpersisted. The deploy handoff uses the GitHub Release asset directly instead
