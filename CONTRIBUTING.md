@@ -93,4 +93,4 @@ fresh app ZIP for the selected variant.
 
 ## CI And Delivery
 
-[CI](https://github.com/putdotio/putio-roku/actions/workflows/ci.yml) runs `pnpm verify` on pull requests and pushes to `main`. Release publishing, versioning, and recovery are in [Release workflow](./docs/RELEASE.md)
+[CI](./.github/workflows/ci.yml) runs `pnpm verify` on pull requests. On pushes to `main`, [Release](./.github/workflows/release.yml) runs the same verification before release evaluation. Publishing, versioning, and recovery are in [Release workflow](./docs/RELEASE.md).
