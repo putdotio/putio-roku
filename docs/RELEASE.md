@@ -40,8 +40,11 @@ During a semantic-release run, `scripts/prepare-release.ts <version>` refuses to
    publishes `dist/public` to [roku.put.io](https://roku.put.io/v2.zip) with SST
 
 Release and production deploy jobs run fresh dependency installs with
-package-manager caching disabled before publishing artifacts or assuming the AWS
-deploy role. The deploy handoff uses the GitHub Release asset directly instead
+package-manager caching disabled and no persisted checkout credentials before
+publishing artifacts or assuming the AWS deploy role. The release App token is
+minted after the initial install and font preparation; semantic-release receives
+it only at the release boundary. Recovery checkouts also leave Git credentials
+unpersisted. The deploy handoff uses the GitHub Release asset directly instead
 of GitHub Actions artifact storage.
 
 ## Recover
