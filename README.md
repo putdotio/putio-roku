@@ -17,11 +17,7 @@
 
 ## Install
 
-Roku no longer supports private channels, so put.io on Roku is installed by sideloading.
-
-For most users, the right path is the [published Roku ZIP](https://roku.put.io/v2.zip) and the step-by-step [Sideloading guide](./docs/SIDELOADING.md)
-
-If you are working on the app itself, you can also sideload a ZIP generated from this repository. Start with [Contributing](./CONTRIBUTING.md)
+Roku no longer supports private channels, so put.io on Roku is installed by sideloading the [published Roku ZIP](https://roku.put.io/v2.zip). The [Sideloading guide](./docs/SIDELOADING.md) walks through it.
 
 ## Use
 
@@ -45,19 +41,9 @@ or Down on the last item to return to the first.
 - [Release workflow](./docs/RELEASE.md) for [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and [roku.put.io](https://roku.put.io/v2.zip) publishing
 - [Security](./SECURITY.md) for private vulnerability reporting
 
-## Development
-
-The app is BrightScript/SceneGraph, with `brighterscript`, `bslint`, and
-`@putdotio/rokit` installed through pnpm for local and CI validation.
-
-```bash
-pnpm install --frozen-lockfile
-pnpm verify
-```
-
 ## Contributing
 
-Contributions are welcome. Use [Contributing](./CONTRIBUTING.md) for the contributor workflow and local sideload setup.
+Contributions are welcome. [Contributing](./CONTRIBUTING.md) covers setup, local sideloading, and validation.
 
 ## License
 

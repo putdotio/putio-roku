@@ -13,14 +13,15 @@
 - [Roku Visual Reference](./.vref/README.md)
 - [Icon system](./docs/ICONS.md)
 - [Font system](./docs/FONTS.md)
+- [Release workflow](./docs/RELEASE.md)
 - [Security](./SECURITY.md)
 
 ## Commands
 
-- `pnpm verify` type-checks the live-test harness, checks Roku formatting, runs Roku static checks, and builds a fresh ZIP; `pnpm smoke` is the same task
+- `pnpm verify` (alias `pnpm smoke`) runs every static check and then builds a fresh ZIP; the steps are `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
 - `pnpm artifact` builds the production release ZIP
 - `pnpm sideload` builds, validates the target, and reinstalls the app
-- `pnpm roku help` lists every hardware and helper task; the tables in [Live Test](./live-test/README.md#commands) pair each task with its required variables
+- `pnpm roku help` lists common tasks and `pnpm roku help --all` every task; the tables in [Live Test](./live-test/README.md#commands) pair each task with its variables
 
 ## Worktrees
 
@@ -33,15 +34,14 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 - Keep checked-in defaults open-source-safe
 - Private device details, passwords, and signing keys stay out of git
-- Source comments carry device quirks, invariants, and external constraints only; no section banners, no code narration, no commented-out debug code
+- Source comments carry device quirks, invariants, and external constraints only, such as a Roku model's HLS behavior or a put.io API field's meaning; no section banners, code narration, or commented-out debug code; name a value instead of annotating a magic number
 - Update docs when setup, validation, or delivery expectations change
 - Finish edits, `pnpm verify`, and Lab or live-test proof without pausing; ask before sideloading to a device someone else may be using, release actions, and secret changes
 - Done means `pnpm verify` passed and the change was proven in Lab or the matching live-test flow, with screenshots captured for visual changes and uploaded to the pull request with `gh pr comment <n> --attach ./file.png`, never committed
 
 ## Build And Config
 
-- Local overrides flow through optional `.env` and ignored `.env.local`; `.env.local` wins when both are present
-- `PUTIO_ROKU_SOPS_FILE=/path/to/roku.sops.env pnpm roku secrets-setup` decrypts a maintainer-supplied SOPS payload into ignored mode-`0600` `.env.local`; keep the local Roku target in `.env`
+- Local overrides flow through optional `.env` and ignored `.env.local`; `.env.local` wins. `secrets-setup` replaces `.env.local`, so keep the Roku target in `.env`. Setup: [Live Test](./live-test/README.md#setup)
 - `.env.example` must stay sanitized and safe to publish
 - `pnpm roku test-live` runs the Vitest contract tests for live-test flow wiring, fixture argument parsing, and Lab visual-capture registry drift
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`

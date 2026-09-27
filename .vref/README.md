@@ -1,20 +1,14 @@
 # Roku Visual Reference
 
-This directory stores curated Roku screenshots for product review, store
-submission prep, and design comparison. It is intentionally lighter than a
-visual regression suite: raw captures stay in `dist/tmp/`, and only curated
-screenshots with stable names are committed here.
+Curated Roku screenshots for product review, store submission prep, and design
+comparison. This is not a visual regression suite: raw captures stay in
+`dist/tmp/`, and only curated screenshots with stable names are committed here.
 
-On each release the committed gallery is published to
-`https://<ROKU_DOMAIN>/vref/` (served by the SST site alongside the hosted ZIP),
-so everything here must stay public-safe; see [Rules](#rules).
-
-The site retains objects (`purge: false`, so the versioned ZIP archive under
-`releases/` is never deleted). Screenshots use stable names and are overwritten
-in place each release, but a **removed or renamed** screenshot persists at its
-old URL until manually purged from the bucket. Treat the public-safe rule as the
-primary control rather than after-the-fact removal (these files are already permanent
-in public git history regardless).
+Each release publishes the gallery to [roku.put.io/vref](https://roku.put.io/vref/)
+beside the hosted ZIP, so everything here must stay public-safe; see [Rules](#rules).
+The site never purges objects, so a **removed or renamed** screenshot stays at
+its old URL until someone deletes it from the bucket, and public git history
+keeps it regardless. Keep unsafe captures out rather than planning to remove them.
 
 ## Structure
 
