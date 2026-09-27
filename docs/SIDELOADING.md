@@ -1,7 +1,5 @@
 # Sideloading On Roku
 
-This guide covers the supported way to get put.io onto a Roku device.
-
 Roku ended private channels, so the put.io Roku app is installed by sideloading a ZIP onto a developer-enabled device.
 
 ## Before You Start
@@ -56,8 +54,6 @@ In the Roku developer installer:
 
 ![Animated walkthrough of uploading the Roku ZIP in the developer installer](./assets/sideload-install.gif)
 
-This works with either the published artifact or a ZIP you generated from this repository.
-
 After installation, the put.io channel appears on the Roku home screen as the developer app.
 
 ## Build From This Repo Instead
@@ -70,6 +66,6 @@ If you want to sideload a local branch instead of the published ZIP:
 4. Run `pnpm sideload`
 
 `pnpm roku check-roku-dev-target` checks that the Roku developer endpoint is
-reachable; `pnpm roku help` lists the full task list. For hardware-backed
+reachable; `pnpm roku help --all` lists every task. For hardware-backed
 debugging, see [Live Test](../live-test/README.md). For the full contributor
 workflow, see [Contributing](../CONTRIBUTING.md)

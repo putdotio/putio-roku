@@ -15,37 +15,33 @@ does not purge prior `releases/v2/` objects.
 
 ## Versioning
 
-The Roku `manifest` is the source of truth for the checked-in app version; semantic-release publishes matching `v<major>.<minor>.<build>` tags.
-
-- `manifest` owns `major_version`, `minor_version`, and zero-padded `build_version`
-- `package.json` uses the derived semantic version, for example `2.8.4`
-
-During a semantic-release run, `scripts/prepare-release.ts <version>` refuses to move the app backward from the manifest version, syncs the manifest and `package.json`, builds the ZIP with `pnpm artifact` (always the production variant, ignoring local development or Lab overrides), and stages the hosted and GitHub Release artifacts. The release bot then commits the version fields back to `main` with `[skip ci]`, so the Git tag, Roku manifest, and package metadata stay aligned.
+The Roku `manifest` owns the checked-in app version (`major_version`,
+`minor_version`, zero-padded `build_version`); semantic-release publishes the
+matching `v<major>.<minor>.<build>` tag, and `package.json` carries the derived
+semantic version, for example `2.8.4`.
 
 ## Flow
 
-1. Pull requests and `main` pushes run `pnpm verify`
-2. The release workflow runs on `main` after verification
-3. semantic-release analyzes Conventional Commits
-4. When a release is due, `scripts/prepare-release.ts` syncs the version, builds one ZIP, and stages it as:
-   - `dist/public/v2.zip`
-   - `dist/public/releases/v2/<version>.zip`
-   - `dist/release/putio-roku-v<version>.zip`
-5. The release bot commits the synced version fields back to `main` and creates
-   a draft GitHub Release
-6. The workflow resolves the exact tag, uploads the ZIP to that mutable draft,
+1. Pull requests run `pnpm verify` in CI; `main` pushes run it in the release workflow
+2. semantic-release analyzes Conventional Commits
+3. When a release is due, [scripts/prepare-release.ts](../scripts/prepare-release.ts)
+   refuses to move the version backward, syncs `manifest` and `package.json`,
+   builds the production ZIP with `pnpm artifact` (ignoring local development or
+   Lab overrides), and stages it for hosting and the GitHub Release
+4. The release bot commits the synced version fields back to `main` with
+   `[skip ci]` and creates a draft GitHub Release
+5. The workflow resolves the exact tag, uploads the ZIP to that mutable draft,
    verifies the one-asset manifest, and publishes the Release
-7. The production deploy job downloads the verified published ZIP, stages it as
-   `dist/public/v2.zip` and `dist/public/releases/v2/<version>.zip`, then
-   publishes `dist/public` to [roku.put.io](https://roku.put.io/v2.zip) with SST
+6. The production deploy job downloads the verified published ZIP, stages it as
+   `dist/public/v2.zip` and `dist/public/releases/v2/<version>.zip` beside the
+   [`.vref` gallery](../.vref/README.md), then publishes `dist/public` to
+   [roku.put.io](https://roku.put.io/v2.zip) with SST
 
-Release and production deploy jobs run fresh dependency installs with
-package-manager caching disabled and no persisted checkout credentials before
-publishing artifacts or assuming the AWS deploy role. The GitHub App release token is
-minted after the initial install and font preparation; semantic-release receives
-it only at the release boundary. Recovery checkouts also leave Git credentials
-unpersisted. The deploy handoff uses the GitHub Release asset directly instead
-of GitHub Actions artifact storage.
+Release and deploy jobs install fresh without package-manager caching or
+persisted checkout credentials. The GitHub App release token is minted after
+install and font sync and reaches semantic-release only at the release step.
+The deploy handoff is the GitHub Release asset, not GitHub Actions artifact
+storage.
 
 ## Recover
 
@@ -60,21 +56,11 @@ expected Release fails closed.
 
 ## GitHub Configuration
 
-Release job environment: `release`
-
-- `PUTIO_RELEASE_BOT_CLIENT_ID`
-- `PUTIO_RELEASE_BOT_PRIVATE_KEY`
-- `PUTIO_ROKU_SENTRY_DSN` (see [Error reporting](./ROKU_VARIANTS.md#error-reporting))
-
-Production deploy job environment: `production`
-
-- `AWS_DEPLOY_ROLE_ARN`
-- `AWS_REGION`
-- `AWS_ROUTE53_ZONE_ID`
-- `AWS_WILDCARD_CERT_ARN`
-- `ROKU_DOMAIN`
-
-Set these as repository variables on [putdotio/putio-roku](https://github.com/putdotio/putio-roku/settings/variables/actions).
+[release.yml](../.github/workflows/release.yml) names every input. The release
+bot's client ID (variable) and private key (secret) live in the `release`
+Environment. `PUTIO_ROKU_SENTRY_DSN` (see
+[Error reporting](./ROKU_VARIANTS.md#error-reporting)) and the AWS deploy
+inputs used by the `production` deploy job are repository variables.
 
 The AWS role should trust GitHub Actions OIDC only for production deploys from
-`putdotio/putio-roku` on `main`
+`putdotio/putio-roku` on `main`.

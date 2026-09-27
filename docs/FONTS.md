@@ -22,11 +22,9 @@ repository never becomes a distribution point**:
 - Do not subset, convert, rename, or re-host the faces, and do not add them to
   `@putdotio/design`; `static.put.io` is the single source
 
-Note what this boundary does **not** claim. `static.put.io` serves the faces over plain
-HTTPS with no credential, so anyone who can read this repo can also run
-`pnpm roku fonts-setup` and obtain them. That is unchanged by anything here (the same CDN
-already serves the family to every web surface), and it is the reason the rule is scoped to
-git rather than to access. What the repo controls is that the binaries are not in its tree,
+The boundary is scoped to git, not access: `static.put.io` already serves the faces to
+every web surface over plain HTTPS with no credential, so anyone can run
+`pnpm roku fonts-setup`. What the repo controls is that the binaries are not in its tree,
 its history, or its packages.
 
 ## Syncing the faces
@@ -50,26 +48,24 @@ fetch:
   pruned
 - `pnpm roku fonts-check` is offline and reports the state of `fonts/`
 
-Validation is what replaced digest pinning, and it is deliberately about *usability* rather
-than tamper-resistance; the bytes come from put.io's own CDN over TLS. A face is accepted
+Validation checks *usability*, not tamper-resistance; the bytes come from put.io's own CDN
+over TLS. A face is accepted
 only when it is a single OpenType/TrueType face (not a `.ttc` collection), every table in
 its directory lies inside the file, the tables Roku needs to render are present, and its
 name table declares the expected family. That covers the failure modes a CDN actually
 produces: a `200` carrying an error page, a half-finished download, or the wrong typeface
-under the right filename. The truncation case is the one worth naming: a partial file often
-keeps its name table intact, so the family reads fine while the outlines are gone, and only
-the table-bounds check catches it.
+under the right filename. A truncated file often keeps its name table intact, so only the
+table-bounds check catches it.
 
 `fonts-check` treats absent faces as a legitimate optional state and succeeds. It fails when
 a present face does not validate, or when `fonts/` holds a face the manifest does not list;
-either would ship bytes nothing has checked. It is deliberately **not** part of
-`pnpm verify`, because `pnpm verify` must pass on a fonts-less clone; that clone is a fully
-working development setup rendering in the Roku system font.
+either would ship bytes nothing has checked. It is **not** part of `pnpm verify`, which must
+pass on a fonts-less clone: that clone is a working development setup on the Roku system
+font.
 
-To change the faces, edit `config/brand-fonts.json` and run `pnpm roku fonts-setup`. A
-Vitest contract test (`test/live-test/brand-fonts.test.ts`) validates the manifest, exercises
-the validator against error pages, truncation and wrong families, enforces the ignore rules,
-and asserts components only reference faces the manifest lists.
+To change the faces, edit `config/brand-fonts.json` and run `pnpm roku fonts-setup`.
+[brand-fonts.test.ts](../test/live-test/brand-fonts.test.ts) covers the manifest, the
+validator failure modes, the ignore rules, and component face references.
 
 ## Packaging and fallback
 
@@ -77,15 +73,12 @@ and asserts components only reference faces the manifest lists.
 every one of them is present *and validates*. It compiles the same answer into the generated
 `source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`.
 
-Two properties matter here. Package roots are copied recursively, so bundling the `fonts/`
-directory would ship whatever else happened to be inside it (a nested
-`fonts/backup/unlicensed.otf`, say) while only the listed faces had been validated; listing
-the files makes what ships exactly what was checked. And availability is
-all-or-nothing, because a partial or corrupt set would flip the flag on while individual
-roles resolved to missing `pkg:/fonts/...` URIs, which Roku renders in the system font per
-label and shows as mixed typography. The runtime reads the flag rather than probing the
-filesystem, so a build either has the complete verified set or deliberately uses the
-built-in `font:*SystemFont` values.
+Listing files rather than bundling `fonts/` matters because package roots are copied
+recursively: a stray `fonts/backup/unlicensed.otf` would ship unvalidated. Availability is
+all-or-nothing because a partial set would flip the flag on while some roles resolved to
+missing `pkg:/fonts/...` URIs, which Roku renders per label in the system font as mixed
+typography. The runtime reads the flag rather than probing the filesystem, so a build
+either has the complete verified set or uses the built-in `font:*SystemFont` values.
 
 Any build packaged without the faces logs a line saying so, so a sideload or a screenshot
 session cannot quietly capture the wrong typeface.
@@ -96,57 +89,40 @@ instead of silently falling back.
 ## Release builds
 
 The [Release](../.github/workflows/release.yml) workflow runs `pnpm roku fonts-setup` before
-semantic-release builds the artifact and before reconstructing a font-enabled draft during
-release recovery, so the published `v2.zip` ships GT America. Recovery skips this step for
-older tags that have no brand-font manifest. No credential or token is involved; the faces
-come from `static.put.io` over plain HTTPS. `fonts-setup` fails the release on any download
-or validation problem, so reaching the build means every listed face is on disk and is a
-real GT America face.
+semantic-release builds the artifact and before rebuilding a font-enabled draft during
+recovery (older tags without a brand-font manifest skip it). `fonts-setup` fails the release
+on any download or validation problem, so a release from a tag with the brand-font manifest
+always ships GT America. Recovering an older tag republishes its original system-font build.
 
-[CI](../.github/workflows/ci.yml) is verify-only and stays deliberately fonts-less: it is
-the standing proof that the system-font fallback still works.
+[CI](../.github/workflows/ci.yml) stays fonts-less on purpose: it is the standing proof that
+the system-font fallback still works.
 
 ## Type scale
 
-`components/shared/Typography/Typography.brs` owns the Roku type scale. Components never
-name a font directly: they call `applyTypography(node, "<role>")` next to their existing
+`typographyRoles()` in [Typography.brs](../components/shared/Typography/Typography.brs) owns
+the role table: size, weight, and the built-in each role replaces. Components never name a
+font directly: they call `applyTypography(node, "<role>")` next to their
 `setDialogNodeColor` calls, and a Vitest audit fails the build if a `font:*SystemFont`
 literal reappears in a product component.
 
-| Role | Size | Weight | Replaces | Used by |
-|---|---|---|---|---|
-| `h1` | 45 | bold | `font:LargeBoldSystemFont` | screen and dialog titles, empty-state heading, pairing code |
-| `h2` | 36 | medium | `font:MediumBoldSystemFont` | list-item titles, button labels, player time |
-| `body` | 36 | regular | `font:MediumSystemFont` | dialog body, track menu rows, empty-state body |
-| `small` | 33 | regular | `font:SmallSystemFont` | captions, file names, focus tooltips |
-| `label` | 33 | medium | `font:SmallBoldSystemFont` | player skip badges |
-| `caption` | 27 | regular | `font:SmallestSystemFont` | list-item descriptions |
-
-Sizes are authored in FHD and are **identical to the built-in each role replaces**. That is
-a measurement, not a coincidence: the Lab story `typography-gt-america` renders every role
-in the built-in beside GT America at the same size and one and two 3px grid steps up, and
-GT America lands within a few percent of the built-in at matching size (94-95% on
-cap-height strings, 105-107% on digits). One step up measured 6-9% oversized. Keeping the
-sizes fixed means every Label height, character-count wrap budget and list-row baseline
-stays valid, so the brand face is a drop-in.
-
-The character-count wrapping in `AppDialog`, `DeleteFileDialog` and
-`ContinueWatchingPrompt` is left exactly as it was, deliberately: the budgets are counted in
-characters, so wrap and truncation points are identical to the system font and the migration
-cannot change where a string breaks. Raising them would be a behaviour change needing its
-own measurement. Note that while GT America is narrower on average, its digits measure
-105-107%, so a digit-heavy file name is *wider* than the system font rendered it and there
-is no blanket safety margin to spend.
-
-To change the scale, edit the role table and re-shoot the Lab story:
+Each role's FHD size equals the built-in it replaces, so every Label height,
+character-count wrap budget, and list-row baseline stays valid; the header comment in
+`Typography.brs` records the measurement behind that. Roku does not publish its built-in
+font sizes, so the Lab story `typography-gt-america` is the only reference. To change the
+scale, edit the role table, redo the measurement, and re-shoot the story:
 
 ```bash
 STORY=typography-gt-america pnpm roku lab-screenshot
 ```
 
-Roku does not publish its built-in font sizes, so that story is the only source of truth
-for what a role is being compared against. Keep every size a multiple of the 3px
-`uiScaleGrid()` from `UiMetrics.brs` so it stays whole-pixel when FHD is downscaled to 720p.
+Keep every size a multiple of the 3px `uiScaleGrid()` from `UiMetrics.brs` so it stays
+whole-pixel when FHD is downscaled to 720p.
+
+The character-count wrapping in `AppDialog`, `DeleteFileDialog` and
+`ContinueWatchingPrompt` is unchanged from the system font, so wrap and truncation points
+match it exactly. Raising those budgets is a behavior change that needs its own
+measurement. GT America digits measure 105-107% of the system font, so a digit-heavy file
+name is *wider* than before and there is no blanket margin to spend.
 
 ## Glyph coverage
 
@@ -156,16 +132,12 @@ Arabic, Thai, CJK, Hiragana, Katakana, Hangul or emoji, and no symbol glyphs, no
 `✓` (U+2713), `✔`, `★`, or `▶`. Interface symbols come from the Phosphor icon set instead
 (see [Icon system](./ICONS.md)); do not reintroduce symbol characters as text.
 
-File names are user content and are frequently not Latin, so be clear about what happens
-there. Roku's `Font` node does not fall back per glyph, so a character the face lacks renders
-as a placeholder box rather than as text. **This is not specific to the brand face**: the
-`typography-gt-america` Lab story renders Cyrillic and Japanese file names in both faces
-side by side, and the Roku system font shows hollow placeholder boxes for exactly the same
-characters where GT America shows crosshatched ones. Non-Latin file names were unreadable on
-this device before the migration and are equally unreadable after it; the brand face neither
-causes nor fixes that. Serving those names properly would need a coverage-adequate face for
-user content, which is a separate piece of work; the Lab row exists so the state is visible
-rather than assumed.
+Roku's `Font` node does not fall back per glyph, so a character the face lacks renders as
+a placeholder box. File names are user content and often not Latin, but **this is not
+specific to the brand face**: the `typography-gt-america` Lab story renders Cyrillic and
+Japanese file names in both faces, and the system font shows placeholder boxes for exactly
+the same characters. Readable non-Latin names need a coverage-adequate face for user
+content, which is separate work.
 
 Its figures are proportional, and unevenly so (`1` is about 60% the width of `0`), so text
 whose digits change in place (clocks, counters, progress) needs a fixed-width container
