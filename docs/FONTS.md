@@ -91,7 +91,8 @@ instead of silently falling back.
 The [Release](../.github/workflows/release.yml) workflow runs `pnpm roku fonts-setup` before
 semantic-release builds the artifact and before rebuilding a font-enabled draft during
 recovery (older tags without a brand-font manifest skip it). `fonts-setup` fails the release
-on any download or validation problem, so the published `v2.zip` always ships GT America.
+on any download or validation problem, so a release from a tag with the brand-font manifest
+always ships GT America. Recovering an older tag republishes its original system-font build.
 
 [CI](../.github/workflows/ci.yml) stays fonts-less on purpose: it is the standing proof that
 the system-font fallback still works.
