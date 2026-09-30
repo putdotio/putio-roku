@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   appFlowOptionsFromArgs,
   emptyStringAsUndefined,
+  fullAppFlowOptionsFromArgs,
   startFromChoiceFromArg,
 } from "../../scripts/live-test/flow-options.ts";
 
@@ -28,6 +29,24 @@ describe("live-test flow options", () => {
       historyExpectedText: "transfer_completed",
       mediaType: "movie",
       startFromChoice: "continue",
+    });
+  });
+
+  it("passes the files fixture into the full flow", () => {
+    vi.stubEnv("FILES_FOLDER_NAME", "Fixture folder");
+    vi.stubEnv("FILES_FOLDER_INDEX", "2");
+
+    expect(
+      fullAppFlowOptionsFromArgs(["video-123", "image-123", "audio-123", "subtitle-123", "episode", "beginning"]),
+    ).toMatchObject({
+      playbackContentId: "video-123",
+      imageContentId: "image-123",
+      audioContentId: "audio-123",
+      subtitleContentId: "subtitle-123",
+      filesFolderName: "Fixture folder",
+      filesFolderIndex: 2,
+      mediaType: "episode",
+      startFromChoice: "beginning",
     });
   });
 

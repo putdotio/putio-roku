@@ -45,7 +45,7 @@ import {
 import {
   appFlowOptionsFromArgs,
   emptyStringAsUndefined,
-  startFromChoiceFromArg,
+  fullAppFlowOptionsFromArgs,
   type AppFlowOptions,
 } from "./live-test/flow-options.ts";
 import {
@@ -1362,15 +1362,14 @@ async function main(): Promise<void> {
       target,
       "app-full",
       fullAppFlowSuite,
-      {
-        profile: putioProfileFromArg(),
+      fullAppFlowOptionsFromArgs([
         playbackContentId,
         imageContentId,
         audioContentId,
         subtitleContentId,
         mediaType,
-        startFromChoice: startFromChoiceFromArg(rawStartFromChoice),
-      },
+        rawStartFromChoice,
+      ]),
       rawArtifactDir,
     );
   } else if (command === "flow") {

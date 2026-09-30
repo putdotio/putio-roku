@@ -1,6 +1,7 @@
 import { access, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import process from "node:process";
+import { emptyStringAsUndefined } from "./flow-options.ts";
 
 type StartFromChoice = "continue" | "beginning";
 
@@ -586,7 +587,7 @@ async function copyPlayerUiReferenceImages(outputDir: string): Promise<ReviewIma
     });
   }
 
-  const referenceDir = process.env.PLAYER_UI_TV_NATIVE_REFERENCE_DIR;
+  const referenceDir = emptyStringAsUndefined(process.env.PLAYER_UI_TV_NATIVE_REFERENCE_DIR);
   if (referenceDir === undefined) {
     return referenceImages;
   }

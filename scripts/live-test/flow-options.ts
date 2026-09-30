@@ -39,6 +39,28 @@ export function appFlowOptionsFromArgs(args: readonly string[]): AppFlowOptions 
   };
 }
 
+export function fullAppFlowOptionsFromArgs(args: readonly string[]): AppFlowOptions {
+  const [
+    playbackContentId,
+    imageContentId,
+    audioContentId,
+    subtitleContentId,
+    mediaType = "movie",
+    rawStartFromChoice = "continue",
+  ] = args;
+
+  return {
+    ...appFlowOptionsFromArgs([
+      playbackContentId ?? "",
+      audioContentId ?? "",
+      subtitleContentId ?? "",
+      mediaType,
+      rawStartFromChoice,
+    ]),
+    imageContentId: emptyStringAsUndefined(imageContentId),
+  };
+}
+
 export function startFromChoiceFromArg(value: string): StartFromChoice {
   if (value === "continue" || value === "beginning") {
     return value;
