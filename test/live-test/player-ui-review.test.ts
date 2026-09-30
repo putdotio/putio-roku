@@ -53,7 +53,7 @@ describe("readImageDimensions", () => {
     );
   });
 
-  it("rejects a chunk whose declared size is shorter than its header", () => {
+  it("rejects a chunk whose declared size is too small to read dimensions", () => {
     const payload = Buffer.alloc(10);
     payload.writeUIntLE(1920 - 1, 4, 3);
     payload.writeUIntLE(1080 - 1, 7, 3);
