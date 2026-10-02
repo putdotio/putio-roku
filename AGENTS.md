@@ -14,7 +14,7 @@
 - [Icon system](./docs/ICONS.md)
 - [Font system](./docs/FONTS.md)
 - [Release workflow](./docs/RELEASE.md)
-- [Security](./SECURITY.md)
+- [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md)
 
 ## Commands
 

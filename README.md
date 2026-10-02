@@ -39,7 +39,7 @@ or Down on the last item to return to the first.
 - [Roku variants and Lab](./docs/ROKU_VARIANTS.md) for the development/Lab split and design-token adapter
 - [Roku visual reference](./.vref/README.md) for curated screenshots and the generated gallery
 - [Release workflow](./docs/RELEASE.md) for [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and [roku.put.io](https://roku.put.io/v2.zip) publishing
-- [Security](./SECURITY.md) for private vulnerability reporting
+- [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md) for private vulnerability reporting
 
 ## Contributing
 
