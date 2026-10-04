@@ -34,7 +34,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 - **Taking over someone's Roku.** A Roku holds one sideloaded developer app, which on a household Roku is its put.io install, and `pnpm sideload`, `install`, `lab-install` and the live-test installs replace it. The configured target may be a TV someone is watching or testing another build on; `pnpm roku active-app` shows what is on screen. Read-only tasks such as `check-roku-dev-target` and `device-info` leave it alone
 - **Publishing a screenshot forever.** Every release deploys `.vref/` to [roku.put.io/vref](https://roku.put.io/vref/), the site never purges, and this repository is public. A committed capture with real account data stays public even after you delete it
-- **Leaking private values.** Checked-in defaults stay open-source-safe; device IPs, Developer Mode passwords, signing keys and download tokens stay in ignored `.env` files
+- **Leaking private values.** Checked-in defaults stay open-source-safe. Device IPs, passwords, signing keys and tokens stay out of git: local values live in ignored `.env`, `.env.local` and `.putio-cli/`, release credentials in GitHub Environments
 
 ## Rules
 
@@ -44,7 +44,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 - Docs only: `pnpm verify`; no device proof
 - Source, asset or config: `pnpm verify`, then device proof for behavior the change touches
-- Modal or component UI: an isolated Lab story, `STORY=<story-id> pnpm roku lab-install` and `lab-screenshot`; prefer it over authenticated flows when it can show the change
+- Modal or component UI: an isolated Lab story; prefer it over authenticated flows when it can show the change. `STORY=<story-id> pnpm roku lab-screenshot` installs the story and captures it; `lab-install` alone installs it for a look on the TV
 - Auth, files, dialogs, settings or get-new-code: `pnpm roku live-test-flow-smoke`; broad routing, player or image refactors: `pnpm roku live-test-flow-full`
 - Live-test flow wiring, fixture parsing or Lab capture registry: `pnpm roku test-live` (Vitest contract tests)
 - Visual changes: screenshots uploaded with `gh pr comment <n> --attach ./file.png`, never committed outside curated `.vref/`
@@ -64,4 +64,4 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 ## Delivery
 
 - Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify` and should stay aligned with it
-- A push to `main` runs [Release](./.github/workflows/release.yml): verify, then semantic-release. A `feat`, `fix`, `perf` or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Versioning and recovery: [Release workflow](./docs/RELEASE.md)
+- A push to `main` runs [Release](./.github/workflows/release.yml): verify, then semantic-release. A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Versioning and recovery: [Release workflow](./docs/RELEASE.md)
