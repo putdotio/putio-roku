@@ -48,7 +48,7 @@ fetch:
   pruned
 - `pnpm roku fonts-check` is offline and reports the state of `fonts/`
 
-Validation checks *usability*, not tamper-resistance; the bytes come from put.io's own CDN
+Validation checks _usability_, not tamper-resistance; the bytes come from put.io's own CDN
 over TLS. A face is accepted
 only when it is a single OpenType/TrueType face (not a `.ttc` collection), every table in
 its directory lies inside the file, the tables Roku needs to render are present, and its
@@ -70,7 +70,7 @@ validator failure modes, the ignore rules, and component face references.
 ## Packaging and fallback
 
 `scripts/package-roku.ts` bundles the **manifest-listed faces individually**, and only when
-every one of them is present *and validates*. It compiles the same answer into the generated
+every one of them is present _and validates_. It compiles the same answer into the generated
 `source/BuildConfig.brs` as `buildConfigBrandFontsAvailable()`.
 
 Listing files rather than bundling `fonts/` matters because package roots are copied
@@ -122,7 +122,7 @@ The character-count wrapping in `AppDialog`, `DeleteFileDialog` and
 `ContinueWatchingPrompt` is unchanged from the system font, so wrap and truncation points
 match it exactly. Raising those budgets is a behavior change that needs its own
 measurement. GT America digits measure 105-107% of the system font, so a digit-heavy file
-name is *wider* than before and there is no blanket margin to spend.
+name is _wider_ than before and there is no blanket margin to spend.
 
 ## Glyph coverage
 

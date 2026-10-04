@@ -22,11 +22,11 @@ device.
 
 ## Variants
 
-| Variant | Title | Lab code | Use |
-| --- | --- | --- | --- |
-| `production` | `put.io` | excluded | release artifact |
-| `development` | `put.io Dev` | excluded | normal app development |
-| `lab` | `put.io Lab` | included | component and visual work |
+| Variant       | Title        | Lab code | Use                       |
+| ------------- | ------------ | -------- | ------------------------- |
+| `production`  | `put.io`     | excluded | release artifact          |
+| `development` | `put.io Dev` | excluded | normal app development    |
+| `lab`         | `put.io Lab` | included | component and visual work |
 
 ## Packaging Contract
 
@@ -100,4 +100,3 @@ Sentry ingest API:
   and is safe to ship, but packaging rejects values that do not look like
   `https://<publicKey>@<host>/<projectId>` so a typo cannot silently drop every
   report
-
