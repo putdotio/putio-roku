@@ -60,6 +60,8 @@ pnpm verify
 
 It runs every static check, then builds a fresh ZIP for the selected variant;
 the steps are `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts).
+`pnpm roku check-markdown-format` runs the Markdown formatting check alone;
+`pnpm exec oxfmt "**/*.md"` fixes it.
 
 Build the release-style ZIP used by automation:
 
