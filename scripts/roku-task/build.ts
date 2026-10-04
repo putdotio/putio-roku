@@ -89,6 +89,10 @@ export function checkRokuFormat(): void {
   runPnpm(["exec", "bsfmt", "source/**/*.{brs,bs}", "components/**/*.{brs,bs}", "--check"]);
 }
 
+export function checkMarkdownFormat(): void {
+  runPnpm(["exec", "oxfmt", "--check", "**/*.md"]);
+}
+
 export function checkRokuLive(): void {
   runPnpm(["exec", "tsc", "-p", "tsconfig.live.json"]);
 }
@@ -144,6 +148,7 @@ export async function verify(): Promise<void> {
   await checkRokuIcons();
   testLive();
   checkRokuFormat();
+  checkMarkdownFormat();
   checkRokuStatic();
   visualValidate();
   await packageRoku(selectedVariantConfig());

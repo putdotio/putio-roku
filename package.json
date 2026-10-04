@@ -25,6 +25,7 @@
     "@types/node": "^26.1.2",
     "brighterscript": "0.73.0",
     "brighterscript-formatter": "1.8.1",
+    "oxfmt": "0.70.0",
     "sst": "^4.17.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"

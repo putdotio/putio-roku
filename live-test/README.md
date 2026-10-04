@@ -101,17 +101,17 @@ variables.
 
 ### Basic Checks
 
-| Use | Command | Variables |
-| --- | --- | --- |
-| Local smoke gate | `pnpm smoke` | None |
-| Harness contract tests | `pnpm roku test-live` | None |
-| Read-only device check | `pnpm roku live-test` | `ROKU_DEV_TARGET` or `ROKIT_TARGET` |
-| Launch and remote-control smoke | `pnpm roku live-test-control` | Optional: `ROKU_APP_ECP_ID` |
-| Send explicit remote keys | `pnpm roku live-test-press` | Required: `KEYS` |
-| Launch the configured app id | `pnpm roku launch` | Optional: `ROKU_APP_ECP_ID` |
-| Reinstall and launch this checkout | `pnpm roku live-test-install` | Required: `ROKU_DEV_PASSWORD` |
-| Attach BrightScript console | `pnpm roku console` | Optional: `ROKU_DEV_CONSOLE_PORT` |
-| Capture crash/debug state | `pnpm roku debug-snapshot` | Optional: `ROKU_DEBUG_ARTIFACT_DIR` |
+| Use                                | Command                       | Variables                           |
+| ---------------------------------- | ----------------------------- | ----------------------------------- |
+| Local smoke gate                   | `pnpm smoke`                  | None                                |
+| Harness contract tests             | `pnpm roku test-live`         | None                                |
+| Read-only device check             | `pnpm roku live-test`         | `ROKU_DEV_TARGET` or `ROKIT_TARGET` |
+| Launch and remote-control smoke    | `pnpm roku live-test-control` | Optional: `ROKU_APP_ECP_ID`         |
+| Send explicit remote keys          | `pnpm roku live-test-press`   | Required: `KEYS`                    |
+| Launch the configured app id       | `pnpm roku launch`            | Optional: `ROKU_APP_ECP_ID`         |
+| Reinstall and launch this checkout | `pnpm roku live-test-install` | Required: `ROKU_DEV_PASSWORD`       |
+| Attach BrightScript console        | `pnpm roku console`           | Optional: `ROKU_DEV_CONSOLE_PORT`   |
+| Capture crash/debug state          | `pnpm roku debug-snapshot`    | Optional: `ROKU_DEBUG_ARTIFACT_DIR` |
 
 `pnpm smoke` is the same task as `pnpm verify`. `pnpm roku live-test`
 proves the Roku responds to ECP, exposes the developer installer, and returns
@@ -119,16 +119,16 @@ active-app/device metadata.
 
 ### Playback
 
-| Use | Command | Inputs |
-| --- | --- | --- |
-| Deep link to a file | `pnpm roku live-test-deeplink` | `CONTENT_ID`; optional `MEDIA_TYPE` |
-| Open playback | `pnpm roku live-test-playback` | `CONTENT_ID`; optional `MEDIA_TYPE`, `START_FROM` |
-| Open playback with remote prompt handling | `pnpm roku live-test-playback-remote` | Same as playback |
-| Set API playback preference | `pnpm roku live-test-playback-type` | `TYPE`; optional `PUTIO_CLI_PROFILE` |
-| Verify selected playback type | `pnpm roku live-test-playback-type-smoke` | `TYPE`, `CONTENT_ID`; optional start knobs |
-| Verify playback error dialog | `pnpm roku live-test-playback-error-dialog` | `CONTENT_ID`; optional expected text |
-| Verify custom player controls | `pnpm roku live-test-player-ui` | Track fixture ids; optional start knobs |
-| Capture player UI screenshots | `pnpm roku live-test-player-ui-screenshots` | Track fixture ids and Developer Mode password |
+| Use                                       | Command                                     | Inputs                                            |
+| ----------------------------------------- | ------------------------------------------- | ------------------------------------------------- |
+| Deep link to a file                       | `pnpm roku live-test-deeplink`              | `CONTENT_ID`; optional `MEDIA_TYPE`               |
+| Open playback                             | `pnpm roku live-test-playback`              | `CONTENT_ID`; optional `MEDIA_TYPE`, `START_FROM` |
+| Open playback with remote prompt handling | `pnpm roku live-test-playback-remote`       | Same as playback                                  |
+| Set API playback preference               | `pnpm roku live-test-playback-type`         | `TYPE`; optional `PUTIO_CLI_PROFILE`              |
+| Verify selected playback type             | `pnpm roku live-test-playback-type-smoke`   | `TYPE`, `CONTENT_ID`; optional start knobs        |
+| Verify playback error dialog              | `pnpm roku live-test-playback-error-dialog` | `CONTENT_ID`; optional expected text              |
+| Verify custom player controls             | `pnpm roku live-test-player-ui`             | Track fixture ids; optional start knobs           |
+| Capture player UI screenshots             | `pnpm roku live-test-player-ui-screenshots` | Track fixture ids and Developer Mode password     |
 
 Playback commands launch the configured app id; `ROKU_APP_ECP_ID` defaults to
 `dev` for sideloaded builds. `pnpm roku live-test-player-ui` uses SceneGraph state
@@ -141,11 +141,11 @@ then writes focused-control captures and a `review.html` page under
 
 ### Flow Suites
 
-| Use | Command | Inputs |
-| --- | --- | --- |
-| App shell smoke | `pnpm roku live-test-flow-smoke` | Prepared test account; optional `OUTPUT_DIR` |
-| Custom flow list | `pnpm roku live-test-flow` | `FLOWS`; optional fixture ids/output |
-| Full regression sweep | `pnpm roku live-test-flow-full` | Full fixture ids; optional start knobs/output |
+| Use                   | Command                          | Inputs                                        |
+| --------------------- | -------------------------------- | --------------------------------------------- |
+| App shell smoke       | `pnpm roku live-test-flow-smoke` | Prepared test account; optional `OUTPUT_DIR`  |
+| Custom flow list      | `pnpm roku live-test-flow`       | `FLOWS`; optional fixture ids/output          |
+| Full regression sweep | `pnpm roku live-test-flow-full`  | Full fixture ids; optional start knobs/output |
 
 Available custom flows are `auth`, `get-new-code`, `files`, `history`,
 `dialogs`, `settings`, `logout`, `playback`, `image`, and `tracks`. Flow runs
@@ -170,15 +170,15 @@ the smoke and full suites, which include `files`. A missing fixture fails the ru
 
 ### Lab And Visuals
 
-| Use | Command | Inputs |
-| --- | --- | --- |
-| Install Lab and open a story | `pnpm roku lab-install` | Developer Mode password; optional `STORY` |
-| Capture a Lab story | `pnpm roku lab-screenshot` | Developer Mode password; optional `STORY`, delay |
-| Capture current screen | `pnpm roku visual-capture` | `NAME` and Developer Mode password |
-| Capture main app pages | `pnpm roku visual-capture-pages` | Test account, Developer Mode password, optional page knobs |
-| Capture Lab stories | `pnpm roku visual-capture-lab` | Developer Mode password; optional story selection |
-| Validate visual reference assets | `pnpm roku visual-validate` | None |
-| Rebuild visual reference gallery | `pnpm roku visual-gallery` | None |
+| Use                              | Command                          | Inputs                                                     |
+| -------------------------------- | -------------------------------- | ---------------------------------------------------------- |
+| Install Lab and open a story     | `pnpm roku lab-install`          | Developer Mode password; optional `STORY`                  |
+| Capture a Lab story              | `pnpm roku lab-screenshot`       | Developer Mode password; optional `STORY`, delay           |
+| Capture current screen           | `pnpm roku visual-capture`       | `NAME` and Developer Mode password                         |
+| Capture main app pages           | `pnpm roku visual-capture-pages` | Test account, Developer Mode password, optional page knobs |
+| Capture Lab stories              | `pnpm roku visual-capture-lab`   | Developer Mode password; optional story selection          |
+| Validate visual reference assets | `pnpm roku visual-validate`      | None                                                       |
+| Rebuild visual reference gallery | `pnpm roku visual-gallery`       | None                                                       |
 
 `pnpm roku lab-install` builds the `ROKU_VARIANT=lab` package and relaunches the
 developer-channel process with `lab=1`. Without `STORY`, it opens the story
@@ -192,14 +192,14 @@ stories by default; use `STORIES="story-id ..."` for targeted captures and
 
 ### Auth Helpers
 
-| Use | Command | Inputs |
-| --- | --- | --- |
-| Check local put.io CLI auth state | `pnpm roku putio-auth-status` | Optional `PUTIO_CLI_PROFILE` |
-| Prepare ignored test-account auth | `pnpm roku putio-auth-prepare` | Test-account env; optional profile |
-| Approve a visible Roku device code | `pnpm roku putio-auth-approve-device` | `CODE`; optional profile |
-| Reset Roku app auth | `pnpm roku live-test-auth-reset` | Reachable Roku; optional app id |
-| Refresh the visible device code | `pnpm roku live-test-auth-refresh` | Reachable Roku; optional app id |
-| Prepare Roku app auth end-to-end | `pnpm roku live-test-auth-prepare` | Test account and Roku; optional profile/app id |
+| Use                                | Command                               | Inputs                                         |
+| ---------------------------------- | ------------------------------------- | ---------------------------------------------- |
+| Check local put.io CLI auth state  | `pnpm roku putio-auth-status`         | Optional `PUTIO_CLI_PROFILE`                   |
+| Prepare ignored test-account auth  | `pnpm roku putio-auth-prepare`        | Test-account env; optional profile             |
+| Approve a visible Roku device code | `pnpm roku putio-auth-approve-device` | `CODE`; optional profile                       |
+| Reset Roku app auth                | `pnpm roku live-test-auth-reset`      | Reachable Roku; optional app id                |
+| Refresh the visible device code    | `pnpm roku live-test-auth-refresh`    | Reachable Roku; optional app id                |
+| Prepare Roku app auth end-to-end   | `pnpm roku live-test-auth-prepare`    | Test account and Roku; optional profile/app id |
 
 For a one-off install without saving the password in `.env`, pass it as an
 environment variable:

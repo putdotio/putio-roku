@@ -1,5 +1,6 @@
 import {
   artifact,
+  checkMarkdownFormat,
   checkRokuAssets,
   checkRokuDesign,
   checkRokuFontBinaries,
@@ -77,6 +78,7 @@ const tasks: Record<string, Task> = {
   build: () => packageRoku(selectedVariantConfig()),
   "build-dev": () => packageRoku(variantConfig("development")),
   "build-lab": () => packageRoku(variantConfig("lab")),
+  "check-markdown-format": checkMarkdownFormat,
   "check-roku-assets": checkRokuAssets,
   "check-roku-design": checkRokuDesign,
   "check-roku-dev-target": checkRokuDevTarget,
