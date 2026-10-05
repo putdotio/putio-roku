@@ -65,4 +65,5 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 - Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify` and should stay aligned with it
 - [Links](./.github/workflows/links.yml) checks relative Markdown links and anchors on pull requests and `main` pushes
+- [Scan](./.github/workflows/scan.yml) runs Gitleaks and TruffleHog on pull requests, Actionlint and Zizmor on pull requests that change `.github/`, and all four weekly
 - A push to `main` runs [Release](./.github/workflows/release.yml): verify, then semantic-release. A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Versioning and recovery: [Release workflow](./docs/RELEASE.md)
