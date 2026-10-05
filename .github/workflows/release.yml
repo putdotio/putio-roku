@@ -26,7 +26,7 @@ jobs:
     if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
     permissions:
       contents: read
-    uses: ./.github/workflows/ci.yml
+    uses: ./.github/workflows/ci.yml # zizmor: ignore[self-repository]
 
   release:
     if: >-
