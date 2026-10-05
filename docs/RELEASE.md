@@ -22,7 +22,7 @@ semantic version, for example `2.8.4`.
 
 ## Flow
 
-1. Pull requests run `pnpm verify` in CI; `main` pushes run it in the release workflow
+1. Pull requests run `pnpm verify` in CI; `main` pushes run the same CI job from the release workflow, which also scans the pushed range
 2. semantic-release analyzes Conventional Commits
 3. When a release is due, [scripts/prepare-release.ts](../scripts/prepare-release.ts)
    refuses to move the version backward, syncs `manifest` and `package.json`,

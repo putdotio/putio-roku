@@ -86,4 +86,4 @@ boundaries: [Rules](./AGENTS.md#rules) and [Build And Config](./AGENTS.md#build-
 
 ## CI And Delivery
 
-[CI](./.github/workflows/ci.yml) runs `pnpm verify` on pull requests, [Links](./.github/workflows/links.yml) checks relative Markdown links and anchors on pull requests and `main` pushes, and [Scan](./.github/workflows/scan.yml) looks for secrets and audits `.github/` on pull requests and weekly. On pushes to `main`, [Release](./.github/workflows/release.yml) runs the same verification before release evaluation unless the head commit contains `[skip ci]`. Publishing, versioning, and recovery are in [Release workflow](./docs/RELEASE.md).
+[CI](./.github/workflows/ci.yml) runs `pnpm verify` and an offline check of relative Markdown links and anchors on pull requests and manual dispatch. On pushes to `main`, [Release](./.github/workflows/release.yml) calls the same CI job before release evaluation unless the head commit contains `[skip ci]`; there the job also audits `.github/` changes with Actionlint and Zizmor. Publishing, versioning, and recovery are in [Release workflow](./docs/RELEASE.md).

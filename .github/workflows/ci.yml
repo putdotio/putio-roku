@@ -1,13 +1,15 @@
 name: CI
 
-# Merged changes are verified by release.yml's own verify job on every main
-# push, so this workflow only gates pull requests.
+# release.yml calls this workflow on every main push, so its verify job is the
+# push run that scans the pushed range; no separate push trigger here.
 on:
   pull_request:
+  workflow_call:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -40,3 +42,8 @@ jobs:
 
       - name: Verify repository
         run: pnpm verify
+
+      - uses: putdotio/.github/.github/actions/links@c1830f7938b7dc98f085082e988d3c46437bb15c # v1.2.0
+
+      - if: ${{ !cancelled() }}
+        uses: putdotio/.github/.github/actions/scan@c1830f7938b7dc98f085082e988d3c46437bb15c # v1.2.0
