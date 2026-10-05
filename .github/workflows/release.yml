@@ -11,9 +11,12 @@ on:
         required: true
         type: string
 
+# Releases and deploys run one at a time. `queue: max` keeps every pending push
+# instead of replacing it, so each pushed range reaches CI's scan.
 concurrency:
   group: roku-release-${{ github.ref }}
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read

@@ -10,7 +10,7 @@
   </p>
 
   <p>
-    <a href="https://github.com/putdotio/putio-roku/actions/workflows/ci.yml?query=branch%3Amain" style="text-decoration:none;"><img src="https://img.shields.io/github/actions/workflow/status/putdotio/putio-roku/ci.yml?branch=main&style=flat&label=ci&colorA=000000&colorB=000000" alt="CI"></a>
+    <a href="https://github.com/putdotio/putio-roku/actions/workflows/release.yml?query=branch%3Amain" style="text-decoration:none;"><img src="https://img.shields.io/github/actions/workflow/status/putdotio/putio-roku/release.yml?branch=main&style=flat&label=release&colorA=000000&colorB=000000" alt="Release"></a>
     <a href="https://github.com/putdotio/putio-roku/blob/main/LICENSE" style="text-decoration:none;"><img src="https://img.shields.io/github/license/putdotio/putio-roku?style=flat&colorA=000000&colorB=000000" alt="license"></a>
   </p>
 </div>

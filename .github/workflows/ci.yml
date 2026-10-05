@@ -7,8 +7,10 @@ on:
   workflow_call:
   workflow_dispatch:
 
+# Pull request runs cancel superseded runs. Every other run gets its own group,
+# so a queued run is never replaced and every pushed range is scanned.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
