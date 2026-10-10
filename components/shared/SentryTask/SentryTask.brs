@@ -24,7 +24,7 @@ sub send()
     http = createObject("roUrlTransfer")
     http.setPort(port)
     http.retainBodyOnError(true)
-    ' Events carry the user id and file names, so unlike HttpTask this keeps peer and
+    ' Events carry the user id and file ids, so unlike HttpTask this keeps peer and
     ' host verification on; a failed handshake drops the event instead of leaking it.
     http.setCertificatesFile("common:/certs/ca-bundle.crt")
     http.initClientCertificates()

@@ -76,29 +76,7 @@ sub reportFetchFileFailure(data)
         return
     end if
 
-    errorType = "none"
-    errorMessage = ""
-    if data <> invalid
-        if data.error_type <> invalid
-            errorType = data.error_type.toStr()
-        end if
-        if data.error_message <> invalid
-            errorMessage = data.error_message.toStr()
-        end if
-    end if
-
-    event = sentryCreateEvent("Roku video file request failed: " + errorType, "error")
-    event.fingerprint = ["roku-video-fetch-error", "error-type:" + errorType]
-    sentryAddTags(event, {
-        telemetry_event: "playback_source_request_failure",
-        source_request_error_type: errorType,
-    })
-    sentryAddExtra(event, {
-        file_id: m.top.params.fileId,
-        error_type: errorType,
-        error_message: errorMessage,
-    })
-    sentryCaptureEvent(event)
+    sentryCaptureEvent(createSourceRequestFailureEvent(m.top.params.fileId, data))
 end sub
 
 sub handleFetchedFile()

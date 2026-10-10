@@ -89,10 +89,21 @@ Sentry ingest API:
   turns a terminal `Video` failure into a `playback_failure` event that mirrors
   the putio-web telemetry contract (`schema_version` 1): tags for grouping such
   as `playback_failure_mode`, `roku_error_code`, `source_kind`, `stream_format`,
-  `video_codec`, and `roku_model`, plus extra with Roku `errorInfo`, the
-  redacted stream URL, and the file `media_info`
+  `video_codec`, and `roku_model`, plus extra with allowlisted fields from Roku
+  `errorInfo`, the file's `video_metadata`, and a codec and container summary of
+  its `media_info`
+- Events carry ids, codes, categories, codecs, container, resolution, device, and
+  OS only: never filenames, media titles, URLs, query strings, tokens, Roku error
+  messages, or the API's `error_message`.
+  [test/sentry/sentry-privacy.test.ts](../test/sentry/sentry-privacy.test.ts)
+  builds both events from synthetic forbidden values in the
+  [`@rokucommunity/brs`](https://github.com/rokucommunity/brs) interpreter
 - `VideoPlayer` reports before it stops the Video node because `control = "stop"`
   clears `errorInfo`; `Video` reports failed file requests separately
+- Reporting stops when the account's `/account/info` `settings.diagnostics_enabled`
+  is `false`; a missing key or an account that has not loaded counts as on. The
+  app reads the account at launch, so a change made on another client applies on
+  the next launch
 - Reporting is a no-op unless the package was built with `PUTIO_ROKU_SENTRY_DSN`;
   the checked-in `source/BuildConfig.brs` keeps it empty so open-source clones
   and local builds send nothing. The release workflow sets it from the
