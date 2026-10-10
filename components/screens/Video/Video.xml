@@ -8,6 +8,7 @@
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Sentry/Sentry.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Sentry/PlaybackTelemetry.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Video/Video.brs" />
 
 	<interface>

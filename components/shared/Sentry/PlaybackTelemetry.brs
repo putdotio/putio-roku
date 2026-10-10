@@ -4,7 +4,6 @@
 function createPlaybackFailureEvent(input as object) as object
     video = input.video
     errorCode = sentryVideoErrorCode(video)
-    errorMessage = sentryVideoErrorMessage(video)
     errorInfo = sentryVideoErrorInfo(video)
     failureMode = classifyRokuPlaybackFailure(errorCode, errorInfo)
     streamInfo = input.streamInfo
@@ -13,12 +12,7 @@ function createPlaybackFailureEvent(input as object) as object
     videoStream = sentryFileVideoStream(file)
     audioStream = sentryFileAudioStream(file)
 
-    title = "Roku playback failed"
-    if errorMessage <> ""
-        title = title + ": " + errorMessage
-    end if
-
-    event = sentryCreateEvent(title, "error")
+    event = sentryCreateEvent("Roku playback failed: " + failureMode, "error")
     event.fingerprint = ["roku-playback-error", "failure:" + failureMode, "roku-code:" + errorCode]
 
     sentryAddTags(event, {
@@ -50,7 +44,6 @@ function createPlaybackFailureEvent(input as object) as object
         schema_version: 1,
         terminal: true,
         file_id: sentryFileId(file),
-        file_name: sentryFileName(file),
         file_size: sentryFileSize(file),
         playback_started: input.playbackStarted,
         playback_type: input.playbackType,
@@ -59,18 +52,40 @@ function createPlaybackFailureEvent(input as object) as object
         time_to_error_ms: input.timeToErrorMs,
         video_state: sentryVideoState(video),
         roku_error_code: errorCode,
-        roku_error_message: errorMessage,
-        roku_error_str: sentryVideoErrorStr(video),
-        roku_error_info: errorInfo,
-        stream_url: sentryRedactStreamUrl(streamInfo),
+        roku_error_info: sentryAllowedFields(errorInfo, sentryErrorInfoKeys()),
         stream_format: sentryStreamFormat(streamInfo),
         source_kind: sourceKind,
         has_mp4_stream: sentryHasMp4Stream(file),
         has_direct_stream: sentryHasDirectStream(file),
-        need_convert: sentryFileField(file, "need_convert"),
+        need_convert: sentryScalarValue(sentryFileField(file, "need_convert")),
         mp4_status: sentryMp4Status(file),
-        video_metadata: sentryFileField(file, "video_metadata"),
-        media_info: sentryFileField(file, "media_info"),
+        video_metadata: sentryAllowedFields(sentryFileField(file, "video_metadata"), sentryVideoMetadataKeys()),
+        media_info: sentryMediaInfoSummary(sentryFileField(file, "media_info")),
+    })
+
+    return event
+end function
+
+' Builds the event for a failed /files/list request behind the player. The API's
+' error_message is free text that can quote the file name, so only codes are reported.
+function createSourceRequestFailureEvent(fileId as dynamic, response as dynamic) as object
+    errorType = "none"
+    statusCode = invalid
+    if type(response) = "roAssociativeArray"
+        errorType = sentryTagValue(response.error_type)
+        statusCode = sentryScalarValue(response.status_code)
+    end if
+
+    event = sentryCreateEvent("Roku video file request failed: " + errorType, "error")
+    event.fingerprint = ["roku-video-fetch-error", "error-type:" + errorType]
+    sentryAddTags(event, {
+        telemetry_event: "playback_source_request_failure",
+        source_request_error_type: errorType,
+    })
+    sentryAddExtra(event, {
+        file_id: sentryScalarValue(fileId),
+        error_type: errorType,
+        status_code: statusCode,
     })
 
     return event
@@ -110,22 +125,6 @@ function sentryVideoErrorCode(video as object) as string
     end if
 
     return "none"
-end function
-
-function sentryVideoErrorMessage(video as object) as string
-    if video <> invalid and video.errorMsg <> invalid and video.errorMsg.toStr() <> ""
-        return video.errorMsg.toStr()
-    end if
-
-    return ""
-end function
-
-function sentryVideoErrorStr(video as object) as string
-    if video <> invalid and video.hasField("errorStr") and video.errorStr <> invalid
-        return video.errorStr.toStr()
-    end if
-
-    return ""
 end function
 
 function sentryVideoErrorInfo(video as object) as object
@@ -175,21 +174,6 @@ function sentryStreamFormat(streamInfo as object) as string
     return "unknown"
 end function
 
-' Stream URLs embed the download token as a query param; keep only the path.
-function sentryRedactStreamUrl(streamInfo as object) as string
-    if streamInfo = invalid or streamInfo.url = invalid
-        return ""
-    end if
-
-    url = streamInfo.url.toStr()
-    queryIndex = Instr(1, url, "?")
-    if queryIndex > 0
-        return Left(url, queryIndex - 1) + "?<redacted>"
-    end if
-
-    return url
-end function
-
 function sentryFileField(file as object, key as string) as dynamic
     if file <> invalid and file[key] <> invalid
         return file[key]
@@ -205,15 +189,6 @@ function sentryFileId(file as object) as string
     end if
 
     return id.toStr()
-end function
-
-function sentryFileName(file as object) as string
-    name = sentryFileField(file, "name")
-    if name = invalid
-        return ""
-    end if
-
-    return name.toStr()
 end function
 
 function sentryFileSize(file as object) as dynamic
@@ -315,9 +290,53 @@ end function
 
 function sentryMp4Status(file as object) as dynamic
     mp4Status = sentryFileField(file, "mp4_status")
-    if mp4Status <> invalid and mp4Status.status <> invalid
-        return mp4Status.status
+    if type(mp4Status) = "roAssociativeArray"
+        return sentryScalarValue(mp4Status.status)
     end if
 
-    return mp4Status
+    return sentryScalarValue(mp4Status)
+end function
+
+' Roku errorInfo also carries message, dbgmsg and error_string, which can quote the
+' stream URL with its token.
+function sentryErrorInfoKeys() as object
+    return ["category", "source", "error_code", "drm_error_code", "ignored"]
+end function
+
+function sentryVideoMetadataKeys() as object
+    return ["width", "height", "codec", "duration", "aspect_ratio"]
+end function
+
+' media_info is ffprobe output: format and stream tags carry titles and the filename.
+function sentryMediaInfoSummary(mediaInfo as dynamic) as dynamic
+    if type(mediaInfo) <> "roAssociativeArray"
+        return invalid
+    end if
+
+    summary = {
+        format: sentryAllowedFields(mediaInfo.format, ["name", "format_name", "duration", "bit_rate"]),
+        mime_type: sentryScalarValue(mediaInfo.mime_type),
+        playback_issues: [],
+        streams: [],
+    }
+
+    if type(mediaInfo.playback_issues) = "roArray"
+        for each issue in mediaInfo.playback_issues
+            value = sentryScalarValue(issue)
+            if value <> invalid
+                summary.playback_issues.push(value)
+            end if
+        end for
+    end if
+
+    if type(mediaInfo.streams) = "roArray"
+        for each stream in mediaInfo.streams
+            fields = sentryAllowedFields(stream, ["codec_type", "codec_name", "profile", "level", "width", "height", "pix_fmt", "channels", "rfc6381_codec"])
+            if fields <> invalid
+                summary.streams.push(fields)
+            end if
+        end for
+    end if
+
+    return summary
 end function
