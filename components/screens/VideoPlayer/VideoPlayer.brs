@@ -153,7 +153,6 @@ function init()
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
     m.playbackStarted = false
-    m.playbackAttemptTimer = CreateObject("roTimespan")
 end function
 
 sub applyPlayerColors()
@@ -313,7 +312,6 @@ sub resetPlaybackState()
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
     m.playbackStarted = false
-    m.playbackAttemptTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
@@ -1336,7 +1334,7 @@ end sub
 
 ' Reads the Video node before control = "stop" clears errorInfo, then hands off to a task.
 sub reportPlaybackFailure()
-    if m.errorDialogShown or sentryIsEnabled() = false
+    if m.errorDialogShown
         return
     end if
 
@@ -1346,9 +1344,6 @@ sub reportPlaybackFailure()
         streamInfo: m.currentStreamInfo,
         playbackType: getConfiguredPlaybackType(),
         playbackStarted: m.playbackStarted,
-        position: getDisplayedPosition(),
-        duration: m.duration,
-        timeToErrorMs: m.playbackAttemptTimer.totalMilliseconds(),
     }))
 end sub
 

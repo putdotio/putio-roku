@@ -87,13 +87,12 @@ Sentry ingest API:
   from a Task thread; screens never wait on the network
 - [components/shared/Sentry/PlaybackTelemetry.brs](../components/shared/Sentry/PlaybackTelemetry.brs)
   turns a terminal `Video` failure into a `playback_failure` event that mirrors
-  the putio-web telemetry contract (`schema_version` 1): tags for grouping such
-  as `playback_failure_mode`, `roku_error_code`, `source_kind`, `stream_format`,
-  `video_codec`, and `roku_model`, plus extra with allowlisted fields from Roku
-  `errorInfo`, the file's `video_metadata`, and a codec and container summary of
-  its `media_info`
+  the tags of the putio-web telemetry contract (`schema_version` 1), such as
+  `playback_failure_mode`, `roku_error_code`, `source_kind`, `stream_format`,
+  `video_codec`, and `roku_model`
 - Events carry ids, codes, categories, codecs, container, resolution, device, and
-  OS only: never filenames, media titles, URLs, query strings, tokens, Roku error
+  OS as tags and contexts only, with no `extra`: never filenames, media titles,
+  URLs, query strings, tokens, account fields other than the user id, Roku error
   messages, or the API's `error_message`.
   [test/sentry/sentry-privacy.test.ts](../test/sentry/sentry-privacy.test.ts)
   builds both events from synthetic forbidden values in the
