@@ -1,34 +1,14 @@
-' Render-thread helpers for reporting to Sentry. Events are built here and handed to a
-' SentryTask so the screen never waits on the network. Reporting is a no-op unless the
-' package was built with a DSN (see PUTIO_ROKU_SENTRY_DSN in docs/ROKU_VARIANTS.md) and
-' the account has not turned diagnostics off.
-function sentryIsEnabled() as boolean
-    return buildConfigSentryDsn() <> "" and sentryAccountAllowsDiagnostics()
-end function
+' Render-thread helpers for reporting to Sentry. Events are handed to a SentryTask so the
+' screen never waits on the network. Builds without a DSN (see PUTIO_ROKU_SENTRY_DSN in
+' docs/ROKU_VARIANTS.md) report nothing.
 
 ' /account/info settings.diagnostics_enabled is the account's diagnostics opt-out, shared
-' across put.io clients. Only an explicit false turns reporting off; a missing key or an
+' across put.io clients. Only an explicit false stops reporting; a missing key or an
 ' account that has not loaded yet counts as on.
-function sentryAccountAllowsDiagnostics() as boolean
-    if m.global = invalid or m.global.hasField("user") = false
-        return true
-    end if
-
-    user = m.global.user
-    if type(user) <> "roAssociativeArray" or type(user.settings) <> "roAssociativeArray"
-        return true
-    end if
-
-    enabled = user.settings.diagnostics_enabled
-    if type(enabled) = "roBoolean" or type(enabled) = "Boolean"
-        return enabled
-    end if
-
-    return true
-end function
-
 sub sentryCaptureEvent(event as object)
-    if event = invalid or sentryIsEnabled() = false
+    settings = m.global.user.settings
+    diagnosticsEnabled = settings = invalid or settings.diagnostics_enabled = invalid or settings.diagnostics_enabled
+    if diagnosticsEnabled = false or buildConfigSentryDsn() = ""
         return
     end if
 
@@ -122,16 +102,10 @@ function sentryCreateEvent(message as string, level as string) as object
             connection_type: deviceInfo.getConnectionType(),
             video_mode: deviceInfo.getVideoMode(),
         },
-        extra: {},
     }
 
-    ' /account/info reports the id as user_id; older payloads used id.
-    if m.global <> invalid and m.global.hasField("user") and m.global.user <> invalid
-        if m.global.user.user_id <> invalid
-            event.user = { id: m.global.user.user_id.toStr() }
-        else if m.global.user.id <> invalid
-            event.user = { id: m.global.user.id.toStr() }
-        end if
+    if m.global.user.user_id <> invalid
+        event.user = { id: m.global.user.user_id.toStr() }
     end if
 
     return event
@@ -142,43 +116,6 @@ sub sentryAddTags(event as object, tags as object)
         event.tags[key] = sentryTagValue(tags[key])
     end for
 end sub
-
-sub sentryAddExtra(event as object, extra as object)
-    for each key in extra
-        event.extra[key] = extra[key]
-    end for
-end sub
-
-' Copies only the listed scalar fields, so a nested title, filename, URL or debug
-' message can never reach an event by riding along inside a whole object.
-function sentryAllowedFields(source as dynamic, keys as object) as dynamic
-    if type(source) <> "roAssociativeArray"
-        return invalid
-    end if
-
-    fields = {}
-    for each key in keys
-        value = sentryScalarValue(source[key])
-        if value <> invalid
-            fields[key] = value
-        end if
-    end for
-
-    return fields
-end function
-
-function sentryScalarValue(value as dynamic) as dynamic
-    valueType = type(value)
-    if valueType = "roString" or valueType = "String"
-        return Left(value, 200)
-    end if
-
-    if valueType = "roBoolean" or valueType = "Boolean" or valueType = "roInt" or valueType = "Integer" or valueType = "roInteger" or valueType = "roFloat" or valueType = "Float" or valueType = "roDouble" or valueType = "Double" or valueType = "LongInteger" or valueType = "roLongInteger"
-        return value
-    end if
-
-    return invalid
-end function
 
 ' Sentry tags are short strings; anything else becomes "unknown"/"none" style text.
 function sentryTagValue(value) as string

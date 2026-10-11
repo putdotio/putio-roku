@@ -66,17 +66,9 @@ sub onFetchFileResponse(obj)
         handleFetchedFile()
     else
         hideLoading()
-        reportFetchFileFailure(data)
+        sentryCaptureEvent(createSourceRequestFailureEvent(m.top.params.fileId, data))
         showFetchFileErrorDialog(data)
     end if
-end sub
-
-sub reportFetchFileFailure(data)
-    if sentryIsEnabled() = false
-        return
-    end if
-
-    sentryCaptureEvent(createSourceRequestFailureEvent(m.top.params.fileId, data))
 end sub
 
 sub handleFetchedFile()
