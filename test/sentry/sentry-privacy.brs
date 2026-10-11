@@ -19,7 +19,7 @@ function main() as string
     m.global.user = { user_id: 4242, settings: { diagnostics_enabled: false } }
     result.gate.disabled = sentryIsEnabled()
 
-    m.global.user = { user_id: 4242, settings: { diagnostics_enabled: true } }
+    m.global.user = { user_id: 4242, download_token: "synthetic-token-7f3a", settings: { diagnostics_enabled: true } }
 
     streamUrl = "https://api.example.invalid/v2/files/9001/hls/media.m3u8?oauth_token=synthetic-token-7f3a"
     video = createObject("roSGNode", "Node")
