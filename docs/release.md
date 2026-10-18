@@ -59,7 +59,7 @@ expected Release fails closed.
 [release.yml](../.github/workflows/release.yml) names every input. The release
 bot's client ID (variable) and private key (secret) live in the `release`
 Environment. `PUTIO_ROKU_SENTRY_DSN` (see
-[Error reporting](./ROKU_VARIANTS.md#error-reporting)) and the AWS deploy
+[Error reporting](./roku-variants.md#error-reporting)) and the AWS deploy
 inputs used by the `production` deploy job are repository variables.
 
 The AWS role should trust GitHub Actions OIDC only for production deploys from

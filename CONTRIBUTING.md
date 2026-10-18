@@ -28,7 +28,7 @@ account for hardware-backed checks so screenshots, navigation, playback, and
 track selection run against stable fixtures. [Live Test setup](./live-test/README.md#setup)
 covers both paths and the variables each check needs.
 
-If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/SIDELOADING.md)
+If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/sideloading.md)
 
 ## Run Locally
 
@@ -47,7 +47,7 @@ pnpm sideload
 `pnpm sideload` removes the previously installed developer app, builds a fresh ZIP, validates the target, and reinstalls the app. `pnpm roku build-dev` and `pnpm roku build-lab` build explicit variants; `pnpm roku help --all` lists every task.
 
 See [Live Test](./live-test/README.md) for hardware-backed checks and the
-debug loop, and [Roku variants and Lab](./docs/ROKU_VARIANTS.md) for the
+debug loop, and [Roku variants and Lab](./docs/roku-variants.md) for the
 development/Lab packaging split and the Roku-specific design asset adapter.
 
 ## Validation
@@ -86,4 +86,4 @@ boundaries: [Rules](./AGENTS.md#rules) and [Build And Config](./AGENTS.md#build-
 
 ## CI And Delivery
 
-[CI](./.github/workflows/ci.yml) runs `pnpm verify` and an offline check of relative Markdown links and anchors on pull requests and manual dispatch. On pushes to `main`, [Release](./.github/workflows/release.yml) calls the same CI job before release evaluation unless the head commit contains `[skip ci]`; there the job also audits `.github/` changes with Actionlint and Zizmor. Publishing, versioning, and recovery are in [Release workflow](./docs/RELEASE.md).
+[CI](./.github/workflows/ci.yml) runs `pnpm verify` and an offline check of relative Markdown links and anchors on pull requests and manual dispatch. On pushes to `main`, [Release](./.github/workflows/release.yml) calls the same CI job before release evaluation unless the head commit contains `[skip ci]`; there the job also audits `.github/` changes with Actionlint and Zizmor. Publishing, versioning, and recovery are in [Release workflow](./docs/release.md).

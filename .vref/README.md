@@ -86,4 +86,4 @@ pnpm roku visual-validate
   confirm the build did not log "Packaged without licensed brand fonts"; a fonts-less
   build silently falls back to the Roku system font, and `pnpm roku visual-validate`
   checks the manifest and files only, never pixels. Entries carry a `gt-america` tag so a
-  mis-recorded batch is visible in the committed manifest. See [Font system](../docs/FONTS.md).
+  mis-recorded batch is visible in the committed manifest. See [Font system](../docs/fonts.md).

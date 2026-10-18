@@ -130,7 +130,7 @@ GT America Standard carries **523 codepoints**: Latin, Turkish (including the do
 dotless `ı` via its `locl` forms), and accented Latin. It has no Greek, Cyrillic, Hebrew,
 Arabic, Thai, CJK, Hiragana, Katakana, Hangul or emoji, and no symbol glyphs, notably no
 `✓` (U+2713), `✔`, `★`, or `▶`. Interface symbols come from the Phosphor icon set instead
-(see [Icon system](./ICONS.md)); do not reintroduce symbol characters as text.
+(see [Icon system](./icons.md)); do not reintroduce symbol characters as text.
 
 Roku's `Font` node does not fall back per glyph, so a character the face lacks renders as
 a placeholder box. File names are user content and often not Latin, but **this is not

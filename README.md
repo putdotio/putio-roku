@@ -17,7 +17,7 @@
 
 ## Install
 
-Roku no longer supports private channels, so put.io on Roku is installed by sideloading the [published Roku ZIP](https://roku.put.io/v2.zip). The [Sideloading guide](./docs/SIDELOADING.md) walks through it.
+Roku no longer supports private channels, so put.io on Roku is installed by sideloading the [published Roku ZIP](https://roku.put.io/v2.zip). The [Sideloading guide](./docs/sideloading.md) walks through it.
 
 ## Use
 
@@ -34,11 +34,11 @@ or Down on the last item to return to the first.
 
 ## Docs
 
-- [Sideloading guide](./docs/SIDELOADING.md) for device setup and ZIP installation
+- [Sideloading guide](./docs/sideloading.md) for device setup and ZIP installation
 - [Live Test](./live-test/README.md) for hardware-backed debugging, Lab stories, and agent readiness checks
-- [Roku variants and Lab](./docs/ROKU_VARIANTS.md) for the development/Lab split and design-token adapter
+- [Roku variants and Lab](./docs/roku-variants.md) for the development/Lab split and design-token adapter
 - [Roku visual reference](./.vref/README.md) for curated screenshots and the generated gallery
-- [Release workflow](./docs/RELEASE.md) for [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and [roku.put.io](https://roku.put.io/v2.zip) publishing
+- [Release workflow](./docs/release.md) for [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and [roku.put.io](https://roku.put.io/v2.zip) publishing
 - [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md) for private vulnerability reporting
 
 ## Contributing

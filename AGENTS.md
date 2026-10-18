@@ -11,9 +11,9 @@
 - [Contributing](./CONTRIBUTING.md)
 - [Live Test](./live-test/README.md)
 - [Roku Visual Reference](./.vref/README.md)
-- [Icon system](./docs/ICONS.md)
-- [Font system](./docs/FONTS.md)
-- [Release workflow](./docs/RELEASE.md)
+- [Icon system](./docs/icons.md)
+- [Font system](./docs/fonts.md)
+- [Release workflow](./docs/release.md)
 - [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md)
 
 ## Commands
@@ -54,15 +54,15 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Local overrides flow through optional `.env` and ignored `.env.local`; `.env.local` wins. `secrets-setup` replaces `.env.local`, so keep the Roku target in `.env`. Setup: [Live Test](./live-test/README.md#setup)
 - `.env.example` must stay sanitized and safe to publish
 - Roku static checks are configured through `bsconfig.json` and `bslint.json`
-- Runtime error reporting posts Sentry envelopes directly from `SentryTask`; the DSN is compiled in from `PUTIO_ROKU_SENTRY_DSN` at packaging time and stays empty in git, so local builds report nothing, and an account with `diagnostics_enabled: false` reports nothing either. Events carry only allowlisted safe fields. Playback failures follow the `playback_failure` telemetry contract in [Roku variants and Lab](./docs/ROKU_VARIANTS.md#error-reporting)
+- Runtime error reporting posts Sentry envelopes directly from `SentryTask`; the DSN is compiled in from `PUTIO_ROKU_SENTRY_DSN` at packaging time and stays empty in git, so local builds report nothing, and an account with `diagnostics_enabled: false` reports nothing either. Events carry only allowlisted safe fields. Playback failures follow the `playback_failure` telemetry contract in [Roku variants and Lab](./docs/roku-variants.md#error-reporting)
 - Roku layout is authored in 1920x1080 FHD coordinates even when device screenshots are 1280x720; use `components/shared/UiMetrics/UiMetrics.brs` for shared screen, centering, row, and 3px autoscale-grid values instead of scattering raw modal/list dimensions
 - Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
-- Product glyphs use the pinned Phosphor pipeline in [Icon system](./docs/ICONS.md): edit `config/phosphor-icons.json`, run `pnpm roku icons`; never hand-edit `images/icons/*.png`, and keep brand/channel/splash art outside the icon set
-- Brand typography uses licensed GT America faces per [Font system](./docs/FONTS.md): `pnpm roku fonts-setup` fetches them without a credential, they are **never committed** (`pnpm verify` fails if git tracks an `.otf`/`.ttf`/`.ttc`), and a clone without them builds and runs on the Roku system font. A face ships only when it is listed in `config/brand-fonts.json` and validates
+- Product glyphs use the pinned Phosphor pipeline in [Icon system](./docs/icons.md): edit `config/phosphor-icons.json`, run `pnpm roku icons`; never hand-edit `images/icons/*.png`, and keep brand/channel/splash art outside the icon set
+- Brand typography uses licensed GT America faces per [Font system](./docs/fonts.md): `pnpm roku fonts-setup` fetches them without a credential, they are **never committed** (`pnpm verify` fails if git tracks an `.otf`/`.ttf`/`.ttc`), and a clone without them builds and runs on the Roku system font. A face ships only when it is listed in `config/brand-fonts.json` and validates
 - Curated Roku screenshots live in `.vref/`; capture, validate, and gallery commands and the public-safe rules are in [Roku Visual Reference](./.vref/README.md#workflow)
 
 ## Delivery
 
 - Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify` and should stay aligned with it, then the shared [links](https://github.com/putdotio/.github#actionslinks) check of relative Markdown links and anchors
 - CI's last step is the shared [scan](https://github.com/putdotio/.github#actionsscan): it passes through pull requests, runs Actionlint and Zizmor when a `main` push changes `.github/`, and lints every workflow on manual dispatch; GitHub secret scanning and push protection cover secrets
-- A push to `main` runs [Release](./.github/workflows/release.yml): CI's verify job, then semantic-release. A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Versioning and recovery: [Release workflow](./docs/RELEASE.md)
+- A push to `main` runs [Release](./.github/workflows/release.yml): CI's verify job, then semantic-release. A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Versioning and recovery: [Release workflow](./docs/release.md)
