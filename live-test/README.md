@@ -78,7 +78,6 @@ signing keys, and download tokens do not belong in git. `.putio-cli/` is ignored
 and may contain local put.io CLI auth state for the testing account.
 
 Keep the device IP in `.env`; rerunning `secrets-setup` replaces `.env.local`.
-The SOPS setup command is only needed when you are using the shared fixtures.
 
 Install the repo toolchain before running smoke or install checks:
 
@@ -200,13 +199,6 @@ stories by default; use `STORIES="story-id ..."` for targeted captures and
 | Reset Roku app auth                | `pnpm roku live-test-auth-reset`      | Reachable Roku; optional app id                |
 | Refresh the visible device code    | `pnpm roku live-test-auth-refresh`    | Reachable Roku; optional app id                |
 | Prepare Roku app auth end-to-end   | `pnpm roku live-test-auth-prepare`    | Test account and Roku; optional profile/app id |
-
-For a one-off install without saving the password in `.env`, pass it as an
-environment variable:
-
-```bash
-ROKU_DEV_PASSWORD=<developer-mode-password> pnpm roku live-test-install
-```
 
 ## Debug Loop
 

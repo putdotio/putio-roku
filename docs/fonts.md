@@ -16,16 +16,13 @@ repository never becomes a distribution point**:
 
 - Font binaries are never committed. `.gitignore` covers `/fonts/*.otf`, `/fonts/*.ttf` and
   `/fonts/*.ttc`, and `pnpm verify` fails outright if `git ls-files` ever reports one
-- Nothing lands in git history and nothing is search-indexable from here
-- The built app bundles them, as does the CDN that already serves the family to the web
-  surfaces; that is inherent to shipping a typeface
 - Do not subset, convert, rename, or re-host the faces, and do not add them to
   `@putdotio/design`; `static.put.io` is the single source
 
-The boundary is scoped to git, not access: `static.put.io` already serves the faces to
-every web surface over plain HTTPS with no credential, so anyone can run
-`pnpm roku fonts-setup`. What the repo controls is that the binaries are not in its tree,
-its history, or its packages.
+The boundary is scoped to git, not access: `static.put.io` serves the faces to every web
+surface over plain HTTPS with no credential, so anyone can run `pnpm roku fonts-setup`, and
+the built app bundles them. What the repo controls is that the binaries stay out of its
+tree and its history.
 
 ## Syncing the faces
 
@@ -49,8 +46,7 @@ fetch:
 - `pnpm roku fonts-check` is offline and reports the state of `fonts/`
 
 Validation checks _usability_, not tamper-resistance; the bytes come from put.io's own CDN
-over TLS. A face is accepted
-only when it is a single OpenType/TrueType face (not a `.ttc` collection), every table in
+over TLS. A face is accepted only when it is a single OpenType/TrueType face (not a `.ttc` collection), every table in
 its directory lies inside the file, the tables Roku needs to render are present, and its
 name table declares the expected family. That covers the failure modes a CDN actually
 produces: a `200` carrying an error page, a half-finished download, or the wrong typeface
