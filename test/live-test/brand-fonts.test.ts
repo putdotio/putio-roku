@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { hasVerifiedBrandFonts, verifiedBrandFontRoots } from "../../scripts/package-roku.ts";
 import { brandFontRejection, parseBrandFontManifest } from "../../scripts/sync-brand-fonts.ts";
 import { listRepoFiles, readRepoFile, repoRoot } from "./repo-files.ts";
@@ -144,6 +144,7 @@ describe("brand font availability", () => {
   // typography. The fixture mints its own manifest so no repo fonts/ is needed.
   function fixture(faces: Readonly<Record<string, Buffer>>, listed?: readonly string[]): string {
     const root = mkdtempSync(join(tmpdir(), "putio-roku-fonts-fixture-"));
+    onTestFinished(() => rmSync(root, { recursive: true, force: true }));
     mkdirSync(join(root, "config"), { recursive: true });
     writeFileSync(
       join(root, "config/brand-fonts.json"),
