@@ -110,6 +110,7 @@ export async function checkRokuDesign(): Promise<void> {
 
 export async function checkRokuAssets(): Promise<void> {
   await generateRokuAssets(repoRoot);
+  assertFile("images/generated/overhangLogo.png");
   for (const variant of ["production", "development", "lab"]) {
     for (const fileName of [
       "channel-poster_fhd.png",
