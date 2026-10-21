@@ -51,7 +51,8 @@ Roku consumes `@putdotio/design` and owns only the Roku adapter here.
 
 - [scripts/generate-roku-assets.ts](../scripts/generate-roku-assets.ts) reads
   `@putdotio/design/assets/logo-retro-dark.svg` plus channel-art tokens, then
-  writes `images/generated/<variant>/`
+  writes the variant channel art to `images/generated/<variant>/` and the
+  header logo to `images/generated/overhangLogo.png`
 - [scripts/generate-roku-design.ts](../scripts/generate-roku-design.ts) reads
   `@putdotio/design/tokens` and writes
   [source/DesignTokens.brs](../source/DesignTokens.brs)
