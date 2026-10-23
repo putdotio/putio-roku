@@ -29,7 +29,7 @@
     <Overhang
       id="overhang"
       showClock="false"
-      logoUri="pkg:/images/OverhangLogo.png"
+      logoUri="pkg:/images/generated/overhangLogo.png"
       logoBaselineOffset="9"
       title=""
     />
