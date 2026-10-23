@@ -45,7 +45,7 @@ jobs:
       - name: Verify repository
         run: pnpm verify
 
-      - uses: putdotio/.github/.github/actions/links@df7b05db247b9a2c0c6d9aa460353fd1ab4dd744 # v2.0.0
+      - uses: putdotio/.github/.github/actions/links@32b9f2f9ac2b6b17b2be6b111ec495e079384b4c # v2.3.1
 
       - if: ${{ !cancelled() }}
-        uses: putdotio/.github/.github/actions/scan@df7b05db247b9a2c0c6d9aa460353fd1ab4dd744 # v2.0.0
+        uses: putdotio/.github/.github/actions/scan@32b9f2f9ac2b6b17b2be6b111ec495e079384b4c # v2.3.1
