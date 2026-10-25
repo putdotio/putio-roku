@@ -12,7 +12,6 @@
 - [Roku Visual Reference](./.vref/README.md): before capturing or committing screenshots
 - [Roku variants and Lab](./docs/roku-variants.md): before touching packaging, design tokens, or error reporting
 - [Icon system](./docs/icons.md) and [Font system](./docs/fonts.md): before changing glyphs or typography
-- [Distribution](./docs/distribution.md): release recovery and GitHub configuration
 
 ## Commands
 
@@ -54,5 +53,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 ## Delivery
 
-- Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify`, a relative Markdown link check, and the shared scan
-- A merge to `main` runs [Release](./.github/workflows/release.yml). A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Recovery: [Distribution](./docs/distribution.md)
+- Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify`
+- Merging a releasing commit type ([.releaserc.json](./.releaserc.json)) ships to every user through [roku.put.io/v2.zip](https://roku.put.io/v2.zip); pick the type on purpose
+- A release that stops halfway: dispatch [Release](./.github/workflows/release.yml) from `main` with the existing tag; it resumes the draft or deploy and never changes a published Release
+- The AWS deploy role behind [Release](./.github/workflows/release.yml) must trust GitHub OIDC only for production deploys from `putdotio/putio-roku` on `main`
