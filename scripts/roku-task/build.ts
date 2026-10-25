@@ -63,7 +63,7 @@ export function checkRokuFontBinaries(): void {
   ]).trim();
   if (tracked !== "") {
     throw new Error(
-      `Licensed font binaries must never be committed to this public repo (see docs/fonts.md):\n${tracked}`,
+      `Licensed font binaries must never be committed to this public repo:\n${tracked}`,
     );
   }
 }

@@ -21,7 +21,12 @@ device checks so screenshots, navigation, playback, and track selection run
 against stable fixtures. [Live Test setup](./live-test/README.md#setup) covers
 both paths.
 
-To enable Developer Mode on the device, follow the [Sideloading guide](./docs/sideloading.md#1-enable-developer-mode).
+### Enable Developer Mode
+
+On the Roku remote, press `HOME` three times, then `UP`, `UP`, `RIGHT`, `LEFT`,
+`RIGHT`, `LEFT`, `RIGHT`. Enable Developer Mode, set the web installer
+password, and note the IP address; the Roku reboots. To install a ZIP by hand,
+open that IP in a browser, sign in as `rokudev`, and upload the ZIP unextracted.
 
 ## Run Locally
 
@@ -38,7 +43,7 @@ pnpm sideload
 ```
 
 `pnpm roku build-dev` and `pnpm roku build-lab` build explicit
-[variants](./docs/roku-variants.md); `pnpm roku help --all` lists every task.
+variants ([scripts/package-roku.ts](./scripts/package-roku.ts)); `pnpm roku help --all` lists every task.
 [Live Test](./live-test/README.md) covers device checks and the debug loop.
 
 ## Checks

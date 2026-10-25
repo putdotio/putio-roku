@@ -16,7 +16,7 @@ remove them later.
 - Use synthetic or public-safe file names and account state
 - Never commit IP addresses, tokens, device passwords, or private account data
 - Prefer exact Roku screenshots over reconstructed browser mockups
-- Capture with the brand faces bundled: run `pnpm roku fonts-setup` first and confirm the build did not log "Packaged without licensed brand fonts". `visual-validate` checks the manifest and files, never pixels, so entries carry a `gt-america` tag to make a fonts-less batch visible. See [Font system](../docs/fonts.md)
+- Capture with the brand faces bundled: run `pnpm roku fonts-setup` first and confirm the build did not log "Packaged without licensed brand fonts". `visual-validate` checks the manifest and files, never pixels, so entries carry a `gt-america` tag to make a fonts-less batch visible.
 
 ## Workflow
 

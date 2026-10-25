@@ -17,7 +17,7 @@
 
 ## Install
 
-Roku no longer supports private channels, so you sideload the [published Roku ZIP](https://roku.put.io/v2.zip). The [Sideloading guide](./docs/sideloading.md) walks through it.
+Roku no longer supports private channels, so you sideload the [published Roku ZIP](https://roku.put.io/v2.zip). [Enable Developer Mode](./CONTRIBUTING.md#enable-developer-mode) on the Roku, then upload the ZIP through its web installer.
 
 ## Use
 
@@ -28,7 +28,6 @@ or Down on the last item to return to the first.
 
 ## Docs
 
-- [Sideloading guide](./docs/sideloading.md): Developer Mode and ZIP install
 - [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md): private vulnerability reporting
 
 ## Contributing
