@@ -2,7 +2,6 @@
 import { spawnSync } from "node:child_process";
 import {
   copyFileSync,
-  cpSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -169,36 +168,11 @@ function stageReleaseFiles(): void {
   copyFileSync(sourceZip, `dist/public/releases/v2/${version}.zip`);
   copyFileSync(sourceZip, `dist/release/putio-roku-v${version}.zip`);
 
-  stageVisualReference();
-
   // Root landing: redirect the bare domain (and unknown paths, via errorPage) to
-  // the visual reference gallery instead of a raw S3 AccessDenied response.
+  // the Roku help article instead of a raw S3 AccessDenied response.
   const siteRoot = "infra/site-root/index.html";
   requireExists(siteRoot, "site root landing");
   copyFileSync(siteRoot, "dist/public/index.html");
-}
-
-// Publish the curated visual reference gallery alongside the hosted ZIP so it
-// is served at <ROKU_DOMAIN>/vref/. index.html embeds the screenshots by
-// relative path, so only it, the manifest, and screenshots/ are needed.
-function stageVisualReference(): void {
-  requireExists(".vref/index.html", "visual reference gallery");
-  requireExists(".vref/manifest.json", "visual reference manifest");
-  requireExists(".vref/screenshots", "visual reference screenshots");
-
-  mkdirSync("dist/public/vref", { recursive: true });
-  // Inject <base href="/vref/"> so the gallery's relative asset paths resolve
-  // whether the page is served at /vref, /vref/, or /vref/index.html. (The site
-  // serves the gallery at the bare /vref URL, where relative paths would
-  // otherwise resolve against the domain root.) The committed .vref/index.html
-  // stays relative so `vref serve` works locally at the root.
-  const gallery = readFileSync(".vref/index.html", "utf8").replace(
-    /<head>/i,
-    '<head>\n<base href="/vref/">',
-  );
-  writeFileSync("dist/public/vref/index.html", gallery);
-  copyFileSync(".vref/manifest.json", "dist/public/vref/manifest.json");
-  cpSync(".vref/screenshots", "dist/public/vref/screenshots", { recursive: true });
 }
 
 function requireExists(path: string, label: string): void {
@@ -212,8 +186,7 @@ runArtifact();
 stageReleaseFiles();
 
 console.log(`Prepared Roku release ${version}`);
-console.log("- dist/public/index.html (redirect -> /vref/index.html)");
+console.log("- dist/public/index.html (redirect -> help.put.io)");
 console.log("- dist/public/v2.zip");
 console.log(`- dist/public/releases/v2/${version}.zip`);
-console.log("- dist/public/vref/index.html");
 console.log(`- dist/release/putio-roku-v${version}.zip`);
