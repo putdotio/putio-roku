@@ -1,52 +1,37 @@
 # Sideloading On Roku
 
-Roku ended private channels, so the put.io Roku app is installed by sideloading a ZIP onto a developer-enabled device.
+Roku ended private channels, so you install put.io by sideloading a ZIP onto a
+Roku in Developer Mode.
 
 ## Before You Start
 
-- A Roku device on the same local network as your computer
+- A Roku on the same local network as your computer
 - A computer with a web browser
-- A ZIP build of the app from either supported source:
-  - [published Roku ZIP](https://roku.put.io/v2.zip)
-  - generated from this repo: run `pnpm artifact` and use `dist/apps/putio-roku-v2.zip`
+- The [published Roku ZIP](https://roku.put.io/v2.zip), or a local build (see [Contributing](../CONTRIBUTING.md#run-locally))
 
-Do not extract the ZIP before uploading it to Roku.
+Do not extract the ZIP.
 
 ## 1. Enable Developer Mode
 
-On your Roku remote, press this sequence:
+On your Roku remote, press:
 
 `HOME`, `HOME`, `HOME`, `UP`, `UP`, `RIGHT`, `LEFT`, `RIGHT`, `LEFT`, `RIGHT`
 
-The Developer Settings screen should appear.
-
-Then:
+On the Developer Settings screen:
 
 1. Choose `Enable Developer Mode`
 2. Accept the prompts
-3. Set a password for the device web installer
+3. Set a password for the web installer
 4. Note the Roku IP address shown on screen
 
-Your Roku will reboot after Developer Mode is enabled.
+The Roku reboots.
 
 ## 2. Open The Developer Installer
 
-On a computer connected to the same network, open a browser and visit your Roku IP address.
-
-Example:
-
-```text
-http://192.168.0.10
-```
-
-When prompted:
-
-- username: `rokudev`
-- password: the password you chose while enabling Developer Mode
+In a browser on the same network, open the Roku IP address, for example
+`http://192.168.0.10`. Sign in as `rokudev` with the password from step 1.
 
 ## 3. Upload The App ZIP
-
-In the Roku developer installer:
 
 1. Choose the ZIP file
 2. Select `Install`
@@ -54,18 +39,4 @@ In the Roku developer installer:
 
 ![Animated walkthrough of uploading the Roku ZIP in the developer installer](./assets/sideload-install.gif)
 
-After installation, the put.io channel appears on the Roku home screen as the developer app.
-
-## Build From This Repo Instead
-
-If you want to sideload a local branch instead of the published ZIP:
-
-1. Copy `.env.example` to `.env`
-2. Set `ROKU_DEV_TARGET` to your Roku IP address
-3. Set `ROKU_DEV_PASSWORD` to the Developer Mode password if needed
-4. Run `pnpm sideload`
-
-`pnpm roku check-roku-dev-target` checks that the Roku developer endpoint is
-reachable; `pnpm roku help --all` lists every task. For hardware-backed
-debugging, see [Live Test](../live-test/README.md). For the full contributor
-workflow, see [Contributing](../CONTRIBUTING.md)
+put.io then appears on the Roku home screen as the developer app.

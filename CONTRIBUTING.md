@@ -1,15 +1,8 @@
 # Contributing
 
-Thanks for contributing to `putio-roku`
-
 ## Setup
 
-Prerequisites:
-
-- Node.js from `.node-version`
-- `pnpm`
-
-Install the Node-based Roku toolchain:
+Prerequisites: Node.js from `.node-version` and `pnpm`.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -22,13 +15,13 @@ copy the sample and set your Roku target and Developer Mode password:
 cp .env.example .env
 ```
 
-Maintainers with the shared encrypted test payload render the shared test
-account and fixtures into `.env.local` with `pnpm roku secrets-setup`; use that
-account for hardware-backed checks so screenshots, navigation, playback, and
-track selection run against stable fixtures. [Live Test setup](./live-test/README.md#setup)
-covers both paths and the variables each check needs.
+Maintainers with the shared encrypted test payload render the test account and
+fixtures into `.env.local` with `pnpm roku secrets-setup`; use that account for
+device checks so screenshots, navigation, playback, and track selection run
+against stable fixtures. [Live Test setup](./live-test/README.md#setup) covers
+both paths.
 
-If you need help enabling Developer Mode on the device itself, use the [Sideloading guide](./docs/sideloading.md)
+To enable Developer Mode on the device, follow the [Sideloading guide](./docs/sideloading.md#1-enable-developer-mode).
 
 ## Run Locally
 
@@ -38,52 +31,38 @@ Check that the Roku developer endpoint is reachable:
 pnpm roku check-roku-dev-target
 ```
 
-Build and reinstall the app on the configured Roku device:
+Build and reinstall the app on the configured Roku:
 
 ```bash
 pnpm sideload
 ```
 
-`pnpm sideload` removes the previously installed developer app, builds a fresh ZIP, validates the target, and reinstalls the app. `pnpm roku build-dev` and `pnpm roku build-lab` build explicit variants; `pnpm roku help --all` lists every task.
+`pnpm roku build-dev` and `pnpm roku build-lab` build explicit
+[variants](./docs/roku-variants.md); `pnpm roku help --all` lists every task.
+[Live Test](./live-test/README.md) covers device checks and the debug loop.
 
-See [Live Test](./live-test/README.md) for hardware-backed checks and the
-debug loop, and [Roku variants and Lab](./docs/roku-variants.md) for the
-development/Lab packaging split and the Roku-specific design asset adapter.
+## Checks
 
-## Validation
-
-Run the standard repo verification before opening or updating a pull request:
+Run before opening or updating a pull request:
 
 ```bash
 pnpm verify
 ```
 
-It runs every static check, then builds a fresh ZIP for the selected variant;
-the steps are `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts).
-`pnpm roku check-markdown-format` runs the Markdown formatting check alone;
-`pnpm exec oxfmt "**/*.md"` fixes it.
+`pnpm exec oxfmt "**/*.md"` fixes Markdown formatting failures.
 
-Build the release-style ZIP used by automation:
+Build the production release ZIP at `dist/apps/putio-roku-v2.zip`:
 
 ```bash
 pnpm artifact
 ```
 
-`pnpm artifact` always rebuilds the production variant before writing
-`dist/apps/putio-roku-v2.zip`.
-
-## Development Notes
-
-Source conventions, the layout grid, icon and font pipelines, and secret
-boundaries: [Rules](./AGENTS.md#rules) and [Build And Config](./AGENTS.md#build-and-config).
+Source conventions and hazards: [AGENTS.md](./AGENTS.md).
 
 ## Pull Requests
 
-- Keep changes focused and explicit
-- Add or update validation when behavior changes
-- Prefer small follow-up pull requests over mixing unrelated cleanup into the same branch
-- Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; only curated `.vref/` references are committed
+- Keep changes focused; put unrelated cleanup in its own pull request
+- Add or update checks when behavior changes
+- Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; commit only curated `.vref/` references
 
-## CI And Delivery
-
-[CI](./.github/workflows/ci.yml) runs `pnpm verify` and an offline check of relative Markdown links and anchors on pull requests and manual dispatch. On pushes to `main`, [Release](./.github/workflows/release.yml) calls the same CI job before release evaluation unless the head commit contains `[skip ci]`; there the job also audits `.github/` changes with Actionlint and Zizmor. Publishing, versioning, and recovery are in [Release workflow](./docs/release.md).
+CI runs `pnpm verify` and a Markdown link check. Merges to `main` release per [Distribution](./docs/distribution.md).

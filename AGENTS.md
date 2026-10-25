@@ -7,21 +7,19 @@
 
 ## Start Here
 
-- [Overview](./README.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Live Test](./live-test/README.md)
-- [Roku Visual Reference](./.vref/README.md)
-- [Icon system](./docs/icons.md)
-- [Font system](./docs/fonts.md)
-- [Release workflow](./docs/release.md)
-- [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md)
+- [Contributing](./CONTRIBUTING.md): setup, sideload, checks
+- [Live Test](./live-test/README.md): before any device proof
+- [Roku Visual Reference](./.vref/README.md): before capturing or committing screenshots
+- [Roku variants and Lab](./docs/roku-variants.md): before touching packaging, design tokens, or error reporting
+- [Icon system](./docs/icons.md) and [Font system](./docs/fonts.md): before changing glyphs or typography
+- [Distribution](./docs/distribution.md): release recovery and GitHub configuration
 
 ## Commands
 
 - `pnpm verify` (alias `pnpm smoke`) runs every static check and then builds a fresh ZIP; the steps are `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
 - `pnpm artifact` builds the production release ZIP
 - `pnpm sideload` builds, validates the target, and reinstalls the app
-- `pnpm roku help` lists common tasks and `pnpm roku help --all` every task; the tables in [Live Test](./live-test/README.md#commands) pair each task with its variables
+- `pnpm roku help` lists common tasks and `pnpm roku help --all` every task; a task missing a required variable fails with an example command
 
 ## Worktrees
 
@@ -34,11 +32,16 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 - **Taking over someone's Roku.** A Roku holds one sideloaded developer app, which on a household Roku is its put.io install, and `pnpm sideload`, `install`, `lab-install` and the live-test installs replace it. The configured target may be a TV someone is watching or testing another build on; `pnpm roku active-app` shows what is on screen. Read-only tasks such as `check-roku-dev-target` and `device-info` leave it alone
 - **Publishing a screenshot forever.** Every release deploys `.vref/` to [roku.put.io/vref](https://roku.put.io/vref/), the site never purges, and this repository is public. A committed capture with real account data stays public even after you delete it
-- **Leaking private values.** Checked-in defaults stay open-source-safe. Device IPs, passwords, signing keys and tokens stay out of git: local values live in ignored `.env`, `.env.local` and `.putio-cli/`, release credentials in GitHub Environments
+- **Leaking private values.** Checked-in defaults stay open-source-safe, and `.env.example` stays sanitized. Device IPs, passwords, signing keys and tokens stay out of git: local values live in ignored `.env`, `.env.local` and `.putio-cli/`, release credentials in GitHub Environments
+- **Committing font binaries.** GT America is licensed; `pnpm verify` fails if git tracks an `.otf`/`.ttf`/`.ttc`. See [Font system](./docs/fonts.md#licensing-boundary)
 
 ## Rules
 
 - Source comments carry device quirks, invariants, and external constraints only, such as a Roku model's HLS behavior or a put.io API field's meaning; no section banners, code narration, or commented-out debug code; name a value instead of annotating a magic number
+- Author layout in 1920x1080 FHD coordinates even though device screenshots are 1280x720; take screen, centering, row, and 3px autoscale-grid values from [UiMetrics.brs](./components/shared/UiMetrics/UiMetrics.brs) instead of raw modal or list dimensions
+- Generic Roku ECP and SceneGraph control belongs in `@putdotio/rokit`; app-specific playback scenarios belong in [scripts/roku-live-test.ts](./scripts/roku-live-test.ts)
+- Edit `config/phosphor-icons.json` and run `pnpm roku icons`; never hand-edit `images/icons/*.png`
+- Sentry events carry only allowlisted safe fields; see [Error reporting](./docs/roku-variants.md#error-reporting)
 
 ## Proof
 
@@ -49,20 +52,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Live-test flow wiring, fixture parsing or Lab capture registry: `pnpm roku test-live` (Vitest contract tests)
 - Visual changes: screenshots uploaded with `gh pr comment <n> --attach ./file.png`, never committed outside curated `.vref/`
 
-## Build And Config
-
-- Local overrides flow through optional `.env` and ignored `.env.local`; `.env.local` wins. `secrets-setup` replaces `.env.local`, so keep the Roku target in `.env`. Setup: [Live Test](./live-test/README.md#setup)
-- `.env.example` must stay sanitized and safe to publish
-- Roku static checks are configured through `bsconfig.json` and `bslint.json`
-- Runtime error reporting posts Sentry envelopes directly from `SentryTask`; the DSN is compiled in from `PUTIO_ROKU_SENTRY_DSN` at packaging time and stays empty in git, so local builds report nothing, and an account with `diagnostics_enabled: false` reports nothing either. Events carry only allowlisted safe fields. Playback failures follow the `playback_failure` telemetry contract in [Roku variants and Lab](./docs/roku-variants.md#error-reporting)
-- Roku layout is authored in 1920x1080 FHD coordinates even when device screenshots are 1280x720; use `components/shared/UiMetrics/UiMetrics.brs` for shared screen, centering, row, and 3px autoscale-grid values instead of scattering raw modal/list dimensions
-- Headless Roku control uses `@putdotio/rokit` for generic Roku ECP/SceneGraph primitives and `scripts/roku-live-test.ts` for app-specific playback scenarios
-- Product glyphs use the pinned Phosphor pipeline in [Icon system](./docs/icons.md): edit `config/phosphor-icons.json`, run `pnpm roku icons`; never hand-edit `images/icons/*.png`, and keep brand/channel/splash art outside the icon set
-- Brand typography uses licensed GT America faces per [Font system](./docs/fonts.md): `pnpm roku fonts-setup` fetches them without a credential, they are **never committed** (`pnpm verify` fails if git tracks an `.otf`/`.ttf`/`.ttc`), and a clone without them builds and runs on the Roku system font. A face ships only when it is listed in `config/brand-fonts.json` and validates
-- Curated Roku screenshots live in `.vref/`; capture, validate, and gallery commands and the public-safe rules are in [Roku Visual Reference](./.vref/README.md#workflow)
-
 ## Delivery
 
-- Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify` and should stay aligned with it, then the shared [links](https://github.com/putdotio/.github#actionslinks) check of relative Markdown links and anchors
-- CI's last step is the shared [scan](https://github.com/putdotio/.github#actionsscan): it passes through pull requests, runs Actionlint and Zizmor when a `main` push changes `.github/`, and lints every workflow on manual dispatch; GitHub secret scanning and push protection cover secrets
-- A push to `main` runs [Release](./.github/workflows/release.yml): CI's verify job, then semantic-release. A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Versioning and recovery: [Release workflow](./docs/release.md)
+- Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify`, a relative Markdown link check, and the shared scan
+- A merge to `main` runs [Release](./.github/workflows/release.yml). A `feat`, `fix`, `perf`, revert or breaking commit publishes a GitHub Release ZIP and deploys it to [roku.put.io/v2.zip](https://roku.put.io/v2.zip) with the `.vref` gallery; other commit types release nothing. Recovery: [Distribution](./docs/distribution.md)
