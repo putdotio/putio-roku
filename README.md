@@ -29,7 +29,6 @@ or Down on the last item to return to the first.
 ## Docs
 
 - [Sideloading guide](./docs/sideloading.md): Developer Mode and ZIP install
-- [Distribution](./docs/distribution.md): release URLs and recovery
 - [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md): private vulnerability reporting
 
 ## Contributing
