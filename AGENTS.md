@@ -8,8 +8,6 @@
 ## Start Here
 
 - [Contributing](./CONTRIBUTING.md): setup, sideload, checks
-- [Live Test](./live-test/README.md): before any device proof
-- [Roku Visual Reference](./.vref/README.md): before capturing or committing screenshots
 
 ## Commands
 
@@ -37,6 +35,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Source comments carry device quirks, invariants, and external constraints only, such as a Roku model's HLS behavior or a put.io API field's meaning; no section banners, code narration, or commented-out debug code; name a value instead of annotating a magic number
 - Author layout in 1920x1080 FHD coordinates even though device screenshots are 1280x720; take screen, centering, row, and 3px autoscale-grid values from [UiMetrics.brs](./components/shared/UiMetrics/UiMetrics.brs) instead of raw modal or list dimensions
 - Generic Roku ECP and SceneGraph control belongs in `@putdotio/rokit`; app-specific playback scenarios belong in [scripts/roku-live-test.ts](./scripts/roku-live-test.ts)
+- Before a curated `.vref/` capture, run `pnpm roku fonts-setup`; `visual-validate` never checks pixels. Promote it with `pnpm exec vref screenshot add <capture> --quality 90 --json '…'`: lossless WebP of a device JPEG doubles the bytes
 - Edit `config/phosphor-icons.json` and run `pnpm roku icons`; never hand-edit `images/icons/*.png`
 - Sentry events carry only allowlisted safe fields; [sentry-privacy.test.ts](./test/sentry/sentry-privacy.test.ts) pins them
 

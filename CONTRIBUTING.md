@@ -18,8 +18,7 @@ cp .env.example .env
 Maintainers with the shared encrypted test payload render the test account and
 fixtures into `.env.local` with `pnpm roku secrets-setup`; use that account for
 device checks so screenshots, navigation, playback, and track selection run
-against stable fixtures. [Live Test setup](./live-test/README.md#setup) covers
-both paths.
+against stable fixtures.
 
 ### Enable Developer Mode
 
@@ -44,7 +43,6 @@ pnpm sideload
 
 `pnpm roku build-dev` and `pnpm roku build-lab` build explicit
 variants ([scripts/package-roku.ts](./scripts/package-roku.ts)); `pnpm roku help --all` lists every task.
-[Live Test](./live-test/README.md) covers device checks and the debug loop.
 
 ## Checks
 
