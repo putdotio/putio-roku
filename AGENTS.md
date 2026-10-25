@@ -2,7 +2,7 @@
 
 ## Repo
 
-- The put.io Roku app. Roku no longer supports private channels, so users install it by sideloading the released ZIP from [roku.put.io/v2.zip](https://roku.put.io/v2.zip)
+- The put.io Roku app; users sideload the released ZIP from [roku.put.io/v2.zip](https://roku.put.io/v2.zip)
 - Stack: BrightScript, SceneGraph, BrighterScript tooling
 
 ## Start Here
@@ -11,10 +11,10 @@
 
 ## Commands
 
-- `pnpm verify` (alias `pnpm smoke`) runs every static check and then builds a fresh ZIP; the steps are `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
+- `pnpm verify` runs every static check, then builds a fresh ZIP; steps: `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
 - `pnpm artifact` builds the production release ZIP
 - `pnpm sideload` builds, validates the target, and reinstalls the app
-- `pnpm roku help` lists common tasks and `pnpm roku help --all` every task; a task missing a required variable fails with an example command
+- `pnpm roku help --all` lists every task
 
 ## Worktrees
 
