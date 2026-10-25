@@ -17,34 +17,25 @@
 
 ## Install
 
-Roku no longer supports private channels, so put.io on Roku is installed by sideloading the [published Roku ZIP](https://roku.put.io/v2.zip). The [Sideloading guide](./docs/sideloading.md) walks through it.
+Roku no longer supports private channels, so you sideload the [published Roku ZIP](https://roku.put.io/v2.zip). The [Sideloading guide](./docs/sideloading.md) walks through it.
 
 ## Use
 
-After installation, sign in with your put.io account to:
-
-- browse your library
-- search files
-- review playback history
-- adjust app settings
-- stream supported media on Roku
+Sign in with your put.io account to browse and search your files, review playback history, change settings, and stream supported media.
 
 Long file lists wrap around: press Up on the first item to reach the last,
 or Down on the last item to return to the first.
 
 ## Docs
 
-- [Sideloading guide](./docs/sideloading.md) for device setup and ZIP installation
-- [Live Test](./live-test/README.md) for hardware-backed debugging, Lab stories, and agent readiness checks
-- [Roku variants and Lab](./docs/roku-variants.md) for the development/Lab split and design-token adapter
-- [Roku visual reference](./.vref/README.md) for curated screenshots and the generated gallery
-- [Release workflow](./docs/release.md) for [GitHub Releases](https://github.com/putdotio/putio-roku/releases) and [roku.put.io](https://roku.put.io/v2.zip) publishing
-- [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md) for private vulnerability reporting
+- [Sideloading guide](./docs/sideloading.md): Developer Mode and ZIP install
+- [Distribution](./docs/distribution.md): release URLs and recovery
+- [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md): private vulnerability reporting
 
 ## Contributing
 
-Contributions are welcome. [Contributing](./CONTRIBUTING.md) covers setup, local sideloading, and validation.
+[Contributing](./CONTRIBUTING.md) covers setup, local sideloading, and checks.
 
 ## License
 
-This project is available under the [MIT License](./LICENSE)
+[MIT](./LICENSE)

@@ -1,112 +1,45 @@
 # Roku Variants And Lab
 
-Notes for Roku build variants, Lab packaging, and the Roku-specific
-design-system adapter. For commands, use [Contributing](../CONTRIBUTING.md) and
-[Live Test](../live-test/README.md).
+## One sideload slot
 
-## Roku Constraint
-
-Roku sideloading uses a single developer-channel slot. Locally built ZIPs can
-have different titles, assets, and app config, but when they are sideloaded they
-replace the same `dev` channel.
-
-Same-device coexistence needs a non-sideloaded lane for one of the apps:
-
-- public or beta Roku app for the stable normal app, plus sideload for Lab
-- separate physical Roku devices
-- manual replacement of the single sideload slot
-
-The practical local default is: keep Lab fast and sideloaded, and use a Roku
-beta/public lane only when a persistent normal app must coexist on the same
-device.
+Every sideloaded ZIP replaces the same `dev` channel, whatever its title,
+assets, or config. To keep a normal app beside Lab on one device, install the
+normal app from a public or beta Roku lane, or use a second Roku. Do not
+pretend different manifest ids can coexist through sideloading.
 
 ## Variants
 
-| Variant       | Title        | Lab code | Use                       |
-| ------------- | ------------ | -------- | ------------------------- |
-| `production`  | `put.io`     | excluded | release artifact          |
-| `development` | `put.io Dev` | excluded | normal app development    |
-| `lab`         | `put.io Lab` | included | component and visual work |
+`ROKU_VARIANT` picks `production` (release artifact), `development`, or `lab`
+at packaging time. Only `lab` includes `components/lab/`. Titles, app id, and
+the Sentry DSN are package-time overrides in
+[scripts/package-roku.ts](../scripts/package-roku.ts), which renders the
+manifest and `source/BuildConfig.brs` without editing checked-in files. The
+checked-in [source/BuildConfig.brs](../source/BuildConfig.brs) stays
+production-safe.
 
-## Packaging Contract
+Never fork app code per variant.
 
-Variant selection happens at the packaging boundary:
+## Design adapter
 
-- `ROKU_VARIANT=production|development|lab`
-- `ROKU_APP_TITLE` overrides the variant title
-- `PUTIO_ROKU_APP_ID` sets the put.io OAuth/app id in the generated build config
-- `PUTIO_ROKU_SENTRY_DSN` compiles the public Sentry DSN into the build config;
-  unset or empty disables runtime error reporting (see [Error reporting](#error-reporting))
+Roku consumes `@putdotio/design`; this repo owns only the Roku adapter.
+[generate-roku-assets.ts](../scripts/generate-roku-assets.ts) writes
+`images/generated/<variant>/`, and
+[generate-roku-design.ts](../scripts/generate-roku-design.ts) writes
+[source/DesignTokens.brs](../source/DesignTokens.brs).
 
-[scripts/package-roku.ts](../scripts/package-roku.ts) renders the variant
-manifest and `source/BuildConfig.brs` as package-time overrides, then delegates
-ZIP creation to `@putdotio/rokit`. It does not edit checked-in source files.
-
-Lab behavior is controlled by the generated build config. The checked-in
-[source/BuildConfig.brs](../source/BuildConfig.brs) stays production-safe.
-
-## Design Adapter
-
-Roku consumes `@putdotio/design` and owns only the Roku adapter here.
-
-- [scripts/generate-roku-assets.ts](../scripts/generate-roku-assets.ts) reads
-  `@putdotio/design/assets/logo-retro-dark.svg` plus channel-art tokens, then
-  writes `images/generated/<variant>/`
-- [scripts/generate-roku-design.ts](../scripts/generate-roku-design.ts) reads
-  `@putdotio/design/tokens` and writes
-  [source/DesignTokens.brs](../source/DesignTokens.brs)
-- app colors should go through `designTokenColor` / `DialogStyle`; raw app
-  color literals belong only in generated files, generators, tests, and docs
-
-Escape hatches for testing unreleased design work:
-
-- `PUTIO_DESIGN_ASSETS_DIR`
-- `PUTIO_DESIGN_TOKENS_PATH`
-
-Normal builds use the installed package, not a sibling checkout.
-
-## Boundaries
-
-- Do not fork app code per variant.
-- Do not pretend different local manifest ids can coexist through sideloading.
-- Do not move Roku layout geometry into generic design tokens; keep Roku screen,
-  focus, and autoscale-grid metrics in
-  [UiMetrics.brs](../components/shared/UiMetrics/UiMetrics.brs).
-- Do not generate Roku-native token files inside `putio-design`; this repo owns
-  the Roku adaptation.
+- App colors go through `designTokenColor` or `DialogStyle`; raw color literals belong only in generated files, generators, tests, and docs
+- Roku screen, focus, and autoscale-grid metrics stay in [UiMetrics.brs](../components/shared/UiMetrics/UiMetrics.brs), not in design tokens
+- Roku-native token files are generated here, never inside `putio-design`
+- To test unreleased design work, point `PUTIO_DESIGN_ASSETS_DIR` or `PUTIO_DESIGN_TOKENS_PATH` at it; normal builds use the installed package
 
 ## Error reporting
 
 Sentry has no BrightScript SDK, so the app posts envelopes straight to the
 Sentry ingest API:
 
-- [components/shared/Sentry/Sentry.brs](../components/shared/Sentry/Sentry.brs)
-  builds events with release, environment, device, OS, and user context on the
-  render thread and hands each one to a
-  [SentryTask](../components/shared/SentryTask/SentryTask.brs), which POSTs it
-  from a Task thread; screens never wait on the network
-- [components/shared/Sentry/PlaybackTelemetry.brs](../components/shared/Sentry/PlaybackTelemetry.brs)
-  turns a terminal `Video` failure into a `playback_failure` event that mirrors
-  the tags of the putio-web telemetry contract (`schema_version` 1), such as
-  `playback_failure_mode`, `roku_error_code`, `source_kind`, `stream_format`,
-  `video_codec`, and `roku_model`
-- Events carry ids, codes, categories, codecs, container, resolution, device, and
-  OS as tags and contexts only, with no `extra`: never filenames, media titles,
-  URLs, query strings, tokens, account fields other than the user id, Roku error
-  messages, or the API's `error_message`.
-  [test/sentry/sentry-privacy.test.ts](../test/sentry/sentry-privacy.test.ts)
-  builds both events from synthetic forbidden values in the
-  [`@rokucommunity/brs`](https://github.com/rokucommunity/brs) interpreter
-- `VideoPlayer` reports before it stops the Video node because `control = "stop"`
-  clears `errorInfo`; `Video` reports failed file requests separately
-- Reporting stops when the account's `/account/info` `settings.diagnostics_enabled`
-  is `false`; a missing key or an account that has not loaded counts as on. The
-  app reads the account at launch, so a change made on another client applies on
-  the next launch
-- Reporting is a no-op unless the package was built with `PUTIO_ROKU_SENTRY_DSN`;
-  the checked-in `source/BuildConfig.brs` keeps it empty so open-source clones
-  and local builds send nothing. The release workflow sets it from the
-  `PUTIO_ROKU_SENTRY_DSN` repository variable. A DSN carries only the public key
-  and is safe to ship, but packaging rejects values that do not look like
-  `https://<publicKey>@<host>/<projectId>` so a typo cannot silently drop every
-  report
+- [Sentry.brs](../components/shared/Sentry/Sentry.brs) builds events on the render thread and hands each to [SentryTask](../components/shared/SentryTask/SentryTask.brs), which POSTs from a Task thread; screens never wait on the network
+- [PlaybackTelemetry.brs](../components/shared/Sentry/PlaybackTelemetry.brs) turns a terminal `Video` failure into a `playback_failure` event that mirrors the putio-web telemetry contract (`schema_version` 1)
+- Events carry ids, codes, categories, codecs, container, resolution, device, and OS as tags and contexts only, with no `extra`. Never send filenames, media titles, URLs, query strings, tokens, account fields other than the user id, Roku error messages, or the API's `error_message`. [sentry-privacy.test.ts](../test/sentry/sentry-privacy.test.ts) pins this with synthetic forbidden values in the [`@rokucommunity/brs`](https://github.com/rokucommunity/brs) interpreter
+- `VideoPlayer` reports before it stops the Video node, because `control = "stop"` clears `errorInfo`; `Video` reports failed file requests separately
+- Reporting stops when `/account/info` `settings.diagnostics_enabled` is `false`; a missing key or an unloaded account counts as on. The app reads the account at launch, so a change on another client applies on the next launch
+- Reporting is off unless the package was built with `PUTIO_ROKU_SENTRY_DSN`. The checked-in `BuildConfig.brs` keeps it empty, so clones and local builds send nothing; releases set it from the repository variable. Packaging rejects values not shaped like `https://<publicKey>@<host>/<projectId>`, so a typo cannot drop every report
