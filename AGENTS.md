@@ -26,7 +26,6 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 ## Ways To Hurt Yourself
 
 - **Taking over someone's Roku.** A Roku holds one sideloaded developer app, which on a household Roku is its put.io install, and `pnpm sideload`, `install`, `lab-install` and the live-test installs replace it. The configured target may be a TV someone is watching or testing another build on; `pnpm roku active-app` shows what is on screen. Read-only tasks such as `check-roku-dev-target` and `device-info` leave it alone
-- **Publishing a screenshot forever.** Every release deploys `.vref/` to [roku.put.io/vref](https://roku.put.io/vref/), the site never purges, and this repository is public. A committed capture with real account data stays public even after you delete it
 - **Leaking private values.** Checked-in defaults stay open-source-safe, and `.env.example` stays sanitized. Device IPs, passwords, signing keys and tokens stay out of git: local values live in ignored `.env`, `.env.local` and `.putio-cli/`, release credentials in GitHub Environments
 - **Redistributing the brand font.** GT America is licensed; never commit, subset, convert, rename or re-host the faces, and never add them to `@putdotio/design`. `static.put.io` is the single source; `pnpm verify` catches only tracked `.otf`/`.ttf`/`.ttc` files
 
@@ -35,7 +34,6 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Source comments carry device quirks, invariants, and external constraints only, such as a Roku model's HLS behavior or a put.io API field's meaning; no section banners, code narration, or commented-out debug code; name a value instead of annotating a magic number
 - Author layout in 1920x1080 FHD coordinates even though device screenshots are 1280x720; take screen, centering, row, and 3px autoscale-grid values from [UiMetrics.brs](./components/shared/UiMetrics/UiMetrics.brs) instead of raw modal or list dimensions
 - Generic Roku ECP and SceneGraph control belongs in `@putdotio/rokit`; app-specific playback scenarios belong in [scripts/roku-live-test.ts](./scripts/roku-live-test.ts)
-- Before a curated `.vref/` capture, run `pnpm roku fonts-setup`; `visual-validate` never checks pixels. Promote it with `pnpm exec vref screenshot add <capture> --quality 90 --json '…'`: lossless WebP of a device JPEG doubles the bytes
 - Edit `config/phosphor-icons.json` and run `pnpm roku icons`; never hand-edit `images/icons/*.png`
 - Sentry events carry only allowlisted safe fields; [sentry-privacy.test.ts](./test/sentry/sentry-privacy.test.ts) pins them
 
@@ -46,7 +44,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Modal or component UI: an isolated Lab story; prefer it over authenticated flows when it can show the change. `STORY=<story-id> pnpm roku lab-screenshot` installs the story and captures it; `lab-install` alone installs it for a look on the TV
 - Auth, files, dialogs, settings or get-new-code: `pnpm roku live-test-flow-smoke`; broad routing, player or image refactors: `pnpm roku live-test-flow-full`
 - Live-test flow wiring, fixture parsing or Lab capture registry: `pnpm roku test-live` (Vitest contract tests)
-- Visual changes: screenshots uploaded with `gh pr comment <n> --attach ./file.png`, never committed outside curated `.vref/`
+- Visual changes: screenshots uploaded with `gh pr comment <n> --attach ./file.png`, never committed
 
 ## Delivery
 

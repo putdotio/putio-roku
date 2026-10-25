@@ -66,6 +66,6 @@ Source conventions and hazards: [AGENTS.md](./AGENTS.md).
 
 - Keep changes focused; put unrelated cleanup in its own pull request
 - Add or update checks when behavior changes
-- Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; commit only curated `.vref/` references
+- Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; never commit them
 
 Merges to `main` release through [Release](./.github/workflows/release.yml); see [Delivery](./AGENTS.md#delivery).

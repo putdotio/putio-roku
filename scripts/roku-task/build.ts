@@ -150,7 +150,6 @@ export async function verify(): Promise<void> {
   checkRokuFormat();
   checkMarkdownFormat();
   checkRokuStatic();
-  visualValidate();
   await packageRoku(selectedVariantConfig());
 }
 
@@ -170,12 +169,4 @@ export async function artifact(): Promise<void> {
   copyFileSync(sourceZip, artifactZip);
   rmSync(sourceZip, { force: true });
   assertFile(artifactZip);
-}
-
-export function visualGallery(): void {
-  run("node", ["scripts/vref.ts", "build", "--output", "json"]);
-}
-
-export function visualValidate(): void {
-  run("node", ["scripts/vref.ts", "validate", "--output", "json"]);
 }

@@ -15,8 +15,6 @@ import {
   packageRoku,
   testLive,
   verify,
-  visualGallery,
-  visualValidate,
 } from "./roku-task/build.ts";
 import {
   activeApp,
@@ -130,8 +128,6 @@ const tasks: Record<string, Task> = {
   "visual-capture": visualCapture,
   "visual-capture-lab": visualCaptureLab,
   "visual-capture-pages": visualCapturePages,
-  "visual-gallery": visualGallery,
-  "visual-validate": visualValidate,
 };
 
 async function main(): Promise<void> {
@@ -164,7 +160,7 @@ Live:
 
 Lab and visuals:
   lab-install lab-screenshot visual-capture visual-capture-pages
-  visual-capture-lab visual-validate visual-gallery
+  visual-capture-lab
 
 Assets:
   icons fonts-setup fonts-check
