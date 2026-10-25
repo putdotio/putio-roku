@@ -8,7 +8,6 @@
 ## Start Here
 
 - [Contributing](./CONTRIBUTING.md): setup, sideload, checks
-- [Live Test](./live-test/README.md): before any device proof
 
 ## Commands
 
