@@ -1,6 +1,6 @@
 ' Render-thread helpers for reporting to Sentry. Events are handed to a SentryTask so the
-' screen never waits on the network. Builds without a DSN (see PUTIO_ROKU_SENTRY_DSN in
-' docs/roku-variants.md) report nothing.
+' screen never waits on the network. Builds without a DSN (PUTIO_ROKU_SENTRY_DSN in
+' scripts/package-roku.ts) report nothing.
 
 ' /account/info settings.diagnostics_enabled is the account's diagnostics opt-out, shared
 ' across put.io clients. Only an explicit false stops reporting; a missing key or an

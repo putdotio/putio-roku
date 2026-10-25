@@ -1,4 +1,4 @@
-' Roku type scale for the put.io brand face (GT America). See docs/fonts.md.
+' Roku type scale for the put.io brand face (GT America).
 '
 ' Sizes are authored in FHD (1920x1080) coordinates and are deliberately identical to the
 ' Roku built-in each role replaces. The Lab "Typography / GT America" story renders each

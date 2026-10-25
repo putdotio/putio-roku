@@ -10,8 +10,6 @@
 - [Contributing](./CONTRIBUTING.md): setup, sideload, checks
 - [Live Test](./live-test/README.md): before any device proof
 - [Roku Visual Reference](./.vref/README.md): before capturing or committing screenshots
-- [Roku variants and Lab](./docs/roku-variants.md): before touching packaging, design tokens, or error reporting
-- [Icon system](./docs/icons.md) and [Font system](./docs/fonts.md): before changing glyphs or typography
 
 ## Commands
 
@@ -32,7 +30,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - **Taking over someone's Roku.** A Roku holds one sideloaded developer app, which on a household Roku is its put.io install, and `pnpm sideload`, `install`, `lab-install` and the live-test installs replace it. The configured target may be a TV someone is watching or testing another build on; `pnpm roku active-app` shows what is on screen. Read-only tasks such as `check-roku-dev-target` and `device-info` leave it alone
 - **Publishing a screenshot forever.** Every release deploys `.vref/` to [roku.put.io/vref](https://roku.put.io/vref/), the site never purges, and this repository is public. A committed capture with real account data stays public even after you delete it
 - **Leaking private values.** Checked-in defaults stay open-source-safe, and `.env.example` stays sanitized. Device IPs, passwords, signing keys and tokens stay out of git: local values live in ignored `.env`, `.env.local` and `.putio-cli/`, release credentials in GitHub Environments
-- **Committing font binaries.** GT America is licensed; `pnpm verify` fails if git tracks an `.otf`/`.ttf`/`.ttc`. See [Font system](./docs/fonts.md#licensing-boundary)
+- **Redistributing the brand font.** GT America is licensed; never commit, subset, convert, rename or re-host the faces, and never add them to `@putdotio/design`. `static.put.io` is the single source; `pnpm verify` catches only tracked `.otf`/`.ttf`/`.ttc` files
 
 ## Rules
 
@@ -40,7 +38,7 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 - Author layout in 1920x1080 FHD coordinates even though device screenshots are 1280x720; take screen, centering, row, and 3px autoscale-grid values from [UiMetrics.brs](./components/shared/UiMetrics/UiMetrics.brs) instead of raw modal or list dimensions
 - Generic Roku ECP and SceneGraph control belongs in `@putdotio/rokit`; app-specific playback scenarios belong in [scripts/roku-live-test.ts](./scripts/roku-live-test.ts)
 - Edit `config/phosphor-icons.json` and run `pnpm roku icons`; never hand-edit `images/icons/*.png`
-- Sentry events carry only allowlisted safe fields; see [Error reporting](./docs/roku-variants.md#error-reporting)
+- Sentry events carry only allowlisted safe fields; [sentry-privacy.test.ts](./test/sentry/sentry-privacy.test.ts) pins them
 
 ## Proof
 
