@@ -41,8 +41,7 @@ Build and reinstall the app on the configured Roku:
 pnpm sideload
 ```
 
-`pnpm roku build-dev` and `pnpm roku build-lab` build explicit
-variants ([scripts/package-roku.ts](./scripts/package-roku.ts)); `pnpm roku help --all` lists every task.
+`pnpm roku help --all` lists every task.
 
 ## Checks
 
@@ -64,8 +63,6 @@ Source conventions and hazards: [AGENTS.md](./AGENTS.md).
 
 ## Pull Requests
 
-- Keep changes focused; put unrelated cleanup in its own pull request
-- Add or update checks when behavior changes
-- Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; never commit them
+Upload proof screenshots or recordings with `gh pr create --attach ./file.png` or `gh pr comment <n> --attach ./file.mp4`; never commit them.
 
 Merges to `main` release through [Release](./.github/workflows/release.yml); see [Delivery](./AGENTS.md#delivery).
