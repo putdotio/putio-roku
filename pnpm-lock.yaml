@@ -183,13 +183,13 @@ importers:
         version: 0.47.6(supports-color@7.2.0)
       '@rokucommunity/bslint':
         specifier: 0.8.47
-        version: 0.8.47(brighterscript@0.73.7)
+        version: 0.8.47(brighterscript@0.73.8)
       '@types/node':
         specifier: ^26.1.2
         version: 26.6.5
       brighterscript:
-        specifier: 0.73.7
-        version: 0.73.7
+        specifier: 0.73.8
+        version: 0.73.8
       brighterscript-formatter:
         specifier: 1.8.4
         version: 1.8.4
@@ -952,8 +952,8 @@ packages:
     resolution: {integrity: sha512-cuBi1iyKyg5pPEcTT2RWpVJMr6jzRKYZUYtSUHOVCLv6YFCkXoC5iPbKt3B+LWO4sqO+kByx5VJx4CIRceMglw==}
     hasBin: true
 
-  brighterscript@0.73.7:
-    resolution: {integrity: sha512-hlnMsNOsb8RbY1ZHQ6MQqeV0H9oPj+5tPzmI6fssJyy9vp1XHSY9D20qAAIYWgtu69ZpXnpBtVqtF0RMJDCi5A==}
+  brighterscript@0.73.8:
+    resolution: {integrity: sha512-5Ct44MEHl12stSsYA/kWfBvjzqbJTx3XYfOsPGh3V+aauWK3HcXVRSbsYZl8PQYeDjt3NOmN+0Hh1MpFRDReWw==}
     hasBin: true
 
   buffer@5.7.1:
@@ -2513,9 +2513,9 @@ snapshots:
 
   '@rokucommunity/bslib@0.1.1': {}
 
-  '@rokucommunity/bslint@0.8.47(brighterscript@0.73.7)':
+  '@rokucommunity/bslint@0.8.47(brighterscript@0.73.8)':
     dependencies:
-      brighterscript: 0.73.7
+      brighterscript: 0.73.8
       fs-extra: 10.1.0
       jsonc-parser: 2.3.1
       minimatch: 3.1.5
@@ -2796,14 +2796,14 @@ snapshots:
 
   brighterscript-formatter@1.8.4:
     dependencies:
-      brighterscript: 0.73.7
+      brighterscript: 0.73.8
       fast-glob: 3.3.3
       fs-extra: 10.1.0
       jsonc-parser: 3.3.1
       source-map: 0.7.4
       yargs: 17.7.3
 
-  brighterscript@0.73.7:
+  brighterscript@0.73.8:
     dependencies:
       '@rokucommunity/bslib': 0.1.1
       '@rokucommunity/logger': 0.4.2
