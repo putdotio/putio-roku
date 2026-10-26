@@ -22,7 +22,7 @@
     "@rokucommunity/brs": "0.47.6",
     "@rokucommunity/bslint": "0.8.47",
     "@types/node": "^26.1.2",
-    "brighterscript": "0.73.7",
+    "brighterscript": "0.73.8",
     "brighterscript-formatter": "1.8.4",
     "oxfmt": "0.74.0",
     "sst": "^4.17.1",
