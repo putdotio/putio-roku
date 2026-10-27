@@ -8,20 +8,7 @@
 ## Start Here
 
 - [Contributing](./CONTRIBUTING.md): setup, sideload, checks
-
-## Commands
-
-- `pnpm verify` runs every static check, then builds a fresh ZIP; steps: `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
-- `pnpm artifact` builds the production release ZIP
-- `pnpm sideload` builds, validates the target, and reinstalls the app
-- `pnpm roku help --all` lists every task
-
-## Worktrees
-
-`.worktreeinclude` carries `.env` files and synced `fonts/` into Codex and Claude
-worktrees. Run `pnpm install --frozen-lockfile`; use `pnpm roku secrets-setup` if
-env files are missing or stale and a maintainer supplied a SOPS payload, and
-`pnpm roku fonts-setup` if the brand faces are missing.
+- `pnpm verify` steps: `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
 
 ## Ways To Hurt Yourself
 
@@ -48,7 +35,6 @@ env files are missing or stale and a maintainer supplied a SOPS payload, and
 
 ## Delivery
 
-- Open a pull request; [CI](./.github/workflows/ci.yml) runs `pnpm verify`
+- Open a pull request
 - Merging a releasing commit type ([.releaserc.json](./.releaserc.json)) ships to every user through [roku.put.io/v2.zip](https://roku.put.io/v2.zip); pick the type on purpose
-- A release that stops halfway: dispatch [Release](./.github/workflows/release.yml) from `main` with the existing tag; it resumes the draft or deploy and never changes a published Release
 - The AWS deploy role behind [Release](./.github/workflows/release.yml) must trust GitHub OIDC only for production deploys from `putdotio/putio-roku` on `main`
