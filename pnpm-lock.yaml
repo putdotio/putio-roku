@@ -171,7 +171,7 @@ importers:
         version: 2.1.1
       '@putdotio/design':
         specifier: ^3.0.0
-        version: 3.6.3
+        version: 3.11.1
       '@putdotio/rokit':
         specifier: 2.4.7
         version: 2.4.7(ioredis@5.10.1(supports-color@7.2.0))
@@ -481,8 +481,8 @@ packages:
   '@phosphor-icons/core@2.1.1':
     resolution: {integrity: sha512-v4ARvrip4qBCImOE5rmPUylOEK4iiED9ZyKjcvzuezqMaiRASCHKcRIuvvxL/twvLpkfnEODCOJp5dM4eZilxQ==}
 
-  '@putdotio/design@3.6.3':
-    resolution: {integrity: sha512-Zj1ZeQarJ6IgTNZKuIU6bHueqhyxD1qEyd/X/qeAPD1XBfT6Vy/eCXvh44t9AbY+SBoiIqRQ4DfspRoHxoPDRg==}
+  '@putdotio/design@3.11.1':
+    resolution: {integrity: sha512-81b3eDoqBWGwZpjYya+kH35xiOc4OaHn6AEok8dQgQOFK+xtF+beOQSVPX8GzYGQNXk3bSsk8HxbRnLB8j0Z8g==}
 
   '@putdotio/rokit@2.4.7':
     resolution: {integrity: sha512-RUiPJcepq96eXHBDRlmA4oNPjxi7VAUAgrbnVqTrUSKbWzxFB4l0L12TBaLZGKqvErrT3YpbzDhrabv6G+IPXQ==}
@@ -2426,7 +2426,7 @@ snapshots:
 
   '@phosphor-icons/core@2.1.1': {}
 
-  '@putdotio/design@3.6.3': {}
+  '@putdotio/design@3.11.1': {}
 
   '@putdotio/rokit@2.4.7(ioredis@5.10.1(supports-color@7.2.0))':
     dependencies:
