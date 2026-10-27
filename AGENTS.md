@@ -37,5 +37,4 @@
 
 - Open a pull request
 - Merging a releasing commit type ([.releaserc.json](./.releaserc.json)) ships to every user through [roku.put.io/v2.zip](https://roku.put.io/v2.zip); pick the type on purpose
-- A release that stops halfway: dispatch [Release](./.github/workflows/release.yml) from `main` with the existing tag; it resumes the draft or deploy and never changes a published Release
 - The AWS deploy role behind [Release](./.github/workflows/release.yml) must trust GitHub OIDC only for production deploys from `putdotio/putio-roku` on `main`
