@@ -8,20 +8,7 @@
 ## Start Here
 
 - [Contributing](./CONTRIBUTING.md): setup, sideload, checks
-
-## Commands
-
-- `pnpm verify` runs every static check, then builds a fresh ZIP; steps: `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
-- `pnpm artifact` builds the production release ZIP
-- `pnpm sideload` builds, validates the target, and reinstalls the app
-- `pnpm roku help --all` lists every task
-
-## Worktrees
-
-`.worktreeinclude` carries `.env` files and synced `fonts/` into Codex and Claude
-worktrees. Run `pnpm install --frozen-lockfile`; use `pnpm roku secrets-setup` if
-env files are missing or stale and a maintainer supplied a SOPS payload, and
-`pnpm roku fonts-setup` if the brand faces are missing.
+- `pnpm verify` steps: `verify` in [scripts/roku-task/build.ts](./scripts/roku-task/build.ts)
 
 ## Ways To Hurt Yourself
 
