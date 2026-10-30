@@ -24,10 +24,10 @@
     "@types/node": "^26.1.2",
     "brighterscript": "0.73.8",
     "brighterscript-formatter": "1.8.4",
-    "oxfmt": "0.74.0",
+    "oxfmt": "0.75.0",
     "sst": "^4.17.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
-  "packageManager": "pnpm@12.15.0"
+  "packageManager": "pnpm@12.16.0"
 }
