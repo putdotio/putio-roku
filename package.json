@@ -7,13 +7,11 @@
   "scripts": {
     "roku": "node scripts/roku-task.ts",
     "artifact": "node scripts/roku-task.ts artifact",
-    "check": "sst version",
     "sideload": "node scripts/roku-task.ts run",
     "smoke": "node scripts/roku-task.ts smoke",
     "verify": "node scripts/roku-task.ts verify",
     "prepare:release": "node scripts/prepare-release.ts",
-    "deploy:production": "sst deploy --stage production",
-    "deploy:alchemy": "alchemy deploy --stage production --yes --no-input"
+    "deploy:production": "alchemy deploy --stage production --yes --no-input"
   },
   "devDependencies": {
     "@alchemy.run/aws": "2.0.0-beta.84",
@@ -30,7 +28,6 @@
     "brighterscript-formatter": "1.8.4",
     "effect": "4.1.2",
     "oxfmt": "0.75.0",
-    "sst": "^4.17.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },

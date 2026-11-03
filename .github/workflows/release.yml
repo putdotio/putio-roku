@@ -251,7 +251,6 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
       AWS_ROUTE53_ZONE_ID: ${{ vars.AWS_ROUTE53_ZONE_ID }}
       AWS_WILDCARD_CERT_ARN: ${{ vars.AWS_WILDCARD_CERT_ARN }}
-      ROKU_DOMAIN: ${{ vars.ROKU_DOMAIN }}
 
     steps:
       - name: Check out repository
@@ -308,6 +307,3 @@ jobs:
 
       - name: Deploy Roku site
         run: pnpm deploy:production
-
-      - name: Deploy Roku site with Alchemy
-        run: pnpm deploy:alchemy

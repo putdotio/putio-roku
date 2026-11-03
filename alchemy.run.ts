@@ -5,7 +5,7 @@ import * as Alchemy from "alchemy";
 import { Stage } from "alchemy/Stage";
 import * as Effect from "effect/Effect";
 
-const domain = "roku-next.put.io";
+const domain = "roku.put.io";
 const sitePath = "dist/public";
 const hostedZoneId = required("AWS_ROUTE53_ZONE_ID");
 const tags = { Project: "putio-roku", Repo: "putdotio/putio-roku", ManagedBy: "Alchemy" };
@@ -31,7 +31,7 @@ export default Alchemy.Stack(
       },
       bucketName: "putio-roku-production-068203738331",
       errorPage: "index.html",
-      assets: { purge: false, fileOptions: fileOptions() },
+      assets: { fileOptions: fileOptions() },
       invalidation: {
         paths: ["/", "/index.html", "/v2.zip", "/releases/v2/*"],
         wait: true,
