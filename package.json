@@ -12,9 +12,12 @@
     "smoke": "node scripts/roku-task.ts smoke",
     "verify": "node scripts/roku-task.ts verify",
     "prepare:release": "node scripts/prepare-release.ts",
-    "deploy:production": "sst deploy --stage production"
+    "deploy:production": "sst deploy --stage production",
+    "deploy:alchemy": "alchemy deploy --stage production --yes --no-input"
   },
   "devDependencies": {
+    "@alchemy.run/aws": "2.0.0-beta.84",
+    "@effect/platform-node": "4.1.2",
     "@phosphor-icons/core": "2.1.1",
     "@putdotio/design": "^3.0.0",
     "@putdotio/rokit": "2.4.7",
@@ -22,8 +25,10 @@
     "@rokucommunity/brs": "0.47.6",
     "@rokucommunity/bslint": "0.8.47",
     "@types/node": "^26.1.2",
+    "alchemy": "2.0.0-beta.84",
     "brighterscript": "0.73.8",
     "brighterscript-formatter": "1.8.4",
+    "effect": "4.1.2",
     "oxfmt": "0.75.0",
     "sst": "^4.17.1",
     "typescript": "^7.0.2",
