@@ -6,6 +6,7 @@
 .local/
 node_modules/
 .sst/
+.alchemy/
 build/
 out/
 *.pkg

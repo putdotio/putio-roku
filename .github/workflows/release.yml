@@ -309,3 +309,6 @@ jobs:
 
       - name: Deploy Roku site
         run: pnpm deploy:production
+
+      - name: Deploy Roku site with Alchemy
+        run: pnpm deploy:alchemy

@@ -9,5 +9,5 @@
     "esModuleInterop": true,
     "types": ["node"]
   },
-  "include": ["sst.config.ts", "infra/**/*.ts", "scripts/**/*.ts"]
+  "include": ["sst.config.ts", "alchemy.run.ts", "infra/**/*.ts", "scripts/**/*.ts"]
 }
