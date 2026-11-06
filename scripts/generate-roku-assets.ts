@@ -42,11 +42,25 @@ const splashSizes: readonly AssetSize[] = [
 
 const logoSourceAccentColor = "#FDCE45";
 
+// ScreenHeader's divider and title were measured against a 188px-wide wordmark; the height
+// follows the package artboard, so its optical top padding comes along.
+const overhangLogo = { fileName: "overhangLogo.png", width: 188 } as const;
+
 export async function generateRokuAssets(repoRoot: string): Promise<readonly string[]> {
   const designAssetsDir = await resolveDesignAssetsDir(repoRoot);
   const tokens = await readTokenMap(resolveTokenPath(repoRoot));
-  const logo = await readLogo(resolve(designAssetsDir, "logo-retro-dark.svg"));
+  const logoPath = resolve(designAssetsDir, "logo-retro-dark.svg");
+  const logoSvg = await readFile(logoPath, "utf8");
+  const logo = parseLogoContent(logoSvg, logoPath);
   const outputs: string[] = [];
+
+  const overhangLogoPath = resolve(repoRoot, "images/generated", overhangLogo.fileName);
+  await mkdir(dirname(overhangLogoPath), { recursive: true });
+  await writeFile(
+    overhangLogoPath,
+    new Resvg(logoSvg, { fitTo: { mode: "width", value: overhangLogo.width } }).render().asPng(),
+  );
+  outputs.push(overhangLogoPath);
 
   for (const variant of ["production", "development", "lab"]) {
     const assetVariant = parseAssetVariant(variant);
@@ -119,8 +133,7 @@ function parseAssetVariant(value: string): AssetVariant {
   }
 }
 
-async function readLogo(path: string): Promise<string> {
-  const svg = await readFile(path, "utf8");
+function parseLogoContent(svg: string, path: string): string {
   const match = /<svg\b[^>]*>([\s\S]*)<\/svg>/i.exec(svg);
   if (match?.[1] === undefined) {
     throw new Error(`Could not parse logo SVG: ${path}`);
