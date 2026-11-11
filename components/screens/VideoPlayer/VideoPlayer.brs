@@ -144,7 +144,7 @@ function init()
     m.selectedAudioTrack = invalid
     m.userSelectedAudioTrack = false
     m.selectedSubtitleTrackName = ""
-    m.playbackSpeedOptions = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+    m.playbackSpeedOptions = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0]
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
     m.canSelectTrackMenu = false

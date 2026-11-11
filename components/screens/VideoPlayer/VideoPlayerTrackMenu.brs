@@ -255,6 +255,14 @@ function getPlaybackSpeedLabel(speed) as string
         return "1.75x"
     else if speed = 2
         return "2x"
+    else if speed = 2.5
+        return "2.5x"
+    else if speed = 3
+        return "3x"
+    else if speed = 3.5
+        return "3.5x"
+    else if speed = 4
+        return "4x"
     end if
 
     return speed.toStr() + "x"

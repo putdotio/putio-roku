@@ -957,6 +957,10 @@ async function assertSpeedValueLabel(target: string, expectedLabel: string): Pro
     ["1.5x", 5],
     ["1.75x", 6],
     ["2x", 7],
+    ["2.5x", 8],
+    ["3x", 9],
+    ["3.5x", 10],
+    ["4x", 11],
   ]);
   const selectedRowIndex = speedRowByLabel.get(expectedLabel);
 

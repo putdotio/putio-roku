@@ -805,6 +805,10 @@ function getPlaybackSpeedMenuItems() as object
         { label: "1.5x", selected: false },
         { label: "1.75x", selected: false },
         { label: "2x", selected: false },
+        { label: "2.5x", selected: false },
+        { label: "3x", selected: false },
+        { label: "3.5x", selected: false },
+        { label: "4x", selected: false },
     ]
 end function
 
