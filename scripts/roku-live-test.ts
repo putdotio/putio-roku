@@ -67,6 +67,7 @@ import {
 } from "./live-test/playback.ts";
 import { capturePlayerUiScreenshots } from "./live-test/player-ui-review.ts";
 import { putioProfileFromArg, setPlaybackTypeConfig } from "./live-test/putio-config.ts";
+import { playbackSpeedMenuRow } from "./live-test/track-menu.ts";
 import {
   assertListHasItems,
   dismissExitDialogIfVisible,
@@ -948,27 +949,7 @@ async function assertSpeedFocusRoundTrip(target: string): Promise<void> {
 }
 
 async function assertSpeedValueLabel(target: string, expectedLabel: string): Promise<void> {
-  const speedRowByLabel = new Map<string, number>([
-    ["0.25x", 0],
-    ["0.5x", 1],
-    ["0.75x", 2],
-    ["1x", 3],
-    ["1.25x", 4],
-    ["1.5x", 5],
-    ["1.75x", 6],
-    ["2x", 7],
-    ["2.5x", 8],
-    ["3x", 9],
-    ["3.5x", 10],
-    ["4x", 11],
-  ]);
-  const selectedRowIndex = speedRowByLabel.get(expectedLabel);
-
-  if (selectedRowIndex === undefined) {
-    throw new Error(`unknown playback speed label "${expectedLabel}"`);
-  }
-
-  await openSpeedMenuFromPlayback(target, selectedRowIndex);
+  await openSpeedMenuFromPlayback(target, playbackSpeedMenuRow(expectedLabel));
   await pressKey(target, "Back");
   await sleep(500);
 }
