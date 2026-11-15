@@ -17,3 +17,4 @@ dist/
 /fonts/*.otf
 /fonts/*.ttf
 /fonts/*.ttc
+.worktrees/
