@@ -5,7 +5,11 @@ function init()
     m.subtitles = []
     m.phase = "idle"
     m.fetchedStartFrom = 0
-    m.playbackType = getDefaultPlaybackType()
+    m.method = getDefaultPlaybackMethod()
+    m.plan = invalid
+    m.conversionCompleted = false
+    m.unavailableActions = []
+    m.unavailableAction = "back"
     m.fetchFileTask = createObject("roSGNode", "HttpTask")
     m.fetchConfigTask = createObject("roSGNode", "HttpTask")
     m.fetchSubtitlesTask = createObject("roSGNode", "HttpTask")
@@ -30,6 +34,7 @@ sub onMount()
     hideOverlays()
     setTitle(m.top.params.fileName)
     showLoading()
+    m.conversionCompleted = false
 
     if m.file.id <> m.top.params.fileId
         m.file = {}
@@ -72,24 +77,11 @@ sub onFetchFileResponse(obj)
 end sub
 
 sub handleFetchedFile()
-    if shouldShowConversionFlow(m.file)
-        hideLoading()
-        showVideoConversionStatus()
-        return
-    end if
-
-    if hasPlayableVideoStream(m.file) = false
-        hideLoading()
-        showPlaybackUnavailableDialog()
-        return
-    end if
-
     fetchPlaybackConfig()
 end sub
 
 sub fetchPlaybackConfig()
     m.phase = "loadingConfig"
-    m.playbackType = getPlaybackTypeFromConfig(m.global.config)
     m.fetchConfigTask.observeField("response", "onFetchPlaybackConfigResponse")
     m.fetchConfigTask.url = "/config"
     m.fetchConfigTask.method = "GET"
@@ -101,18 +93,66 @@ sub onFetchPlaybackConfigResponse(obj)
     data = parseJSON(obj.getData())
 
     if data <> invalid and data.config <> invalid
-        m.playbackType = getPlaybackTypeFromConfig(data.config)
-
         config = m.global.config
         if config = invalid
             config = {}
         end if
-        config.playbackType = m.playbackType
+        config.streaming_method = getPlaybackMethodFromConfig(data.config)
         m.global.config = config
     end if
 
-    fetchSubtitles()
+    m.method = getRequestedPlaybackMethod()
+    rescueReason = m.top.params.rescueReason
+    resolvePlayback(isNonEmptyString(rescueReason), rescueReason)
 end sub
+
+function getRequestedPlaybackMethod() as string
+    if m.top.params.methodOverride <> invalid
+        return normalizePlaybackMethod(m.top.params.methodOverride)
+    end if
+
+    return getPlaybackMethodFromConfig(m.global.config)
+end function
+
+sub resolvePlayback(originalFailed as boolean, failureReason as dynamic)
+    m.plan = resolvePlaybackPlan(m.file, m.method, {
+        apiUrl: m.global.apiURL,
+        downloadToken: m.global.user.download_token,
+        probe: createRokuDecoderProbe(),
+        originalFailed: originalFailed,
+        failureReason: failureReason
+    })
+
+    if m.plan.action = "convert" and m.conversionCompleted
+        m.plan = createUnplayablePlan("not_ready")
+    end if
+
+    if originalFailed = false and isPreflightRescue(m.plan)
+        sentryCaptureEvent(createPlaybackRescueEvent({
+            reason: m.plan.reason,
+            trigger: "preflight",
+            method: m.method,
+            fromSource: "original",
+            plan: m.plan,
+            file: m.file,
+        }))
+    end if
+
+    if m.plan.action = "convert"
+        hideLoading()
+        showVideoConversionStatus()
+    else if m.plan.action = "unplayable"
+        hideLoading()
+        showPlaybackUnavailableDialog(m.plan.reason)
+    else
+        showLoading()
+        fetchSubtitles()
+    end if
+end sub
+
+function isPreflightRescue(plan as object) as boolean
+    return m.method = "file" and plan.source <> "original" and isNonEmptyString(plan.reason)
+end function
 
 sub fetchSubtitles()
     m.phase = "loadingSubtitles"
@@ -129,6 +169,12 @@ sub onFetchSubtitlesResponse(obj)
 
     if data <> invalid and data.subtitles <> invalid
         m.subtitles = data.subtitles
+    end if
+
+    if m.top.params.startFrom <> invalid
+        hideLoading()
+        navigateToVideoPlayer(m.top.params.startFrom)
+        return
     end if
 
     fetchStartFrom()
@@ -192,18 +238,37 @@ sub onFetchFileErrorDialogClosed()
     m.top.navigateBack = true
 end sub
 
-sub showPlaybackUnavailableDialog()
+sub showPlaybackUnavailableDialog(reason as dynamic)
+    m.phase = "unavailable"
+    m.unavailableActions = getPlaybackErrorDialogActions(reason, m.method)
+    m.unavailableAction = "back"
     m.playbackUnavailableDialog = createObject("roSGNode", "AppDialog")
-    m.playbackUnavailableDialog.title = "Video unavailable"
-    m.playbackUnavailableDialog.message = "This video does not have a Roku-compatible stream yet."
-    m.playbackUnavailableDialog.buttons = ["OK"]
+    m.playbackUnavailableDialog.title = buildPlaybackErrorDialogTitle(reason)
+    m.playbackUnavailableDialog.message = buildUnplayableDialogMessage(reason, m.method, "")
+    m.playbackUnavailableDialog.buttons = getPlaybackErrorDialogButtons(m.unavailableActions)
+    m.playbackUnavailableDialog.observeField("buttonSelected", "onPlaybackUnavailableDialogButtonSelected")
     m.playbackUnavailableDialog.observeField("wasClosed", "onPlaybackUnavailableDialogClosed")
     m.top.showDialog = m.playbackUnavailableDialog
 end sub
 
+sub onPlaybackUnavailableDialogButtonSelected(obj)
+    index = obj.getData()
+    if index >= 0 and index < m.unavailableActions.count()
+        m.unavailableAction = m.unavailableActions[index]
+    end if
+end sub
+
 sub onPlaybackUnavailableDialogClosed()
+    m.playbackUnavailableDialog.unobserveField("buttonSelected")
     m.playbackUnavailableDialog.unobserveField("wasClosed")
-    m.top.navigateBack = true
+
+    if m.unavailableAction = "play_standard"
+        m.method = "hls"
+        showLoading()
+        resolvePlayback(false, invalid)
+    else
+        m.top.navigateBack = true
+    end if
 end sub
 
 sub showVideoConversionStatus()
@@ -230,8 +295,10 @@ sub onVideoConversionCompleted()
 
     m.conversionStatus.visible = false
     m.file = m.conversionStatus.completedFile
+    m.conversionCompleted = true
     setTitle(m.file.name)
-    handleFetchedFile()
+    showLoading()
+    resolvePlayback(m.method = "file", m.plan.reason)
 end sub
 
 sub showContinueWatchingPrompt()
@@ -267,7 +334,8 @@ sub navigateToVideoPlayer(startFrom)
         params: {
             file: m.file,
             subtitles: m.subtitles,
-            playbackType: m.playbackType,
+            plan: m.plan,
+            method: m.method,
             startFrom: startFrom
         }
     }
@@ -290,10 +358,6 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
-end function
-
-function shouldShowConversionFlow(file as object) as boolean
-    return file.need_convert = true
 end function
 
 function shouldResumeFrom(startFrom as integer) as boolean

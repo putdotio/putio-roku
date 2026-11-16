@@ -23,11 +23,12 @@ function createPlaybackFailureEvent(input as object) as object
         playback_terminal: "true",
         playback_failure_mode: failureMode,
         playback_started: input.playbackStarted,
-        playback_type: input.playbackType,
+        streaming_method: input.method,
+        playback_source: input.source,
         roku_error_code: errorCode,
         roku_error_category: sentryErrorInfoField(errorInfo, "category"),
         roku_error_source: sentryErrorInfoField(errorInfo, "source"),
-        roku_error_info_code: sentryErrorInfoField(errorInfo, "error_code"),
+        roku_error_info_code: sentryErrorInfoField(errorInfo, "errcode"),
         source_kind: sourceKind,
         stream_format: sentryStreamFormat(streamInfo),
         file_id: sentryFileId(file),
@@ -36,6 +37,55 @@ function createPlaybackFailureEvent(input as object) as object
         video_profile: sentryStreamField(videoStream, "profile"),
         video_resolution: sentryVideoResolution(videoStream),
         audio_codec: sentryStreamField(audioStream, "codec_name"),
+    })
+
+    return event
+end function
+
+' Only enumerated media and device facts go in; raw media_info, names, URLs and Roku debug
+' text stay out.
+function createPlaybackRescueEvent(input as object) as object
+    reason = sentryTagValue(input.reason)
+    file = input.file
+    videoStream = sentryFileMediaStream(file, "video")
+    audioStream = sentryFileMediaStream(file, "audio")
+    plan = input.plan
+    toSource = invalid
+    outcome = invalid
+    if plan <> invalid
+        toSource = plan.source
+        outcome = plan.action
+    end if
+    errorInfo = input.errorInfo
+    if type(errorInfo) <> "roAssociativeArray"
+        errorInfo = invalid
+    end if
+
+    event = sentryCreateEvent("Roku playback rescued: " + reason, "warning")
+    event.fingerprint = ["roku-rescue", reason]
+
+    sentryAddTags(event, {
+        telemetry_event: "playback_rescue",
+        schema_version: "1",
+        player: "roku",
+        streaming_method: input.method,
+        rescue_reason: reason,
+        rescue_trigger: input.trigger,
+        rescue_from_source: input.fromSource,
+        rescue_to_source: toSource,
+        rescue_outcome: outcome,
+        roku_error_code: input.errorCode,
+        roku_error_category: sentryErrorInfoField(errorInfo, "category"),
+        roku_error_info_code: sentryErrorInfoField(errorInfo, "errcode"),
+        file_id: sentryFileId(file),
+        container_family: sentryContainerFamily(file),
+        video_codec: sentryStreamField(videoStream, "codec_name"),
+        video_profile: sentryStreamField(videoStream, "profile"),
+        video_level: sentryStreamField(videoStream, "level"),
+        video_resolution: sentryVideoResolution(videoStream),
+        audio_codec: sentryStreamField(audioStream, "codec_name"),
+        audio_channels: sentryStreamField(audioStream, "channels"),
+        audio_output_channel: CreateObject("roDeviceInfo").GetAudioOutputChannel(),
     })
 
     return event
@@ -68,7 +118,7 @@ end function
 function classifyRokuPlaybackFailure(errorCode as string, errorInfo as object) as string
     category = LCase(sentryErrorInfoField(errorInfo, "category"))
 
-    if category = "http" or category = "network"
+    if category = "http"
         return "network"
     else if category = "drm"
         return "drm"

@@ -24,13 +24,6 @@
 		<MarkupList
 			id="settingsList"
 			itemComponentName="ListItem"
-			translation="[102, 171]"
-			itemSize="[1716, 120]"
-			itemSpacing="[0, 12]"
-      drawFocusFeedback="true"
-      drawFocusFeedbackOnTop="false"
-      focusBitmapUri="pkg:/images/list-item-focus.9.png"
-      vertFocusAnimationStyle="fixedFocus"
 			numRows="6"
 		/>
 	</children>

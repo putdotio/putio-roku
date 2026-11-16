@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Files/Files.brs" />
 
@@ -17,7 +18,7 @@
   </interface>
 
   <children>
-    <ScreenHeader id="screenHeader" title="Your Files" showOptions="true" optionsAvailable="true" optionsText="Delete" />
+    <ScreenHeader id="screenHeader" title="Your Files" showOptions="true" optionsAvailable="true" optionsText="Options" />
 
     <LoadingIndicator
       id="loading"

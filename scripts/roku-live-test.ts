@@ -32,7 +32,7 @@ import { captureRokuDebugSnapshot, defaultDebugArtifactDir } from "./live-test/d
 import { sceneGraphPollIntervalMs, trackMenuRowPoolSize } from "./live-test/constants.ts";
 import { formatErrorMessage } from "./live-test/errors.ts";
 import {
-  ensureAppPlaybackTypeSetting as ensureAppPlaybackTypeSettingWithDriver,
+  ensureAppPlaybackMethodSetting as ensureAppPlaybackMethodSettingWithDriver,
   runAppFlow,
   type AppFlowDriver,
 } from "./live-test/app-flows.ts";
@@ -53,14 +53,16 @@ import {
 import { imageRenderSmoke } from "./live-test/image.ts";
 import {
   assertDirectPlaybackSurfaceOnDevice,
-  assertPlaybackTypeSurfaceOnDevice,
+  assertPlaybackMethodSurfaceOnDevice,
   ensureMediaPlaying,
   launchPlayback,
   launchPlaybackWithRemoteStart,
-  playbackTypeFromArg,
+  playbackMethodFromArg,
+  playbackMethodLabel,
+  type PlaybackMethod,
 } from "./live-test/playback.ts";
 import { capturePlayerUiScreenshots } from "./live-test/player-ui-review.ts";
-import { putioProfileFromArg, setPlaybackTypeConfig } from "./live-test/putio-config.ts";
+import { putioProfileFromArg } from "./live-test/putio-config.ts";
 import {
   playbackSpeedLabels,
   playbackSpeedLabelsBefore,
@@ -1041,7 +1043,7 @@ async function playerUiSmoke(
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<void> {
-  await ensureAppPlaybackTypeSetting(target, "hls");
+  await ensureAppPlaybackMethodSetting(target, "hls");
 
   const audioApp = await launchPlaybackWithRemoteStart(
     target,
@@ -1112,25 +1114,25 @@ async function playerUiSmoke(
   await assertMediaKeysSeek(target);
 }
 
-async function playbackTypeSmoke(
+async function playbackMethodSmoke(
   target: string,
-  playbackType: "hls" | "mp4",
+  method: PlaybackMethod,
   contentId: string,
   mediaType: string,
   startFromChoice: "continue" | "beginning",
 ): Promise<void> {
-  await ensureAppPlaybackTypeSetting(target, playbackType);
+  await ensureAppPlaybackMethodSetting(target, method);
   await leaveActivePlaybackSurface(target);
 
   const app = await launchPlaybackWithRemoteStart(target, contentId, mediaType, startFromChoice, {
     reuseExisting: false,
   });
   console.log(
-    `opened ${playbackType} playback: ${app.id} ${app.name} ${app.version} contentID=${contentId}`,
+    `opened ${playbackMethodLabel(method)} playback: ${app.id} ${app.name} ${app.version} contentID=${contentId}`,
   );
   await waitForPlayerClockReady(target);
-  await assertPlaybackTypeSurfaceOnDevice(target, playbackType, contentId);
-  console.log(`asserted ${playbackType} playback type for contentID=${contentId}`);
+  await assertPlaybackMethodSurfaceOnDevice(target, method, contentId);
+  console.log(`asserted ${playbackMethodLabel(method)} playback for contentID=${contentId}`);
 }
 
 async function playbackErrorDialogSmoke(
@@ -1162,11 +1164,11 @@ async function playbackErrorDialogSmoke(
   console.log(`asserted readable playback error dialog for contentID=${contentId}`);
 }
 
-async function ensureAppPlaybackTypeSetting(
+async function ensureAppPlaybackMethodSetting(
   target: string,
-  playbackType: "hls" | "mp4",
+  method: PlaybackMethod,
 ): Promise<void> {
-  await ensureAppPlaybackTypeSettingWithDriver(target, playbackType, createAppFlowDriver());
+  await ensureAppPlaybackMethodSettingWithDriver(target, method, createAppFlowDriver());
 }
 
 async function returnToHomeScreen(target: string): Promise<void> {
@@ -1289,7 +1291,7 @@ function createAppFlowDriver(): AppFlowDriver {
     focusLastListItem,
     focusListItemByIndex,
     openHomeItem,
-    playbackTypeSmoke,
+    playbackMethodSmoke,
     imageRenderSmoke,
     playerUiSmoke,
     resetAuthState,
@@ -1417,14 +1419,6 @@ async function main(): Promise<void> {
       storyIds,
       createVisualCaptureDriver(),
     );
-  } else if (command === "set-playback-type") {
-    const [rawPlaybackType, rawProfile] = args;
-
-    if (!rawPlaybackType) {
-      usage();
-    }
-
-    await setPlaybackTypeConfig(playbackTypeFromArg(rawPlaybackType), rawProfile);
   } else if (command === "image-render-smoke") {
     const [contentId] = args;
 
@@ -1433,10 +1427,10 @@ async function main(): Promise<void> {
     }
 
     await imageRenderSmoke(target, contentId);
-  } else if (command === "playback-type-smoke") {
-    const [rawPlaybackType, contentId, mediaType = "movie", rawStartFromChoice = "continue"] = args;
+  } else if (command === "playback-method-smoke") {
+    const [rawMethod, contentId, mediaType = "movie", rawStartFromChoice = "continue"] = args;
 
-    if (!rawPlaybackType || !contentId) {
+    if (!rawMethod || !contentId) {
       usage();
     }
 
@@ -1444,9 +1438,9 @@ async function main(): Promise<void> {
       throw new Error("start-from choice must be continue or beginning");
     }
 
-    await playbackTypeSmoke(
+    await playbackMethodSmoke(
       target,
-      playbackTypeFromArg(rawPlaybackType),
+      playbackMethodFromArg(rawMethod),
       contentId,
       mediaType,
       rawStartFromChoice,

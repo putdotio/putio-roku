@@ -1,43 +1,43 @@
-function getDefaultPlaybackType() as string
+function getDefaultPlaybackMethod() as string
     return "hls"
 end function
 
-function getPlaybackTypeLabel(playbackType) as string
-    if normalizePlaybackTypeSetting(playbackType) = "mp4"
-        return "MP4"
+function normalizePlaybackMethod(method as dynamic) as string
+    if method <> invalid and LCase(method.toStr()) = "file"
+        return "file"
     end if
 
-    return "HLS"
+    return getDefaultPlaybackMethod()
 end function
 
-function normalizePlaybackTypeSetting(playbackType) as string
-    if playbackType <> invalid and LCase(playbackType.toStr()) = "mp4"
-        return "mp4"
+function getOtherPlaybackMethod(method as dynamic) as string
+    if normalizePlaybackMethod(method) = "file"
+        return "hls"
     end if
 
-    return getDefaultPlaybackType()
+    return "file"
 end function
 
-function getPlaybackTypeFromConfig(config) as string
-    playbackType = invalid
-
-    if config <> invalid
-        playbackType = readPlaybackTypeConfigValue(config, "playbackType")
-        if playbackType = invalid
-            playbackType = readPlaybackTypeConfigValue(config, "videoPlaybackType")
-        end if
-        if playbackType = invalid
-            playbackType = readPlaybackTypeConfigValue(config, "video_playback_type")
-        end if
+function getPlaybackMethodLabel(method as dynamic) as string
+    if normalizePlaybackMethod(method) = "file"
+        return "Direct play"
     end if
 
-    return normalizePlaybackTypeSetting(playbackType)
+    return "Standard"
 end function
 
-function readPlaybackTypeConfigValue(config, key)
-    if config <> invalid and config.doesExist(key)
-        return config[key]
+function getPlaybackMethodFromConfig(config as dynamic) as string
+    if config <> invalid and config.doesExist("streaming_method")
+        return normalizePlaybackMethod(config.streaming_method)
     end if
 
-    return invalid
+    return getDefaultPlaybackMethod()
+end function
+
+function getPlaybackMethodHint(method as dynamic) as string
+    if normalizePlaybackMethod(method) = "file"
+        return "Plays the original file, up to 4K and surround, when this device can. Converted otherwise."
+    end if
+
+    return "Works on every device. Converted videos play at up to 1080p, stereo."
 end function

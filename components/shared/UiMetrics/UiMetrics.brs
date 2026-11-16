@@ -52,3 +52,11 @@ end function
 function uiListRowHeight() as integer
     return 120
 end function
+
+function uiSettingsListTop() as integer
+    return 171
+end function
+
+function uiListRowSpacing() as integer
+    return 12
+end function

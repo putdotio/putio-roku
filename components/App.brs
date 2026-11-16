@@ -472,7 +472,7 @@ function normalizeAppConfig(config) as object
         normalizedConfig = {}
     end if
 
-    normalizedConfig.playbackType = getPlaybackTypeFromConfig(config)
+    normalizedConfig.streaming_method = getPlaybackMethodFromConfig(config)
     return normalizedConfig
 end function
 

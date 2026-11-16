@@ -31,19 +31,24 @@ function isFileSupported(file) as boolean
     return (file.file_type = "FOLDER" or file.file_type = "VIDEO" or file.file_type = "IMAGE" or file.file_type = "AUDIO")
 end function
 
-function navigateToFile(file, immediateBackFileId = invalid)
+function navigateToFile(file, immediateBackFileId = invalid, extraParams = invalid)
     screen = getScreenFromFileType(file.file_type)
-    navigateTo(screen, file, immediateBackFileId)
+    navigateTo(screen, file, immediateBackFileId, extraParams)
 end function
 
-function navigateTo(screen, file, immediateBackFileId)
+function navigateTo(screen, file, immediateBackFileId, extraParams = invalid)
+    params = {
+        fileId: file.id,
+        fileName: file.name,
+        immediateBackFileId: immediateBackFileId,
+    }
+    if extraParams <> invalid
+        params.append(extraParams)
+    end if
+
     m.top.navigate = {
         id: screen,
-        params: {
-            fileId: file.id,
-            fileName: file.name,
-            immediateBackFileId: immediateBackFileId,
-        }
+        params: params
     }
 end function
 

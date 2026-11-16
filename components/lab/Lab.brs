@@ -60,7 +60,79 @@ sub init()
             title: "AppDialog / playback error",
             listTitle: "App / playback error",
             section: "Dialogs",
-            description: "Playback that stopped partway with an unknown Roku error: the Settings hint and the support code.",
+            description: "Playback that stopped after the first frame: Retry resumes at the same position, with the support code.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-not-ready",
+            title: "AppDialog / can't play not ready",
+            listTitle: "Can't play / not ready",
+            section: "Dialogs",
+            description: "This video has no media info yet. Offers Play with Standard.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-playback-issue",
+            title: "AppDialog / can't play playback issue",
+            listTitle: "Can't play / playback issue",
+            section: "Dialogs",
+            description: "The original file carries a put.io playback issue. Offers Play with Standard.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-container",
+            title: "AppDialog / can't play container",
+            listTitle: "Can't play / container",
+            section: "Dialogs",
+            description: "Direct play of a container this Roku can't open. Offers Play with Standard.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-video",
+            title: "AppDialog / can't play video",
+            listTitle: "Can't play / video",
+            section: "Dialogs",
+            description: "Direct play of a video codec, profile or level this Roku can't decode. Offers Play with Standard.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-audio",
+            title: "AppDialog / can't play audio",
+            listTitle: "Can't play / audio",
+            section: "Dialogs",
+            description: "Direct play of an audio codec this Roku can't decode. Offers Play with Standard.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-decoder-error",
+            title: "AppDialog / can't play decoder error",
+            listTitle: "Can't play / decoder error",
+            section: "Dialogs",
+            description: "The original failed before its first frame and has no converted copy. Offers Play with Standard.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-standard",
+            title: "AppDialog / can't play on Standard",
+            listTitle: "Can't play / Standard",
+            section: "Dialogs",
+            description: "Standard can't stream this original's format: Back is the only action.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-cant-play-standard-decoder",
+            title: "AppDialog / can't play Standard decoder error",
+            listTitle: "Can't play / Standard decoder error",
+            section: "Dialogs",
+            description: "The HLS stream failed before its first frame, with the support code: Back is the only action.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-link-expired",
+            title: "AppDialog / link expired",
+            listTitle: "Link expired",
+            section: "Dialogs",
+            description: "The stream link failed again after one refetch: Retry gets a fresh link.",
             component: "appDialog",
         },
         {
@@ -101,6 +173,14 @@ sub init()
             listTitle: "Delete / long",
             section: "Dialogs",
             description: "Long filename wrap check.",
+            component: "deleteDialog",
+        },
+        {
+            id: "file-options-play-with",
+            title: "DeleteFileDialog / play with",
+            listTitle: "File options / play with",
+            section: "Dialogs",
+            description: "Options on a video file: Play with the other method for this play only, Delete, Cancel.",
             component: "deleteDialog",
         },
         {
@@ -173,6 +253,22 @@ sub init()
             listTitle: "Rows / generic",
             section: "Rows",
             description: "Home and Settings style rows with icon, title, and secondary value.",
+            component: "listItem",
+        },
+        {
+            id: "settings-playback-standard",
+            title: "Settings / Playback method Standard",
+            listTitle: "Settings / Standard",
+            section: "Rows",
+            description: "Playback method row on Standard: value plus the one-line hint at full Settings width.",
+            component: "listItem",
+        },
+        {
+            id: "settings-playback-direct",
+            title: "Settings / Playback method Direct play",
+            listTitle: "Settings / Direct play",
+            section: "Rows",
+            description: "Playback method row on Direct play: the longest hint must fit on one line.",
             component: "listItem",
         },
         {
@@ -495,9 +591,27 @@ sub renderStory(index as integer)
     else if story.id = "app-dialog-empty"
         renderAppDialogStory("Exit put.io?", "", ["OK", "Cancel"], 1)
     else if story.id = "app-dialog-message"
-        renderAppDialogStory("Settings not saved", "Video playback type could not be saved. Please try again.", ["OK"], 0)
+        renderAppDialogStory("Settings not saved", "Playback method could not be saved. Please try again.", ["OK"], 0)
     else if story.id = "app-dialog-playback-error"
-        renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", "hls", "-3"), ["OK"], 0)
+        renderPlaybackErrorStory("playback_stopped", "hls", "hls", "-3")
+    else if story.id = "app-dialog-cant-play-not-ready"
+        renderUnplayableStory("not_ready", "file", "")
+    else if story.id = "app-dialog-cant-play-playback-issue"
+        renderUnplayableStory("playback_issue", "file", "")
+    else if story.id = "app-dialog-cant-play-container"
+        renderUnplayableStory("container_unsupported", "file", "")
+    else if story.id = "app-dialog-cant-play-video"
+        renderUnplayableStory("video_unsupported", "file", "")
+    else if story.id = "app-dialog-cant-play-audio"
+        renderUnplayableStory("audio_unsupported", "file", "")
+    else if story.id = "app-dialog-cant-play-decoder-error"
+        renderUnplayableStory("decoder_error", "file", "-5")
+    else if story.id = "app-dialog-cant-play-standard"
+        renderPlaybackErrorStory("container_unsupported", "hls", "hls", "")
+    else if story.id = "app-dialog-cant-play-standard-decoder"
+        renderPlaybackErrorStory("decoder_error", "hls", "hls", "-3")
+    else if story.id = "app-dialog-link-expired"
+        renderPlaybackErrorStory("link_expired", "file", "original", "")
     else if story.id = "app-dialog-update"
         renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.21.0"), buildUpdateDialogButtons(), 0)
     else if story.id = "app-dialog-update-installing"
@@ -508,6 +622,8 @@ sub renderStory(index as integer)
         renderDeleteDialogStory("Sintel.mp4")
     else if story.id = "delete-dialog-long"
         renderDeleteDialogStory("codex_sdk_sharing_parent_1778935120168_super_long_filename_that_should_wrap_without_becoming_a_giant_modal.mkv")
+    else if story.id = "file-options-play-with"
+        renderDeleteDialogStory("Sintel.2010.2160p.HEVC.mkv", "Play with " + getPlaybackMethodLabel("file"))
     else if story.id = "continue-watching"
         renderContinueWatchingStory(0)
     else if story.id = "continue-watching-beginning"
@@ -526,6 +642,10 @@ sub renderStory(index as integer)
         renderConversionStatusStory("error")
     else if story.id = "list-item-generic"
         renderGenericListItemStory()
+    else if story.id = "settings-playback-standard"
+        renderSettingsPlaybackMethodStory("hls")
+    else if story.id = "settings-playback-direct"
+        renderSettingsPlaybackMethodStory("file")
     else if story.id = "list-item-files"
         renderFileListItemStory()
     else if story.id = "list-item-file-watched-focused"
@@ -594,8 +714,19 @@ sub renderAppDialogStory(title as string, message as string, buttons as object, 
     addPreviewNode(dialog, m.dialogPreviewTranslation)
 end sub
 
-sub renderDeleteDialogStory(fileName as string)
+sub renderPlaybackErrorStory(reason as string, method as string, source as dynamic, errorCode as string)
+    buttons = getPlaybackErrorDialogButtons(getPlaybackErrorDialogActions(reason, method))
+    renderAppDialogStory(buildPlaybackErrorDialogTitle(reason), buildPlaybackErrorDialogMessage(reason, source, errorCode), buttons, 0)
+end sub
+
+sub renderUnplayableStory(reason as string, method as string, errorCode as string)
+    buttons = getPlaybackErrorDialogButtons(getPlaybackErrorDialogActions(reason, method))
+    renderAppDialogStory(buildPlaybackErrorDialogTitle(reason), buildUnplayableDialogMessage(reason, method, errorCode), buttons, 0)
+end sub
+
+sub renderDeleteDialogStory(fileName as string, playWithLabel = "" as string)
     dialog = createObject("roSGNode", "DeleteFileDialog")
+    dialog.playWithLabel = playWithLabel
     dialog.file = {
         id: 1001,
         name: fileName,
@@ -654,12 +785,37 @@ sub renderGenericListItemStory()
     addGenericListItem(content, "file-folder", "Files", "Browse your put.io files", "")
     addGenericListItem(content, "search", "Search", "Find media by name", "")
     addGenericListItem(content, "history", "History", "Enabled", "right")
-    addGenericListItem(content, "settings", "Settings", "Playback type: Direct", "right")
+    addGenericListItem(content, "settings", "Settings", "Playback method: Direct play", "right")
 
     list = createPreviewMarkupList("ListItem")
     list.content = content
     list.jumpToItem = 0
     addPreviewNode(list, invalid, true)
+end sub
+
+sub renderSettingsPlaybackMethodStory(method as string)
+    content = createObject("roSGNode", "ContentNode")
+    addSettingsListItem(content, "media-filter", "Only Show Media Files", "Disabled", "")
+    addSettingsListItem(content, "history", "Keep populating the history page with your activities", "Enabled", "")
+    addSettingsListItem(content, "file-video", "Playback method", getPlaybackMethodLabel(method), getPlaybackMethodHint(method))
+    addSettingsListItem(content, "info", "Version", "2.22.0", "")
+
+    list = createObject("roSGNode", "MarkupList")
+    list.itemComponentName = "ListItem"
+    applySettingsListLayout(list)
+    list.numRows = 4
+    list.content = content
+    list.jumpToItem = 2
+    addPreviewNode(list, invalid, true)
+end sub
+
+sub addSettingsListItem(content as object, iconName as string, title as string, value as string, hint as string)
+    item = content.createChild("ListItemData")
+    item.iconName = iconName
+    item.title = title
+    item.description = value
+    item.hint = hint
+    item.valueAlign = "right"
 end sub
 
 sub renderFileListItemStory()
@@ -978,7 +1134,7 @@ function focusStoryPreview() as boolean
         return false
     end if
 
-    if m.currentStoryId = "list-item-generic"
+    if m.currentStoryId = "list-item-generic" or m.currentStoryId = "settings-playback-standard" or m.currentStoryId = "settings-playback-direct"
         m.currentPreview.setFocus(true)
         return true
     else if m.currentStoryId = "list-item-files"

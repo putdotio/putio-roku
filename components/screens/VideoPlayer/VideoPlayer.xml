@@ -6,6 +6,10 @@
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackErrorMessage.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Playback/DirectPlayCheck.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Playback/RokuDecoderProbe.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Playback/PlaybackResolver.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Playback/PlaybackFailure.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerTrackMenu.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerSpeedCheck.brs" />
@@ -389,6 +393,10 @@
     <Timer
       id="trackMenuSelectionGuard"
       duration="0.25"
+      repeat="false"
+    />
+    <Timer
+      id="startWatchdog"
       repeat="false"
     />
 	</children>

@@ -41,12 +41,18 @@ import {
 import { sleep } from "./timing.ts";
 import { createPlaybackLaunchRetry } from "../roku-playback-launch.ts";
 
-export function playbackTypeFromArg(value: string): "hls" | "mp4" {
-  if (value === "hls" || value === "mp4") {
+export type PlaybackMethod = "hls" | "file";
+
+export function playbackMethodFromArg(value: string): PlaybackMethod {
+  if (value === "hls" || value === "file") {
     return value;
   }
 
-  throw new Error("playback type must be hls or mp4");
+  throw new Error("playback method must be hls or file");
+}
+
+export function playbackMethodLabel(method: PlaybackMethod): "Standard" | "Direct play" {
+  return method === "file" ? "Direct play" : "Standard";
 }
 
 export async function assertHlsPlaybackSurfaceOnDevice(
@@ -83,18 +89,41 @@ export async function assertDirectPlaybackSurfaceOnDevice(
   assertDirectPlaybackSurface(xml, contentId);
 }
 
-export async function assertPlaybackTypeSurfaceOnDevice(
+export async function assertPlaybackMethodSurfaceOnDevice(
   target: string,
-  playbackType: "hls" | "mp4",
+  method: PlaybackMethod,
   contentId: string,
 ): Promise<void> {
-  if (playbackType === "hls") {
+  if (method === "hls") {
     await assertHlsPlaybackSurfaceOnDevice(target, contentId);
     await assertMediaPlayerContainer(target, "hls");
   } else {
-    await assertDirectPlaybackSurfaceOnDevice(target, contentId);
-    await assertMediaPlayerContainer(target, "mp4");
+    assertFileStreamPlaybackSurface(await querySceneGraph(target), contentId);
+    await assertMediaPlayerContainerIsFileStream(target);
   }
+}
+
+async function assertMediaPlayerContainerIsFileStream(target: string): Promise<void> {
+  const fileStreamContainers = new Set(["mp4", "mkv"]);
+  let lastContainer: string | undefined;
+
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
+    lastContainer =
+      mediaPlayerXml === undefined ? undefined : readMediaPlayerContainer(mediaPlayerXml);
+    if (lastContainer !== undefined && fileStreamContainers.has(lastContainer)) {
+      return;
+    }
+    if (lastContainer === "hls") {
+      throw new Error("expected Direct play to play a file stream, got an HLS container");
+    }
+
+    await sleep(1_000);
+  }
+
+  throw new Error(
+    `expected Direct play media-player container mp4 or mkv, got ${lastContainer ?? "missing"}`,
+  );
 }
 
 export async function ensureMediaPlaying(target: string): Promise<void> {
@@ -128,6 +157,14 @@ function assertDirectPlaybackSurface(xml: string, contentId: string): void {
   ).test(xml);
   if (!hasFilesPlaybackPath && !hasStreamPlaybackPath) {
     throw new Error(`expected player content to include playback path for ${contentId}`);
+  }
+}
+
+function assertFileStreamPlaybackSurface(xml: string, contentId: string): void {
+  assertDirectPlaybackSurface(xml, contentId);
+
+  if (xml.includes("/hls/") || xml.includes(".m3u8")) {
+    throw new Error(`expected Direct play content for ${contentId} to avoid HLS URLs`);
   }
 }
 

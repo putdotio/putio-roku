@@ -4,10 +4,10 @@ function init()
     m.top.observeField("visible", "onVisibleChange")
 
     m.list = m.top.findNode("settingsList")
-    setDialogNodeFieldColor(m.list, "focusBitmapBlendColor", "focus")
+    applySettingsListLayout(m.list)
     m.list.observeField("itemSelected", "onListItemSelected")
-    m.playbackTypeUpdateInFlight = false
-    m.pendingPlaybackType = invalid
+    m.playbackMethodUpdateInFlight = false
+    m.pendingPlaybackMethod = invalid
     m.settingsErrorDialog = invalid
     m.appVersion = createObject("roAppInfo").GetVersion()
     m.deviceDescription = getDeviceDescription()
@@ -21,8 +21,8 @@ function init()
             title: "Keep populating the history page with your activities",
             iconName: "history",
         },
-        playback_type: {
-            title: "Video playback type",
+        playback_method: {
+            title: "Playback method",
             iconName: "file-video",
         },
         logout: {
@@ -40,7 +40,7 @@ function init()
             description: m.deviceDescription
         }
     }
-    m.itemsOrder = ["show_only_media_files", "show_history", "playback_type", "version", "device_info", "logout"]
+    m.itemsOrder = ["show_only_media_files", "show_history", "playback_method", "version", "device_info", "logout"]
 
     renderList()
 end function
@@ -76,7 +76,7 @@ sub onVisibleChange()
         m.list.setFocus(true)
         updateShowOnlyMediaValue()
         updateShowHistory()
-        updatePlaybackTypeValue()
+        updatePlaybackMethodValue()
         updateVersionValue()
         m.global.observeFieldScoped("latestAppVersion", "updateVersionValue")
     else
@@ -123,8 +123,8 @@ sub onListItemSelected(obj)
         setShowOnlyMedia()
     else if key = "show_history"
         updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
-    else if key = "playback_type"
-        setPlaybackType(getNextPlaybackType())
+    else if key = "playback_method"
+        setPlaybackMethod(getOtherPlaybackMethod(getPlaybackMethod()))
     else if key = "version"
         if isNewerAppVersion(m.global.latestAppVersion, m.appVersion)
             m.global.appUpdateRequested = true
@@ -147,44 +147,36 @@ sub updateShowHistory()
     end if
 end sub
 
-function getPlaybackType() as string
-    return getPlaybackTypeFromConfig(m.global.config)
+function getPlaybackMethod() as string
+    return getPlaybackMethodFromConfig(m.global.config)
 end function
 
-function getNextPlaybackType() as string
-    if getPlaybackType() = "hls"
-        return "mp4"
-    end if
-
-    return "hls"
-end function
-
-sub setPlaybackType(playbackType as string)
-    if m.playbackTypeUpdateInFlight
+sub setPlaybackMethod(method as string)
+    if m.playbackMethodUpdateInFlight
         return
     end if
 
-    normalizedPlaybackType = normalizePlaybackTypeSetting(playbackType)
+    normalizedMethod = normalizePlaybackMethod(method)
     m.updateConfigTask = createObject("roSGNode", "HttpTask")
-    m.updateConfigTask.observeField("response", "onUpdatePlaybackType")
-    m.updateConfigTask.url = "/config/playbackType"
-    m.updateConfigTask.body = { value: normalizedPlaybackType }
+    m.updateConfigTask.observeField("response", "onUpdatePlaybackMethod")
+    m.updateConfigTask.url = "/config/streaming_method"
+    m.updateConfigTask.body = { value: normalizedMethod }
     m.updateConfigTask.method = "PUT"
-    m.pendingPlaybackType = normalizedPlaybackType
-    m.playbackTypeUpdateInFlight = true
-    updatePlaybackTypeValue("Saving " + getPlaybackTypeLabel(normalizedPlaybackType) + "...")
+    m.pendingPlaybackMethod = normalizedMethod
+    m.playbackMethodUpdateInFlight = true
+    updatePlaybackMethodValue("Saving…", normalizedMethod)
     m.updateConfigTask.control = "RUN"
 end sub
 
-sub onUpdatePlaybackType(obj)
+sub onUpdatePlaybackMethod(obj)
     m.updateConfigTask.unobserveField("response")
     data = parseJSON(obj.getData())
 
     if data = invalid or data.status <> "OK"
-        m.playbackTypeUpdateInFlight = false
-        m.pendingPlaybackType = invalid
-        updatePlaybackTypeValue()
-        showSettingsErrorDialog("Video playback type could not be saved. Please try again.")
+        m.playbackMethodUpdateInFlight = false
+        m.pendingPlaybackMethod = invalid
+        updatePlaybackMethodValue()
+        showSettingsErrorDialog("Playback method could not be saved. Please try again.")
         return
     end if
 
@@ -193,20 +185,25 @@ sub onUpdatePlaybackType(obj)
         config = {}
     end if
 
-    config.playbackType = m.pendingPlaybackType
+    config.streaming_method = m.pendingPlaybackMethod
     m.global.config = config
-    m.playbackTypeUpdateInFlight = false
-    m.pendingPlaybackType = invalid
-    updatePlaybackTypeValue()
+    m.playbackMethodUpdateInFlight = false
+    m.pendingPlaybackMethod = invalid
+    updatePlaybackMethodValue()
 end sub
 
-sub updatePlaybackTypeValue(description = invalid)
-    m.playbackTypeListItem = m.items.playback_type.node
-    if description <> invalid
-        m.playbackTypeListItem.description = description
-    else
-        m.playbackTypeListItem.description = getPlaybackTypeLabel(getPlaybackType())
+sub updatePlaybackMethodValue(description = invalid, method = invalid)
+    if method = invalid
+        method = getPlaybackMethod()
     end if
+
+    listItem = m.items.playback_method.node
+    if description <> invalid
+        listItem.description = description
+    else
+        listItem.description = getPlaybackMethodLabel(method)
+    end if
+    listItem.hint = getPlaybackMethodHint(method)
 end sub
 
 sub showSettingsErrorDialog(message as string)

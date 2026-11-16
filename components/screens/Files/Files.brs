@@ -17,6 +17,7 @@ function init()
     m.deleteFileDialog = m.top.findNode("deleteFileDialog")
     m.deleteFileDialog.observeField("completed", "onFileDeleted")
     m.deleteFileDialog.observeField("wasClosed", "onDeleteFileDialogClosed")
+    m.deleteFileDialog.observeField("playWithSelected", "onPlayWithSelected")
 
     m.fetchFilesTask = createObject("roSGNode", "HttpTask")
 end function
@@ -142,11 +143,7 @@ sub onFileSelected(obj)
     file = fileListItem.file
 
     if isFileSupported(file)
-        m.top.params = {
-            fileId: m.parent.id,
-            focusFileId: file.id,
-            immediateBackFileId: m.top.params.immediateBackFileId,
-        }
+        rememberFocusedFile(file)
 
         if file.file_type = "FOLDER"
             fileListItem.isLoading = true
@@ -214,6 +211,7 @@ sub showDeleteFileDialog()
     focusedFile = getFocusedFile()
 
     if focusedFile <> invalid
+        m.deleteFileDialog.playWithLabel = buildPlayWithLabel(focusedFile)
         m.deleteFileDialog.file = focusedFile
         m.deleteFileDialog.visible = true
         m.deleteFileDialog.setFocus(true)
@@ -241,6 +239,32 @@ function getFocusedFile()
 
     return m.files[focusedIndex]
 end function
+
+function buildPlayWithLabel(file) as string
+    if file.file_type <> "VIDEO"
+        return ""
+    end if
+
+    return "Play with " + getPlaybackMethodLabel(getOtherPlaybackMethod(getPlaybackMethodFromConfig(m.global.config)))
+end function
+
+sub onPlayWithSelected()
+    file = m.deleteFileDialog.file
+    if file = invalid or file.file_type <> "VIDEO"
+        return
+    end if
+
+    rememberFocusedFile(file)
+    navigateToFile(file, invalid, { methodOverride: getOtherPlaybackMethod(getPlaybackMethodFromConfig(m.global.config)) })
+end sub
+
+sub rememberFocusedFile(file)
+    m.top.params = {
+        fileId: m.parent.id,
+        focusFileId: file.id,
+        immediateBackFileId: m.top.params.immediateBackFileId,
+    }
+end sub
 
 sub onFileDeleted()
     fetchWithLoader(m.parent.id)

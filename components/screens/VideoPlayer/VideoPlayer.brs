@@ -29,6 +29,9 @@ function init()
     m.trackMenu = m.top.findNode("trackMenu")
     m.trackMenuSelectionGuard = m.top.findNode("trackMenuSelectionGuard")
     m.trackMenuSelectionGuard.observeField("fire", "onTrackMenuSelectionGuardFire")
+    m.startWatchdog = m.top.findNode("startWatchdog")
+    m.startWatchdog.duration = getOriginalStartTimeoutSeconds()
+    m.startWatchdog.observeField("fire", "onStartWatchdogFire")
 
     m.controls = [
         {
@@ -160,6 +163,29 @@ function init()
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
     m.playbackStarted = false
+    m.playbackFile = invalid
+    m.method = getDefaultPlaybackMethod()
+    m.plan = invalid
+    m.rescued = false
+    m.reresolved = false
+    m.playStartPosition = 0
+    m.retryPosition = 0
+    m.loadErrorSignature = ""
+    m.startBufferingPercent = 0
+    m.startWatchdogRearms = 0
+    m.refetchFileTask = invalid
+    m.playbackFailureCode = ""
+    m.failureReason = invalid
+    m.errorDialogActions = []
+    m.errorDialogAction = "back"
+end function
+
+function getOriginalStartTimeoutSeconds() as integer
+    return 30
+end function
+
+function getStartWatchdogMaxRearms() as integer
+    return 3
 end function
 
 sub applyPlayerColors()
@@ -237,53 +263,91 @@ sub onVisibleChange()
         end if
         m.osdTimer.control = "stop"
         m.trackMenuSelectionGuard.control = "stop"
+        m.startWatchdog.control = "stop"
+        cancelRefetchFile()
         m.trackMenu.visible = false
     end if
 end sub
 
 sub setupPlayer()
     file = m.top.params.file
-    streamInfo = getPlayableStreamInfo(file, m.global.apiURL, m.global.user.download_token, getConfiguredPlaybackType())
-    videoContent = createObject("RoSGNode", "ContentNode")
 
     resetPlaybackState()
 
-    if streamInfo = invalid
-        showPlaybackUnavailableDialog()
-        return
-    end if
-
-    m.currentStreamInfo = streamInfo
-    videoContent.url = streamInfo.url
-    videoContent.title = file.name
-    videoContent.streamFormat = streamInfo.format
-    m.externalSubtitleTracks = createSubtitleTracks(m.top.params.subtitles)
-    if m.externalSubtitleTracks.count() > 0
-        videoContent.SubtitleTracks = m.externalSubtitleTracks
-    end if
-
+    m.playbackFile = file
+    m.method = normalizePlaybackMethod(m.top.params.method)
+    m.plan = m.top.params.plan
     m.title.text = file.name
     m.duration = getVideoFileDurationSeconds(file)
     updateDurationLabel()
+
+    startFrom = m.top.params.startFrom
+    if startFrom = invalid
+        startFrom = 0
+    end if
+
+    if m.plan = invalid or m.plan.action <> "play" or isNonEmptyString(m.plan.url) = false
+        reason = "not_ready"
+        if m.plan <> invalid and isNonEmptyString(m.plan.reason)
+            reason = m.plan.reason
+        end if
+        m.retryPosition = startFrom
+        showPlaybackFailureDialog(reason, true)
+        return
+    end if
+
+    m.externalSubtitleTracks = createSubtitleTracks(m.top.params.subtitles)
     syncSubtitleTracks()
     ensureDefaultSubtitleSelection()
     updateTrackSummary()
 
-    m.video.content = videoContent
-    applySubtitleSelection()
-    startPlayback(m.top.params.startFrom)
+    loadPlaybackPlan(m.plan, startFrom)
 end sub
 
-function getConfiguredPlaybackType() as string
-    if m.top.params <> invalid and m.top.params.playbackType <> invalid
-        return normalizePlaybackTypeSetting(m.top.params.playbackType)
+sub loadPlaybackPlan(plan as object, startFrom)
+    if startFrom = invalid
+        startFrom = 0
     end if
 
-    if m.global.config <> invalid and m.global.config.playbackType <> invalid
-        return normalizePlaybackTypeSetting(m.global.config.playbackType)
+    m.plan = plan
+    m.currentStreamInfo = { url: plan.url, format: plan.streamFormat }
+    m.playStartPosition = startFrom
+    m.hasPlaybackError = false
+    m.errorDialogShown = false
+    m.loadErrorSignature = getVideoErrorSignature()
+    m.startBufferingPercent = 0
+    m.startWatchdogRearms = 0
+    resetPreviewSeek()
+    m.pendingSeekPosition = invalid
+    m.seekValue = 0
+    m.pausedBeforeStart = false
+
+    videoContent = createObject("RoSGNode", "ContentNode")
+    videoContent.url = plan.url
+    videoContent.title = m.playbackFile.name
+    videoContent.streamFormat = plan.streamFormat
+    if m.externalSubtitleTracks.count() > 0
+        videoContent.SubtitleTracks = m.externalSubtitleTracks
     end if
 
-    return getDefaultPlaybackType()
+    m.video.content = videoContent
+    applySubtitleSelection()
+    startPlayback(startFrom)
+
+    m.startWatchdog.control = "stop"
+    if plan.source = "original" and m.rescued = false and m.playbackStarted = false
+        m.startWatchdog.control = "start"
+    end if
+end sub
+
+function createPlaybackResolveContext(originalFailed as boolean, failureReason as dynamic) as object
+    return {
+        apiUrl: m.global.apiURL,
+        downloadToken: m.global.user.download_token,
+        probe: createRokuDecoderProbe(),
+        originalFailed: originalFailed,
+        failureReason: failureReason
+    }
 end function
 
 sub resetPlaybackState()
@@ -320,6 +384,19 @@ sub resetPlaybackState()
     m.errorDialogShown = false
     m.currentStreamInfo = invalid
     m.playbackStarted = false
+    m.rescued = false
+    m.reresolved = false
+    m.playStartPosition = 0
+    m.retryPosition = 0
+    m.loadErrorSignature = ""
+    m.startBufferingPercent = 0
+    m.startWatchdogRearms = 0
+    m.playbackFailureCode = ""
+    m.failureReason = invalid
+    m.errorDialogActions = []
+    m.errorDialogAction = "back"
+    m.startWatchdog.control = "stop"
+    cancelRefetchFile()
     m.lastSavedVideoTime = invalid
     m.startFromClearState = "none"
     m.positionWriteTask = invalid
@@ -427,23 +504,25 @@ sub onPlayerStateChanged(obj)
 
     if state = "playing"
         m.playbackStarted = true
+        m.pausedBeforeStart = false
+        m.startWatchdog.control = "stop"
     end if
 
     updatePlayIcon()
     updatePositionPauseIcon()
 
     if state = "error"
-        handlePlaybackError()
+        handlePlaybackError(true)
     else if state = "finished"
         updateBufferingOverlay(false)
-        if hasVideoErrorInfo()
-            handlePlaybackError()
+        if hasFreshVideoError()
+            handlePlaybackError(true)
         else if m.hasPlaybackError = false
             if isPlaybackFinishedNormally()
                 maybeSaveVideoTime(m.duration, true)
                 onGoBack()
             else
-                handlePlaybackError()
+                handlePlaybackError(false)
             end if
         end if
     else if state = "buffering"
@@ -579,8 +658,9 @@ sub updatePositionPauseIcon()
     m.positionPauseIcon.translation = [getPositionPauseIconX(), 56]
 end sub
 
+' Before the first frame the Video node keeps reporting "buffering" after control = "pause".
 function isVideoPaused() as boolean
-    return m.video.state = "paused" or m.video.state = "pause"
+    return m.pausedBeforeStart = true or m.video.state = "paused" or m.video.state = "pause"
 end function
 
 function getPositionPauseIconX() as integer
@@ -1050,7 +1130,7 @@ function getFirstAvailableControlIndex()
 end function
 
 sub updatePlayIcon()
-    if m.video.state = "playing" or m.video.state = "buffering"
+    if m.pausedBeforeStart <> true and (m.video.state = "playing" or m.video.state = "buffering")
         m.controls[1].icon.uri = "pkg:/images/icons/pause.png"
     else
         m.controls[1].icon.uri = "pkg:/images/icons/play.png"
@@ -1141,13 +1221,39 @@ sub playOrPause()
         return
     end if
 
-    if m.video.state = "playing" or m.video.state = "buffering"
+    if m.playbackStarted = false
+        if m.pausedBeforeStart = true
+            resumeBeforeStart()
+        else
+            pauseBeforeStart()
+        end if
+    else if m.video.state = "playing" or m.video.state = "buffering"
         m.video.control = "pause"
     else
         m.video.control = "resume"
     end if
 
     showOsd()
+end sub
+
+sub pauseBeforeStart()
+    m.pausedBeforeStart = true
+    m.startWatchdog.control = "stop"
+    m.video.control = "pause"
+    updatePlayIcon()
+    updatePositionPauseIcon()
+end sub
+
+sub resumeBeforeStart()
+    m.pausedBeforeStart = false
+    m.video.control = "resume"
+    m.startBufferingPercent = 0
+    m.startWatchdogRearms = 0
+    if m.plan <> invalid and m.plan.source = "original" and m.rescued = false and m.hasPlaybackError = false
+        m.startWatchdog.control = "start"
+    end if
+    updatePlayIcon()
+    updatePositionPauseIcon()
 end sub
 
 sub rewind()
@@ -1338,37 +1444,248 @@ sub seekToStart()
     showOsd()
 end sub
 
-sub handlePlaybackError()
+' Roku does not document clearing errorCode, errorInfo or errorStr when content changes, so after
+' a rescue or re-resolve they are read only for an error state or a finished state with a new error.
+sub handlePlaybackError(useErrorFields as boolean)
+    if m.hasPlaybackError
+        return
+    end if
+
     m.hasPlaybackError = true
+    m.startWatchdog.control = "stop"
     updateBufferingOverlay(false)
     m.osdTimer.control = "stop"
-    m.playbackFailureMode = classifyRokuPlaybackFailure(sentryVideoErrorCode(m.video), sentryVideoErrorInfo(m.video))
-    m.playbackFailureCode = getSafeVideoErrorCode()
-    reportPlaybackFailure()
+
+    errorVideo = invalid
+    rawErrorCode = 0
+    errorStr = invalid
+    m.playbackFailureCode = ""
+    if useErrorFields
+        errorVideo = m.video
+        rawErrorCode = m.video.errorCode
+        errorStr = getVideoErrorStr()
+        m.playbackFailureCode = getSafeVideoErrorCode()
+    end if
+
+    position = getRecoveryPosition()
+    errorInfo = sentryVideoErrorInfo(errorVideo)
+    verdict = classifyPlaybackFailure({
+        errorCode: rawErrorCode,
+        errorInfo: errorInfo,
+        errorStr: errorStr,
+        started: m.playbackStarted,
+        source: getCurrentPlaybackSource(),
+        rescued: m.rescued,
+        reresolved: m.reresolved
+    })
+    errorCode = sentryVideoErrorCode(errorVideo)
+    m.reresolveFailureEvent = invalid
+    if verdict.action = "retry" or verdict.action = "fail"
+        reportPlaybackFailure(errorVideo)
+    else if verdict.action = "reresolve"
+        m.reresolveFailureEvent = createPlaybackFailureEventFor(errorVideo)
+    end if
     m.video.control = "stop"
 
-    if m.errorDialogShown = false
-        showPlaybackErrorDialog()
+    if verdict.action = "rescue"
+        rescuePlayback(verdict.reason, "engine", errorCode, errorInfo)
+    else if verdict.action = "reresolve"
+        reresolvePlayback(position)
+    else
+        m.retryPosition = position
+        showPlaybackFailureDialog(verdict.reason, false)
     end if
 end sub
 
+sub onStartWatchdogFire()
+    if m.playbackStarted or m.hasPlaybackError or m.plan = invalid or m.plan.source <> "original" or m.rescued
+        return
+    end if
+
+    if m.pausedBeforeStart = true
+        return
+    end if
+
+    if hasStartBufferingProgress()
+        m.startWatchdog.control = "start"
+        return
+    end if
+
+    m.hasPlaybackError = true
+    updateBufferingOverlay(false)
+    m.video.control = "stop"
+    rescuePlayback("decoder_error", "watchdog", invalid, invalid)
+end sub
+
+' A 4K or high-bitrate original, or an MKV resume seek without front Cues, can still be filling
+' its buffer at the timeout; keep waiting while bufferingStatus.percentage grows.
+function hasStartBufferingProgress() as boolean
+    if m.startWatchdogRearms >= getStartWatchdogMaxRearms()
+        return false
+    end if
+
+    status = m.video.bufferingStatus
+    if type(status) <> "roAssociativeArray" or status.percentage = invalid
+        return false
+    end if
+
+    percentage = Int(status.percentage)
+    if percentage <= m.startBufferingPercent
+        return false
+    end if
+
+    m.startBufferingPercent = percentage
+    m.startWatchdogRearms = m.startWatchdogRearms + 1
+    return true
+end function
+
+function getRecoveryPosition()
+    if m.playbackStarted and m.video.position <> invalid and m.video.position > 0
+        return Int(m.video.position)
+    end if
+
+    return m.playStartPosition
+end function
+
+function getVideoErrorStr() as dynamic
+    if m.video.hasField("errorStr")
+        return m.video.errorStr
+    end if
+
+    return invalid
+end function
+
+sub rescuePlayback(reason as string, trigger as string, errorCode as dynamic, errorInfo as dynamic)
+    m.rescued = true
+    fromSource = m.plan.source
+    plan = resolvePlaybackPlan(m.playbackFile, m.method, createPlaybackResolveContext(true, reason))
+    sentryCaptureEvent(createPlaybackRescueEvent({
+        reason: reason,
+        trigger: trigger,
+        method: m.method,
+        fromSource: fromSource,
+        plan: plan,
+        file: m.playbackFile,
+        errorCode: errorCode,
+        errorInfo: errorInfo,
+    }))
+
+    if plan.action = "play"
+        resetSourceTracks()
+        loadPlaybackPlan(plan, m.playStartPosition)
+    else if plan.action = "convert"
+        openVideoScreen({ methodOverride: m.method, rescueReason: reason, startFrom: m.playStartPosition })
+    else
+        m.retryPosition = m.playStartPosition
+        showPlaybackFailureDialog(plan.reason, true)
+    end if
+end sub
+
+sub resetSourceTracks()
+    m.audioTracks = []
+    m.rokuSubtitleTracks = []
+    m.selectedAudioTrack = invalid
+    m.userSelectedAudioTrack = false
+    syncSubtitleTracks()
+    updateTrackSummary()
+end sub
+
+sub reresolvePlayback(position)
+    m.reresolved = true
+    m.retryPosition = position
+    cancelRefetchFile()
+    hideOsd()
+    updateBufferingOverlay(true)
+
+    fileId = m.playbackFile.id.toStr()
+    m.refetchFileTask = createObject("roSGNode", "HttpTask")
+    m.refetchFileTask.observeField("response", "onRefetchFileResponse")
+    m.refetchFileTask.url = "/files/list?parent_id=" + fileId + "&mp4_status_parent=1&stream_url_parent=1&mp4_stream_url_parent=1&video_metadata_parent=1&media_info_parent=1&codecs_parent=1"
+    m.refetchFileTask.method = "GET"
+    m.refetchFileTask.control = "RUN"
+end sub
+
+sub cancelRefetchFile()
+    if m.refetchFileTask <> invalid
+        m.refetchFileTask.unobserveField("response")
+        m.refetchFileTask.control = "stop"
+        m.refetchFileTask = invalid
+    end if
+end sub
+
+sub onRefetchFileResponse(obj)
+    cancelRefetchFile()
+    data = parseJSON(obj.getData())
+
+    plan = createUnplayablePlan("link_expired")
+    if data <> invalid and data.parent <> invalid
+        m.playbackFile = data.parent
+        plan = resolveSameSourcePlaybackPlan(m.playbackFile, m.plan, createPlaybackResolveContext(false, invalid))
+    end if
+
+    failureEvent = m.reresolveFailureEvent
+    m.reresolveFailureEvent = invalid
+    if plan.action = "play"
+        loadPlaybackPlan(plan, m.retryPosition)
+    else
+        if failureEvent <> invalid and m.errorDialogShown = false
+            sentryCaptureEvent(failureEvent)
+        end if
+        updateBufferingOverlay(false)
+        showPlaybackFailureDialog(plan.reason, false)
+    end if
+end sub
+
+sub openVideoScreen(params as object)
+    m.video.control = "stop"
+    params.fileId = m.playbackFile.id
+    params.fileName = m.playbackFile.name
+    m.top.navigate = {
+        id: "videoScreen",
+        replace: true,
+        params: params
+    }
+end sub
+
 ' Reads the Video node before control = "stop" clears errorInfo, then hands off to a task.
-sub reportPlaybackFailure()
+sub reportPlaybackFailure(errorVideo as dynamic)
     if m.errorDialogShown
         return
     end if
 
-    sentryCaptureEvent(createPlaybackFailureEvent({
-        video: m.video,
-        file: m.top.params.file,
-        streamInfo: m.currentStreamInfo,
-        playbackType: getConfiguredPlaybackType(),
-        playbackStarted: m.playbackStarted,
-    }))
+    sentryCaptureEvent(createPlaybackFailureEventFor(errorVideo))
 end sub
 
-function hasVideoErrorInfo() as boolean
-    return getSafeVideoErrorMessage() <> "" or getSafeVideoErrorCode() <> ""
+function createPlaybackFailureEventFor(errorVideo as dynamic) as object
+    return createPlaybackFailureEvent({
+        video: errorVideo,
+        file: m.playbackFile,
+        streamInfo: m.currentStreamInfo,
+        method: m.method,
+        source: getCurrentPlaybackSource(),
+        playbackStarted: m.playbackStarted,
+    })
+end function
+
+function getCurrentPlaybackSource() as dynamic
+    if m.plan <> invalid
+        return m.plan.source
+    end if
+
+    return invalid
+end function
+
+function getVideoErrorSignature() as string
+    if getSafeVideoErrorMessage() = "" and getSafeVideoErrorCode() = ""
+        return ""
+    end if
+
+    return getSafeVideoErrorCode() + "|" + getSafeVideoErrorMessage()
+end function
+
+function hasFreshVideoError() as boolean
+    signature = getVideoErrorSignature()
+    return signature <> "" and signature <> m.loadErrorSignature
 end function
 
 function isPlaybackFinishedNormally() as boolean
@@ -1379,20 +1696,25 @@ function isPlaybackFinishedNormally() as boolean
     return getDisplayedPosition() >= (m.duration - 2)
 end function
 
-sub showPlaybackErrorDialog()
+sub showPlaybackFailureDialog(reason as string, unplayable as boolean)
     m.errorDialogShown = true
+    m.failureReason = reason
+    m.errorDialogActions = getPlaybackErrorDialogActions(reason, m.method)
+    m.errorDialogAction = "back"
+
     m.errorDialog = createObject("roSGNode", "AppDialog")
-    m.errorDialog.title = buildPlaybackErrorDialogTitle(m.playbackStarted = true)
-    m.errorDialog.message = getPlaybackErrorDialogMessage()
+    m.errorDialog.title = buildPlaybackErrorDialogTitle(reason)
+    if unplayable
+        m.errorDialog.message = buildUnplayableDialogMessage(reason, m.method, m.playbackFailureCode)
+    else
+        m.errorDialog.message = buildPlaybackErrorDialogMessage(reason, getCurrentPlaybackSource(), m.playbackFailureCode)
+    end if
     applyAccountNoticeToDialog(m.errorDialog, m.global.user)
-    m.errorDialog.buttons = ["OK"]
+    m.errorDialog.buttons = getPlaybackErrorDialogButtons(m.errorDialogActions)
+    m.errorDialog.observeField("buttonSelected", "onErrorDialogButtonSelected")
     m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
     m.top.showDialog = m.errorDialog
 end sub
-
-function getPlaybackErrorDialogMessage() as string
-    return buildPlaybackErrorDialogMessage(m.playbackFailureMode, getConfiguredPlaybackType(), m.playbackFailureCode)
-end function
 
 function getSafeVideoErrorMessage() as string
     if m.video <> invalid and m.video.errorMsg <> invalid and m.video.errorMsg.toStr() <> ""
@@ -1410,23 +1732,43 @@ function getSafeVideoErrorCode() as string
     return ""
 end function
 
-
-sub showPlaybackUnavailableDialog()
-    m.errorDialog = createObject("roSGNode", "AppDialog")
-    m.errorDialog.title = "Video unavailable"
-    m.errorDialog.message = "This video does not have a Roku-compatible stream yet."
-    m.errorDialog.buttons = ["OK"]
-    m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
-    m.top.showDialog = m.errorDialog
+sub onErrorDialogButtonSelected(obj)
+    index = obj.getData()
+    if index >= 0 and index < m.errorDialogActions.count()
+        m.errorDialogAction = m.errorDialogActions[index]
+    end if
 end sub
 
 sub onErrorDialogClosed()
     if m.errorDialog <> invalid
+        m.errorDialog.unobserveField("buttonSelected")
         m.errorDialog.unobserveField("wasClosed")
         m.errorDialog = invalid
     end if
 
-    onGoBack()
+    action = m.errorDialogAction
+    m.errorDialogAction = "back"
+
+    if action = "retry"
+        retryPlayback()
+    else if action = "play_standard"
+        openVideoScreen({ methodOverride: "hls", startFrom: m.retryPosition })
+    else
+        onGoBack()
+    end if
+end sub
+
+sub retryPlayback()
+    if m.failureReason = "link_expired"
+        m.reresolved = false
+        m.hasPlaybackError = false
+        m.errorDialogShown = false
+        reresolvePlayback(m.retryPosition)
+    else if m.plan <> invalid and m.plan.action = "play"
+        loadPlaybackPlan(m.plan, m.retryPosition)
+    else
+        openVideoScreen({ methodOverride: m.method, startFrom: m.retryPosition })
+    end if
 end sub
 
 sub maybeSaveVideoTime(time, force as boolean)
@@ -1527,6 +1869,7 @@ sub onPositionWriteResponse(obj)
 end sub
 
 sub onGoBack()
+    m.startWatchdog.control = "stop"
     m.video.control = "stop"
     m.top.navigateBack = true
 end sub
@@ -1556,6 +1899,10 @@ function onKeyEvent(key as string, press as boolean) as boolean
             return true
         end if
 
+        if m.hasPlaybackError or m.refetchFileTask <> invalid
+            return true
+        end if
+
         if m.trackMenu.visible
             if normalizedKey = "up"
                 moveTrackMenuFocus(-1)
@@ -1580,7 +1927,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 cancelPreviewSeek()
             end if
 
-            m.video.control = "pause"
+            if m.playbackStarted = false
+                pauseBeforeStart()
+            else
+                m.video.control = "pause"
+            end if
             showOsd()
             return true
         else if normalizedKey = "rewind" or normalizedKey = "rev"

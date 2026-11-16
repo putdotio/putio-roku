@@ -3,6 +3,8 @@
 <component name="DeleteFileDialog" extends="Group">
   <interface>
     <field id="file" type="assocarray" onChange="onFileChange" />
+    <field id="playWithLabel" type="string" onChange="onFileChange" />
+    <field id="playWithSelected" type="bool" value="false" alwaysNotify="true" />
     <field id="completed" type="bool" value="false" alwaysNotify="true" />
     <field id="wasClosed" type="bool" value="false" alwaysNotify="true" />
   </interface>
@@ -106,6 +108,21 @@
     />
 
     <Group id="buttons" translation="[492,552]">
+      <Group id="playWithButton" visible="false">
+        <Rectangle
+          id="playWithButtonBackground"
+          width="936"
+          height="78"
+        />
+        <Label
+          id="playWithButtonLabel"
+          width="936"
+          height="78"
+          horizAlign="center"
+          vertAlign="center"
+        />
+      </Group>
+
       <Group id="deleteButton">
         <Rectangle
           id="deleteButtonBackground"

@@ -13,7 +13,7 @@ sub Main(args as object)
         appId: buildConfigPutioAppId(),
         user: {},
         config: {
-            playbackType: "hls"
+            streaming_method: "hls"
         },
         route: {
             id: "splashScreen",

@@ -8,7 +8,7 @@
   here while looking correct when a story assigns the field programmatically.
 
   Both option states are shown, because the title reserves the right-hand gutter only when
-  the affordance is actually drawn. Top is Files (optionsAvailable true, so "Delete" draws
+  the affordance is actually drawn. Top is Files (optionsAvailable true, so "Options" draws
   and the title must stop short of it). Bottom is Audio or Image (optionsAvailable false,
   nothing drawn, so the title should run the full width). Same long title in both, so the
   difference in truncation point is the thing to look at.
@@ -20,7 +20,7 @@
       title="Camera Uploads / 2026 / Trip to Amsterdam and Rotterdam"
       showOptions="true"
       optionsAvailable="true"
-      optionsText="Delete"
+      optionsText="Options"
     />
 
     <ScreenHeader

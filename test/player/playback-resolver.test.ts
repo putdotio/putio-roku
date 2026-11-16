@@ -47,7 +47,7 @@ const convert = (source: "hls" | "converted", reason: string | null = null): Pla
 });
 const unplayable = (reason: string): Plan => ({ action: "unplayable", source: null, url: null, streamFormat: null, reason });
 
-const cases: Record<string, { file: unknown; method?: string; ctx: unknown; expected: Plan }> = {
+const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Plan; ctx: unknown; expected: Plan }> = {
   audio_standard: {
     file: { id: 7, file_type: "AUDIO", stream_url: streamUrl },
     method: "hls",
@@ -190,6 +190,36 @@ const cases: Record<string, { file: unknown; method?: string; ctx: unknown; expe
     ctx: ctx({ probe: playable }),
     expected: unplayable("not_ready"),
   },
+  same_source_hls_keeps_manifest: {
+    file: video({ need_convert: false }),
+    sameSourceAs: play("hls", "https://api.put.io/v2/files/7/hls/media.m3u8?oauth_token=old", "hls"),
+    ctx: ctx(),
+    expected: play("hls", hlsUrl, "hls"),
+  },
+  same_source_original_takes_fresh_stream_url: {
+    file: video({ need_convert: false, is_mp4_available: true, stream_url: streamUrl, mp4_stream_url: mp4StreamUrl }),
+    sameSourceAs: play("original", "https://s1.put.io/stream/7?expired", "mkv"),
+    ctx: ctx(),
+    expected: play("original", streamUrl, "mkv"),
+  },
+  same_source_converted_keeps_reason: {
+    file: video({ need_convert: false, is_mp4_available: true, stream_url: streamUrl, mp4_stream_url: mp4StreamUrl }),
+    sameSourceAs: play("converted", "https://s1.put.io/stream/7.mp4?expired", "mp4", "video_unsupported"),
+    ctx: ctx(),
+    expected: play("converted", mp4StreamUrl, "mp4", "video_unsupported"),
+  },
+  same_source_audio_keeps_mp3: {
+    file: { id: 7, file_type: "AUDIO", stream_url: streamUrl },
+    sameSourceAs: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+    ctx: ctx(),
+    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+  },
+  same_source_original_without_url_expires: {
+    file: video({ need_convert: false, is_mp4_available: true, mp4_stream_url: mp4StreamUrl }),
+    sameSourceAs: play("original", "https://s1.put.io/stream/7?expired", "mp4"),
+    ctx: ctx(),
+    expected: unplayable("link_expired"),
+  },
 };
 
 describe("resolvePlaybackPlan", () => {
@@ -198,6 +228,7 @@ describe("resolvePlaybackPlan", () => {
   beforeAll(async () => {
     results = await runBrsCases<Plan>(
       [
+        "components/shared/PlaybackConfig.brs",
         "components/shared/PlaybackUtils.brs",
         "components/shared/Playback/DirectPlayCheck.brs",
         "components/shared/Playback/PlaybackResolver.brs",

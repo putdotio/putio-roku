@@ -33,9 +33,21 @@
 				uri="pkg:/images/Spinner.png"
 			/>
 
-			<Label
-				id="title"
-			/>
+			<LayoutGroup
+				id="textContent"
+				layoutDirection="vert"
+				horizAlignment="left"
+				itemSpacings="9"
+			>
+				<Label
+					id="title"
+				/>
+
+				<Label
+					id="hint"
+					visible="false"
+				/>
+			</LayoutGroup>
 
 			<Label
 				id="description"
