@@ -1362,7 +1362,7 @@ end function
 sub showPlaybackErrorDialog()
     m.errorDialogShown = true
     m.errorDialog = createObject("roSGNode", "AppDialog")
-    m.errorDialog.title = "Playback failed"
+    m.errorDialog.title = buildPlaybackErrorDialogTitle(m.playbackStarted = true)
     m.errorDialog.message = getPlaybackErrorDialogMessage()
     m.errorDialog.buttons = ["OK"]
     m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
@@ -1370,7 +1370,8 @@ sub showPlaybackErrorDialog()
 end sub
 
 function getPlaybackErrorDialogMessage() as string
-    return buildPlaybackErrorDialogMessage(getSafeVideoErrorMessage(), getCurrentPlaybackSourceLabel(), getSafeVideoErrorCode())
+    failureMode = classifyRokuPlaybackFailure(sentryVideoErrorCode(m.video), sentryVideoErrorInfo(m.video))
+    return buildPlaybackErrorDialogMessage(failureMode, m.playbackStarted = true, getConfiguredPlaybackType(), getCurrentPlaybackSourceLabel(), getSafeVideoErrorCode())
 end function
 
 function getSafeVideoErrorMessage() as string
