@@ -12,6 +12,7 @@
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackErrorMessage.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/AccountStatus.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/UpdateCheck/UpdateCheck.brs" />
   <script type="text/brightscript" uri="pkg:/components/lab/Lab.brs" />
 
   <children>

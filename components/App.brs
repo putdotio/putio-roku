@@ -475,6 +475,8 @@ function normalizeAppConfig(config) as object
 end function
 
 sub routeAfterBootstrap()
+    startUpdateCheck()
+
     if m.pendingDeepLink <> invalid
         routePendingDeepLink()
     else
@@ -484,6 +486,57 @@ sub routeAfterBootstrap()
             params: {}
         }
     end if
+end sub
+
+sub startUpdateCheck()
+    if m.updateCheckTask <> invalid
+        return
+    end if
+
+    m.updateCheckTask = createObject("roSGNode", "UpdateCheckTask")
+    m.updateCheckTask.observeField("latestVersion", "onLatestVersionChecked")
+    m.updateCheckTask.control = "RUN"
+end sub
+
+sub onLatestVersionChecked(obj)
+    m.updateCheckTask.unobserveField("latestVersion")
+    latestVersion = obj.getData()
+    m.global.latestAppVersion = latestVersion
+
+    currentVersion = createObject("roAppInfo").GetVersion()
+    dismissedVersion = ""
+    if m.storage.Exists("dismissedUpdateVersion")
+        dismissedVersion = m.storage.Read("dismissedUpdateVersion")
+    end if
+
+    if shouldOfferAppUpdate(latestVersion, currentVersion, dismissedVersion) and canShowUpdateDialog()
+        showUpdateDialog(formatAppVersion(latestVersion))
+    end if
+end sub
+
+function canShowUpdateDialog() as boolean
+    if m.activeDialog <> invalid or m.activeRouteEntry = invalid or m.activeRouteEntry.route = invalid
+        return false
+    end if
+
+    return m.activeRouteEntry.route.id = "homeScreen"
+end function
+
+sub showUpdateDialog(latestVersion as string)
+    clearActiveDialog(false)
+    m.activeDialogKind = "update"
+    m.offeredUpdateVersion = latestVersion
+    m.appDialog.title = buildUpdateDialogTitle()
+    m.appDialog.message = buildUpdateDialogMessage(latestVersion)
+    m.appDialog.buttons = ["OK"]
+    m.appDialog.defaultButton = 0
+    openAppDialog()
+end sub
+
+sub dismissUpdateDialog()
+    m.storage.Write("dismissedUpdateVersion", m.offeredUpdateVersion)
+    m.storage.Flush()
+    clearActiveDialog()
 end sub
 
 sub onDeepLink(obj)
@@ -771,6 +824,8 @@ end sub
 sub onAppDialogButtonSelected(obj)
     if m.activeDialogKind = "exitApp"
         onExitAppDialogButtonSelected(obj.getData())
+    else if m.activeDialogKind = "update"
+        dismissUpdateDialog()
     else if m.hostedDialog <> invalid
         m.hostedDialog.buttonSelected = obj.getData()
     end if
@@ -779,6 +834,8 @@ end sub
 sub onAppDialogClosed()
     if m.activeDialogKind = "exitApp"
         clearActiveDialog()
+    else if m.activeDialogKind = "update"
+        dismissUpdateDialog()
     else if m.hostedDialog <> invalid
         hostedDialog = m.hostedDialog
         clearActiveDialog()

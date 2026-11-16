@@ -32,7 +32,7 @@ function init()
         version: {
             title: "Version",
             iconName: "info",
-            description: m.appVersion
+            description: buildVersionDescription(m.appVersion, m.global.latestAppVersion)
         },
         device_info: {
             title: "Device",

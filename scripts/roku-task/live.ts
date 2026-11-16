@@ -427,6 +427,7 @@ function storyTitle(story: string): string | undefined {
     "app-dialog-empty": "AppDialog / no message",
     "app-dialog-message": "AppDialog / message",
     "app-dialog-playback-error": "AppDialog / playback error",
+    "app-dialog-update": "AppDialog / update available",
     "continue-watching": "ContinueWatchingPrompt",
     "continue-watching-beginning": "ContinueWatchingPrompt / beginning",
     "conversion-status-converting": "VideoConversionStatus / converting",
