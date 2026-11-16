@@ -289,7 +289,10 @@ export async function harnessInstall(): Promise<void> {
     throw new Error("putio-auth-harness app-token did not report a token file");
   }
   console.log(`harness app token: ${source === "cache" ? "cached" : "new device code"}`);
-  await withEnv({ PUTIO_ROKU_HARNESS_TOKEN_FILE: tokenFile, ROKU_VARIANT: "development" }, reinstall);
+  await withEnv(
+    { PUTIO_ROKU_HARNESS_TOKEN_FILE: tokenFile, ROKU_VARIANT: "development" },
+    reinstall,
+  );
   await withEnv({ ROKU_APP_ECP_ID: "dev" }, launch);
 }
 

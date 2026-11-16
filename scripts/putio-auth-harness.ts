@@ -671,8 +671,7 @@ async function filesFixture(profile: string): Promise<void> {
     const data = await getJson("/v2/files/list?parent_id=0&per_page=1000", token);
     const files = Array.isArray(data.files) ? data.files : [];
     return files.findIndex(
-      (file) =>
-        isRecord(file) && file.name === filesFixtureName && file.file_type === "FOLDER",
+      (file) => isRecord(file) && file.name === filesFixtureName && file.file_type === "FOLDER",
     );
   };
 
