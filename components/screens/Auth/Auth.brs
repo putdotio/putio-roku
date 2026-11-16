@@ -56,10 +56,9 @@ end function
 
 function authStageFrames() as object
     return [
-        { kaomoji: "magnet", caption: "Paste a magnet." },
-        { kaomoji: "fetch", caption: "put.io fetches it." },
-        { kaomoji: "stream", caption: "Stream it anywhere." },
-        { kaomoji: "offline", caption: "Or keep it offline." },
+        { kaomoji: "fetch", caption: "Your files, in the cloud." },
+        { kaomoji: "stream", caption: "Stream them on your TV." },
+        { kaomoji: "offline", caption: "Pick up where you left off." },
     ]
 end function
 
@@ -106,6 +105,7 @@ sub buildCodeTiles()
         setDialogNodeColor(background, "focus")
 
         character = tile.createChild("Label")
+        character.id = "codeChar" + i.toStr()
         character.width = 96
         character.height = 120
         character.horizAlign = "center"

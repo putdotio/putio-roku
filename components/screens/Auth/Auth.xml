@@ -119,15 +119,15 @@
       <Group id="newCodeButton">
         <Poster
           id="newCodeBackground"
-          width="333"
+          width="288"
           height="66"
-          uri="pkg:/images/auth/auth-rounded-33.9.png"
+          uri="pkg:/images/auth/auth-pill.png"
         />
         <LayoutGroup
           layoutDirection="horiz"
           horizAlignment="center"
           vertAlignment="center"
-          translation="[166, 33]"
+          translation="[144, 33]"
           itemSpacings="[12]"
         >
           <Poster id="newCodeIcon" width="30" height="30" uri="pkg:/images/icons/refresh.png" />
