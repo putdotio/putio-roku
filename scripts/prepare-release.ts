@@ -149,6 +149,7 @@ function stageReleaseFiles(): void {
   copyFileSync(sourceZip, "dist/public/v2.zip");
   copyFileSync(sourceZip, `dist/public/releases/v2/${version}.zip`);
   copyFileSync(sourceZip, `dist/release/putio-roku-v${version}.zip`);
+  writeText("dist/public/version.json", JSON.stringify({ version }));
 
   // Root landing: redirect the bare domain (and unknown paths, via errorPage) to
   // the Roku help article instead of a raw S3 AccessDenied response.
@@ -170,5 +171,6 @@ stageReleaseFiles();
 console.log(`Prepared Roku release ${version}`);
 console.log("- dist/public/index.html (redirect -> help.put.io)");
 console.log("- dist/public/v2.zip");
+console.log("- dist/public/version.json");
 console.log(`- dist/public/releases/v2/${version}.zip`);
 console.log(`- dist/release/putio-roku-v${version}.zip`);

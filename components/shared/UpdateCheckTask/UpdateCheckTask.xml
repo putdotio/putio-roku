@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="UpdateCheckTask" extends="Task">
+  <script type="text/brightscript" uri="pkg:/components/shared/UpdateCheck/UpdateCheck.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/UpdateCheckTask/UpdateCheckTask.brs" />
+
+  <interface>
+    <field id="latestVersion" type="string" alwaysNotify="true" />
+  </interface>
+</component>

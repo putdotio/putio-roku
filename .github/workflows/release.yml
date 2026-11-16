@@ -295,6 +295,7 @@ jobs:
 
           cp "${release_zip}" dist/public/v2.zip
           cp "${release_zip}" "dist/public/releases/v2/${RELEASE_VERSION}.zip"
+          jq -cn --arg version "${RELEASE_VERSION}" '{version: $version}' > dist/public/version.json
 
           # Root landing: redirect bare domain + unknown paths to the help article
           cp infra/site-root/index.html dist/public/index.html

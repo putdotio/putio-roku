@@ -33,7 +33,7 @@ export default Alchemy.Stack(
       errorPage: "index.html",
       assets: { fileOptions: fileOptions() },
       invalidation: {
-        paths: ["/", "/index.html", "/v2.zip", "/releases/v2/*"],
+        paths: ["/", "/index.html", "/v2.zip", "/version.json", "/releases/v2/*"],
         wait: true,
       },
       domain: { name: domain, cert: required("AWS_WILDCARD_CERT_ARN"), hostedZoneId },
@@ -65,6 +65,11 @@ function fileOptions() {
   return [
     { files: "index.html", cacheControl: "public,max-age=300" },
     { files: "v2.zip", cacheControl: "public,max-age=300", contentType: "application/zip" },
+    {
+      files: "version.json",
+      cacheControl: "public,max-age=300",
+      contentType: "application/json",
+    },
     ...(releases.length > 0
       ? [
           {

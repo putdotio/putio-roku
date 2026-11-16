@@ -64,6 +64,14 @@ sub init()
             component: "appDialog",
         },
         {
+            id: "app-dialog-update",
+            title: "AppDialog / update available",
+            listTitle: "App / update",
+            section: "Dialogs",
+            description: "Launch notice when roku.put.io has a newer sideload build than the installed one.",
+            component: "appDialog",
+        },
+        {
             id: "delete-dialog-short",
             title: "DeleteFileDialog / short file",
             listTitle: "Delete / short",
@@ -434,6 +442,8 @@ sub renderStory(index as integer)
         renderAppDialogStory("Settings not saved", "Video playback type could not be saved. Please try again.", ["OK"], 0)
     else if story.id = "app-dialog-playback-error"
         renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", "hls", "-3"), ["OK"], 0)
+    else if story.id = "app-dialog-update"
+        renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.20.0"), ["OK"], 0)
     else if story.id = "delete-dialog-short"
         renderDeleteDialogStory("Sintel.mp4")
     else if story.id = "delete-dialog-long"

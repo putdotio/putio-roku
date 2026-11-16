@@ -29,6 +29,7 @@ export const visualLabStories = [
   ["app-dialog-empty", "AppDialog / no message"],
   ["app-dialog-message", "AppDialog / message"],
   ["app-dialog-playback-error", "AppDialog / playback error"],
+  ["app-dialog-update", "AppDialog / update available"],
   ["delete-dialog-short", "DeleteFileDialog / short file"],
   ["delete-dialog-long", "DeleteFileDialog / long file"],
   ["continue-watching", "ContinueWatchingPrompt"],

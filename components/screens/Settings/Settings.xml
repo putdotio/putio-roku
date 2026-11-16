@@ -6,6 +6,7 @@
   <script type="text/brightscript" uri="pkg:/components/shared/utils.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/PlaybackConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/UpdateCheck/UpdateCheck.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Settings/Settings.brs" />
 
 	<interface>

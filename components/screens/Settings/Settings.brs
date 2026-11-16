@@ -77,7 +77,15 @@ sub onVisibleChange()
         updateShowOnlyMediaValue()
         updateShowHistory()
         updatePlaybackTypeValue()
+        updateVersionValue()
+        m.global.observeFieldScoped("latestAppVersion", "updateVersionValue")
+    else
+        m.global.unobserveFieldScoped("latestAppVersion")
     end if
+end sub
+
+sub updateVersionValue()
+    m.items.version.node.description = buildVersionDescription(m.appVersion, m.global.latestAppVersion)
 end sub
 
 sub renderList()

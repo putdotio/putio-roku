@@ -20,6 +20,7 @@ sub Main(args as object)
             params: {},
         },
         apiURL: "https://api.put.io/v2",
+        latestAppVersion: "",
     })
 
     scene = screen.CreateScene("App")
