@@ -171,13 +171,19 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@alchemy.run/aws@2.0.0-beta.87': 9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232
+
 importers:
 
   .:
     devDependencies:
       '@alchemy.run/aws':
         specifier: 2.0.0-beta.87
-        version: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
+        version: 2.0.0-beta.87(patch_hash=9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232)(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
+      '@distilled.cloud/aws':
+        specifier: 1.0.0-rc.20
+        version: 1.0.0-rc.20(effect@4.1.4)
       '@effect/platform-node':
         specifier: 4.1.4
         version: 4.1.4(effect@4.1.4)(redis@6.3.1)
@@ -2312,7 +2318,7 @@ packages:
 
 snapshots:
 
-  '@alchemy.run/aws@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)':
+  '@alchemy.run/aws@2.0.0-beta.87(patch_hash=9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232)(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)':
     dependencies:
       '@alchemy.run/docker': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
       '@alchemy.run/kubernetes': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)

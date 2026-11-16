@@ -1,0 +1,81 @@
+diff --git a/lib/Website/AssetDeployment.js b/lib/Website/AssetDeployment.js
+index 0a660a6137c34461d0764ab46535b93930b66ee8..69e9d7c60bd84ce3f360dbde93339ee6f51fc5ef 100644
+--- a/lib/Website/AssetDeployment.js
++++ b/lib/Website/AssetDeployment.js
+@@ -68,7 +68,7 @@ export const AssetDeployment = Resource("AWS.Website.AssetDeployment");
+ const defaultHtmlCacheControl = "max-age=0,no-cache,no-store,must-revalidate";
+ const defaultAssetCacheControl = "max-age=31536000,public,immutable";
+ export const AssetDeploymentProvider = () => Provider.effect(AssetDeployment, Effect.gen(function* () {
+-    const reconcileSync = Effect.fn(function* (news) {
++    const reconcileSync = Effect.fn(function* (news, previous) {
+         const fs = yield* FileSystem.FileSystem;
+         const path = yield* Path.Path;
+         const bucketName = news.bucket.bucketName;
+@@ -103,26 +103,35 @@ export const AssetDeploymentProvider = () => Provider.effect(AssetDeployment, Ef
+             }
+             return hash.digest("hex");
+         });
++        const headersVersion = createHash("sha256")
++            .update(JSON.stringify(prepared.map((file) => [file.key, file.contentType, file.cacheControl])))
++            .digest("hex");
++        const headersUnchanged = previous?.bucketName === bucketName && previous?.headersVersion === headersVersion;
+         const desiredKeys = new Set(prepared.map((file) => file.key));
+         const objectHashes = yield* Effect.sync(() => Object.fromEntries(prepared.map((file) => [
+             file.relative,
+             createHash("md5").update(file.body).digest("hex"),
+         ])));
+-        yield* Effect.all(prepared.flatMap((file) => {
++        yield* Effect.all(prepared.map((file) => Effect.gen(function* () {
+             const expectedETag = objectHashes[file.relative];
+             const observedETag = observed.get(file.key)?.replace(/^"|"$/g, "");
+-            if (observedETag === expectedETag)
+-                return [];
+-            return [
+-                s3.putObject({
+-                    Bucket: bucketName,
+-                    Key: file.key,
+-                    Body: file.body,
+-                    ContentType: file.contentType,
+-                    CacheControl: file.cacheControl,
+-                }),
+-            ];
+-        }), { concurrency: 16 });
++            if (observedETag === expectedETag) {
++                if (headersUnchanged)
++                    return;
++                const head = yield* s3
++                    .headObject({ Bucket: bucketName, Key: file.key })
++                    .pipe(Effect.catchTag("NotFound", () => Effect.succeed(undefined)));
++                if (head?.ContentType === file.contentType && head?.CacheControl === file.cacheControl)
++                    return;
++            }
++            yield* s3.putObject({
++                Bucket: bucketName,
++                Key: file.key,
++                Body: file.body,
++                ContentType: file.contentType,
++                CacheControl: file.cacheControl,
++            });
++        })), { concurrency: 16 });
+         if (news.purge ?? false) {
+             yield* deleteKeys(bucketName, [...observed.keys()].filter((key) => !desiredKeys.has(key)));
+         }
+@@ -130,6 +139,7 @@ export const AssetDeploymentProvider = () => Provider.effect(AssetDeployment, Ef
+             bucketName,
+             prefix,
+             version,
++            headersVersion,
+             fileCount: files.length,
+             files: prepared.map((file) => file.relative),
+             objectHashes,
+@@ -169,8 +179,8 @@ export const AssetDeploymentProvider = () => Provider.effect(AssetDeployment, Ef
+                     : undefined,
+             };
+         }),
+-        reconcile: Effect.fn(function* ({ news, session }) {
+-            const output = yield* retryForBucketReadiness(reconcileSync(news));
++        reconcile: Effect.fn(function* ({ news, output: previous, session }) {
++            const output = yield* retryForBucketReadiness(reconcileSync(news, previous));
+             yield* session.note(`Uploaded ${output.fileCount} file(s) to s3://${output.bucketName}/${output.prefix}`);
+             return output;
+         }),
