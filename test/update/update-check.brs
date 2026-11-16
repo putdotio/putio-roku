@@ -28,6 +28,16 @@ function main() as string
             buildVersionDescription("2.18.00004", "")
         ],
         packageUrl: getUpdatePackageUrl("2.21.0"),
+        challenge: [
+            parseDigestChallenge("Digest qop=""auth"", realm=""rokudev"", nonce=""1794847765"""),
+            parseDigestChallenge("Basic realm=""x"""),
+            parseDigestChallenge(invalid)
+        ],
+        digestResponse: [
+            computeDigestResponse(fakeMd5, "rokudev", "pw", "POST", "/plugin_install", {realm: "rokudev", nonce: "n1", qop: "auth"}, "c1", "00000001"),
+            computeDigestResponse(fakeMd5, "rokudev", "pw", "POST", "/plugin_install", {realm: "rokudev", nonce: "n1"}, "c1", "00000001")
+        ],
+        authorization: buildDigestAuthorization("rokudev", "/plugin_install", {realm: "rokudev", nonce: "n1", qop: "auth"}, "r1", "c1", "00000001").replace(chr(34), "'"),
         zip: [
             isZipArchive(bytesFromHex("504B0304140000")),
             isZipArchive(bytesFromAscii("<!doctype html>")),
@@ -53,4 +63,8 @@ function bytesFromAscii(text as string) as object
     bytes = CreateObject("roByteArray")
     bytes.fromAsciiString(text)
     return bytes
+end function
+
+function fakeMd5(text as string) as string
+    return "h(" + text + ")"
 end function

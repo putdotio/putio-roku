@@ -106,6 +106,54 @@ function buildInstallerBodyTail(boundary as string) as string
     return crlf + "--" + boundary + "--" + crlf
 end function
 
+function parseDigestChallenge(header as dynamic) as dynamic
+    if GetInterface(header, "ifString") = invalid or lcase(left(header.trim(), 7)) <> "digest "
+        return invalid
+    end if
+
+    quote = chr(34)
+    challenge = {}
+    for each name in ["realm", "nonce", "qop", "opaque"]
+        match = CreateObject("roRegex", "[\s,]" + name + "=" + quote + "?([^" + quote + ",]*)", "i").match(" " + header.mid(7))
+        if match.count() > 1
+            challenge[name] = match[1]
+        end if
+    end for
+
+    if challenge.realm = invalid or challenge.nonce = invalid
+        return invalid
+    end if
+
+    return challenge
+end function
+
+function computeDigestResponse(md5 as function, username as string, password as string, method as string, uri as string, challenge as object, cnonce as string, nc as string) as string
+    ha1 = md5(username + ":" + challenge.realm + ":" + password)
+    ha2 = md5(method + ":" + uri)
+    if challenge.qop = invalid
+        return md5(ha1 + ":" + challenge.nonce + ":" + ha2)
+    end if
+
+    return md5(ha1 + ":" + challenge.nonce + ":" + nc + ":" + cnonce + ":auth:" + ha2)
+end function
+
+function buildDigestAuthorization(username as string, uri as string, challenge as object, response as string, cnonce as string, nc as string) as string
+    quote = chr(34)
+    header = "Digest username=" + quote + username + quote
+    header = header + ", realm=" + quote + challenge.realm + quote
+    header = header + ", nonce=" + quote + challenge.nonce + quote
+    header = header + ", uri=" + quote + uri + quote
+    header = header + ", response=" + quote + response + quote
+    if challenge.qop <> invalid
+        header = header + ", qop=auth, nc=" + nc + ", cnonce=" + quote + cnonce + quote
+    end if
+    if challenge.opaque <> invalid
+        header = header + ", opaque=" + quote + challenge.opaque + quote
+    end if
+
+    return header
+end function
+
 function isZipArchive(bytes as object) as boolean
     if bytes.count() < 4
         return false

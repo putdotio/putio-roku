@@ -873,7 +873,7 @@ sub suspendRouteFocus()
 
     screen = m.activeRouteEntry.screen
     focusedNode = getDeepFocusedNode(screen)
-    if focusedNode <> invalid
+    if focusedNode <> invalid and focusedNode.isSameNode(m.appDialog) = false
         m.activeRouteEntry.lastFocus = focusedNode
         focusedNode.setFocus(false)
     end if
