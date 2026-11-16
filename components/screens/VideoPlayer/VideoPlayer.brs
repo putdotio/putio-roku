@@ -133,7 +133,7 @@ function init()
     m.resumeSaveIntervalMs = 10000
     m.resumeSaveTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
-    m.startFromCleared = false
+    m.startFromClearState = "none"
     m.audioTracks = []
     m.rokuSubtitleTracks = []
     m.externalSubtitleTracks = []
@@ -314,7 +314,7 @@ sub resetPlaybackState()
     m.currentStreamInfo = invalid
     m.playbackStarted = false
     m.lastSavedVideoTime = invalid
-    m.startFromCleared = false
+    m.startFromClearState = "none"
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
 
@@ -1419,7 +1419,9 @@ sub maybeSaveVideoTime(time, force as boolean)
     end if
 
     if isPlaybackFinishedAt(time, m.duration)
-        clearVideoTime()
+        if force or m.resumeSaveTimer = invalid or m.resumeSaveTimer.TotalMilliseconds() >= m.resumeSaveIntervalMs
+            clearVideoTime()
+        end if
         return
     end if
 
@@ -1442,22 +1444,38 @@ sub saveVideoTime(time)
         m.setStartFromTask.body = { time: time }
         m.setStartFromTask.control = "RUN"
         m.lastSavedVideoTime = time
-        m.startFromCleared = false
+        m.startFromClearState = "none"
         m.resumeSaveTimer = CreateObject("roTimespan")
     end if
 end sub
 
 sub clearVideoTime()
-    if m.startFromCleared = true
+    if m.startFromClearState <> "none"
         return
     end if
 
+    m.startFromClearState = "pending"
+    m.lastSavedVideoTime = invalid
     m.clearStartFromTask = createObject("roSGNode", "HttpTask")
+    m.clearStartFromTask.observeField("response", "onClearStartFromResponse")
     m.clearStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/delete")
     m.clearStartFromTask.method = "POST"
     m.clearStartFromTask.control = "RUN"
-    m.lastSavedVideoTime = invalid
-    m.startFromCleared = true
+end sub
+
+sub onClearStartFromResponse(obj)
+    obj.getRoSGNode().unobserveField("response")
+    if m.startFromClearState <> "pending"
+        return
+    end if
+
+    data = parseJSON(obj.getData())
+    if data <> invalid and data.status = "OK"
+        m.startFromClearState = "done"
+    else
+        m.startFromClearState = "none"
+        m.resumeSaveTimer = CreateObject("roTimespan")
+    end if
 end sub
 
 sub onGoBack()
