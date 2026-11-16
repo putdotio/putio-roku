@@ -320,6 +320,7 @@ sub loadPlaybackPlan(plan as object, startFrom)
     resetPreviewSeek()
     m.pendingSeekPosition = invalid
     m.seekValue = 0
+    m.pausedBeforeStart = false
 
     videoContent = createObject("RoSGNode", "ContentNode")
     videoContent.url = plan.url
@@ -503,6 +504,7 @@ sub onPlayerStateChanged(obj)
 
     if state = "playing"
         m.playbackStarted = true
+        m.pausedBeforeStart = false
         m.startWatchdog.control = "stop"
     end if
 
@@ -656,8 +658,9 @@ sub updatePositionPauseIcon()
     m.positionPauseIcon.translation = [getPositionPauseIconX(), 56]
 end sub
 
+' Before the first frame the Video node keeps reporting "buffering" after control = "pause".
 function isVideoPaused() as boolean
-    return m.video.state = "paused" or m.video.state = "pause"
+    return m.pausedBeforeStart = true or m.video.state = "paused" or m.video.state = "pause"
 end function
 
 function getPositionPauseIconX() as integer
@@ -1127,7 +1130,7 @@ function getFirstAvailableControlIndex()
 end function
 
 sub updatePlayIcon()
-    if m.video.state = "playing" or m.video.state = "buffering"
+    if m.pausedBeforeStart <> true and (m.video.state = "playing" or m.video.state = "buffering")
         m.controls[1].icon.uri = "pkg:/images/icons/pause.png"
     else
         m.controls[1].icon.uri = "pkg:/images/icons/play.png"
@@ -1218,13 +1221,39 @@ sub playOrPause()
         return
     end if
 
-    if m.video.state = "playing" or m.video.state = "buffering"
+    if m.playbackStarted = false
+        if m.pausedBeforeStart = true
+            resumeBeforeStart()
+        else
+            pauseBeforeStart()
+        end if
+    else if m.video.state = "playing" or m.video.state = "buffering"
         m.video.control = "pause"
     else
         m.video.control = "resume"
     end if
 
     showOsd()
+end sub
+
+sub pauseBeforeStart()
+    m.pausedBeforeStart = true
+    m.startWatchdog.control = "stop"
+    m.video.control = "pause"
+    updatePlayIcon()
+    updatePositionPauseIcon()
+end sub
+
+sub resumeBeforeStart()
+    m.pausedBeforeStart = false
+    m.video.control = "resume"
+    m.startBufferingPercent = 0
+    m.startWatchdogRearms = 0
+    if m.plan <> invalid and m.plan.source = "original" and m.rescued = false and m.hasPlaybackError = false
+        m.startWatchdog.control = "start"
+    end if
+    updatePlayIcon()
+    updatePositionPauseIcon()
 end sub
 
 sub rewind()
@@ -1473,7 +1502,11 @@ sub onStartWatchdogFire()
         return
     end if
 
-    if isVideoPaused() or hasStartBufferingProgress()
+    if m.pausedBeforeStart = true
+        return
+    end if
+
+    if hasStartBufferingProgress()
         m.startWatchdog.control = "start"
         return
     end if
@@ -1894,7 +1927,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 cancelPreviewSeek()
             end if
 
-            m.video.control = "pause"
+            if m.playbackStarted = false
+                pauseBeforeStart()
+            else
+                m.video.control = "pause"
+            end if
             showOsd()
             return true
         else if normalizedKey = "rewind" or normalizedKey = "rev"
