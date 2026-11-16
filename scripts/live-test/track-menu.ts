@@ -29,14 +29,27 @@ export function trackMenuScrollOffset(
 }
 
 // TrackMenu opens focused on the selected item, so a selection past the pool sits on a scrolled row.
-export function playbackSpeedMenuRow(label: string): number {
-  const itemIndex = playbackSpeedLabels.indexOf(label);
+export function playbackSpeedMenuRow(
+  label: string,
+  labels: readonly string[] = playbackSpeedLabels,
+): number {
+  const itemIndex = labels.indexOf(label);
   if (itemIndex === -1) {
     throw new Error(`unknown playback speed label "${label}"`);
   }
 
-  const itemCount = playbackSpeedLabels.length;
+  const itemCount = labels.length;
   const rowCount = Math.min(itemCount, trackMenuRowPoolSize);
 
   return itemIndex - trackMenuScrollOffset(itemCount, itemIndex, rowCount);
+}
+
+// The player drops a speed the device ignores, and every faster one with it.
+export function playbackSpeedLabelsBefore(rejectedLabel: string): readonly string[] {
+  const rejectedIndex = playbackSpeedLabels.indexOf(rejectedLabel);
+  if (rejectedIndex === -1) {
+    throw new Error(`unknown playback speed label "${rejectedLabel}"`);
+  }
+
+  return playbackSpeedLabels.slice(0, rejectedIndex);
 }

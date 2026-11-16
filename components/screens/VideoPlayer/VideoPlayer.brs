@@ -130,6 +130,7 @@ function init()
     m.seekRepeatWindowMs = 500
     m.seekPressTimer = CreateObject("roTimespan")
     m.wasPlayingBeforeSeek = false
+    m.playbackSpeedCheckWindowMs = 8000
     m.resumeSaveIntervalMs = 10000
     m.resumeSaveTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
@@ -147,6 +148,8 @@ function init()
     m.playbackSpeedOptions = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0]
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
+    m.confirmedPlaybackSpeed = 1.0
+    m.playbackSpeedCheck = invalid
     m.canSelectTrackMenu = false
     m.hasPlaybackError = false
     m.errorDialog = invalid
@@ -306,6 +309,8 @@ sub resetPlaybackState()
     m.selectedSubtitleTrackName = invalid
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
+    m.confirmedPlaybackSpeed = 1.0
+    m.playbackSpeedCheck = invalid
     m.canSelectTrackMenu = false
     m.hasPlaybackError = false
     m.errorDialog = invalid
@@ -459,6 +464,7 @@ end sub
 
 sub onPlayerPositionChanged(obj)
     position = obj.getData()
+    checkPlaybackSpeed(position)
 
     if m.seekInProgress
         maybeSaveVideoTime(position, false)
