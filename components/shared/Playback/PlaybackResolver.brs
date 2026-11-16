@@ -14,12 +14,27 @@ function resolvePlaybackPlan(file as object, method as dynamic, ctx as object) a
     return resolveStandardPlaybackPlan(file, ctx)
 end function
 
-function normalizePlaybackMethod(method as dynamic) as string
-    if method <> invalid and LCase(method.toStr()) = "file"
-        return "file"
+function resolveSameSourcePlaybackPlan(file as object, plan as object, ctx as object) as object
+    if file = invalid or plan = invalid or ctx = invalid
+        return createUnplayablePlan("link_expired")
     end if
 
-    return "hls"
+    url = invalid
+    if plan.source = "hls"
+        if hasPlaybackApiAccess(file, ctx)
+            url = getHlsManifestUrl(file, ctx.apiUrl, ctx.downloadToken)
+        end if
+    else if plan.source = "original"
+        url = file.stream_url
+    else if plan.source = "converted" and file.is_mp4_available = true
+        url = file.mp4_stream_url
+    end if
+
+    if isNonEmptyString(url) = false
+        return createUnplayablePlan("link_expired")
+    end if
+
+    return createPlaybackPlan("play", plan.source, url.toStr(), plan.streamFormat, plan.reason)
 end function
 
 function resolveAudioPlaybackPlan(file as object, ctx as object) as object

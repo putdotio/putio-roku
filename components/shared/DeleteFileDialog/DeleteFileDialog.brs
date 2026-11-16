@@ -11,10 +11,16 @@ sub init()
     m.message = m.top.findNode("message")
     m.fileName = m.top.findNode("fileName")
     m.buttons = m.top.findNode("buttons")
+    m.playWithButton = m.top.findNode("playWithButton")
+    m.playWithButtonBackground = m.top.findNode("playWithButtonBackground")
+    m.playWithButtonLabel = m.top.findNode("playWithButtonLabel")
+    m.deleteButton = m.top.findNode("deleteButton")
+    m.cancelButton = m.top.findNode("cancelButton")
     m.deleteButtonBackground = m.top.findNode("deleteButtonBackground")
     m.deleteButtonLabel = m.top.findNode("deleteButtonLabel")
     m.cancelButtonBackground = m.top.findNode("cancelButtonBackground")
     m.cancelButtonLabel = m.top.findNode("cancelButtonLabel")
+    m.buttonActions = ["delete", "cancel"]
     m.focusIndex = 1
     m.isDeleting = false
     applyDialogScrim(m.scrim)
@@ -25,6 +31,7 @@ sub init()
     applyTypography(m.title, "h1")
     applyTypography(m.message, "small")
     applyTypography(m.fileName, "small")
+    applyTypography(m.playWithButtonLabel, "h2")
     applyTypography(m.deleteButtonLabel, "h2")
     applyTypography(m.cancelButtonLabel, "h2")
     setDialogNodeColor(m.fileName, "text")
@@ -39,12 +46,27 @@ sub onFileChange()
         wrappedFileName = wrapDialogFileName(m.top.file.name.toStr())
     end if
 
+    if hasPlayWithAction()
+        m.buttonActions = ["play_with", "delete", "cancel"]
+        m.title.text = "File options"
+        m.playWithButtonLabel.text = m.top.playWithLabel
+    else
+        m.buttonActions = ["delete", "cancel"]
+        m.title.text = "Delete file?"
+        m.playWithButtonLabel.text = ""
+    end if
+    m.playWithButton.visible = hasPlayWithAction()
+
     m.fileName.text = wrappedFileName
     updateDeleteDialogLayout(countTextLines(wrappedFileName))
-    m.focusIndex = 1
+    m.focusIndex = m.buttonActions.count() - 1
     m.isDeleting = false
     updateButtonFocus()
 end sub
+
+function hasPlayWithAction() as boolean
+    return m.top.playWithLabel <> invalid and m.top.playWithLabel <> ""
+end function
 
 sub updateDeleteDialogLayout(fileLineCount as integer)
     if fileLineCount < 1
@@ -64,7 +86,8 @@ sub updateDeleteDialogLayout(fileLineCount as integer)
     bottomPadding = 51
     rowHeight = 78
     rowGap = 18
-    buttonsHeight = (2 * rowHeight) + rowGap
+    buttonCount = m.buttonActions.count()
+    buttonsHeight = (buttonCount * rowHeight) + ((buttonCount - 1) * rowGap)
     fileNameY = titleY + titleHeight + titleBodyGap
     lineHeight = 45
     fileNameHeight = fileLineCount * lineHeight
@@ -98,6 +121,10 @@ sub updateDeleteDialogLayout(fileLineCount as integer)
     m.fileName.width = contentWidth
     m.fileName.height = fileNameHeight
     m.buttons.translation = [contentX, panelY + buttonsY]
+    m.playWithButtonBackground.width = contentWidth
+    m.playWithButtonBackground.height = rowHeight
+    m.playWithButtonLabel.width = contentWidth
+    m.playWithButtonLabel.height = rowHeight
     m.deleteButtonBackground.width = contentWidth
     m.deleteButtonBackground.height = rowHeight
     m.deleteButtonLabel.width = contentWidth
@@ -106,15 +133,27 @@ sub updateDeleteDialogLayout(fileLineCount as integer)
     m.cancelButtonBackground.height = rowHeight
     m.cancelButtonLabel.width = contentWidth
     m.cancelButtonLabel.height = rowHeight
-    m.top.findNode("cancelButton").translation = [0, rowHeight + rowGap]
+    for i = 0 to buttonCount - 1
+        getDeleteDialogButtonNode(m.buttonActions[i]).translation = [0, i * (rowHeight + rowGap)]
+    end for
 end sub
 
-sub updateButtonFocus()
-    deleteFocused = m.focusIndex = 0
-    cancelFocused = m.focusIndex = 1
+function getDeleteDialogButtonNode(action as string) as object
+    if action = "play_with"
+        return m.playWithButton
+    else if action = "delete"
+        return m.deleteButton
+    end if
 
-    applyDialogButtonState(m.deleteButtonBackground, m.deleteButtonLabel, deleteFocused, "danger")
-    applyDialogButtonState(m.cancelButtonBackground, m.cancelButtonLabel, cancelFocused, "secondary")
+    return m.cancelButton
+end function
+
+sub updateButtonFocus()
+    focusedAction = m.buttonActions[m.focusIndex]
+
+    applyDialogButtonState(m.playWithButtonBackground, m.playWithButtonLabel, focusedAction = "play_with", "primary")
+    applyDialogButtonState(m.deleteButtonBackground, m.deleteButtonLabel, focusedAction = "delete", "danger")
+    applyDialogButtonState(m.cancelButtonBackground, m.cancelButtonLabel, focusedAction = "cancel", "secondary")
 end sub
 
 sub closeDialog()
@@ -135,6 +174,7 @@ sub deleteSelectedFile()
     m.isDeleting = true
     m.fileName.text = "Deleting..."
     updateDeleteDialogLayout(1)
+    applyDialogButtonDisabled(m.playWithButtonBackground, m.playWithButtonLabel)
     applyDialogButtonDisabled(m.deleteButtonBackground, m.deleteButtonLabel)
     applyDialogButtonDisabled(m.cancelButtonBackground, m.cancelButtonLabel)
 
@@ -159,7 +199,7 @@ sub onDeleteFileResponse(obj)
         m.isDeleting = false
         m.fileName.text = "An error occurred, please try again."
         updateDeleteDialogLayout(1)
-        m.focusIndex = 1
+        m.focusIndex = m.buttonActions.count() - 1
         updateButtonFocus()
     end if
 end sub
@@ -236,17 +276,22 @@ function onKeyEvent(key as string, press as boolean) as boolean
         closeDialog()
         return true
     else if normalizedKey = "up" or normalizedKey = "down"
-        if m.focusIndex = 0
-            m.focusIndex = 1
+        buttonCount = m.buttonActions.count()
+        if normalizedKey = "up"
+            m.focusIndex = (m.focusIndex + buttonCount - 1) mod buttonCount
         else
-            m.focusIndex = 0
+            m.focusIndex = (m.focusIndex + 1) mod buttonCount
         end if
 
         updateButtonFocus()
         return true
     else if normalizedKey = "ok" or normalizedKey = "select"
-        if m.focusIndex = 0
+        focusedAction = m.buttonActions[m.focusIndex]
+        if focusedAction = "delete"
             deleteSelectedFile()
+        else if focusedAction = "play_with"
+            closeDialog()
+            m.top.playWithSelected = true
         else
             closeDialog()
         end if

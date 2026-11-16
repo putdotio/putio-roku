@@ -29,11 +29,21 @@ export const visualLabStories = [
   ["app-dialog-empty", "AppDialog / no message"],
   ["app-dialog-message", "AppDialog / message"],
   ["app-dialog-playback-error", "AppDialog / playback error"],
+  ["app-dialog-cant-play-not-ready", "AppDialog / can't play not ready"],
+  ["app-dialog-cant-play-playback-issue", "AppDialog / can't play playback issue"],
+  ["app-dialog-cant-play-container", "AppDialog / can't play container"],
+  ["app-dialog-cant-play-video", "AppDialog / can't play video"],
+  ["app-dialog-cant-play-audio", "AppDialog / can't play audio"],
+  ["app-dialog-cant-play-decoder-error", "AppDialog / can't play decoder error"],
+  ["app-dialog-cant-play-standard", "AppDialog / can't play on Standard"],
+  ["app-dialog-cant-play-standard-decoder", "AppDialog / can't play Standard decoder error"],
+  ["app-dialog-link-expired", "AppDialog / link expired"],
   ["app-dialog-update", "AppDialog / update available"],
   ["app-dialog-update-installing", "AppDialog / update installing"],
   ["app-dialog-update-failed", "AppDialog / update failed"],
   ["delete-dialog-short", "DeleteFileDialog / short file"],
   ["delete-dialog-long", "DeleteFileDialog / long file"],
+  ["file-options-play-with", "DeleteFileDialog / play with"],
   ["continue-watching", "ContinueWatchingPrompt"],
   ["continue-watching-beginning", "ContinueWatchingPrompt / beginning"],
   ["track-menu-audio", "TrackMenu / audio"],
@@ -43,6 +53,8 @@ export const visualLabStories = [
   ["conversion-status-converting", "VideoConversionStatus / converting"],
   ["conversion-status-error", "VideoConversionStatus / error"],
   ["list-item-generic", "ListItem"],
+  ["settings-playback-standard", "Settings / Playback method Standard"],
+  ["settings-playback-direct", "Settings / Playback method Direct play"],
   ["list-item-files", "FileListItem"],
   ["list-item-file-watched-focused", "FileListItem / watched focused"],
   ["list-item-file-loading-focused", "FileListItem / loading focused"],
@@ -182,11 +194,11 @@ export async function captureVisualPages(
     rokuDesignColor("dangerFocused"),
     10_000,
   );
-  await capturePage("file-delete-dialog");
+  await capturePage("file-options-dialog");
   await pressKey(target, "Back");
   await waitForSceneGraphAssertion(
     target,
-    "expected delete dialog to close before visual capture navigation continues",
+    "expected file options dialog to close before visual capture navigation continues",
     (xml) => {
       assertNamedNodeHidden(xml, "deleteFileDialog");
       assertNamedNodeVisible(xml, "fileList");

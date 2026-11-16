@@ -25,3 +25,5 @@ uri_resolution_autosub=$$RES$$,SD,HD,FHD
 
 ### Extra Properties
 supports_input_launch=1
+# Roku plays Matroska only when the manifest declares requires_mkv=1.
+requires_mkv=1

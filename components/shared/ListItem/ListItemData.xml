@@ -7,6 +7,7 @@
     <field id="iconColor" type="string" value="primary" />
     <field id="title" type="string" />
     <field id="description" type="string" />
+    <field id="hint" type="string" />
     <field id="valueAlign" type="string" />
     <field id="rowWidth" type="integer" value="1716" />
   </interface>

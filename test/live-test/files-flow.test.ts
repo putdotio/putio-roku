@@ -56,7 +56,7 @@ const driver: AppFlowDriver = {
   focusLastListItem: noop,
   focusListItemByIndex: async (_target, _nodeName, index) => { device.focus = index; },
   openHomeItem: noop,
-  playbackTypeSmoke: noop,
+  playbackMethodSmoke: noop,
   imageRenderSmoke: noop,
   playerUiSmoke: noop,
   resetAuthState: noop,

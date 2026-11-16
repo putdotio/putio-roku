@@ -233,3 +233,14 @@ sub applyDialogButtonDisabled(background, label)
     setDialogNodeColor(background, "secondary")
     setDialogLabelColor(label, "disabledText")
 end sub
+
+sub applySettingsListLayout(list)
+    list.translation = [uiPageMargin(), uiSettingsListTop()]
+    list.itemSize = [uiListRowWidth(), uiListRowHeight()]
+    list.itemSpacing = [0, uiListRowSpacing()]
+    list.drawFocusFeedback = true
+    list.drawFocusFeedbackOnTop = false
+    list.focusBitmapUri = "pkg:/images/list-item-focus.9.png"
+    setDialogNodeFieldColor(list, "focusBitmapBlendColor", "focus")
+    list.vertFocusAnimationStyle = "fixedFocus"
+end sub

@@ -16,6 +16,7 @@ import {
   readNamedNodeIntegerAttribute,
 } from "./scenegraph.ts";
 import { rokuDesignColor } from "./design-colors.ts";
+import { playbackMethodLabel, type PlaybackMethod } from "./playback.ts";
 
 export type AppFlowDriver = {
   readonly assertListHasItems: (
@@ -35,9 +36,9 @@ export type AppFlowDriver = {
     index: number,
     expectedScreenName: string,
   ) => Promise<void>;
-  readonly playbackTypeSmoke: (
+  readonly playbackMethodSmoke: (
     target: string,
-    playbackType: "hls" | "mp4",
+    method: PlaybackMethod,
     contentId: string,
     mediaType: string,
     startFromChoice: "continue" | "beginning",
@@ -87,7 +88,7 @@ export async function runAppFlow(
       await historyFlowSmoke(context.target, options.historyExpectedText, driver);
       return;
     case "dialogs":
-      await deleteDialogFlowSmoke(context.target, driver);
+      await fileOptionsDialogFlowSmoke(context.target, driver);
       return;
     case "settings":
       await settingsFlowSmoke(context.target, driver);
@@ -103,7 +104,7 @@ export async function runAppFlow(
         );
       }
 
-      await driver.playbackTypeSmoke(
+      await driver.playbackMethodSmoke(
         context.target,
         "hls",
         options.playbackContentId,
@@ -136,9 +137,9 @@ export async function runAppFlow(
   }
 }
 
-export async function ensureAppPlaybackTypeSetting(
+export async function ensureAppPlaybackMethodSetting(
   target: string,
-  playbackType: "hls" | "mp4",
+  method: PlaybackMethod,
   driver: Pick<
     AppFlowDriver,
     | "focusLastListItem"
@@ -153,15 +154,15 @@ export async function ensureAppPlaybackTypeSetting(
   await driver.waitForRouteScreenVisible(target, "settingsScreen", 15_000);
   await driver.focusListItemByIndex(target, "settingsList", 2);
 
-  const currentPlaybackType = await waitForSettingsPlaybackType(target);
-  if (currentPlaybackType !== playbackType) {
+  const currentMethod = await waitForSettingsPlaybackMethod(target);
+  if (currentMethod !== method) {
     await pressKey(target, "Select");
-    await waitForSettingsPlaybackType(target, playbackType);
+    await waitForSettingsPlaybackMethod(target, method);
   }
 
   await pressKey(target, "Back");
   await driver.waitForRouteScreenVisible(target, "homeScreen", 15_000);
-  console.log(`asserted app playback type setting: ${playbackType}`);
+  console.log(`asserted app playback method setting: ${playbackMethodLabel(method)}`);
 }
 
 async function authFlowSmoke(
@@ -350,7 +351,7 @@ async function historyFlowSmoke(
   console.log("asserted history renders rows or an empty state");
 }
 
-async function deleteDialogFlowSmoke(
+async function fileOptionsDialogFlowSmoke(
   target: string,
   driver: Pick<AppFlowDriver, "assertListHasItems" | "openHomeItem" | "returnToHomeScreen">,
 ): Promise<void> {
@@ -360,13 +361,14 @@ async function deleteDialogFlowSmoke(
   await pressKey(target, "Info");
   await waitForSceneGraphAssertion(
     target,
-    "expected delete dialog",
+    "expected file options dialog",
     (xml) => {
       assertNamedNodeVisible(xml, "deleteFileDialog");
       assertNamedNodeVisible(xml, "deleteButtonBackground");
       assertNamedNodeVisible(xml, "cancelButtonBackground");
       assertNamedNodeText(xml, "deleteButtonLabel", "Delete file");
       assertNamedNodeText(xml, "cancelButtonLabel", "Cancel");
+      assertFileOptionsPlayWith(xml);
     },
     10_000,
   );
@@ -383,7 +385,7 @@ async function deleteDialogFlowSmoke(
   await pressKey(target, "Back");
   await waitForSceneGraphAssertion(
     target,
-    "expected delete dialog to close",
+    "expected file options dialog to close",
     (xml) => {
       assertNamedNodeHidden(xml, "deleteFileDialog");
       assertNamedNodeVisible(xml, "fileList");
@@ -440,12 +442,12 @@ async function settingsFlowSmoke(
   await pressKey(target, "Select");
   await waitForSceneGraphAssertion(
     target,
-    "expected playback type setting to remain visible after selection",
+    "expected playback method setting to remain visible after selection",
     (xml) => {
       assertNamedNodeVisible(xml, "settingsScreen");
       assertNamedNodeVisible(xml, "settingsList");
-      if (!sceneGraphContainsText(xml, "Video playback type")) {
-        throw new Error("expected settings list to include playback type row");
+      if (!sceneGraphContainsText(xml, "Playback method")) {
+        throw new Error("expected settings list to include playback method row");
       }
       if (!sceneGraphContainsText(xml, "Version")) {
         throw new Error("expected settings list to include version row");
@@ -461,58 +463,57 @@ async function settingsFlowSmoke(
   );
   await pressKey(target, "Back");
   await driver.waitForRouteScreenVisible(target, "homeScreen", 15_000);
-  console.log("asserted settings navigation and playback type row interaction");
+  console.log("asserted settings navigation and playback method row interaction");
 }
 
-async function waitForSettingsPlaybackType(
+async function waitForSettingsPlaybackMethod(
   target: string,
-  expectedPlaybackType?: "hls" | "mp4",
-): Promise<"hls" | "mp4"> {
-  let observedPlaybackType: "hls" | "mp4" | undefined;
+  expectedMethod?: PlaybackMethod,
+): Promise<PlaybackMethod> {
+  let observedMethod: PlaybackMethod | undefined;
 
   await waitForSceneGraphAssertion(
     target,
-    "expected settings playback type value",
+    "expected settings playback method value",
     (xml) => {
       assertNamedNodeVisible(xml, "settingsScreen");
       assertNamedNodeVisible(xml, "settingsList");
-      if (!sceneGraphContainsText(xml, "Video playback type")) {
-        throw new Error("expected settings list to include playback type row");
+      if (!sceneGraphContainsText(xml, "Playback method")) {
+        throw new Error("expected settings list to include playback method row");
       }
       if (sceneGraphContainsText(xml, "Saving")) {
-        throw new Error("settings playback type update still saving");
+        throw new Error("settings playback method update still saving");
       }
 
-      observedPlaybackType = readSettingsPlaybackType(xml);
-      if (observedPlaybackType === undefined) {
-        throw new Error("expected settings playback type value to be visible");
+      observedMethod = readSettingsPlaybackMethod(xml);
+      if (observedMethod === undefined) {
+        throw new Error("expected settings playback method value to be visible");
       }
-      if (expectedPlaybackType !== undefined && observedPlaybackType !== expectedPlaybackType) {
+      if (expectedMethod !== undefined && observedMethod !== expectedMethod) {
         throw new Error(
-          `expected settings playback type ${expectedPlaybackType}, got ${observedPlaybackType}`,
+          `expected settings playback method ${playbackMethodLabel(expectedMethod)}, got ${playbackMethodLabel(observedMethod)}`,
         );
       }
     },
     20_000,
   );
 
-  if (observedPlaybackType === undefined) {
-    throw new Error("expected settings playback type value");
+  if (observedMethod === undefined) {
+    throw new Error("expected settings playback method value");
   }
 
-  return observedPlaybackType;
+  return observedMethod;
 }
 
-function readSettingsPlaybackType(xml: string): "hls" | "mp4" | undefined {
-  if (sceneGraphContainsText(xml, "HLS")) {
-    return "hls";
+function readSettingsPlaybackMethod(xml: string): PlaybackMethod | undefined {
+  const hasStandard = sceneGraphContainsText(xml, playbackMethodLabel("hls"));
+  const hasDirectPlay = sceneGraphContainsText(xml, playbackMethodLabel("file"));
+
+  if (hasStandard === hasDirectPlay) {
+    return undefined;
   }
 
-  if (sceneGraphContainsText(xml, "MP4")) {
-    return "mp4";
-  }
-
-  return undefined;
+  return hasDirectPlay ? "file" : "hls";
 }
 
 function assertSceneGraphNodeColor(xml: string, nodeName: string, expectedColor: string): void {
@@ -533,4 +534,17 @@ function normalizeSceneGraphColor(color: string | undefined): string | undefined
   }
 
   return normalizedColor;
+}
+
+const playWithLabels = new Set(["Standard", "Direct play"].map((label) => `Play with ${label}`));
+
+function assertFileOptionsPlayWith(xml: string): void {
+  if (!isNamedNodeVisible(xml, "playWithButton")) {
+    return;
+  }
+
+  const label = readNamedNodeAttribute(xml, "playWithButtonLabel", "text") ?? "";
+  if (!playWithLabels.has(label)) {
+    throw new Error(`expected a Play with Standard or Direct play action, got "${label}"`);
+  }
 }

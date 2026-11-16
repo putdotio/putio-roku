@@ -87,25 +87,17 @@ export function liveTestPlaybackRemote(): void {
   );
 }
 
-export function liveTestPlaybackType(): void {
+export function liveTestPlaybackMethodSmoke(): void {
   runRokuLive(
     [
-      "set-playback-type",
-      requireEnv("TYPE", "TYPE=hls pnpm roku live-test-playback-type"),
-      putioProfile(),
-    ],
-    putioAuthEnv(liveEnv()),
-  );
-}
-
-export function liveTestPlaybackTypeSmoke(): void {
-  runRokuLive(
-    [
-      "playback-type-smoke",
-      requireEnv("TYPE", "TYPE=mp4 CONTENT_ID=<file-id> pnpm roku live-test-playback-type-smoke"),
+      "playback-method-smoke",
+      requireEnv(
+        "METHOD",
+        "METHOD=file CONTENT_ID=<file-id> pnpm roku live-test-playback-method-smoke",
+      ),
       requireEnv(
         "CONTENT_ID",
-        "TYPE=mp4 CONTENT_ID=<file-id> pnpm roku live-test-playback-type-smoke",
+        "METHOD=file CONTENT_ID=<file-id> pnpm roku live-test-playback-method-smoke",
       ),
       envOr("MEDIA_TYPE", "movie"),
       envOr("START_FROM", "continue"),

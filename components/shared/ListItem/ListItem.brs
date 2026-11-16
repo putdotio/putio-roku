@@ -8,14 +8,17 @@ sub ensureListItemNodes()
         m.icon = m.top.findNode("icon")
         m.title = m.top.findNode("title")
         m.description = m.top.findNode("description")
+        m.hint = m.top.findNode("hint")
         m.value = m.top.findNode("value")
         applyListItemFocusBackground(m.focusBackground)
         setDialogNodeColor(m.title, "text")
         setDialogNodeColor(m.description, "textMuted")
         setDialogNodeColor(m.value, "textMuted")
+        setDialogNodeColor(m.hint, "textMuted")
         applyTypography(m.title, "h2")
         applyTypography(m.description, "small")
         applyTypography(m.value, "small")
+        applyTypography(m.hint, "caption")
     end if
 end sub
 
@@ -29,6 +32,7 @@ sub itemContentChanged()
     configureIcon()
     configureTitle()
     configureDescription()
+    configureHint()
 end sub
 
 sub configureLayout()
@@ -39,6 +43,9 @@ sub configureLayout()
     applyListItemFocusBackground(m.focusBackground, rowWidth)
 
     valueWidth = 520
+    if hasListItemHint()
+        valueWidth = 264
+    end if
     valueX = rowWidth - valueWidth - 48
     if valueX < 520
         valueX = 520
@@ -46,6 +53,28 @@ sub configureLayout()
     end if
     m.value.translation = [valueX, 0]
     m.value.width = valueWidth
+
+    inlineContent = m.top.findNode("inlineContent")
+    textX = Int(inlineContent.translation[0] + m.icon.width + inlineContent.itemSpacings[0])
+    hintGap = 36
+    m.hint.width = valueX - textX - hintGap
+end sub
+
+function hasListItemHint() as boolean
+    hint = m.top.itemContent.hint
+    return hint <> invalid and hint <> ""
+end function
+
+sub configureHint()
+    ensureListItemNodes()
+
+    if hasListItemHint()
+        m.hint.text = m.top.itemContent.hint
+        m.hint.visible = true
+    else
+        m.hint.text = ""
+        m.hint.visible = false
+    end if
 end sub
 
 sub configureIcon()

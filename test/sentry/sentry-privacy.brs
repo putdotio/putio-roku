@@ -45,9 +45,9 @@ function main() as string
         errorInfo: {
             category: "http",
             source: "manifest",
-            error_code: 403,
+            errcode: 403,
             message: "Forbidden " + streamUrl,
-            dbgmsg: "GET " + streamUrl,
+            dbgmsg: "HTTP 400 for GET " + streamUrl,
             error_string: "Secret.Movie.2026.mkv",
         },
         state: "error",
@@ -62,10 +62,10 @@ function main() as string
         mp4_stream_url: streamUrl,
         mp4_status: { status: "COMPLETED", url: streamUrl },
         media_info: {
-            format: { name: "matroska", duration: 5400, bit_rate: 8000000 },
+            format: { name: "matroska", filename: "/secret/Secret.Movie.2026.mkv", duration: 5400, bit_rate: 8000000 },
             streams: [
-                { codec_type: "video", codec_name: "h264", profile: "High", width: 1920, height: 1080 },
-                { codec_type: "audio", codec_name: "aac", channels: 2 },
+                { codec_type: "video", codec_name: "h264", profile: "High", level: 41, width: 1920, height: 1080, tags: { title: "Secret video title" } },
+                { codec_type: "audio", codec_name: "dts", channels: 6, tags: { title: "Secret commentary", language: "eng" } },
             ],
         },
     }
@@ -76,8 +76,40 @@ function main() as string
         video: video,
         file: file,
         streamInfo: { url: streamUrl, format: "hls" },
-        playbackType: "hls",
+        method: "file",
+        source: "original",
         playbackStarted: true,
+    })))
+
+    result.playback_rescue_engine = parseJSON(formatJSON(createPlaybackRescueEvent({
+        reason: "container_unsupported",
+        trigger: "engine",
+        method: "file",
+        fromSource: "original",
+        plan: { action: "play", source: "converted", url: streamUrl, streamFormat: "mp4", reason: "container_unsupported" },
+        file: file,
+        errorCode: "-5",
+        errorInfo: video.errorInfo,
+    })))
+
+    result.playback_rescue_watchdog = parseJSON(formatJSON(createPlaybackRescueEvent({
+        reason: "decoder_error",
+        trigger: "watchdog",
+        method: "file",
+        fromSource: "original",
+        plan: { action: "play", source: "converted", url: streamUrl, streamFormat: "mp4", reason: "decoder_error" },
+        file: file,
+        errorCode: invalid,
+        errorInfo: invalid,
+    })))
+
+    result.playback_rescue_preflight = parseJSON(formatJSON(createPlaybackRescueEvent({
+        reason: "audio_unsupported",
+        trigger: "preflight",
+        method: "file",
+        fromSource: "original",
+        plan: { action: "convert", source: "converted", url: invalid, streamFormat: invalid, reason: "audio_unsupported" },
+        file: file,
     })))
 
     result.source_request_failure = parseJSON(formatJSON(createSourceRequestFailureEvent(9001, {

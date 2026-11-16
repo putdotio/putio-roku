@@ -8,7 +8,11 @@ function main() as string
         if ctx <> invalid and ctx.probe <> invalid
             ctx.probe = createFakeDecoderProbe(ctx.probe)
         end if
-        results[name] = resolvePlaybackPlan(input.file, input.method, ctx)
+        if input.sameSourceAs <> invalid
+            results[name] = resolveSameSourcePlaybackPlan(input.file, input.sameSourceAs, ctx)
+        else
+            results[name] = resolvePlaybackPlan(input.file, input.method, ctx)
+        end if
     end for
 
     return formatJson(results)
