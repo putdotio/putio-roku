@@ -74,7 +74,76 @@ function buildUpdateDialogTitle() as string
 end function
 
 function buildUpdateDialogMessage(latest as string) as string
-    return "Version " + latest + " is out. Sideloaded apps can't update themselves, so reinstall it with the steps at roku.put.io"
+    return "Version " + latest + " is out. Installing it takes a few seconds, then the app restarts."
+end function
+
+function buildUpdateDialogButtons() as object
+    return ["Install now", "Later"]
+end function
+
+function getUpdatePackageUrl(version as string) as string
+    return "https://roku.put.io/releases/v2/" + version + ".zip"
+end function
+
+function getDevInstallerUrl() as string
+    return "http://127.0.0.1/plugin_install"
+end function
+
+function buildInstallerBodyHead(boundary as string) as string
+    crlf = chr(13) + chr(10)
+    quote = chr(34)
+    head = "--" + boundary + crlf
+    head = head + "Content-Disposition: form-data; name=" + quote + "mysubmit" + quote + crlf + crlf
+    head = head + "Install" + crlf
+    head = head + "--" + boundary + crlf
+    head = head + "Content-Disposition: form-data; name=" + quote + "archive" + quote + "; filename=" + quote + "putio.zip" + quote + crlf
+    head = head + "Content-Type: application/zip" + crlf + crlf
+    return head
+end function
+
+function buildInstallerBodyTail(boundary as string) as string
+    crlf = chr(13) + chr(10)
+    return crlf + "--" + boundary + "--" + crlf
+end function
+
+function readInstallerStatus(responseCode as integer, body as dynamic) as string
+    if responseCode = 401
+        return "badPassword"
+    end if
+
+    if responseCode = 200 and GetInterface(body, "ifString") <> invalid and body.instr("Install Success") >= 0
+        return "installed"
+    end if
+
+    return "failed"
+end function
+
+function buildUpdatePasswordTitle() as string
+    return "Developer password"
+end function
+
+function buildUpdatePasswordMessage(retry as boolean) as object
+    if retry
+        return ["That password didn't work. Enter the one you set when you turned on developer mode."]
+    end if
+
+    return ["Enter the password you set when you turned on developer mode. This Roku keeps it for later updates."]
+end function
+
+function buildUpdateInstallingTitle() as string
+    return "Installing update"
+end function
+
+function buildUpdateInstallingMessage(latest as string) as string
+    return "Installing version " + latest + ". The app restarts when it's done."
+end function
+
+function buildUpdateFailedTitle() as string
+    return "Update failed"
+end function
+
+function buildUpdateFailedMessage(latest as string) as string
+    return "Version " + latest + " didn't install. Try again from Settings, or reinstall it with the steps at roku.put.io"
 end function
 
 function buildVersionDescription(current as string, latest as dynamic) as string

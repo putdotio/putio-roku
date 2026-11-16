@@ -125,7 +125,11 @@ sub onListItemSelected(obj)
         updateSetting("history_enabled", (not m.global.user.settings.history_enabled), onUpdateSetting)
     else if key = "playback_type"
         setPlaybackType(getNextPlaybackType())
-    else if key = "version" or key = "device_info"
+    else if key = "version"
+        if isNewerAppVersion(m.global.latestAppVersion, m.appVersion)
+            m.global.appUpdateRequested = true
+        end if
+    else if key = "device_info"
         return
     end if
 end sub

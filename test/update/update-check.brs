@@ -26,6 +26,14 @@ function main() as string
         description: [
             buildVersionDescription("2.18.00004", "2.19.0"),
             buildVersionDescription("2.18.00004", "")
-        ]
+        ],
+        packageUrl: getUpdatePackageUrl("2.21.0"),
+        installer: [
+            readInstallerStatus(200, "<font color=""red"">Application Received: 862810 bytes stored.</font><font color=""red"">Install Success.</font>"),
+            readInstallerStatus(401, ""),
+            readInstallerStatus(200, "<font color=""red"">Install Failure: Compilation Failed.</font>"),
+            readInstallerStatus(-28, invalid)
+        ],
+        body: (buildInstallerBodyHead("b") + "ZIP" + buildInstallerBodyTail("b")).replace(chr(34), "'").split(chr(13) + chr(10))
     })
 end function

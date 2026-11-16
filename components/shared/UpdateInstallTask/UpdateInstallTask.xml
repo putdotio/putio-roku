@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="UpdateInstallTask" extends="Task">
+  <script type="text/brightscript" uri="pkg:/components/shared/UpdateCheck/UpdateCheck.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/UpdateInstallTask/UpdateInstallTask.brs" />
+
+  <interface>
+    <field id="version" type="string" />
+    <field id="password" type="string" />
+    <field id="status" type="string" alwaysNotify="true" />
+  </interface>
+</component>

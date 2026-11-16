@@ -8,7 +8,7 @@ function sink(): NodeJS.WriteStream {
   return new Writable({ write: (_chunk, _encoding, done) => done() }) as NodeJS.WriteStream;
 }
 
-it("offers each newer sideload build once and ignores unreadable manifests", async () => {
+it("offers each newer build once and reads dev installer outcomes", async () => {
   const files = [
     "components/shared/UpdateCheck/UpdateCheck.brs",
     "test/update/update-check.brs",
@@ -25,5 +25,20 @@ it("offers each newer sideload build once and ignores unreadable manifests", asy
     manifest: ["2.19.0", "", "", ""],
     offer: [true, false, true, false],
     description: ["2.18.00004  |  2.19.0 available", "2.18.00004"],
+    packageUrl: "https://roku.put.io/releases/v2/2.21.0.zip",
+    installer: ["installed", "badPassword", "failed", "failed"],
+    body: [
+      "--b",
+      "Content-Disposition: form-data; name='mysubmit'",
+      "",
+      "Install",
+      "--b",
+      "Content-Disposition: form-data; name='archive'; filename='putio.zip'",
+      "Content-Type: application/zip",
+      "",
+      "ZIP",
+      "--b--",
+      "",
+    ],
   });
 });
