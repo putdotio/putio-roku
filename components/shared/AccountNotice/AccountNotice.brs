@@ -19,7 +19,6 @@ sub render()
     accentWidth = 6
     titleHeight = 45
     messageGap = 9
-    messageLineHeight = 42
 
     width = m.top.noticeWidth
     textX = accentWidth + padding
@@ -35,14 +34,8 @@ sub render()
     if message <> ""
         m.message.translation = [textX, padding + titleHeight + messageGap]
         m.message.width = textWidth
-        m.message.height = 0
         m.message.text = message
-        lines = 1
-        if m.message.boundingRect().height > messageLineHeight * 1.5
-            lines = 2
-        end if
-        m.message.height = messageLineHeight * lines
-        height = height + messageGap + m.message.height
+        height = height + messageGap + uiCeilToGrid(m.message.boundingRect().height)
     end if
     m.message.visible = message <> ""
 
