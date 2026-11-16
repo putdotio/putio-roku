@@ -7,10 +7,7 @@ import {
   readNamedNodeAttribute,
   waitForSceneGraphNode as rokitWaitForSceneGraphNode,
 } from "@putdotio/rokit";
-import {
-  exitAppDialogTitle,
-  sceneGraphRequestTimeoutMs,
-} from "./constants.ts";
+import { exitAppDialogTitle, sceneGraphRequestTimeoutMs } from "./constants.ts";
 import { rokuDesignColor } from "./design-colors.ts";
 import { formatErrorMessage } from "./errors.ts";
 import { imageRenderSmoke } from "./image.ts";
@@ -66,7 +63,9 @@ export function selectVisualLabStories(storyIds: readonly string[]): readonly Vi
     return visualLabStories.filter(([storyId]) => defaultVisualLabStoryIds.has(storyId));
   }
 
-  const storiesById = new Map<string, VisualLabStory>(visualLabStories.map((story) => [story[0], story]));
+  const storiesById = new Map<string, VisualLabStory>(
+    visualLabStories.map((story) => [story[0], story]),
+  );
   const selectedStories = storyIds.map((storyId) => storiesById.get(storyId));
   const unknownStoryIds = storyIds.filter((storyId, index) => selectedStories[index] === undefined);
 
@@ -84,11 +83,19 @@ export type VisualPageCaptureOptions = {
 };
 
 export type VisualCaptureDriver = {
-  readonly assertListHasItems: (target: string, nodeName: string, timeoutMs?: number) => Promise<number>;
+  readonly assertListHasItems: (
+    target: string,
+    nodeName: string,
+    timeoutMs?: number,
+  ) => Promise<number>;
   readonly dismissExitDialogIfVisible: (target: string) => Promise<void>;
   readonly focusLastListItem: (target: string, nodeName: string) => Promise<void>;
   readonly leaveActivePlaybackSurface: (target: string) => Promise<void>;
-  readonly openHomeItem: (target: string, index: number, expectedScreenName: string) => Promise<void>;
+  readonly openHomeItem: (
+    target: string,
+    index: number,
+    expectedScreenName: string,
+  ) => Promise<void>;
   readonly readListFocusIndex: (xml: string, nodeName: string) => number;
   readonly resetAuthState: (target: string) => Promise<void>;
   readonly returnToHomeScreen: (target: string) => Promise<void>;
@@ -159,7 +166,12 @@ export async function captureVisualPages(
   await pressKey(target, "Info");
   await waitForNamedNodeVisible(target, "deleteFileDialog", 10_000);
   await pressKey(target, "Up");
-  await waitForNamedNodeColor(target, "deleteButtonBackground", rokuDesignColor("dangerFocused"), 10_000);
+  await waitForNamedNodeColor(
+    target,
+    "deleteButtonBackground",
+    rokuDesignColor("dangerFocused"),
+    10_000,
+  );
   await capturePage("file-delete-dialog");
   await pressKey(target, "Back");
   await waitForSceneGraphAssertion(
@@ -224,10 +236,13 @@ export async function captureVisualLabStories(
       console.log(`visual lab captured: ${storyId} ${capturedPath}`);
       await sleep(2_000);
     },
-    launchStory: async (storyId, expectedTitle) => await launchLabStory(target, storyId, expectedTitle),
+    launchStory: async (storyId, expectedTitle) =>
+      await launchLabStory(target, storyId, expectedTitle),
     leaveActivePlaybackSurface: async () => await driver.leaveActivePlaybackSurface(target),
     logRecovery: (storyId, error) => {
-      console.log(`visual lab recovered by relaunching ${storyId}: ${formatVisualCaptureError(error)}`);
+      console.log(
+        `visual lab recovered by relaunching ${storyId}: ${formatVisualCaptureError(error)}`,
+      );
     },
     navigateStoryList: async (currentStoryIndex, storyIndex, storyId, expectedTitle) =>
       await navigateLabStoryList(target, currentStoryIndex, storyIndex, storyId, expectedTitle),
@@ -360,7 +375,11 @@ function normalizeSceneGraphColor(color: string | undefined): string | undefined
   return color.replace(/^#/, "").replace(/^0x/i, "").toUpperCase();
 }
 
-async function launchLabStory(target: string, storyId: string, expectedTitle: string): Promise<void> {
+async function launchLabStory(
+  target: string,
+  storyId: string,
+  expectedTitle: string,
+): Promise<void> {
   await retryAsync(
     async () => {
       await rokitLaunchApp(
@@ -383,7 +402,9 @@ async function launchLabStory(target: string, storyId: string, expectedTitle: st
       attempts: labLaunchRetryCount,
       delayMs: labLaunchRetryDelayMs,
       onRetry: (error, attempt) => {
-        console.log(`visual lab launch retry ${attempt}/${labLaunchRetryCount}: ${formatVisualCaptureError(error)}`);
+        console.log(
+          `visual lab launch retry ${attempt}/${labLaunchRetryCount}: ${formatVisualCaptureError(error)}`,
+        );
       },
     },
   );
@@ -451,7 +472,11 @@ async function navigateLabStoryList(
   );
 }
 
-async function openFocusedLabStory(target: string, storyId: string, expectedTitle: string): Promise<void> {
+async function openFocusedLabStory(
+  target: string,
+  storyId: string,
+  expectedTitle: string,
+): Promise<void> {
   await pressKey(target, "Select");
   await rokitWaitForSceneGraphNode(
     rokitContext(target, sceneGraphRequestTimeoutMs),

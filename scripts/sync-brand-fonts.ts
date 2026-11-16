@@ -103,7 +103,10 @@ export async function checkBrandFonts(repoRoot: string): Promise<BrandFontStatus
       ...status.unlisted.map((name) => `  unlisted: ${name}`),
     ];
     throw new Error(
-      [`${fontsOutputDir}/ does not match ${manifestPath}; run pnpm roku fonts-setup:`, ...details].join("\n"),
+      [
+        `${fontsOutputDir}/ does not match ${manifestPath}; run pnpm roku fonts-setup:`,
+        ...details,
+      ].join("\n"),
     );
   }
 
@@ -217,7 +220,9 @@ async function downloadBrandFont(manifest: BrandFontManifest, name: string): Pro
   for await (const chunk of response.body ?? []) {
     received += chunk.byteLength;
     if (received > downloadMaxBytes) {
-      throw new Error(`${url} exceeded the ${downloadMaxBytes} byte ceiling; refusing to buffer it`);
+      throw new Error(
+        `${url} exceeded the ${downloadMaxBytes} byte ceiling; refusing to buffer it`,
+      );
     }
 
     chunks.push(Buffer.from(chunk));
@@ -259,14 +264,24 @@ export function brandFontRejection(contents: Buffer, family: string): string | u
   // Every table must lie inside the file. This is what catches a truncated download: the
   // name table often sits early enough to read cleanly while the glyph outlines are gone,
   // so magic and family alone would happily accept a half-downloaded face.
-  const clipped = [...tables].filter(([, table]) => table.offset + table.length > contents.byteLength);
+  const clipped = [...tables].filter(
+    ([, table]) => table.offset + table.length > contents.byteLength,
+  );
   if (clipped.length > 0) {
     return `truncated: ${clipped.map(([tag]) => tag.trim()).join(", ")} run past the end of the file`;
   }
 
   // A face Roku can actually render needs its metrics and character map, plus outlines in
   // whichever flavour the sfnt version promised.
-  const required = ["cmap", "head", "hhea", "hmtx", "maxp", "name", ...(version === 0x4f54544f ? ["CFF "] : ["glyf", "loca"])];
+  const required = [
+    "cmap",
+    "head",
+    "hhea",
+    "hmtx",
+    "maxp",
+    "name",
+    ...(version === 0x4f54544f ? ["CFF "] : ["glyf", "loca"]),
+  ];
   const absent = required.filter((tag) => !tables.has(tag));
   if (absent.length > 0) {
     return `missing required ${absent.map((tag) => tag.trim()).join(", ")} table${absent.length > 1 ? "s" : ""}`;

@@ -67,7 +67,9 @@ export function parseIconManifest(parsed: unknown): PhosphorManifest {
 
   const pkg = parsed.package;
   if (!isObject(pkg) || pkg.name !== packageName || typeof pkg.version !== "string") {
-    throw new Error(`${manifestPath} must pin package.name "${packageName}" and a package.version string`);
+    throw new Error(
+      `${manifestPath} must pin package.name "${packageName}" and a package.version string`,
+    );
   }
 
   if (!Array.isArray(parsed.icons)) {
@@ -131,7 +133,9 @@ async function assertPackageVersion(
 ): Promise<void> {
   const parsed: unknown = JSON.parse(await readFile(join(coreDir, "package.json"), "utf8"));
   if (!isObject(parsed) || parsed.name !== expected.name || parsed.version !== expected.version) {
-    const actual = isObject(parsed) ? `${String(parsed.name)}@${String(parsed.version)}` : "unknown";
+    const actual = isObject(parsed)
+      ? `${String(parsed.name)}@${String(parsed.version)}`
+      : "unknown";
     throw new Error(
       `Installed ${actual} does not match ${manifestPath} pin ${expected.name}@${expected.version}. Update the manifest and package.json together.`,
     );
@@ -139,7 +143,8 @@ async function assertPackageVersion(
 }
 
 async function readIconSvg(coreDir: string, icon: IconEntry, version: string): Promise<string> {
-  const fileName = icon.weight === "regular" ? `${icon.name}.svg` : `${icon.name}-${icon.weight}.svg`;
+  const fileName =
+    icon.weight === "regular" ? `${icon.name}.svg` : `${icon.name}-${icon.weight}.svg`;
   const path = join(coreDir, "assets", icon.weight, fileName);
   try {
     return await readFile(path, "utf8");

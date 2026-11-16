@@ -28,14 +28,8 @@ import {
   defaultVisualLabOutputDir,
   defaultVisualPagesOutputDir,
 } from "./live-test/artifacts.ts";
-import {
-  captureRokuDebugSnapshot,
-  defaultDebugArtifactDir,
-} from "./live-test/diagnostics.ts";
-import {
-  sceneGraphPollIntervalMs,
-  trackMenuRowPoolSize,
-} from "./live-test/constants.ts";
+import { captureRokuDebugSnapshot, defaultDebugArtifactDir } from "./live-test/diagnostics.ts";
+import { sceneGraphPollIntervalMs, trackMenuRowPoolSize } from "./live-test/constants.ts";
 import { formatErrorMessage } from "./live-test/errors.ts";
 import {
   ensureAppPlaybackTypeSetting as ensureAppPlaybackTypeSettingWithDriver,
@@ -120,13 +114,7 @@ import {
   type VisualCaptureDriver,
 } from "./live-test/visual-capture.ts";
 
-type PlayerControlId =
-  | "rewind"
-  | "play"
-  | "fastForward"
-  | "audio"
-  | "captions"
-  | "speed";
+type PlayerControlId = "rewind" | "play" | "fastForward" | "audio" | "captions" | "speed";
 
 const playerControlBackgroundNodes: Record<PlayerControlId, string> = {
   rewind: "rewindBackground",
@@ -214,10 +202,7 @@ async function assertTrackMenu(
   });
 }
 
-async function isTrackMenuOpen(
-  target: string,
-  expectedTitle: TrackMenuTitle,
-): Promise<boolean> {
+async function isTrackMenuOpen(target: string, expectedTitle: TrackMenuTitle): Promise<boolean> {
   const xml = await querySceneGraph(target);
 
   if (!isNamedNodeVisible(xml, "trackMenu")) {
@@ -259,11 +244,7 @@ async function refreshFocusedControlForActivation(target: string): Promise<void>
   const xml = await querySceneGraph(target);
   const focusedControl = readFocusedPlaybackControl(xml);
 
-  if (
-    focusedControl === "audio" ||
-    focusedControl === "captions" ||
-    focusedControl === "speed"
-  ) {
+  if (focusedControl === "audio" || focusedControl === "captions" || focusedControl === "speed") {
     await pressKey(target, "Down");
     await sleep(200);
     await assertProgressFocused(target);
@@ -331,9 +312,7 @@ async function waitForVideoNodeAttribute(
     await sleep(500);
   }
 
-  throw new Error(
-    `expected video.${attributeName} ${description}, got ${lastValue ?? "missing"}`,
-  );
+  throw new Error(`expected video.${attributeName} ${description}, got ${lastValue ?? "missing"}`);
 }
 
 async function assertAudioTrackApplied(
@@ -371,15 +350,20 @@ async function assertSubtitlesDisabled(target: string): Promise<void> {
 
   const subtitleTrack = await readVideoNodeAttributeFromDevice(target, "subtitleTrack");
   if (subtitleTrack !== undefined && subtitleTrack !== "") {
-    throw new Error(`expected Video.subtitleTrack to be empty after disabling subtitles, got ${subtitleTrack}`);
+    throw new Error(
+      `expected Video.subtitleTrack to be empty after disabling subtitles, got ${subtitleTrack}`,
+    );
   }
 
   const mediaPlayerXml = await queryMediaPlayerXmlSafe(target);
-  const captions = mediaPlayerXml === undefined
-    ? undefined
-    : /<captions>([^<]*)<\/captions>/.exec(mediaPlayerXml)?.[1];
+  const captions =
+    mediaPlayerXml === undefined
+      ? undefined
+      : /<captions>([^<]*)<\/captions>/.exec(mediaPlayerXml)?.[1];
   if (captions !== undefined && captions !== "none") {
-    throw new Error(`expected media-player captions to be none after disabling subtitles, got ${captions}`);
+    throw new Error(
+      `expected media-player captions to be none after disabling subtitles, got ${captions}`,
+    );
   }
 
   console.log("asserted subtitles disabled");
@@ -463,11 +447,7 @@ async function assertOptionsRevealTrackControls(target: string): Promise<void> {
     assertNamedNodeVisible(xml, "osd");
 
     const focusedControl = readFocusedPlaybackControl(xml);
-    if (
-      focusedControl !== "audio" &&
-      focusedControl !== "captions" &&
-      focusedControl !== "speed"
-    ) {
+    if (focusedControl !== "audio" && focusedControl !== "captions" && focusedControl !== "speed") {
       throw new Error(`expected Options to focus a track control, got ${focusedControl ?? "none"}`);
     }
   });
@@ -506,10 +486,7 @@ async function waitForOsdVisible(target: string, timeoutMs = 5_000): Promise<voi
   throw new Error(`expected OSD to become visible, last state: ${lastState}`);
 }
 
-async function waitForPlayerClockReady(
-  target: string,
-  timeoutMs = 60_000,
-): Promise<void> {
+async function waitForPlayerClockReady(target: string, timeoutMs = 60_000): Promise<void> {
   const start = Date.now();
   let lastError: string | undefined;
 
@@ -610,7 +587,9 @@ async function assertPausedPositionGlyphBestEffort(target: string): Promise<void
       2_000,
     );
   } catch (error) {
-    console.log(`skipped paused glyph assertion while stabilizing OSD: ${formatErrorMessage(error)}`);
+    console.log(
+      `skipped paused glyph assertion while stabilizing OSD: ${formatErrorMessage(error)}`,
+    );
   }
 }
 
@@ -639,9 +618,7 @@ async function assertMediaKeysSeek(target: string): Promise<void> {
   const afterFwd = await readPlayerPositionSecondsFromDevice(target);
 
   if (afterFwd <= before + 5) {
-    throw new Error(
-      `expected Fwd to seek forward, got before=${before}s afterFwd=${afterFwd}s`,
-    );
+    throw new Error(`expected Fwd to seek forward, got before=${before}s afterFwd=${afterFwd}s`);
   }
 
   await pressKey(target, "Rev");
@@ -680,7 +657,11 @@ async function assertMediaPlayKeyToggles(target: string): Promise<void> {
       `expected Play key to pause playback, got before=${beforePause}s pausedAt=${pausedAt}s stillPausedAt=${stillPausedAt}s`,
     );
   }
-  await waitForSceneGraphAssertion(target, "expected paused position glyph", assertPausedPositionGlyph);
+  await waitForSceneGraphAssertion(
+    target,
+    "expected paused position glyph",
+    assertPausedPositionGlyph,
+  );
 
   await pressKey(target, "Play");
   const resumedByState = await waitForMediaPlayerState(target, "play");
@@ -748,23 +729,15 @@ function readAvailablePlaybackControls(xml: string): PlayerControlId[] {
   return controls;
 }
 
-function assertPlaybackControlFocused(
-  xml: string,
-  controlId: PlayerControlId,
-): void {
+function assertPlaybackControlFocused(xml: string, controlId: PlayerControlId): void {
   const focusedControl = readFocusedPlaybackControl(xml);
 
   if (focusedControl !== controlId) {
-    throw new Error(
-      `expected ${controlId} control to be focused, got ${focusedControl ?? "none"}`,
-    );
+    throw new Error(`expected ${controlId} control to be focused, got ${focusedControl ?? "none"}`);
   }
 }
 
-async function focusPlaybackControl(
-  target: string,
-  controlId: PlayerControlId,
-): Promise<void> {
+async function focusPlaybackControl(target: string, controlId: PlayerControlId): Promise<void> {
   let lastFocusedControl: PlayerControlId | "progress" | undefined;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -849,10 +822,7 @@ async function waitForPlaybackControlFocusReady(
   );
 }
 
-async function assertFocusRoundTrip(
-  target: string,
-  focusLabelNodeName: string,
-): Promise<void> {
+async function assertFocusRoundTrip(target: string, focusLabelNodeName: string): Promise<void> {
   await assertNamedNodeVisible(await querySceneGraph(target), focusLabelNodeName);
   await pressKey(target, "Down");
   await sleep(300);
@@ -973,7 +943,10 @@ async function assertSpeedValueLabel(target: string, expectedLabel: string): Pro
   await sleep(500);
 }
 
-async function assertPlaybackSpeedAffectsPosition(target: string, expectedMinimumRate: number): Promise<void> {
+async function assertPlaybackSpeedAffectsPosition(
+  target: string,
+  expectedMinimumRate: number,
+): Promise<void> {
   await ensureMediaPlaying(target);
   await sleep(1_000);
 
@@ -1117,13 +1090,9 @@ async function playbackTypeSmoke(
   await ensureAppPlaybackTypeSetting(target, playbackType);
   await leaveActivePlaybackSurface(target);
 
-  const app = await launchPlaybackWithRemoteStart(
-    target,
-    contentId,
-    mediaType,
-    startFromChoice,
-    { reuseExisting: false },
-  );
+  const app = await launchPlaybackWithRemoteStart(target, contentId, mediaType, startFromChoice, {
+    reuseExisting: false,
+  });
   console.log(
     `opened ${playbackType} playback: ${app.id} ${app.name} ${app.version} contentID=${contentId}`,
   );
@@ -1385,13 +1354,7 @@ async function main(): Promise<void> {
 
     const flows = parseFlowList(rawFlowList);
     const artifactDir = flowArgs[5];
-    await runNamedFlowSuite(
-      target,
-      "custom",
-      flows,
-      appFlowOptionsFromArgs(flowArgs),
-      artifactDir,
-    );
+    await runNamedFlowSuite(target, "custom", flows, appFlowOptionsFromArgs(flowArgs), artifactDir);
   } else if (command === "visual-pages") {
     const includeAuth = args.includes("--include-auth");
     const rawArtifactDir = args.find((arg) => !arg.startsWith("--"));
@@ -1409,9 +1372,10 @@ async function main(): Promise<void> {
     const captureAll = args.includes("--all");
     const knownStoryIds = new Set<string>(visualLabStories.map(([storyId]) => storyId));
     const firstPositional = args.find((arg) => !arg.startsWith("--"));
-    const rawArtifactDir = firstPositional !== undefined && !knownStoryIds.has(firstPositional)
-      ? firstPositional
-      : undefined;
+    const rawArtifactDir =
+      firstPositional !== undefined && !knownStoryIds.has(firstPositional)
+        ? firstPositional
+        : undefined;
     const storyIds = captureAll
       ? visualLabStories.map(([storyId]) => storyId)
       : args.filter((arg) => !arg.startsWith("--") && arg !== rawArtifactDir);
@@ -1438,21 +1402,13 @@ async function main(): Promise<void> {
 
     await imageRenderSmoke(target, contentId);
   } else if (command === "playback-type-smoke") {
-    const [
-      rawPlaybackType,
-      contentId,
-      mediaType = "movie",
-      rawStartFromChoice = "continue",
-    ] = args;
+    const [rawPlaybackType, contentId, mediaType = "movie", rawStartFromChoice = "continue"] = args;
 
     if (!rawPlaybackType || !contentId) {
       usage();
     }
 
-    if (
-      rawStartFromChoice !== "continue" &&
-      rawStartFromChoice !== "beginning"
-    ) {
+    if (rawStartFromChoice !== "continue" && rawStartFromChoice !== "beginning") {
       throw new Error("start-from choice must be continue or beginning");
     }
 
@@ -1498,41 +1454,28 @@ async function main(): Promise<void> {
       `launched deeplink: ${app.id} ${app.name} ${app.version} contentID=${contentId} mediaType=${mediaType}`.trim(),
     );
   } else if (command === "launch-playback") {
-    const [contentId, mediaType = "movie", rawStartFromChoice = "continue"] =
-      args;
+    const [contentId, mediaType = "movie", rawStartFromChoice = "continue"] = args;
 
     if (!contentId) {
       usage();
     }
 
-    if (
-      rawStartFromChoice !== "continue" &&
-      rawStartFromChoice !== "beginning"
-    ) {
+    if (rawStartFromChoice !== "continue" && rawStartFromChoice !== "beginning") {
       throw new Error("start-from choice must be continue or beginning");
     }
 
-    const app = await launchPlayback(
-      target,
-      contentId,
-      mediaType,
-      rawStartFromChoice,
-    );
+    const app = await launchPlayback(target, contentId, mediaType, rawStartFromChoice);
     console.log(
       `launched playback: ${app.id} ${app.name} ${app.version} contentID=${contentId} mediaType=${mediaType} startFrom=${rawStartFromChoice}`.trim(),
     );
   } else if (command === "launch-playback-remote") {
-    const [contentId, mediaType = "movie", rawStartFromChoice = "continue"] =
-      args;
+    const [contentId, mediaType = "movie", rawStartFromChoice = "continue"] = args;
 
     if (!contentId) {
       usage();
     }
 
-    if (
-      rawStartFromChoice !== "continue" &&
-      rawStartFromChoice !== "beginning"
-    ) {
+    if (rawStartFromChoice !== "continue" && rawStartFromChoice !== "beginning") {
       throw new Error("start-from choice must be continue or beginning");
     }
 
@@ -1557,20 +1500,11 @@ async function main(): Promise<void> {
       usage();
     }
 
-    if (
-      rawStartFromChoice !== "continue" &&
-      rawStartFromChoice !== "beginning"
-    ) {
+    if (rawStartFromChoice !== "continue" && rawStartFromChoice !== "beginning") {
       throw new Error("start-from choice must be continue or beginning");
     }
 
-    await playerUiSmoke(
-      target,
-      audioContentId,
-      subtitleContentId,
-      mediaType,
-      rawStartFromChoice,
-    );
+    await playerUiSmoke(target, audioContentId, subtitleContentId, mediaType, rawStartFromChoice);
   } else if (command === "player-ui-screenshots") {
     const [
       audioContentId,
@@ -1584,10 +1518,7 @@ async function main(): Promise<void> {
       usage();
     }
 
-    if (
-      rawStartFromChoice !== "continue" &&
-      rawStartFromChoice !== "beginning"
-    ) {
+    if (rawStartFromChoice !== "continue" && rawStartFromChoice !== "beginning") {
       throw new Error("start-from choice must be continue or beginning");
     }
 
@@ -1622,10 +1553,7 @@ main().catch(async (error: unknown) => {
   if (debugArtifactDir !== undefined && debugArtifactDir.trim() !== "") {
     try {
       const target = requireTarget();
-      const outputDir = join(
-        debugArtifactDir,
-        `failure-${formatArtifactTimestamp(new Date())}`,
-      );
+      const outputDir = join(debugArtifactDir, `failure-${formatArtifactTimestamp(new Date())}`);
       await captureRokuDebugSnapshot(target, outputDir);
       console.error(`debug snapshot: ${outputDir}`);
     } catch (diagnosticError) {

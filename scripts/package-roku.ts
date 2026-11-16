@@ -49,7 +49,12 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
         path: "manifest",
       },
       {
-        contents: renderBuildConfig(options.variant, options.putioAppId ?? "3776", brandFontsBundled, options.sentryDsn ?? ""),
+        contents: renderBuildConfig(
+          options.variant,
+          options.putioAppId ?? "3776",
+          brandFontsBundled,
+          options.sentryDsn ?? "",
+        ),
         path: "source/BuildConfig.brs",
       },
     ],
@@ -91,7 +96,9 @@ export function parseVariant(value: string | undefined): RokuVariant {
     case "lab":
       return "lab";
     default:
-      throw new Error(`Unsupported ROKU_VARIANT "${value}". Expected production, development, or lab.`);
+      throw new Error(
+        `Unsupported ROKU_VARIANT "${value}". Expected production, development, or lab.`,
+      );
   }
 }
 
@@ -105,15 +112,39 @@ export async function renderVariantManifest(
 
   const assetRoot = `images/generated/${variant}`;
   if (await fileExists(join(repoRoot, assetRoot, "channel-poster_fhd.png"))) {
-    manifest = replaceManifestValue(manifest, "mm_icon_focus_fhd", `pkg:/${assetRoot}/channel-poster_fhd.png`);
-    manifest = replaceManifestValue(manifest, "mm_icon_focus_hd", `pkg:/${assetRoot}/channel-poster_hd.png`);
-    manifest = replaceManifestValue(manifest, "mm_icon_focus_sd", `pkg:/${assetRoot}/channel-poster_sd.png`);
+    manifest = replaceManifestValue(
+      manifest,
+      "mm_icon_focus_fhd",
+      `pkg:/${assetRoot}/channel-poster_fhd.png`,
+    );
+    manifest = replaceManifestValue(
+      manifest,
+      "mm_icon_focus_hd",
+      `pkg:/${assetRoot}/channel-poster_hd.png`,
+    );
+    manifest = replaceManifestValue(
+      manifest,
+      "mm_icon_focus_sd",
+      `pkg:/${assetRoot}/channel-poster_sd.png`,
+    );
   }
 
   if (await fileExists(join(repoRoot, assetRoot, "Splash-FHD.png"))) {
-    manifest = replaceManifestValue(manifest, "splash_screen_fhd", `pkg:/${assetRoot}/Splash-FHD.png`);
-    manifest = replaceManifestValue(manifest, "splash_screen_hd", `pkg:/${assetRoot}/Splash-HD.png`);
-    manifest = replaceManifestValue(manifest, "splash_screen_sd", `pkg:/${assetRoot}/Splash-SD.png`);
+    manifest = replaceManifestValue(
+      manifest,
+      "splash_screen_fhd",
+      `pkg:/${assetRoot}/Splash-FHD.png`,
+    );
+    manifest = replaceManifestValue(
+      manifest,
+      "splash_screen_hd",
+      `pkg:/${assetRoot}/Splash-HD.png`,
+    );
+    manifest = replaceManifestValue(
+      manifest,
+      "splash_screen_sd",
+      `pkg:/${assetRoot}/Splash-SD.png`,
+    );
   }
 
   return manifest;
@@ -168,7 +199,10 @@ function shouldIncludeFile(relativePath: string, variant: RokuVariant): boolean 
     return false;
   }
 
-  return variant === "lab" || (relativePath !== "components/lab" && !relativePath.startsWith("components/lab/"));
+  return (
+    variant === "lab" ||
+    (relativePath !== "components/lab" && !relativePath.startsWith("components/lab/"))
+  );
 }
 
 function replaceManifestValue(manifest: string, key: string, value: string): string {
@@ -190,7 +224,7 @@ function escapeRegExp(value: string): string {
 }
 
 function brightScriptString(value: string): string {
-  return value.replace(/"/g, "\"\"");
+  return value.replace(/"/g, '""');
 }
 
 // The individual faces to bundle, or empty when the brand face is unavailable.

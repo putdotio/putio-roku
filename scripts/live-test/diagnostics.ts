@@ -1,10 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import {
-  buildDebugCommand,
-  runDebugCommand,
-  type DebugCommandResult,
-} from "@putdotio/rokit";
+import { buildDebugCommand, runDebugCommand, type DebugCommandResult } from "@putdotio/rokit";
 import { formatArtifactTimestamp } from "./artifacts.ts";
 import { formatErrorMessage } from "./errors.ts";
 import {
@@ -15,21 +11,13 @@ import {
   rokitContext,
 } from "./rokit-device.ts";
 
-const debugCommandNames = [
-  "chanperf",
-  "free",
-  "loaded_textures",
-  "r2d2_bitmaps",
-] as const;
+const debugCommandNames = ["chanperf", "free", "loaded_textures", "r2d2_bitmaps"] as const;
 
 export function defaultDebugArtifactDir(label = "debug"): string {
   return join(".local/roku-debug", `${label}-${formatArtifactTimestamp(new Date())}`);
 }
 
-export async function captureRokuDebugSnapshot(
-  target: string,
-  outputDir: string,
-): Promise<void> {
+export async function captureRokuDebugSnapshot(target: string, outputDir: string): Promise<void> {
   await mkdir(outputDir, { recursive: true });
   await writeText(join(outputDir, "active-app.json"), async () =>
     JSON.stringify(await queryActiveApp(target), null, 2),
@@ -65,10 +53,7 @@ async function writeText(path: string, read: () => Promise<string>): Promise<voi
   try {
     await writeFile(path, await read());
   } catch (error) {
-    await writeFile(
-      `${path}.error`,
-      `${formatErrorMessage(error)}\n`,
-    );
+    await writeFile(`${path}.error`, `${formatErrorMessage(error)}\n`);
   }
 }
 

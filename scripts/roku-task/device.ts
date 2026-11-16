@@ -94,7 +94,9 @@ export async function launch(): Promise<void> {
 
 export async function attachConsole(): Promise<void> {
   await checkRokuDevTarget();
-  console.log(`Attaching to BrightScript console at ${rokuTarget()}:${envOr("ROKU_DEV_CONSOLE_PORT", "8085")}. Press Ctrl-C to detach.`);
+  console.log(
+    `Attaching to BrightScript console at ${rokuTarget()}:${envOr("ROKU_DEV_CONSOLE_PORT", "8085")}. Press Ctrl-C to detach.`,
+  );
   run("nc", [rokuTarget(), envOr("ROKU_DEV_CONSOLE_PORT", "8085")]);
 }
 

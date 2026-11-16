@@ -48,7 +48,9 @@ export function variantConfig(value: string | undefined): VariantConfig {
     return { packageName: "put.io-lab", title: "put.io Lab", variant };
   }
 
-  throw new Error(`Unsupported ROKU_VARIANT "${rawVariant}". Expected production, development, or lab.`);
+  throw new Error(
+    `Unsupported ROKU_VARIANT "${rawVariant}". Expected production, development, or lab.`,
+  );
 }
 
 export function selectedVariantConfig(): VariantConfig {
@@ -110,7 +112,9 @@ export function rokuContext(timeoutMs = 10_000): RokuContext {
   };
 }
 
-export function rokuContextWithPassword(timeoutMs = 30_000): RokuContext & { readonly password: string } {
+export function rokuContextWithPassword(
+  timeoutMs = 30_000,
+): RokuContext & { readonly password: string } {
   return {
     ...rokuContext(timeoutMs),
     password: requireRokuPassword(),
@@ -183,11 +187,17 @@ export function run(command: string, args: readonly string[], env: EnvMap = proc
   }
 
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(" ")} failed with status ${result.status ?? "unknown"}`);
+    throw new Error(
+      `${command} ${args.join(" ")} failed with status ${result.status ?? "unknown"}`,
+    );
   }
 }
 
-export function runCapture(command: string, args: readonly string[], env: EnvMap = process.env): string {
+export function runCapture(
+  command: string,
+  args: readonly string[],
+  env: EnvMap = process.env,
+): string {
   const result = spawnSync(command, [...args], {
     cwd: repoRoot,
     encoding: "utf8",
@@ -199,7 +209,9 @@ export function runCapture(command: string, args: readonly string[], env: EnvMap
   }
 
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(" ")} failed with status ${result.status ?? "unknown"}`);
+    throw new Error(
+      `${command} ${args.join(" ")} failed with status ${result.status ?? "unknown"}`,
+    );
   }
 
   return result.stdout;
@@ -219,7 +231,10 @@ export function assertFile(path: string): void {
   }
 }
 
-export async function withEnv<T>(values: Record<string, string>, task: () => T | Promise<T>): Promise<T> {
+export async function withEnv<T>(
+  values: Record<string, string>,
+  task: () => T | Promise<T>,
+): Promise<T> {
   const previous: Record<string, string | undefined> = {};
   for (const [key, value] of Object.entries(values)) {
     previous[key] = process.env[key];

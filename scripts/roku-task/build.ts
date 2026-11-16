@@ -32,7 +32,9 @@ export async function packageRoku(config: VariantConfig): Promise<void> {
     variant: config.variant,
   });
   assertFile(outFile);
-  console.log(`Packaged ${result.title} (${result.variant}) with ${result.fileCount} source files: ${result.outFile}`);
+  console.log(
+    `Packaged ${result.title} (${result.variant}) with ${result.fileCount} source files: ${result.outFile}`,
+  );
   if (!result.sentryEnabled) {
     console.log("Packaged without a Sentry DSN; runtime error reporting is disabled.");
   }
@@ -93,6 +95,10 @@ export function checkMarkdownFormat(): void {
   runPnpm(["exec", "oxfmt", "--check", "**/*.md"]);
 }
 
+export function checkScriptsFormat(): void {
+  runPnpm(["exec", "oxfmt", "--check", "scripts/**/*.ts"]);
+}
+
 export function checkRokuLive(): void {
   runPnpm(["exec", "tsc", "-p", "tsconfig.live.json"]);
 }
@@ -149,6 +155,7 @@ export async function verify(): Promise<void> {
   testLive();
   checkRokuFormat();
   checkMarkdownFormat();
+  checkScriptsFormat();
   checkRokuStatic();
   await packageRoku(selectedVariantConfig());
 }

@@ -36,8 +36,7 @@ export type { ActiveApp, RokuContext };
 export { isActiveMediaPlayerState };
 
 export function requireTarget(): string {
-  const rawTarget =
-    process.env.ROKIT_TARGET?.trim() ?? process.env.ROKU_DEV_TARGET?.trim();
+  const rawTarget = process.env.ROKIT_TARGET?.trim() ?? process.env.ROKU_DEV_TARGET?.trim();
 
   if (!rawTarget) {
     throw new Error("ROKU_DEV_TARGET or ROKIT_TARGET is not set");
@@ -97,9 +96,7 @@ export async function controlSmoke(target: string): Promise<void> {
   await checkDevice(target);
   const appId = configuredAppId();
   const launchedApp = await launchApp(target, appId);
-  console.log(
-    `launched: ${launchedApp.id} ${launchedApp.name} ${launchedApp.version}`,
-  );
+  console.log(`launched: ${launchedApp.id} ${launchedApp.name} ${launchedApp.version}`);
 
   await pressKey(target, "Info");
   await sleep(300);
@@ -261,10 +258,7 @@ export async function waitForMediaPlayerState(
   }
 }
 
-export async function waitForActiveApp(
-  target: string,
-  appId: string,
-): Promise<ActiveApp> {
+export async function waitForActiveApp(target: string, appId: string): Promise<ActiveApp> {
   return await rokitWaitForActiveApp(rokitContext(target), appId, launchTimeoutMs);
 }
 
