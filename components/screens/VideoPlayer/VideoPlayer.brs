@@ -317,6 +317,9 @@ sub loadPlaybackPlan(plan as object, startFrom)
     m.loadErrorSignature = getVideoErrorSignature()
     m.startBufferingPercent = 0
     m.startWatchdogRearms = 0
+    resetPreviewSeek()
+    m.pendingSeekPosition = invalid
+    m.seekValue = 0
 
     videoContent = createObject("RoSGNode", "ContentNode")
     videoContent.url = plan.url
@@ -1447,8 +1450,11 @@ sub handlePlaybackError(useErrorFields as boolean)
         reresolved: m.reresolved
     })
     errorCode = sentryVideoErrorCode(errorVideo)
+    m.reresolveFailureEvent = invalid
     if verdict.action = "retry" or verdict.action = "fail"
         reportPlaybackFailure(errorVideo)
+    else if verdict.action = "reresolve"
+        m.reresolveFailureEvent = createPlaybackFailureEventFor(errorVideo)
     end if
     m.video.control = "stop"
 
@@ -1467,7 +1473,7 @@ sub onStartWatchdogFire()
         return
     end if
 
-    if hasStartBufferingProgress()
+    if isVideoPaused() or hasStartBufferingProgress()
         m.startWatchdog.control = "start"
         return
     end if
@@ -1584,9 +1590,14 @@ sub onRefetchFileResponse(obj)
         plan = resolveSameSourcePlaybackPlan(m.playbackFile, m.plan, createPlaybackResolveContext(false, invalid))
     end if
 
+    failureEvent = m.reresolveFailureEvent
+    m.reresolveFailureEvent = invalid
     if plan.action = "play"
         loadPlaybackPlan(plan, m.retryPosition)
     else
+        if failureEvent <> invalid and m.errorDialogShown = false
+            sentryCaptureEvent(failureEvent)
+        end if
         updateBufferingOverlay(false)
         showPlaybackFailureDialog(plan.reason, false)
     end if
@@ -1609,15 +1620,19 @@ sub reportPlaybackFailure(errorVideo as dynamic)
         return
     end if
 
-    sentryCaptureEvent(createPlaybackFailureEvent({
+    sentryCaptureEvent(createPlaybackFailureEventFor(errorVideo))
+end sub
+
+function createPlaybackFailureEventFor(errorVideo as dynamic) as object
+    return createPlaybackFailureEvent({
         video: errorVideo,
         file: m.playbackFile,
         streamInfo: m.currentStreamInfo,
         method: m.method,
         source: getCurrentPlaybackSource(),
         playbackStarted: m.playbackStarted,
-    }))
-end sub
+    })
+end function
 
 function getCurrentPlaybackSource() as dynamic
     if m.plan <> invalid
