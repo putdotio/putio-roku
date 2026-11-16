@@ -280,8 +280,6 @@ function harnessJson(command: string): Record<string, unknown> {
   return parsed as Record<string, unknown>;
 }
 
-// Installs this checkout as a development build signed in with the host's cached app token,
-// so flows test the code under review without spending a device code per run.
 export async function harnessInstall(): Promise<void> {
   putioAuthPrepare();
   const { tokenFile, source } = harnessJson("app-token");
@@ -296,15 +294,16 @@ export async function harnessInstall(): Promise<void> {
   await withEnv({ ROKU_APP_ECP_ID: "dev" }, launch);
 }
 
-function filesFixtureEnv(): Record<string, string> {
+function harnessFlowEnv(): Record<string, string> {
+  const env = { ROKU_APP_ECP_ID: "dev" };
   if (optionalEnv("FILES_FOLDER_NAME") !== undefined) {
-    return {};
+    return env;
   }
   const { name, index } = harnessJson("files-fixture");
   if (typeof name !== "string" || typeof index !== "number") {
     throw new Error("putio-auth-harness files-fixture did not report a folder");
   }
-  return { FILES_FOLDER_INDEX: String(index), FILES_FOLDER_NAME: name };
+  return { ...env, FILES_FOLDER_INDEX: String(index), FILES_FOLDER_NAME: name };
 }
 
 export function putioAuthApproveDevice(): void {
@@ -332,7 +331,7 @@ export async function liveTestFlowSmoke(): Promise<void> {
   if (outputDir !== undefined) {
     args.push(outputDir);
   }
-  runRokuLive(args, putioAuthEnv({ ...liveDebugEnv(), ...filesFixtureEnv() }));
+  runRokuLive(args, putioAuthEnv({ ...liveDebugEnv(), ...harnessFlowEnv() }));
 }
 
 export function liveTestFlow(): void {
@@ -381,7 +380,7 @@ export async function liveTestFlowFull(): Promise<void> {
   if (outputDir !== undefined) {
     args.push(outputDir);
   }
-  runRokuLive(args, putioAuthEnv({ ...flowEnv(), ...filesFixtureEnv() }));
+  runRokuLive(args, putioAuthEnv({ ...flowEnv(), ...harnessFlowEnv() }));
 }
 
 function playbackArgs(command: string, example: string): readonly string[] {

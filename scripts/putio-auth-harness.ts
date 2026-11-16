@@ -57,6 +57,7 @@ type LoginResponse = {
 type ValidateTokenResponse = {
   result?: boolean;
   token_scope?: "default" | "two_factor" | string | null;
+  user_id?: number;
 };
 
 type VerifyTotpResponse = {
@@ -248,6 +249,7 @@ function parseValidateTokenResponse(value: unknown): ValidateTokenResponse {
   return {
     result: optionalBoolean(record, "result"),
     token_scope: optionalNullableString(record, "token_scope"),
+    user_id: typeof record.user_id === "number" ? record.user_id : undefined,
   };
 }
 
@@ -590,14 +592,38 @@ function rokuAppId(): string {
   return process.env.PUTIO_ROKU_APP_ID?.trim() || defaultRokuAppId;
 }
 
-function appTokenCachePath(profile: string): string {
+function appTokenCachePath(userId: number): string {
   const root =
     process.env.PUTIO_ROKU_TOKEN_CACHE?.trim() ||
     join(process.env.XDG_CACHE_HOME?.trim() || join(homedir(), ".cache"), "putio-roku");
-  return join(root, `${profile}-${rokuAppId()}.token`);
+  return join(root, `${userId}-${rokuAppId()}.token`);
 }
 
-async function readCachedAppToken(path: string): Promise<string | undefined> {
+// Throws on 429, 5xx or a network failure so a transient outage never discards a good token.
+async function validateTokenStrict(token: string): Promise<ValidateTokenResponse> {
+  const url = new URL("/v2/oauth2/validate", apiBaseUrl());
+  url.searchParams.set("oauth_token", token);
+  const response = await fetch(url);
+
+  if (response.status === 400 || response.status === 401 || response.status === 403) {
+    return { result: false };
+  }
+  if (!response.ok) {
+    throw new Error(`token validation unavailable: HTTP ${response.status}`);
+  }
+
+  return parseValidateTokenResponse(await response.json());
+}
+
+async function preparedUserId(profile: string): Promise<number> {
+  const validation = await validateTokenStrict(await readPreparedToken(profile));
+  if (validation.result !== true || validation.user_id === undefined) {
+    throw new Error(`put.io CLI token for ${profile} is not valid. Run auth-prepare first.`);
+  }
+  return validation.user_id;
+}
+
+async function readCachedAppToken(path: string, userId: number): Promise<string | undefined> {
   const token = await readFile(path, "utf8")
     .then((text) => text.trim())
     .catch(() => "");
@@ -605,8 +631,12 @@ async function readCachedAppToken(path: string): Promise<string | undefined> {
     return undefined;
   }
 
-  const validation = await validateToken(token);
-  if (validation.result === true && validation.token_scope !== "two_factor") {
+  const validation = await validateTokenStrict(token);
+  if (
+    validation.result === true &&
+    validation.token_scope !== "two_factor" &&
+    validation.user_id === userId
+  ) {
     return token;
   }
 
@@ -650,10 +680,11 @@ async function requestAppToken(profile: string): Promise<string> {
 }
 
 async function appToken(profile: string): Promise<void> {
-  const path = appTokenCachePath(profile);
+  const userId = await preparedUserId(profile);
+  const path = appTokenCachePath(userId);
   let source = "cache";
 
-  if ((await readCachedAppToken(path)) === undefined) {
+  if ((await readCachedAppToken(path, userId)) === undefined) {
     const token = await requestAppToken(profile);
     await mkdir(dirname(path), { mode: 0o700, recursive: true });
     await writeFile(path, `${token}\n`, { mode: 0o600 });
@@ -664,7 +695,6 @@ async function appToken(profile: string): Promise<void> {
   console.log(JSON.stringify({ status: "ok", profile, source, tokenFile: path }, null, 2));
 }
 
-// Finds or creates a root folder the files flow can open, and its row in the app's list.
 async function filesFixture(profile: string): Promise<void> {
   const token = await readPreparedToken(profile);
   const findFixture = async () => {
