@@ -9,144 +9,121 @@
   <script type="text/brightscript" uri="pkg:/components/screens/Auth/Auth.brs" />
 
   <interface>
-		<field id="params" type="assocarray" />
+    <field id="params" type="assocarray" />
     <field id="routeShown" type="boolean" alwaysNotify="true" />
     <field id="routeHidden" type="boolean" alwaysNotify="true" />
     <field id="token" type="string" value="" />
-		<field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
+    <field id="showExitAppDialog" type="boolean" value="false" alwaysNotify="true" />
+    <field id="preview" type="assocarray" onChange="onPreviewChange" />
   </interface>
 
-	<children>
-		<LayoutGroup
-			layoutDirection="vert"
-			horizAlignment="center"
-			translation="[960, 168]"
-			itemSpacings="64"
-		>
-			<Poster
-				id="welcome"
-				width="640"
-				height="120"
-				loadDisplayMode="scaleToFit"
-				uri="pkg:/images/AuthWelcome.png"
-			/>
+  <children>
+    <Rectangle id="background" />
 
-      <Label
-        id="description"
-				width="920"
-				height="44"
-				text="use this activation code to log in"
-				wrap="true"
-				horizAlign="center"
-				vertAlign="center"
-      />
+    <Group id="stage">
+      <Group id="stageReel" />
+    </Group>
 
-			<LayoutGroup
-				layoutDirection="vert"
-				horizAlignment="center"
-				itemSpacings="44"
-			>
-				<Group>
-					<LayoutGroup
-						id="codeTiles"
-						layoutDirection="horiz"
-						itemSpacings="16"
-					>
-						<Group id="codeTile0">
-							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar0" width="96" height="96" horizAlign="center" vertAlign="center" />
-						</Group>
-						<Group id="codeTile1">
-							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar1" width="96" height="96" horizAlign="center" vertAlign="center" />
-						</Group>
-						<Group id="codeTile2">
-							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar2" width="96" height="96" horizAlign="center" vertAlign="center" />
-						</Group>
-						<Group id="codeTile3">
-							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar3" width="96" height="96" horizAlign="center" vertAlign="center" />
-						</Group>
-						<Group id="codeTile4">
-							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar4" width="96" height="96" horizAlign="center" vertAlign="center" />
-						</Group>
-						<Group id="codeTile5">
-							<Poster width="96" height="96" uri="pkg:/images/auth-code-tile.png" loadDisplayMode="scaleToFit" />
-							<Label id="codeChar5" width="96" height="96" horizAlign="center" vertAlign="center" />
-						</Group>
-					</LayoutGroup>
+    <Label
+      id="title"
+      text="Sign in to put.io"
+      height="60"
+      horizAlign="center"
+      vertAlign="center"
+    />
 
-					<Label
-						id="code"
-						text="Loading..."
-						width="656"
-						height="96"
-						horizAlign="center"
-						vertAlign="center"
-					/>
-				</Group>
+    <LayoutGroup
+      id="phoneColumn"
+      layoutDirection="vert"
+      horizAlignment="center"
+      itemSpacings="[24, 24]"
+    >
+      <Label id="phoneTitle" text="With your phone" height="45" vertAlign="center" />
+      <Group id="qrCard">
+        <Poster
+          id="qrCardBackground"
+          width="345"
+          height="345"
+          uri="pkg:/images/auth/auth-rounded-33.9.png"
+        />
+        <Poster
+          id="qrCode"
+          translation="[24, 24]"
+          width="297"
+          height="297"
+          loadDisplayMode="scaleToFit"
+          visible="false"
+        />
+      </Group>
+      <Label id="phoneCaption" text="Scan with your camera and approve." height="36" vertAlign="center" />
+    </LayoutGroup>
 
-				<LayoutGroup
-					layoutDirection="vert"
-					horizAlignment="center"
-					itemSpacings="16"
-				>
-					<Label
-						id="stepsLabel"
-						text="follow the steps at the website below"
-						width="920"
-						height="36"
-						horizAlign="center"
-						vertAlign="center"
-					/>
+    <Rectangle id="dividerTop" width="3" height="249" />
+    <Label
+      id="orLabel"
+      text="or"
+      width="123"
+      height="45"
+      horizAlign="center"
+      vertAlign="center"
+    />
+    <Rectangle id="dividerBottom" width="3" height="249" />
 
-					<Label
-						id="linkLabel"
-						text="put.io/link"
-						width="920"
-						height="56"
-						horizAlign="center"
-						vertAlign="center"
-					/>
+    <LayoutGroup
+      id="browserColumn"
+      layoutDirection="vert"
+      horizAlignment="center"
+      itemSpacings="[24, 24, 24, 24]"
+    >
+      <Label id="browserTitle" text="In a browser" height="45" vertAlign="center" />
 
-					<Label
-						id="message"
-						text=""
-						width="920"
-						height="0"
-						visible="false"
-						wrap="true"
-						horizAlign="center"
-						vertAlign="center"
-						lineSpacing="10.0"
-					/>
-				</LayoutGroup>
+      <LayoutGroup id="browserInstruction" layoutDirection="horiz" itemSpacings="[9, 9]">
+        <Label id="instructionLead" text="Go to" height="45" vertAlign="center" />
+        <Label id="instructionUrl" text="put.io/link" height="45" vertAlign="center" />
+        <Label id="instructionTail" text="and enter" height="45" vertAlign="center" />
+      </LayoutGroup>
 
-				<Group id="refreshButton">
-					<Poster id="refreshButtonBackground" width="400" height="72" uri="pkg:/images/auth-refresh-button.png" loadDisplayMode="scaleToFit" />
+      <Group id="status">
+        <Rectangle id="statusFrame" width="720" height="45" />
+        <Poster
+          id="statusSpinner"
+          width="27"
+          height="27"
+          scaleRotateCenter="[13.5, 13.5]"
+          loadDisplayMode="scaleToFit"
+          uri="pkg:/images/Spinner.png"
+        />
+        <Label id="statusLabel" horizAlign="center" vertAlign="center" />
+      </Group>
 
-					<Poster
-						id="refreshButtonIcon"
-						translation="[66,20]"
-						width="32"
-						height="32"
-						uri="pkg:/images/Spinner.png"
-						loadDisplayMode="scaleToFit"
-					/>
+      <LayoutGroup id="codeTiles" layoutDirection="horiz" itemSpacings="[9]" />
 
-					<Label
-						id="refreshButtonLabel"
-						text="Get new code"
-						translation="[116,0]"
-						width="270"
-						height="72"
-						horizAlign="left"
-						vertAlign="center"
-					/>
-				</Group>
-			</LayoutGroup>
-		</LayoutGroup>
-	</children>
+      <Group id="newCodeButton">
+        <Poster
+          id="newCodeBackground"
+          width="288"
+          height="66"
+          uri="pkg:/images/auth/auth-pill.png"
+        />
+        <LayoutGroup
+          layoutDirection="horiz"
+          horizAlignment="center"
+          vertAlignment="center"
+          translation="[144, 33]"
+          itemSpacings="[12]"
+        >
+          <Poster id="newCodeIcon" width="30" height="30" uri="pkg:/images/icons/refresh.png" />
+          <Label id="newCodeLabel" text="Get a new code" height="66" vertAlign="center" />
+        </LayoutGroup>
+      </Group>
+    </LayoutGroup>
+
+    <Animation id="stageSlide" duration="0.45" easeFunction="inOutCubic">
+      <Vector2DFieldInterpolator id="stageSlideInterpolator" key="[0.0, 1.0]" fieldToInterp="stageReel.translation" />
+    </Animation>
+
+    <Animation id="spinnerSpin" duration="1" repeat="true" easeFunction="linear">
+      <FloatFieldInterpolator key="[0.0, 1.0]" keyValue="[0.0, -6.2832]" fieldToInterp="statusSpinner.rotation" />
+    </Animation>
+  </children>
 </component>

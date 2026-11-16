@@ -48,6 +48,10 @@ export const visualLabStories = [
   ["account-notice-owner", "AccountNotice / owner"],
   ["account-notice-family", "AccountNotice / family member"],
   ["app-dialog-account-inactive", "AppDialog / inactive account"],
+  ["auth-awaiting", "AuthScreen / waiting"],
+  ["auth-requesting", "AuthScreen / getting a code"],
+  ["auth-expired", "AuthScreen / code expired"],
+  ["auth-failed", "AuthScreen / network failure"],
 ] as const;
 
 export type VisualLabStory = (typeof visualLabStories)[number];

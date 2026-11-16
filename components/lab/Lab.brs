@@ -215,6 +215,38 @@ sub init()
             description: "Playback failure on a deactivated owner account: the account state replaces the generic error.",
             component: "appDialog",
         },
+        {
+            id: "auth-awaiting",
+            title: "AuthScreen / waiting",
+            listTitle: "Auth / waiting",
+            section: "Screens",
+            description: "Sign-in screen with a live code: QR beside the code tiles, waiting for approval.",
+            component: "authScreen",
+        },
+        {
+            id: "auth-requesting",
+            title: "AuthScreen / getting a code",
+            listTitle: "Auth / requesting",
+            section: "Screens",
+            description: "Sign-in screen before the code arrives: empty tiles, blank dimmed QR card, disabled button.",
+            component: "authScreen",
+        },
+        {
+            id: "auth-expired",
+            title: "AuthScreen / code expired",
+            listTitle: "Auth / expired",
+            section: "Screens",
+            description: "Expired code: the QR is cleared, tiles dim, and Get a new code takes focus.",
+            component: "authScreen",
+        },
+        {
+            id: "auth-failed",
+            title: "AuthScreen / network failure",
+            listTitle: "Auth / failed",
+            section: "Screens",
+            description: "Code request failed: the status wraps to two lines and manual entry stays usable.",
+            component: "authScreen",
+        },
     ]
 
     m.storyList.observeField("itemFocused", "onStoryFocused")
@@ -436,6 +468,14 @@ sub renderStory(index as integer)
         renderTypographyStory()
     else if story.id = "screen-header"
         renderScreenHeaderStory()
+    else if story.id = "auth-awaiting"
+        renderAuthScreenStory({ phase: "awaiting", code: "VOGJBC", qrUri: "pkg:/components/lab/auth-qr.png" })
+    else if story.id = "auth-requesting"
+        renderAuthScreenStory({ phase: "requesting" })
+    else if story.id = "auth-expired"
+        renderAuthScreenStory({ phase: "expired", code: "VOGJBC" })
+    else if story.id = "auth-failed"
+        renderAuthScreenStory({ phase: "failed", failureMessage: "Can’t connect to put.io right now. Check the network, then get a new code." })
     else if story.id = "app-dialog-empty"
         renderAppDialogStory("Exit put.io?", "", ["OK", "Cancel"], 1)
     else if story.id = "app-dialog-message"
@@ -516,6 +556,12 @@ sub disablePreviewFocus(node as object)
     if node <> invalid and node.hasField("focusable")
         node.focusable = false
     end if
+end sub
+
+sub renderAuthScreenStory(preview as object)
+    screen = createObject("roSGNode", "AuthScreen")
+    screen.preview = preview
+    addPreviewNode(screen, [0, 0])
 end sub
 
 sub renderAppDialogStory(title as string, message as string, buttons as object, defaultButton as integer)
