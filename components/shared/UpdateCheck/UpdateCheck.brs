@@ -106,6 +106,14 @@ function buildInstallerBodyTail(boundary as string) as string
     return crlf + "--" + boundary + "--" + crlf
 end function
 
+function isZipArchive(bytes as object) as boolean
+    if bytes.count() < 4
+        return false
+    end if
+
+    return bytes[0] = &h50 and bytes[1] = &h4B and bytes[2] = &h03 and bytes[3] = &h04
+end function
+
 function readInstallerStatus(responseCode as integer, body as dynamic) as string
     if responseCode = 401
         return "badPassword"

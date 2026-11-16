@@ -7,6 +7,7 @@ function init()
     m.hostedDialog = invalid
     m.hostedDialogSourceScreen = invalid
     m.clearingHostedDialogField = false
+    m.updateInstallRequested = false
     m.screenHost = m.top.findNode("screenHost")
     m.appDialog = m.top.findNode("appDialog")
     m.appDialog.observeField("buttonSelected", "onAppDialogButtonSelected")
@@ -531,6 +532,11 @@ sub onAppUpdateRequested()
 end sub
 
 sub showUpdateDialog(latestVersion as string)
+    if m.updateInstallTask <> invalid
+        showUpdateInstallingDialog()
+        return
+    end if
+
     clearActiveDialog(false)
     m.activeDialogKind = "update"
     m.offeredUpdateVersion = latestVersion
@@ -547,6 +553,16 @@ sub onUpdateDialogButtonSelected(buttonIndex as integer)
         return
     end if
 
+    m.updateInstallRequested = true
+end sub
+
+sub onUpdateDialogClosed()
+    if m.updateInstallRequested <> true
+        dismissUpdateDialog()
+        return
+    end if
+
+    m.updateInstallRequested = false
     if m.storage.Exists("devInstallerPassword")
         startUpdateInstall(m.storage.Read("devInstallerPassword"))
     else
@@ -561,8 +577,13 @@ sub dismissUpdateDialog()
 end sub
 
 sub showUpdatePasswordDialog(retry as boolean)
-    clearActiveDialog(false)
     dialog = createObject("roSGNode", "StandardKeyboardDialog")
+    if dialog = invalid or dialog.textEditBox = invalid
+        showUpdateFailedDialog()
+        return
+    end if
+
+    clearActiveDialog(false)
     dialog.title = buildUpdatePasswordTitle()
     dialog.message = buildUpdatePasswordMessage(retry)
     dialog.buttons = ["Install", "Cancel"]
@@ -583,12 +604,12 @@ sub onUpdatePasswordButtonSelected(obj)
     end if
 
     password = dialog.text
-    if obj.getData() = 0 and password <> ""
+    if obj.getData() <> 0
+        clearActiveDialog()
+    else if password <> ""
         m.storage.Write("devInstallerPassword", password)
         m.storage.Flush()
         startUpdateInstall(password)
-    else
-        clearActiveDialog()
     end if
 end sub
 
@@ -599,6 +620,15 @@ sub onUpdatePasswordDialogClosed()
 end sub
 
 sub startUpdateInstall(password as string)
+    showUpdateInstallingDialog()
+    m.updateInstallTask = createObject("roSGNode", "UpdateInstallTask")
+    m.updateInstallTask.version = m.offeredUpdateVersion
+    m.updateInstallTask.password = password
+    m.updateInstallTask.observeField("status", "onUpdateInstallStatus")
+    m.updateInstallTask.control = "RUN"
+end sub
+
+sub showUpdateInstallingDialog()
     clearActiveDialog(false)
     m.activeDialogKind = "updateInstalling"
     m.appDialog.title = buildUpdateInstallingTitle()
@@ -606,12 +636,6 @@ sub startUpdateInstall(password as string)
     m.appDialog.buttons = ["OK"]
     m.appDialog.defaultButton = 0
     openAppDialog()
-
-    m.updateInstallTask = createObject("roSGNode", "UpdateInstallTask")
-    m.updateInstallTask.version = m.offeredUpdateVersion
-    m.updateInstallTask.password = password
-    m.updateInstallTask.observeField("status", "onUpdateInstallStatus")
-    m.updateInstallTask.control = "RUN"
 end sub
 
 sub onUpdateInstallStatus(obj)
@@ -622,16 +646,27 @@ sub onUpdateInstallStatus(obj)
     if status = "badPassword"
         m.storage.Delete("devInstallerPassword")
         m.storage.Flush()
+    end if
+
+    if m.activeDialogKind <> "updateInstalling"
+        return
+    end if
+
+    if status = "badPassword"
         showUpdatePasswordDialog(true)
     else if status = "failed"
-        clearActiveDialog(false)
-        m.activeDialogKind = "updateFailed"
-        m.appDialog.title = buildUpdateFailedTitle()
-        m.appDialog.message = buildUpdateFailedMessage(m.offeredUpdateVersion)
-        m.appDialog.buttons = ["OK"]
-        m.appDialog.defaultButton = 0
-        openAppDialog()
+        showUpdateFailedDialog()
     end if
+end sub
+
+sub showUpdateFailedDialog()
+    clearActiveDialog(false)
+    m.activeDialogKind = "updateFailed"
+    m.appDialog.title = buildUpdateFailedTitle()
+    m.appDialog.message = buildUpdateFailedMessage(m.offeredUpdateVersion)
+    m.appDialog.buttons = ["OK"]
+    m.appDialog.defaultButton = 0
+    openAppDialog()
 end sub
 
 sub onDeepLink(obj)
@@ -837,10 +872,10 @@ sub suspendRouteFocus()
     end if
 
     screen = m.activeRouteEntry.screen
-    m.activeRouteEntry.lastFocus = getDeepFocusedNode(screen)
-
-    if m.activeRouteEntry.lastFocus <> invalid
-        m.activeRouteEntry.lastFocus.setFocus(false)
+    focusedNode = getDeepFocusedNode(screen)
+    if focusedNode <> invalid
+        m.activeRouteEntry.lastFocus = focusedNode
+        focusedNode.setFocus(false)
     end if
 
     if screen.isInFocusChain()
@@ -932,7 +967,7 @@ sub onAppDialogClosed()
     if m.activeDialogKind = "exitApp"
         clearActiveDialog()
     else if m.activeDialogKind = "update"
-        dismissUpdateDialog()
+        onUpdateDialogClosed()
     else if m.activeDialogKind = "updateInstalling" or m.activeDialogKind = "updateFailed"
         clearActiveDialog()
     else if m.hostedDialog <> invalid

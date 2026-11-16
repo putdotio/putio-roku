@@ -43,17 +43,15 @@ end function
 
 function writeInstallerBody(boundary as string, packagePath as string, bodyPath as string) as boolean
     package = CreateObject("roByteArray")
-    if package.readFile(packagePath) = false or package.count() = 0
+    if package.readFile(packagePath) = false or isZipArchive(package) = false
         return false
     end if
 
-    body = CreateObject("roByteArray")
-    body.fromAsciiString(buildInstallerBodyHead(boundary))
-    body.append(package)
+    head = CreateObject("roByteArray")
+    head.fromAsciiString(buildInstallerBodyHead(boundary))
     tail = CreateObject("roByteArray")
     tail.fromAsciiString(buildInstallerBodyTail(boundary))
-    body.append(tail)
-    return body.writeFile(bodyPath)
+    return head.writeFile(bodyPath) and package.appendFile(bodyPath) and tail.appendFile(bodyPath)
 end function
 
 ' A successful install replaces this app and relaunches it, so the request may never return.

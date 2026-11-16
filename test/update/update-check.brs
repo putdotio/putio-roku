@@ -28,6 +28,11 @@ function main() as string
             buildVersionDescription("2.18.00004", "")
         ],
         packageUrl: getUpdatePackageUrl("2.21.0"),
+        zip: [
+            isZipArchive(bytesFromHex("504B0304140000")),
+            isZipArchive(bytesFromAscii("<!doctype html>")),
+            isZipArchive(bytesFromHex("504B"))
+        ],
         installer: [
             readInstallerStatus(200, "<font color=""red"">Application Received: 862810 bytes stored.</font><font color=""red"">Install Success.</font>"),
             readInstallerStatus(401, ""),
@@ -36,4 +41,16 @@ function main() as string
         ],
         body: (buildInstallerBodyHead("b") + "ZIP" + buildInstallerBodyTail("b")).replace(chr(34), "'").split(chr(13) + chr(10))
     })
+end function
+
+function bytesFromHex(hex as string) as object
+    bytes = CreateObject("roByteArray")
+    bytes.fromHexString(hex)
+    return bytes
+end function
+
+function bytesFromAscii(text as string) as object
+    bytes = CreateObject("roByteArray")
+    bytes.fromAsciiString(text)
+    return bytes
 end function
