@@ -121,6 +121,8 @@ function sentryPlaybackSourceKind(streamInfo as object) as string
     url = LCase(streamInfo.url.toStr())
     if Instr(1, url, "/hls/") > 0 or Instr(1, url, ".m3u8") > 0
         return "hls"
+    else if Instr(1, url, ".mp4") > 0
+        return "mp4"
     else if Instr(1, url, "/stream/") > 0
         return "direct"
     end if

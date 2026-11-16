@@ -60,7 +60,7 @@ sub init()
             title: "AppDialog / playback error",
             listTitle: "App / playback error",
             section: "Dialogs",
-            description: "Playback that stopped partway with an unknown Roku error: plain cause, Settings hint, and the support code. Every line must stay visible; nothing may abbreviate.",
+            description: "Playback that stopped partway with an unknown Roku error: the Settings hint and the support code.",
             component: "appDialog",
         },
         {
@@ -409,7 +409,7 @@ sub renderStory(index as integer)
     else if story.id = "app-dialog-message"
         renderAppDialogStory("Settings not saved", "Video playback type could not be saved. Please try again.", ["OK"], 0)
     else if story.id = "app-dialog-playback-error"
-        renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", true, "hls", "HLS", "-3"), ["OK"], 0)
+        renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", "hls", "-3"), ["OK"], 0)
     else if story.id = "delete-dialog-short"
         renderDeleteDialogStory("Sintel.mp4")
     else if story.id = "delete-dialog-long"

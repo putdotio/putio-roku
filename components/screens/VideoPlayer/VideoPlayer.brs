@@ -1371,7 +1371,7 @@ end sub
 
 function getPlaybackErrorDialogMessage() as string
     failureMode = classifyRokuPlaybackFailure(sentryVideoErrorCode(m.video), sentryVideoErrorInfo(m.video))
-    return buildPlaybackErrorDialogMessage(failureMode, m.playbackStarted = true, getConfiguredPlaybackType(), getCurrentPlaybackSourceLabel(), getSafeVideoErrorCode())
+    return buildPlaybackErrorDialogMessage(failureMode, getConfiguredPlaybackType(), getSafeVideoErrorCode())
 end function
 
 function getSafeVideoErrorMessage() as string
@@ -1390,34 +1390,6 @@ function getSafeVideoErrorCode() as string
     return ""
 end function
 
-function getCurrentPlaybackSourceLabel() as string
-    if m.currentStreamInfo = invalid
-        return ""
-    end if
-
-    format = ""
-    if m.currentStreamInfo.format <> invalid
-        format = LCase(m.currentStreamInfo.format.toStr())
-    end if
-
-    if m.currentStreamInfo.url <> invalid and Instr(1, LCase(m.currentStreamInfo.url.toStr()), "/stream/") > 0
-        if format <> ""
-            return "Direct stream (" + UCase(format) + ")"
-        end if
-
-        return "Direct stream"
-    end if
-
-    if format = "hls"
-        return "HLS"
-    else if format = "mp4"
-        return "MP4"
-    else if format <> ""
-        return UCase(format)
-    end if
-
-    return ""
-end function
 
 sub showPlaybackUnavailableDialog()
     m.errorDialog = createObject("roSGNode", "AppDialog")
