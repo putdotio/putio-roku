@@ -21,6 +21,9 @@ sub render()
     messageGap = 9
 
     width = m.top.noticeWidth
+    if width <= 0
+        width = uiListRowWidth()
+    end if
     textX = accentWidth + padding
     textWidth = width - textX - padding
 

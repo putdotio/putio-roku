@@ -6,6 +6,7 @@ function init()
     m.accountNotice = m.top.findNode("accountNotice")
     m.list = m.top.findNode("list")
     m.listTop = m.list.translation[1]
+    m.accountNotice.translation = m.list.translation
     setDialogNodeFieldColor(m.list, "focusBitmapBlendColor", "focus")
     m.list.observeField("itemSelected", "onListItemSelected")
 
@@ -73,7 +74,6 @@ sub renderAccountNotice()
     listTop = m.listTop
 
     if notice <> invalid
-        m.accountNotice.noticeWidth = uiListRowWidth()
         m.accountNotice.titleText = notice.title
         m.accountNotice.messageText = notice.message
         listTop = listTop + m.accountNotice.noticeHeight + noticeGap

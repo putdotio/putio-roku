@@ -20,7 +20,6 @@
 
 		<AccountNotice
 			id="accountNotice"
-			translation="[102, 189]"
 			visible="false"
 		/>
 

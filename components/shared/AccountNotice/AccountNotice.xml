@@ -10,7 +10,7 @@
   <interface>
     <field id="titleText" type="string" onChange="render" />
     <field id="messageText" type="string" onChange="render" />
-    <field id="noticeWidth" type="integer" value="1716" onChange="render" />
+    <field id="noticeWidth" type="integer" value="0" onChange="render" />
     <field id="noticeHeight" type="integer" value="0" />
   </interface>
 

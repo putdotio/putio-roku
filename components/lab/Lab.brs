@@ -568,7 +568,6 @@ end function
 
 sub renderAccountNoticeStory(notice as object)
     accountNotice = createObject("roSGNode", "AccountNotice")
-    accountNotice.noticeWidth = uiListRowWidth()
     accountNotice.titleText = notice.title
     accountNotice.messageText = notice.message
     addPreviewNode(accountNotice, [uiPageMargin(), 189])
