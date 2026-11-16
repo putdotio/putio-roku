@@ -59,22 +59,19 @@ end function
 sub layoutAuthScreen()
     screenWidth = uiScreenWidth()
     stageWidth = 960
-    columnsTop = 471
+    columnsTop = 429
     columnGap = 81
     dividerWidth = 3
 
     m.background.width = screenWidth
     m.background.height = uiScreenHeight()
 
-    wordmark = m.top.findNode("wordmark")
-    wordmark.translation = [uiCenterX(wordmark.width), 66]
-
     stage = m.top.findNode("stage")
     stage.clippingRect = [0, 0, stageWidth, authStageFrameHeight()]
-    stage.translation = [uiCenterX(stageWidth), 150]
+    stage.translation = [uiCenterX(stageWidth), 108]
 
     m.title.width = screenWidth
-    m.title.translation = [0, 324]
+    m.title.translation = [0, 282]
 
     margin = uiPageMargin()
     columnWidth = Int((screenWidth - (margin * 2) - (columnGap * 2) - dividerWidth) / 2)

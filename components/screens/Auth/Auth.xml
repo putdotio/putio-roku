@@ -20,14 +20,6 @@
   <children>
     <Rectangle id="background" />
 
-    <Poster
-      id="wordmark"
-      width="150"
-      height="45"
-      loadDisplayMode="scaleToFit"
-      uri="pkg:/images/generated/overhangLogo.png"
-    />
-
     <Group id="stage">
       <Group id="stageReel" />
     </Group>
