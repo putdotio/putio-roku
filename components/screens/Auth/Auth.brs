@@ -22,6 +22,7 @@ function init()
     m.instructionTail = m.top.findNode("instructionTail")
     m.statusSpinner = m.top.findNode("statusSpinner")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.statusFrame = m.top.findNode("statusFrame")
     m.spinnerSpin = m.top.findNode("spinnerSpin")
     m.codeTiles = m.top.findNode("codeTiles")
     m.newCodeBackground = m.top.findNode("newCodeBackground")
@@ -35,6 +36,7 @@ function init()
     m.isPreview = false
     m.stageIndex = 0
 
+    layoutAuthScreen()
     buildStageReel()
     buildCodeTiles()
     applyAuthStyle()
@@ -53,6 +55,37 @@ function init()
 
     renderPhase()
 end function
+
+sub layoutAuthScreen()
+    screenWidth = uiScreenWidth()
+    stageWidth = 960
+    columnsTop = 471
+    columnGap = 81
+    dividerWidth = 3
+
+    m.background.width = screenWidth
+    m.background.height = uiScreenHeight()
+
+    wordmark = m.top.findNode("wordmark")
+    wordmark.translation = [uiCenterX(wordmark.width), 66]
+
+    stage = m.top.findNode("stage")
+    stage.clippingRect = [0, 0, stageWidth, authStageFrameHeight()]
+    stage.translation = [uiCenterX(stageWidth), 150]
+
+    m.title.width = screenWidth
+    m.title.translation = [0, 324]
+
+    margin = uiPageMargin()
+    columnWidth = Int((screenWidth - (margin * 2) - (columnGap * 2) - dividerWidth) / 2)
+    m.top.findNode("phoneColumn").translation = [uiSnap(margin + Int(columnWidth / 2)), columnsTop]
+    m.browserColumn.translation = [uiSnap(screenWidth - margin - Int(columnWidth / 2)), columnsTop]
+
+    dividerX = uiCenterX(dividerWidth)
+    m.dividerTop.translation = [dividerX, columnsTop]
+    m.orLabel.translation = [uiCenterX(m.orLabel.width), columnsTop + m.dividerTop.height + 6]
+    m.dividerBottom.translation = [dividerX, columnsTop + m.dividerTop.height + 57]
+end sub
 
 function authStageFrames() as object
     return [
@@ -128,6 +161,7 @@ end function
 
 sub applyAuthStyle()
     setDialogNodeColor(m.background, "appBackground")
+    setDialogNodeColor(m.statusFrame, "transparent")
     setDialogNodeColor(m.title, "text")
     setDialogNodeColor(m.phoneTitle, "text")
     setDialogNodeColor(m.browserTitle, "text")
@@ -299,14 +333,38 @@ sub renderStatus()
 end sub
 
 sub setStatusText(text as string, colorName as string, wraps as boolean)
-    m.statusLabel.wrap = wraps
-    if wraps
-        m.statusLabel.width = 720
-    else
-        m.statusLabel.width = 0
-    end if
+    frameWidth = m.statusFrame.width
     m.statusLabel.text = text
     setDialogNodeColor(m.statusLabel, colorName)
+
+    if wraps
+        m.statusLabel.wrap = true
+        m.statusLabel.lineSpacing = 0
+        m.statusLabel.width = frameWidth
+        m.statusLabel.height = 0
+        m.statusLabel.translation = [0, 0]
+        m.statusFrame.height = uiCeilToGrid(m.statusLabel.boundingRect().height)
+        return
+    end if
+
+    rowHeight = 45
+    spinnerGap = 15
+    m.statusFrame.height = rowHeight
+    m.statusLabel.wrap = false
+    m.statusLabel.width = 0
+    m.statusLabel.height = rowHeight
+    textWidth = m.statusLabel.boundingRect().width
+    rowWidth = textWidth
+    if m.statusSpinner.visible
+        rowWidth = rowWidth + m.statusSpinner.width + spinnerGap
+    end if
+
+    left = Int((frameWidth - rowWidth) / 2)
+    if m.statusSpinner.visible
+        m.statusSpinner.translation = [left, Int((rowHeight - m.statusSpinner.height) / 2)]
+        left = left + m.statusSpinner.width + spinnerGap
+    end if
+    m.statusLabel.translation = [left, 0]
 end sub
 
 sub renderNewCodeButton(enabled as boolean)

@@ -18,26 +18,23 @@
   </interface>
 
   <children>
-    <Rectangle id="background" width="1920" height="1080" />
+    <Rectangle id="background" />
 
     <Poster
       id="wordmark"
-      translation="[885, 66]"
       width="150"
       height="45"
       loadDisplayMode="scaleToFit"
       uri="pkg:/images/generated/overhangLogo.png"
     />
 
-    <Group id="stage" clippingRect="[0, 0, 960, 132]" translation="[480, 150]">
+    <Group id="stage">
       <Group id="stageReel" />
     </Group>
 
     <Label
       id="title"
       text="Sign in to put.io"
-      translation="[0, 324]"
-      width="1920"
       height="60"
       horizAlign="center"
       vertAlign="center"
@@ -47,7 +44,6 @@
       id="phoneColumn"
       layoutDirection="vert"
       horizAlignment="center"
-      translation="[489, 471]"
       itemSpacings="[24, 24]"
     >
       <Label id="phoneTitle" text="With your phone" height="45" vertAlign="center" />
@@ -70,23 +66,21 @@
       <Label id="phoneCaption" text="Scan with your camera and approve." height="36" vertAlign="center" />
     </LayoutGroup>
 
-    <Rectangle id="dividerTop" translation="[960, 471]" width="3" height="249" />
+    <Rectangle id="dividerTop" width="3" height="249" />
     <Label
       id="orLabel"
       text="or"
-      translation="[900, 726]"
       width="123"
       height="45"
       horizAlign="center"
       vertAlign="center"
     />
-    <Rectangle id="dividerBottom" translation="[960, 777]" width="3" height="249" />
+    <Rectangle id="dividerBottom" width="3" height="249" />
 
     <LayoutGroup
       id="browserColumn"
       layoutDirection="vert"
       horizAlignment="center"
-      translation="[1431, 471]"
       itemSpacings="[24, 24, 24, 24]"
     >
       <Label id="browserTitle" text="In a browser" height="45" vertAlign="center" />
@@ -97,12 +91,8 @@
         <Label id="instructionTail" text="and enter" height="45" vertAlign="center" />
       </LayoutGroup>
 
-      <LayoutGroup
-        id="status"
-        layoutDirection="horiz"
-        vertAlignment="center"
-        itemSpacings="[15]"
-      >
+      <Group id="status">
+        <Rectangle id="statusFrame" width="720" height="45" />
         <Poster
           id="statusSpinner"
           width="27"
@@ -112,7 +102,7 @@
           uri="pkg:/images/Spinner.png"
         />
         <Label id="statusLabel" horizAlign="center" vertAlign="center" />
-      </LayoutGroup>
+      </Group>
 
       <LayoutGroup id="codeTiles" layoutDirection="horiz" itemSpacings="[9]" />
 
