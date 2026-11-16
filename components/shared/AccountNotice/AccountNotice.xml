@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="AccountNotice" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/shared/UiMetrics/UiMetrics.brs" />
+  <script type="text/brightscript" uri="pkg:/source/DesignTokens.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/DialogStyle/DialogStyle.brs" />
+  <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/AccountNotice/AccountNotice.brs" />
+
+  <interface>
+    <field id="titleText" type="string" onChange="render" />
+    <field id="messageText" type="string" onChange="render" />
+    <field id="noticeWidth" type="integer" value="0" onChange="render" />
+    <field id="noticeHeight" type="integer" value="0" />
+  </interface>
+
+  <children>
+    <Rectangle id="panel" />
+    <Rectangle id="accent" />
+    <Label id="title" />
+    <Label
+      id="message"
+      wrap="true"
+      maxLines="2"
+    />
+  </children>
+</component>

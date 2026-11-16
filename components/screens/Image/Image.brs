@@ -68,6 +68,7 @@ sub showImageErrorDialog()
     m.imageLoadErrorDialog = createObject("roSGNode", "ErrorDialog")
     m.imageLoadErrorDialog.title = "Can't load this image"
     m.imageLoadErrorDialog.message = "Check your internet connection and try again."
+    applyAccountNoticeToDialog(m.imageLoadErrorDialog, m.global.user)
     m.imageLoadErrorDialog.observeField("wasClosed", "onImageLoadErrorDialogClosed")
     m.top.showDialog = m.imageLoadErrorDialog
 end sub

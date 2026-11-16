@@ -381,6 +381,9 @@ function waitForStoryTitle(story: string | undefined): void {
 
 function storyTitle(story: string): string | undefined {
   const titles: Record<string, string> = {
+    "account-notice-family": "AccountNotice / family member",
+    "account-notice-owner": "AccountNotice / owner",
+    "app-dialog-account-inactive": "AppDialog / inactive account",
     "app-dialog-empty": "AppDialog / no message",
     "app-dialog-message": "AppDialog / message",
     "app-dialog-playback-error": "AppDialog / playback error",
