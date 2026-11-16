@@ -24,6 +24,6 @@ it("offers each newer sideload build once and ignores unreadable manifests", asy
     newer: [true, true, true, false, false, false, false, false],
     manifest: ["2.19.0", "", "", ""],
     offer: [true, false, true, false],
-    description: ["2.18.00004  |  2.19.0 available at roku.put.io", "2.18.00004"],
+    description: ["2.18.00004  |  2.19.0 available", "2.18.00004"],
   });
 });

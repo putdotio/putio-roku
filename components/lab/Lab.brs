@@ -443,7 +443,7 @@ sub renderStory(index as integer)
     else if story.id = "app-dialog-playback-error"
         renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", "hls", "-3"), ["OK"], 0)
     else if story.id = "app-dialog-update"
-        renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.19.0"), ["OK"], 0)
+        renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.20.0"), ["OK"], 0)
     else if story.id = "delete-dialog-short"
         renderDeleteDialogStory("Sintel.mp4")
     else if story.id = "delete-dialog-long"

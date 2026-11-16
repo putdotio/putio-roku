@@ -79,7 +79,7 @@ end function
 
 function buildVersionDescription(current as string, latest as dynamic) as string
     if isNewerAppVersion(latest, current)
-        return current + "  |  " + formatAppVersion(latest) + " available at roku.put.io"
+        return current + "  |  " + formatAppVersion(latest) + " available"
     end if
 
     return current
