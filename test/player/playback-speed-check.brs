@@ -3,13 +3,13 @@ function main() as string
     speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0]
 
     return formatJson({
-        honoured: [
-            isPlaybackSpeedHonoured(3.0, 2.0, 2.0),
-            isPlaybackSpeedHonoured(1.25, 1.0, 1.0),
-            isPlaybackSpeedHonoured(4.0, 1.0, 3.9),
-            isPlaybackSpeedHonoured(1.25, 1.0, 1.22),
-            isPlaybackSpeedHonoured(0.5, 1.0, 0.52),
-            isPlaybackSpeedHonoured(0.5, 1.0, 1.0)
+        nearest: [
+            getNearestPlaybackSpeed(speeds, 2.0),
+            getNearestPlaybackSpeed(speeds, 1.02),
+            getNearestPlaybackSpeed(speeds, 3.9),
+            getNearestPlaybackSpeed(speeds, 1.22),
+            getNearestPlaybackSpeed(speeds, 0.52),
+            getNearestPlaybackSpeed([0.25, 0.5, 0.75, 1.0], 1.9)
         ],
         kept: [
             getPlaybackSpeedsBefore(speeds, 2.5),

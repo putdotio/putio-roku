@@ -1,16 +1,18 @@
 ' Video.playbackSpeed is undocumented. Some models (3820X, A113X) accept speeds above 2x,
 ' read them back, and keep playing at the previous rate, so only position progress shows the rate.
 sub startPlaybackSpeedCheck(requestedSpeed)
-    if requestedSpeed = m.confirmedPlaybackSpeed
-        m.playbackSpeedCheck = invalid
-        return
-    end if
-
     m.playbackSpeedCheck = {
         requestedSpeed: requestedSpeed,
         startPosition: invalid,
-        clock: CreateObject("roTimespan")
+        clock: CreateObject("roTimespan"),
+        sinceLastPosition: CreateObject("roTimespan")
     }
+end sub
+
+sub restartPlaybackSpeedCheckWindow()
+    if m.playbackSpeedCheck <> invalid
+        m.playbackSpeedCheck.startPosition = invalid
+    end if
 end sub
 
 sub checkPlaybackSpeed(position)
@@ -19,8 +21,14 @@ sub checkPlaybackSpeed(position)
         return
     end if
 
-    if m.video.state <> "playing" or m.seekInProgress
+    positionGapMs = check.sinceLastPosition.totalMilliseconds()
+    check.sinceLastPosition.mark()
+
+    if m.video.state <> "playing" or m.seekInProgress or positionGapMs > m.playbackSpeedCheckMaxGapMs
         check.startPosition = invalid
+    end if
+
+    if m.video.state <> "playing" or m.seekInProgress
         return
     end if
 
@@ -37,26 +45,32 @@ sub checkPlaybackSpeed(position)
 
     observedRate = (position - check.startPosition) * 1000 / elapsedMs
     m.playbackSpeedCheck = invalid
+    actualSpeed = getNearestPlaybackSpeed(m.playbackSpeedOptions, observedRate)
 
-    if isPlaybackSpeedHonoured(check.requestedSpeed, m.confirmedPlaybackSpeed, observedRate)
-        m.confirmedPlaybackSpeed = check.requestedSpeed
+    if actualSpeed = check.requestedSpeed
         return
     end if
 
     m.playbackSpeedOptions = getPlaybackSpeedsBefore(m.playbackSpeedOptions, check.requestedSpeed)
-    m.selectedPlaybackSpeed = m.confirmedPlaybackSpeed
-    m.selectedPlaybackSpeedLabel = getPlaybackSpeedLabel(m.confirmedPlaybackSpeed)
+    m.selectedPlaybackSpeed = actualSpeed
+    m.selectedPlaybackSpeedLabel = getPlaybackSpeedLabel(actualSpeed)
     enforcePlaybackSpeed()
+
+    if m.trackMenu.visible and m.trackMenuMode = "speed"
+        closeTrackMenu()
+    end if
 end sub
 
-function isPlaybackSpeedHonoured(requestedSpeed, confirmedSpeed, observedRate) as boolean
-    midpoint = (requestedSpeed + confirmedSpeed) / 2
+function getNearestPlaybackSpeed(speeds, rate) as float
+    nearest = 1.0
 
-    if requestedSpeed > confirmedSpeed
-        return observedRate >= midpoint
-    end if
+    for each speed in speeds
+        if Abs(speed - rate) < Abs(nearest - rate)
+            nearest = speed
+        end if
+    end for
 
-    return observedRate <= midpoint
+    return nearest
 end function
 
 function getPlaybackSpeedsBefore(speeds, rejectedSpeed) as object
