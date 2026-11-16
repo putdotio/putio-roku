@@ -5,7 +5,7 @@
 .putio-cli/
 .local/
 node_modules/
-.sst/
+.alchemy/
 build/
 out/
 *.pkg
@@ -17,3 +17,4 @@ dist/
 /fonts/*.otf
 /fonts/*.ttf
 /fonts/*.ttc
+.worktrees/

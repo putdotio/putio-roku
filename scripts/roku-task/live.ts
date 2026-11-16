@@ -97,7 +97,7 @@ export function liveTestPlaybackErrorDialog(): void {
     "playback-error-dialog-smoke",
     requireEnv("CONTENT_ID", "CONTENT_ID=<bad-file-id> pnpm roku live-test-playback-error-dialog"),
     envOr("MEDIA_TYPE", "movie"),
-    envOr("EXPECTED_TITLE", "Oops"),
+    envOr("EXPECTED_TITLE", "Something went wrong"),
     envOr("EXPECTED_MESSAGE", "File not found"),
   ], liveEnv());
 }

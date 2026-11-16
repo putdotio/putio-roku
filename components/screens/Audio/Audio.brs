@@ -98,8 +98,8 @@ end sub
 
 sub showAudioErrorDialog()
     m.audioLoadErrorDialog = createObject("roSGNode", "ErrorDialog")
-    m.audioLoadErrorDialog.title = "Oops :("
-    m.audioLoadErrorDialog.message = "Audio file can not be loaded!"
+    m.audioLoadErrorDialog.title = "Can't play this audio"
+    m.audioLoadErrorDialog.message = "Check your internet connection and try again."
     m.audioLoadErrorDialog.observeField("wasClosed", "onAudioLoadErrorDialogClosed")
     m.top.showDialog = m.audioLoadErrorDialog
 end sub

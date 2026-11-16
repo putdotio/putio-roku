@@ -60,7 +60,7 @@ sub init()
             title: "AppDialog / playback error",
             listTitle: "App / playback error",
             section: "Dialogs",
-            description: "Playback failure with a long Roku errorMsg, source and code details, and the Settings hint. Every line must stay visible; nothing may abbreviate.",
+            description: "Playback that stopped partway with an unknown Roku error: the Settings hint and the support code.",
             component: "appDialog",
         },
         {
@@ -409,7 +409,7 @@ sub renderStory(index as integer)
     else if story.id = "app-dialog-message"
         renderAppDialogStory("Settings not saved", "Video playback type could not be saved. Please try again.", ["OK"], 0)
     else if story.id = "app-dialog-playback-error"
-        renderAppDialogStory("Playback failed", buildPlaybackErrorDialogMessage("HLS playlist download failed: could not load segment after 3 retries", "HLS", "-1"), ["OK"], 0)
+        renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", "hls", "-3"), ["OK"], 0)
     else if story.id = "delete-dialog-short"
         renderDeleteDialogStory("Sintel.mp4")
     else if story.id = "delete-dialog-long"
@@ -805,6 +805,10 @@ function getPlaybackSpeedMenuItems() as object
         { label: "1.5x", selected: false },
         { label: "1.75x", selected: false },
         { label: "2x", selected: false },
+        { label: "2.5x", selected: false },
+        { label: "3x", selected: false },
+        { label: "3.5x", selected: false },
+        { label: "4x", selected: false },
     ]
 end function
 
