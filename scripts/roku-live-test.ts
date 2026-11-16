@@ -62,6 +62,11 @@ import {
 import { capturePlayerUiScreenshots } from "./live-test/player-ui-review.ts";
 import { putioProfileFromArg, setPlaybackTypeConfig } from "./live-test/putio-config.ts";
 import {
+  playbackSpeedLabels,
+  playbackSpeedLabelsBefore,
+  playbackSpeedMenuRow,
+} from "./live-test/track-menu.ts";
+import {
   assertListHasItems,
   dismissExitDialogIfVisible,
   focusLastListItem,
@@ -918,35 +923,12 @@ async function assertSpeedFocusRoundTrip(target: string): Promise<void> {
 }
 
 async function assertSpeedValueLabel(target: string, expectedLabel: string): Promise<void> {
-  const speedRowByLabel = new Map<string, number>([
-    ["0.25x", 0],
-    ["0.5x", 1],
-    ["0.75x", 2],
-    ["1x", 3],
-    ["1.25x", 4],
-    ["1.5x", 5],
-    ["1.75x", 6],
-    ["2x", 7],
-    ["2.5x", 8],
-    ["3x", 9],
-    ["3.5x", 10],
-    ["4x", 11],
-  ]);
-  const selectedRowIndex = speedRowByLabel.get(expectedLabel);
-
-  if (selectedRowIndex === undefined) {
-    throw new Error(`unknown playback speed label "${expectedLabel}"`);
-  }
-
-  await openSpeedMenuFromPlayback(target, selectedRowIndex);
+  await openSpeedMenuFromPlayback(target, playbackSpeedMenuRow(expectedLabel));
   await pressKey(target, "Back");
   await sleep(500);
 }
 
-async function assertPlaybackSpeedAffectsPosition(
-  target: string,
-  expectedMinimumRate: number,
-): Promise<void> {
+async function measurePlaybackRate(target: string): Promise<number> {
   await ensureMediaPlaying(target);
   await sleep(1_000);
 
@@ -963,14 +945,63 @@ async function assertPlaybackSpeedAffectsPosition(
     throw new Error("expected media-player position after playback speed measurement");
   }
 
-  const mediaDeltaMs = endPosition - startPosition;
-  const observedRate = mediaDeltaMs / wallClockMs;
+  return (endPosition - startPosition) / wallClockMs;
+}
+
+async function assertPlaybackSpeedAffectsPosition(
+  target: string,
+  expectedMinimumRate: number,
+): Promise<void> {
+  const observedRate = await measurePlaybackRate(target);
 
   if (observedRate < expectedMinimumRate) {
     throw new Error(
-      `expected playback speed to advance faster than realtime; observed ${observedRate.toFixed(2)}x (${mediaDeltaMs}ms over ${wallClockMs}ms)`,
+      `expected playback speed to advance faster than realtime; observed ${observedRate.toFixed(2)}x`,
     );
   }
+}
+
+const honouredRateRatio = 0.8;
+const playerSpeedCheckSettleMs = 2_000;
+
+async function assertSpeedHonouredOrDropped(
+  target: string,
+  fromLabel: string,
+  toLabel: string,
+): Promise<void> {
+  await openSpeedMenuFromPlayback(target, playbackSpeedMenuRow(fromLabel));
+  const steps = playbackSpeedLabels.indexOf(toLabel) - playbackSpeedLabels.indexOf(fromLabel);
+  for (let step = 1; step < steps; step += 1) {
+    await pressKey(target, "Down");
+    await sleep(250);
+  }
+  await selectNextTrackMenuItem(target);
+
+  const observedRate = await measurePlaybackRate(target);
+  await sleep(playerSpeedCheckSettleMs);
+
+  if (observedRate >= Number.parseFloat(toLabel) * honouredRateRatio) {
+    await assertSpeedValueLabel(target, toLabel);
+    console.log(`asserted ${toLabel} plays at ${observedRate.toFixed(2)}x`);
+    return;
+  }
+
+  const keptLabels = playbackSpeedLabelsBefore(toLabel);
+  await openSpeedMenuFromPlayback(target, playbackSpeedMenuRow(fromLabel, keptLabels));
+  const fromIndex = keptLabels.indexOf(fromLabel);
+  for (let step = 0; step <= fromIndex; step += 1) {
+    await pressKey(target, "Up");
+    await sleep(250);
+  }
+  const lastRowIndex = Math.min(keptLabels.length, trackMenuRowPoolSize) - 1;
+  await waitForSceneGraphAssertion(target, `expected ${toLabel} to leave the speed menu`, (xml) => {
+    assertNamedNodeText(xml, `trackMenuRow${lastRowIndex}Label`, keptLabels.at(-1) ?? "");
+  });
+  await pressKey(target, "Back");
+  await sleep(500);
+  console.log(
+    `asserted ignored ${toLabel} (${observedRate.toFixed(2)}x) reverts to ${fromLabel} and leaves the menu`,
+  );
 }
 
 function isOptionalSpeedUnavailable(error: unknown): boolean {
@@ -991,6 +1022,7 @@ async function smokePlaybackSpeedIfAvailable(target: string): Promise<void> {
     await sleep(750);
     await assertSpeedValueLabel(target, "1.25x");
     await assertPlaybackSpeedAffectsPosition(target, 1.1);
+    await assertSpeedHonouredOrDropped(target, "1.25x", "3x");
     console.log("asserted playback speed menu, selection, and media rate");
   } catch (error) {
     if (isOptionalSpeedUnavailable(error)) {

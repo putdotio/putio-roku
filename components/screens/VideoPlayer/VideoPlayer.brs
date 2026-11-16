@@ -130,6 +130,8 @@ function init()
     m.seekRepeatWindowMs = 500
     m.seekPressTimer = CreateObject("roTimespan")
     m.wasPlayingBeforeSeek = false
+    m.playbackSpeedCheckWindowMs = 8000
+    m.playbackSpeedCheckMaxGapMs = 2000
     m.resumeSaveIntervalMs = 10000
     m.positionWriteTimeoutMs = 15000
     m.resumeSaveTimer = CreateObject("roTimespan")
@@ -151,6 +153,7 @@ function init()
     m.playbackSpeedOptions = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0]
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
+    m.playbackSpeedCheck = invalid
     m.canSelectTrackMenu = false
     m.hasPlaybackError = false
     m.errorDialog = invalid
@@ -310,6 +313,7 @@ sub resetPlaybackState()
     m.selectedSubtitleTrackName = invalid
     m.selectedPlaybackSpeed = 1.0
     m.selectedPlaybackSpeedLabel = "1x"
+    m.playbackSpeedCheck = invalid
     m.canSelectTrackMenu = false
     m.hasPlaybackError = false
     m.errorDialog = invalid
@@ -413,6 +417,10 @@ end sub
 sub onPlayerStateChanged(obj)
     state = obj.getData()
 
+    if state <> "playing"
+        restartPlaybackSpeedCheckWindow()
+    end if
+
     if state = "playing" or state = "buffering"
         enforcePlaybackSpeed()
     end if
@@ -467,6 +475,7 @@ end sub
 
 sub onPlayerPositionChanged(obj)
     position = obj.getData()
+    checkPlaybackSpeed(position)
 
     if m.seekInProgress
         maybeSaveVideoTime(position, false)
@@ -1207,6 +1216,7 @@ sub startPreviewSeek(seconds)
     if m.seekInProgress = false
         m.seekValue = getDisplayedPosition()
         m.seekInProgress = true
+        restartPlaybackSpeedCheckWindow()
         m.wasPlayingBeforeSeek = m.video.state = "playing" or m.video.state = "buffering"
         m.seekPressCount = 0
         m.seekDirection = direction

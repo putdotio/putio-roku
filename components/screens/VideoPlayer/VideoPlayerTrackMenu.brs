@@ -224,6 +224,8 @@ sub applyPlaybackSpeed(item)
         m.video.control = "resume"
         enforcePlaybackSpeed()
     end if
+
+    startPlaybackSpeedCheck(item.speed)
 end sub
 
 sub enforcePlaybackSpeed()
