@@ -12,7 +12,7 @@
 
 ## Ways To Hurt Yourself
 
-- **Taking over someone's Roku.** A Roku holds one sideloaded developer app, which on a household Roku is its put.io install, and `pnpm sideload`, `install`, `lab-install` and the live-test installs replace it. The configured target may be a TV someone is watching or testing another build on; `pnpm roku active-app` shows what is on screen. Read-only tasks such as `check-roku-dev-target` and `device-info` leave it alone
+- **Taking over someone's Roku.** A Roku holds one sideloaded developer app, which on a household Roku is its put.io install, and `pnpm sideload`, `install`, `harness-install`, `lab-install` and the live-test flows replace it. The configured target may be a TV someone is watching or testing another build on; `pnpm roku active-app` shows what is on screen. Read-only tasks such as `check-roku-dev-target` and `device-info` leave it alone
 - **Leaking private values.** Checked-in defaults stay open-source-safe, and `.env.example` stays sanitized. Device IPs, passwords, signing keys and tokens stay out of git: local values live in ignored `.env`, `.env.local` and `.putio-cli/`, release credentials in GitHub Environments
 - **Redistributing the brand font.** GT America is licensed; never commit, subset, convert, rename or re-host the faces, and never add them to `@putdotio/design`. `static.put.io` is the single source; `pnpm verify` catches only tracked `.otf`/`.ttf`/`.ttc` files
 

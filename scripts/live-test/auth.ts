@@ -77,30 +77,33 @@ export async function waitForAuthCode(target: string, timeoutMs = 30_000): Promi
   throw new Error(`expected auth code to load: ${lastState}`);
 }
 
+const bootstrapScreenNames = [
+  "authScreen",
+  "homeScreen",
+  "searchScreen",
+  "historyScreen",
+  "filesScreen",
+  "videoScreen",
+  "videoPlayerScreen",
+  "audioScreen",
+  "imageScreen",
+  "settingsScreen",
+] as const;
+
+function readVisibleBootstrapScreen(xml: string): string | undefined {
+  return bootstrapScreenNames.find((screenName) => hasVisibleRouteScreen(xml, screenName));
+}
+
 export async function waitForBootstrapScreen(target: string, timeoutMs = 30_000): Promise<string> {
   const startedAt = Date.now();
-  const screenNames = [
-    "authScreen",
-    "homeScreen",
-    "searchScreen",
-    "historyScreen",
-    "filesScreen",
-    "videoScreen",
-    "videoPlayerScreen",
-    "audioScreen",
-    "imageScreen",
-    "settingsScreen",
-  ];
   let lastState = "waiting for app screen";
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
       const xml = await querySceneGraph(target);
-
-      for (const screenName of screenNames) {
-        if (hasVisibleRouteScreen(xml, screenName)) {
-          return screenName;
-        }
+      const screenName = readVisibleBootstrapScreen(xml);
+      if (screenName !== undefined) {
+        return screenName;
       }
 
       lastState = readSceneGraphFailure(xml) ?? "no app screen visible";
@@ -151,7 +154,15 @@ export async function waitForAuthReady(target: string, profile: string): Promise
     try {
       const xml = await querySceneGraph(target);
 
-      if (!hasVisibleRouteScreen(xml, "authScreen")) {
+      // A fresh install shows the splash before routing, which is neither signed in nor out.
+      const screenName = readVisibleBootstrapScreen(xml);
+      if (screenName === undefined) {
+        lastState = "app has not routed past the splash yet";
+        await sleep(sceneGraphPollIntervalMs);
+        continue;
+      }
+
+      if (screenName !== "authScreen") {
         console.log(`auth ready: profile=${profile}`);
         return;
       }

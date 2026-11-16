@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, readdirSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { generateRokuAssets } from "../generate-roku-assets.ts";
@@ -21,10 +21,16 @@ import {
   type VariantConfig,
 } from "./runtime.ts";
 
+function readHarnessToken(): string | undefined {
+  const path = process.env.PUTIO_ROKU_HARNESS_TOKEN_FILE?.trim();
+  return path ? readFileSync(path, "utf8") : undefined;
+}
+
 export async function packageRoku(config: VariantConfig): Promise<void> {
   const outFile = appZipFile(config);
   const result = await packageRokuApp({
     appTitle: process.env.ROKU_APP_TITLE ?? config.title,
+    harnessToken: readHarnessToken(),
     outFile,
     putioAppId: process.env.PUTIO_ROKU_APP_ID,
     repoRoot,

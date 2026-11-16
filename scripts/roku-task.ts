@@ -41,6 +41,7 @@ import {
   liveTestFlow,
   liveTestFlowFull,
   liveTestFlowSmoke,
+  harnessInstall,
   liveTestInstall,
   liveTestPlayback,
   liveTestPlaybackErrorDialog,
@@ -88,6 +89,7 @@ const tasks: Record<string, Task> = {
   "fonts-check": fontsCheck,
   "fonts-setup": fontsSetup,
   install,
+  "harness-install": harnessInstall,
   "lab-install": labInstall,
   "lab-launch": labLaunch,
   "lab-screenshot": labScreenshot,
@@ -151,7 +153,8 @@ Device:
 
 Live:
   live-test live-test-control live-test-playback live-test-player-ui
-  live-test-flow-smoke live-test-flow live-test-flow-full debug-snapshot
+  harness-install live-test-flow-smoke live-test-flow live-test-flow-full
+  debug-snapshot
 
 Lab and visuals:
   lab-install lab-screenshot visual-capture visual-capture-pages

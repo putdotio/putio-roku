@@ -17,3 +17,7 @@ end function
 function buildConfigSentryDsn() as string
     return ""
 end function
+
+function buildConfigHarnessToken() as string
+    return ""
+end function
