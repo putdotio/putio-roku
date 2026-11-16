@@ -1,6 +1,7 @@
 import {
   artifact,
   checkMarkdownFormat,
+  checkScriptsFormat,
   checkRokuAssets,
   checkRokuDesign,
   checkRokuFontBinaries,
@@ -56,15 +57,8 @@ import {
   visualCaptureLab,
   visualCapturePages,
 } from "./roku-task/live.ts";
-import {
-  loadEnvFiles,
-  selectedVariantConfig,
-  variantConfig,
-} from "./roku-task/runtime.ts";
-import {
-  secretsClean,
-  secretsSetup,
-} from "./roku-task/secrets.ts";
+import { loadEnvFiles, selectedVariantConfig, variantConfig } from "./roku-task/runtime.ts";
+import { secretsClean, secretsSetup } from "./roku-task/secrets.ts";
 
 type Task = () => Promise<void> | void;
 
@@ -77,6 +71,7 @@ const tasks: Record<string, Task> = {
   "build-dev": () => packageRoku(variantConfig("development")),
   "build-lab": () => packageRoku(variantConfig("lab")),
   "check-markdown-format": checkMarkdownFormat,
+  "check-scripts-format": checkScriptsFormat,
   "check-roku-assets": checkRokuAssets,
   "check-roku-design": checkRokuDesign,
   "check-roku-dev-target": checkRokuDevTarget,

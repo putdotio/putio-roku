@@ -3,15 +3,9 @@ import {
   assertNamedNodeTranslation,
   readNamedNodeAttribute,
 } from "@putdotio/rokit";
-import {
-  launchDeepLink,
-  waitForSceneGraphAssertion,
-} from "./rokit-device.ts";
+import { launchDeepLink, waitForSceneGraphAssertion } from "./rokit-device.ts";
 import { leaveActivePlaybackSurface } from "./navigation.ts";
-import {
-  assertNamedNodeHiddenOrAbsent,
-  assertNamedNodeVisible,
-} from "./scenegraph.ts";
+import { assertNamedNodeHiddenOrAbsent, assertNamedNodeVisible } from "./scenegraph.ts";
 
 const imageViewport = {
   x: 96,

@@ -51,7 +51,7 @@ Run before opening or updating a pull request:
 pnpm verify
 ```
 
-`pnpm exec oxfmt "**/*.md"` fixes Markdown formatting failures.
+`pnpm exec oxfmt "**/*.md" "scripts/**/*.ts"` fixes Markdown and scripts formatting failures.
 
 Build the production release ZIP at `dist/apps/putio-roku-v2.zip`:
 

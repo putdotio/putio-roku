@@ -107,7 +107,11 @@ function commandEnv(profile: string): NodeJS.ProcessEnv {
   };
 }
 
-async function runJson(command: string, args: ReadonlyArray<string>, profile: string): Promise<unknown> {
+async function runJson(
+  command: string,
+  args: ReadonlyArray<string>,
+  profile: string,
+): Promise<unknown> {
   const { stdout } = await execFile(command, args, {
     env: commandEnv(profile),
     maxBuffer: 1024 * 1024,
@@ -148,7 +152,10 @@ function optionalBoolean(record: Record<string, unknown>, key: string): boolean 
   return typeof value === "boolean" ? value : undefined;
 }
 
-function optionalNullableString(record: Record<string, unknown>, key: string): string | null | undefined {
+function optionalNullableString(
+  record: Record<string, unknown>,
+  key: string,
+): string | null | undefined {
   const value = record[key];
   if (value === null) {
     return null;
@@ -197,10 +204,12 @@ function parsePutioDescribe(value: unknown): PutioDescribe {
             })
           : undefined;
 
-        return [{
-          command,
-          input: flags === undefined ? undefined : { flags },
-        }];
+        return [
+          {
+            command,
+            input: flags === undefined ? undefined : { flags },
+          },
+        ];
       })
     : undefined;
 
@@ -320,7 +329,9 @@ function requireEnv(name: string): string {
   const value = readEnv(name);
 
   if (!value) {
-    throw new Error(`Missing ${name}. Run pnpm roku secrets-setup or export it before auth-prepare.`);
+    throw new Error(
+      `Missing ${name}. Run pnpm roku secrets-setup or export it before auth-prepare.`,
+    );
   }
 
   return value;
@@ -386,7 +397,10 @@ async function loginWithPassword(input: {
   username: string;
 }): Promise<string> {
   const credentials = Buffer.from(`${input.username}:${input.password}`, "utf8").toString("base64");
-  const url = new URL(`/v2/oauth2/authorizations/clients/${encodeURIComponent(input.clientId)}`, apiBaseUrl());
+  const url = new URL(
+    `/v2/oauth2/authorizations/clients/${encodeURIComponent(input.clientId)}`,
+    apiBaseUrl(),
+  );
   url.searchParams.set("client_name", "putio-roku harness");
   url.searchParams.set("client_secret", input.clientSecret);
 
@@ -472,7 +486,9 @@ async function materializeToken(): Promise<string> {
   const clientId = requireEnv("PUTIO_CLIENT_ID_FIRST_PARTY");
   const clientSecret = requireEnv("PUTIO_CLIENT_SECRET_FIRST_PARTY");
   const usernames = [...new Set([username, email].filter((value) => value !== ""))];
-  const passwords = [...new Set([password, otp === "" ? "" : `${password}${otp}`].filter((value) => value !== ""))];
+  const passwords = [
+    ...new Set([password, otp === "" ? "" : `${password}${otp}`].filter((value) => value !== "")),
+  ];
   let lastError: unknown;
 
   for (const candidateUsername of usernames) {
@@ -523,10 +539,12 @@ async function readPreparedToken(profile: string): Promise<string> {
     return envToken;
   }
 
-  const config = parsePutioConfig(parseJsonText(
-    await readFile(configPathForProfile(profile), "utf8"),
-    configPathForProfile(profile),
-  ));
+  const config = parsePutioConfig(
+    parseJsonText(
+      await readFile(configPathForProfile(profile), "utf8"),
+      configPathForProfile(profile),
+    ),
+  );
   const token = config.profiles?.[profile]?.auth_token ?? config.auth_token;
 
   if (!token) {
@@ -551,7 +569,9 @@ async function approveDeviceCode(profile: string, code: string): Promise<void> {
 
   if (!response.ok) {
     throw new Error(
-      data.error_message ?? data.message ?? `device-code approval failed with HTTP ${response.status}`,
+      data.error_message ??
+        data.message ??
+        `device-code approval failed with HTTP ${response.status}`,
     );
   }
 }
@@ -566,7 +586,9 @@ async function authStatus(profile: string): Promise<void> {
       {
         ...status,
         authenticated:
-          status.authenticated && validation.result === true && validation.token_scope !== "two_factor",
+          status.authenticated &&
+          validation.result === true &&
+          validation.token_scope !== "two_factor",
         configPath: configPathForProfile(profile),
         profile,
         tokenScope: validation.token_scope ?? null,
@@ -628,7 +650,9 @@ async function authPrepare(profile: string): Promise<void> {
   const after = await readAuthStatus(profile);
 
   if (!after.authenticated) {
-    throw new Error(`put.io CLI auth setup wrote ${configPath}, but status is still unauthenticated`);
+    throw new Error(
+      `put.io CLI auth setup wrote ${configPath}, but status is still unauthenticated`,
+    );
   }
 
   console.log(

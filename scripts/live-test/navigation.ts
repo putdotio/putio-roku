@@ -1,7 +1,4 @@
-import {
-  readSceneGraphFailure,
-  sceneGraphContainsText,
-} from "@putdotio/rokit";
+import { readSceneGraphFailure, sceneGraphContainsText } from "@putdotio/rokit";
 import {
   appSceneGraphReadyTimeoutMs,
   exitAppDialogTitle,
@@ -214,10 +211,7 @@ export async function assertListHasItems(
   throw new Error(`expected ${nodeName} to contain items: ${lastState}`);
 }
 
-export async function returnToHomeScreen(
-  target: string,
-  guard: ReturnHomeGuard,
-): Promise<void> {
+export async function returnToHomeScreen(target: string, guard: ReturnHomeGuard): Promise<void> {
   await launchApp(target, configuredAppId());
   await waitForDevAppSceneGraphReady(target, appSceneGraphReadyTimeoutMs);
 

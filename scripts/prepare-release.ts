@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const version = process.argv[2];
 
@@ -31,12 +24,7 @@ function writeText(path: string, text: string): void {
   writeFileSync(path, text.endsWith("\n") ? text : `${text}\n`);
 }
 
-function replaceRequired(
-  text: string,
-  pattern: RegExp,
-  replacement: string,
-  path: string,
-): string {
+function replaceRequired(text: string, pattern: RegExp, replacement: string, path: string): string {
   if (!pattern.test(text)) {
     throw new Error(`missing expected release field in ${path}: ${pattern}`);
   }
@@ -104,11 +92,7 @@ function syncVersion(): void {
   const packagePath = "package.json";
   const packageJson: unknown = JSON.parse(readText(packagePath));
 
-  if (
-    typeof packageJson !== "object" ||
-    packageJson === null ||
-    Array.isArray(packageJson)
-  ) {
+  if (typeof packageJson !== "object" || packageJson === null || Array.isArray(packageJson)) {
     throw new Error(`${packagePath} must contain a JSON object`);
   }
 
@@ -146,9 +130,7 @@ function runArtifact(): void {
   }
 
   if (result.status !== 0) {
-    throw new Error(
-      `pnpm artifact failed with status ${result.status ?? "unknown"}`,
-    );
+    throw new Error(`pnpm artifact failed with status ${result.status ?? "unknown"}`);
   }
 }
 

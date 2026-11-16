@@ -10,10 +10,7 @@ export type RetryOptions = {
   readonly onRetry?: (error: unknown, attempt: number) => void | Promise<void>;
 };
 
-export async function retryAsync<T>(
-  run: () => Promise<T>,
-  options: RetryOptions,
-): Promise<T> {
+export async function retryAsync<T>(run: () => Promise<T>, options: RetryOptions): Promise<T> {
   if (!Number.isInteger(options.attempts) || options.attempts < 1) {
     throw new Error(`retryAsync attempts must be a positive integer, got ${options.attempts}`);
   }

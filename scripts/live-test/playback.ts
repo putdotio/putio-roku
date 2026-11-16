@@ -123,7 +123,9 @@ function assertDirectPlaybackSurface(xml: string, contentId: string): void {
   }
 
   const hasFilesPlaybackPath = xml.includes(`/files/${contentId}/`);
-  const hasStreamPlaybackPath = new RegExp(`/stream/${escapeRegExp(contentId)}(?:\\.|[/?&]|$)`).test(xml);
+  const hasStreamPlaybackPath = new RegExp(
+    `/stream/${escapeRegExp(contentId)}(?:\\.|[/?&]|$)`,
+  ).test(xml);
   if (!hasFilesPlaybackPath && !hasStreamPlaybackPath) {
     throw new Error(`expected player content to include playback path for ${contentId}`);
   }
@@ -142,10 +144,7 @@ function readVisiblePlaybackContentId(xml: string): string | undefined {
   return match ? match[1] : undefined;
 }
 
-async function chooseStartFrom(
-  target: string,
-  choice: "continue" | "beginning",
-): Promise<void> {
+async function chooseStartFrom(target: string, choice: "continue" | "beginning"): Promise<void> {
   if (choice === "beginning") {
     await pressKey(target, "Down");
     await sleep(250);

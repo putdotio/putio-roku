@@ -86,7 +86,8 @@ export function assertTrackMenuLayout(
   const visibleRowCount = countVisibleTrackRows(xml);
   const rowHeight = 63;
   const rowGap = 9;
-  const panelHeight = 108 + 45 + visibleRowCount * rowHeight + Math.max(0, visibleRowCount - 1) * rowGap;
+  const panelHeight =
+    108 + 45 + visibleRowCount * rowHeight + Math.max(0, visibleRowCount - 1) * rowGap;
   const panelY = snapFhdToHdGrid(Math.floor((1080 - panelHeight) / 2));
 
   assertNodeTranslation(xml, "trackMenuPanel", 549, panelY);
@@ -103,9 +104,7 @@ function snapFhdToHdGrid(value: number): number {
 }
 
 export function hasVisibleNode(xml: string, tagName: string, nodeName: string): boolean {
-  const nodePattern = new RegExp(
-    `<${tagName}\\b(?=[^>]*\\bname="${nodeName}")([^>]*)>`,
-  );
+  const nodePattern = new RegExp(`<${tagName}\\b(?=[^>]*\\bname="${nodeName}")([^>]*)>`);
   const match = nodePattern.exec(xml);
 
   return match !== null && !match[1]?.includes('visible="false"');

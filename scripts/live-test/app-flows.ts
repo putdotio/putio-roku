@@ -7,11 +7,7 @@ import {
 import { appSceneGraphReadyTimeoutMs } from "./constants.ts";
 import type { AppFlowOptions } from "./flow-options.ts";
 import type { FlowId, FlowRunContext } from "./flow-suite.ts";
-import {
-  pressKey,
-  querySceneGraph,
-  waitForSceneGraphAssertion,
-} from "./rokit-device.ts";
+import { pressKey, querySceneGraph, waitForSceneGraphAssertion } from "./rokit-device.ts";
 import {
   assertNamedNodeHidden,
   assertNamedNodeVisible,
@@ -22,7 +18,11 @@ import {
 import { rokuDesignColor } from "./design-colors.ts";
 
 export type AppFlowDriver = {
-  readonly assertListHasItems: (target: string, nodeName: string, timeoutMs?: number) => Promise<number>;
+  readonly assertListHasItems: (
+    target: string,
+    nodeName: string,
+    timeoutMs?: number,
+  ) => Promise<number>;
   readonly authRefreshSmoke: (target: string) => Promise<void>;
   readonly focusLastListItem: (target: string, nodeName: string) => Promise<void>;
   readonly focusListItemByIndex: (
@@ -30,7 +30,11 @@ export type AppFlowDriver = {
     nodeName: string,
     targetIndex: number,
   ) => Promise<void>;
-  readonly openHomeItem: (target: string, index: number, expectedScreenName: string) => Promise<void>;
+  readonly openHomeItem: (
+    target: string,
+    index: number,
+    expectedScreenName: string,
+  ) => Promise<void>;
   readonly playbackTypeSmoke: (
     target: string,
     playbackType: "hls" | "mp4",
@@ -94,7 +98,9 @@ export async function runAppFlow(
       return;
     case "playback":
       if (options.playbackContentId === undefined) {
-        throw new Error("playback flow requires PLAYBACK_CONTENT_ID or a playback-content-id argument");
+        throw new Error(
+          "playback flow requires PLAYBACK_CONTENT_ID or a playback-content-id argument",
+        );
       }
 
       await driver.playbackTypeSmoke(
@@ -135,7 +141,10 @@ export async function ensureAppPlaybackTypeSetting(
   playbackType: "hls" | "mp4",
   driver: Pick<
     AppFlowDriver,
-    "focusLastListItem" | "focusListItemByIndex" | "returnToHomeScreen" | "waitForRouteScreenVisible"
+    | "focusLastListItem"
+    | "focusListItemByIndex"
+    | "returnToHomeScreen"
+    | "waitForRouteScreenVisible"
   >,
 ): Promise<void> {
   await driver.returnToHomeScreen(target);
@@ -179,7 +188,9 @@ async function filesNavigationFlowSmoke(
 ): Promise<void> {
   const { filesFolderName, filesFolderIndex } = options;
   if (filesFolderName === undefined || filesFolderIndex === undefined) {
-    throw new Error("files flow requires FILES_FOLDER_NAME and FILES_FOLDER_INDEX for a prepared root folder");
+    throw new Error(
+      "files flow requires FILES_FOLDER_NAME and FILES_FOLDER_INDEX for a prepared root folder",
+    );
   }
   await driver.returnToHomeScreen(target);
   await driver.openHomeItem(target, 0, "filesScreen");
@@ -209,17 +220,32 @@ async function filesNavigationFlowSmoke(
     console.log(`files wrap check skipped: requires more than ${visibleFileRows} items`);
   }
   await driver.focusListItemByIndex(target, "fileList", filesFolderIndex);
-  await waitForSceneGraphAssertion(target, "expected fixture folder focus", (xml) => {
-    assertFilesFolder(xml, originalTitle, filesFolderIndex);
-  }, 15_000);
+  await waitForSceneGraphAssertion(
+    target,
+    "expected fixture folder focus",
+    (xml) => {
+      assertFilesFolder(xml, originalTitle, filesFolderIndex);
+    },
+    15_000,
+  );
   await pressKey(target, "Select");
-  await waitForSceneGraphAssertion(target, "expected fixture folder destination", (xml) => {
-    assertFilesFolder(xml, filesFolderName);
-  }, 30_000);
+  await waitForSceneGraphAssertion(
+    target,
+    "expected fixture folder destination",
+    (xml) => {
+      assertFilesFolder(xml, filesFolderName);
+    },
+    30_000,
+  );
   await pressKey(target, "Back");
-  await waitForSceneGraphAssertion(target, "expected original folder and focus after Back", (xml) => {
-    assertFilesFolder(xml, originalTitle, filesFolderIndex);
-  }, 30_000);
+  await waitForSceneGraphAssertion(
+    target,
+    "expected original folder and focus after Back",
+    (xml) => {
+      assertFilesFolder(xml, originalTitle, filesFolderIndex);
+    },
+    30_000,
+  );
   console.log("asserted fixture folder opens and Back restores the parent and selected row");
 }
 
@@ -263,9 +289,10 @@ function assertFilesFolder(xml: string, expectedTitle: string, focusIndex?: numb
   assertNamedNodeHidden(screen, "loading");
   if (focusIndex !== undefined) {
     assertNamedNodeVisible(screen, "fileList");
-    const focusAttribute = readNamedNodeAttribute(screen, "fileList", "focusItem") === undefined
-      ? "itemFocused"
-      : "focusItem";
+    const focusAttribute =
+      readNamedNodeAttribute(screen, "fileList", "focusItem") === undefined
+        ? "itemFocused"
+        : "focusItem";
     if (readNamedNodeIntegerAttribute(screen, "fileList", focusAttribute) !== focusIndex) {
       throw new Error("expected Files selection to return to the fixture row");
     }
@@ -460,10 +487,7 @@ async function waitForSettingsPlaybackType(
       if (observedPlaybackType === undefined) {
         throw new Error("expected settings playback type value to be visible");
       }
-      if (
-        expectedPlaybackType !== undefined &&
-        observedPlaybackType !== expectedPlaybackType
-      ) {
+      if (expectedPlaybackType !== undefined && observedPlaybackType !== expectedPlaybackType) {
         throw new Error(
           `expected settings playback type ${expectedPlaybackType}, got ${observedPlaybackType}`,
         );
@@ -491,11 +515,7 @@ function readSettingsPlaybackType(xml: string): "hls" | "mp4" | undefined {
   return undefined;
 }
 
-function assertSceneGraphNodeColor(
-  xml: string,
-  nodeName: string,
-  expectedColor: string,
-): void {
+function assertSceneGraphNodeColor(xml: string, nodeName: string, expectedColor: string): void {
   const color = readNamedNodeAttribute(xml, nodeName, "color");
   if (normalizeSceneGraphColor(color) !== normalizeSceneGraphColor(expectedColor)) {
     throw new Error(`expected ${nodeName} color ${expectedColor}, got ${color ?? "missing"}`);

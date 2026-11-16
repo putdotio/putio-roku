@@ -106,9 +106,13 @@ export function toRokuColor(value: string): string {
       throw new Error(`Unsupported color value: ${value}`);
     }
 
-    const expanded = raw.length === 3
-      ? raw.split("").map((part) => `${part}${part}`).join("")
-      : raw;
+    const expanded =
+      raw.length === 3
+        ? raw
+            .split("")
+            .map((part) => `${part}${part}`)
+            .join("")
+        : raw;
     return `0x${expanded.toUpperCase()}FF`;
   }
 
@@ -121,7 +125,10 @@ export function toRokuColor(value: string): string {
     return `0x${toHex(red)}${toHex(green)}${toHex(blue)}${toHex(alpha)}`;
   }
 
-  const hslMatch = /^hsla?\(\s*([0-9.]+)(?:deg)?(?:\s*,\s*|\s+)([0-9.]+)%(?:\s*,\s*|\s+)([0-9.]+)%(?:(?:\s*,\s*|\s*\/\s*)(0|1|0?\.\d+))?\s*\)$/i.exec(normalized);
+  const hslMatch =
+    /^hsla?\(\s*([0-9.]+)(?:deg)?(?:\s*,\s*|\s+)([0-9.]+)%(?:\s*,\s*|\s+)([0-9.]+)%(?:(?:\s*,\s*|\s*\/\s*)(0|1|0?\.\d+))?\s*\)$/i.exec(
+      normalized,
+    );
   if (hslMatch !== null) {
     const hue = Number(hslMatch[1]);
     const saturation = Number(hslMatch[2]) / 100;
@@ -147,7 +154,11 @@ function namedColorToRokuColor(value: string): string | undefined {
   }
 }
 
-function hslToRgb(hue: number, saturation: number, lightness: number): { readonly blue: number; readonly green: number; readonly red: number } {
+function hslToRgb(
+  hue: number,
+  saturation: number,
+  lightness: number,
+): { readonly blue: number; readonly green: number; readonly red: number } {
   if (!Number.isFinite(hue) || !Number.isFinite(saturation) || !Number.isFinite(lightness)) {
     throw new Error("Unsupported HSL color value");
   }

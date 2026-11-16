@@ -55,13 +55,19 @@ export async function generateRokuAssets(repoRoot: string): Promise<readonly str
 
     for (const size of posterSizes) {
       const outputPath = resolve(outputDir, size.fileName);
-      await renderSvgToPng(renderAssetSvg(logo, assetStyleFromTokens(tokens, assetVariant, "poster"), "poster", size), outputPath);
+      await renderSvgToPng(
+        renderAssetSvg(logo, assetStyleFromTokens(tokens, assetVariant, "poster"), "poster", size),
+        outputPath,
+      );
       outputs.push(outputPath);
     }
 
     for (const size of splashSizes) {
       const outputPath = resolve(outputDir, size.fileName);
-      await renderSvgToPng(renderAssetSvg(logo, assetStyleFromTokens(tokens, assetVariant, "splash"), "splash", size), outputPath);
+      await renderSvgToPng(
+        renderAssetSvg(logo, assetStyleFromTokens(tokens, assetVariant, "splash"), "splash", size),
+        outputPath,
+      );
       outputs.push(outputPath);
     }
   }
@@ -81,7 +87,9 @@ async function resolveDesignAssetsDir(repoRoot: string): Promise<string> {
   }
 
   try {
-    return dirname(fileURLToPath(import.meta.resolve("@putdotio/design/assets/logo-retro-dark.svg")));
+    return dirname(
+      fileURLToPath(import.meta.resolve("@putdotio/design/assets/logo-retro-dark.svg")),
+    );
   } catch (error) {
     throw new Error(
       "Could not resolve @putdotio/design/assets/logo-retro-dark.svg. Update @putdotio/design or set PUTIO_DESIGN_ASSETS_DIR for an explicit asset source.",
@@ -136,11 +144,16 @@ export function renderAssetSvg(
   size: AssetSize,
 ): string {
   const logoWidth = logoWidthFor(kind, size);
-  const logoHeight = Math.round(logoWidth * 96 / 376);
+  const logoHeight = Math.round((logoWidth * 96) / 376);
   const logoX = Math.round((size.width - logoWidth) / 2);
   const logoY = Math.round((size.height - logoHeight) / 2);
   const logoScale = logoWidth / 376;
-  const transformedLogo = tintLogo(logo, style.brandAccentColor, style.accentColor, style.foregroundColor);
+  const transformedLogo = tintLogo(
+    logo,
+    style.brandAccentColor,
+    style.accentColor,
+    style.foregroundColor,
+  );
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size.width}" height="${size.height}" viewBox="0 0 ${size.width} ${size.height}">
   <rect width="${size.width}" height="${size.height}" fill="${style.backgroundColor}" />
@@ -176,7 +189,9 @@ export function assetStyleFromTokens(
     case "development":
       return {
         accentColor: toSvgPaint(readTokenValue(tokens, "context.tv.channelArt.development.accent")),
-        backgroundColor: toSvgPaint(readTokenValue(tokens, "context.tv.channelArt.development.background")),
+        backgroundColor: toSvgPaint(
+          readTokenValue(tokens, "context.tv.channelArt.development.background"),
+        ),
         brandAccentColor,
         gridColor: toSvgColor(readTokenValue(tokens, "context.tv.channelArt.development.grid")),
       };
@@ -221,9 +236,13 @@ function toSvgColor(value: string): SvgColor {
   const hexMatch = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(normalized);
   if (hexMatch !== null) {
     const raw = hexMatch[1] ?? "";
-    const color = raw.length === 3
-      ? raw.split("").map((part) => `${part}${part}`).join("")
-      : raw;
+    const color =
+      raw.length === 3
+        ? raw
+            .split("")
+            .map((part) => `${part}${part}`)
+            .join("")
+        : raw;
     return { color: `#${color.toUpperCase()}` };
   }
 
@@ -260,15 +279,22 @@ function toSvgPaint(value: string): string {
   return svgColor.color;
 }
 
-function tintLogo(logo: string, sourceAccentColor: string, accentColor: string, foregroundColor?: string): string {
-  const foregroundTinted = foregroundColor === undefined
-    ? logo
-    : logo
-      .replace(/\bwhite\b/gi, foregroundColor)
-      .replace(/#(?:fff|ffffff)\b/gi, foregroundColor);
+function tintLogo(
+  logo: string,
+  sourceAccentColor: string,
+  accentColor: string,
+  foregroundColor?: string,
+): string {
+  const foregroundTinted =
+    foregroundColor === undefined
+      ? logo
+      : logo
+          .replace(/\bwhite\b/gi, foregroundColor)
+          .replace(/#(?:fff|ffffff)\b/gi, foregroundColor);
 
   return uniqueColors([sourceAccentColor, logoSourceAccentColor]).reduce(
-    (currentLogo, sourceColor) => currentLogo.replace(new RegExp(escapeRegExp(sourceColor), "gi"), accentColor),
+    (currentLogo, sourceColor) =>
+      currentLogo.replace(new RegExp(escapeRegExp(sourceColor), "gi"), accentColor),
     foregroundTinted,
   );
 }
@@ -293,11 +319,15 @@ function renderGrid(size: AssetSize, gridColor: SvgColor): string {
   const lines: string[] = [];
   const opacity = gridColor.opacity ? ` stroke-opacity="${gridColor.opacity}"` : "";
   for (let x = 0; x <= size.width; x += step) {
-    lines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${size.height}" stroke="${gridColor.color}"${opacity} />`);
+    lines.push(
+      `<line x1="${x}" y1="0" x2="${x}" y2="${size.height}" stroke="${gridColor.color}"${opacity} />`,
+    );
   }
 
   for (let y = 0; y <= size.height; y += step) {
-    lines.push(`<line x1="0" y1="${y}" x2="${size.width}" y2="${y}" stroke="${gridColor.color}"${opacity} />`);
+    lines.push(
+      `<line x1="0" y1="${y}" x2="${size.width}" y2="${y}" stroke="${gridColor.color}"${opacity} />`,
+    );
   }
 
   return `<g>${lines.join("")}</g>`;

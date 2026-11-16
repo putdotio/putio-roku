@@ -1,10 +1,7 @@
 import { execFile as execFileCallback } from "node:child_process";
 import process from "node:process";
 import { promisify } from "node:util";
-import {
-  readNamedNodeAttribute,
-  readSceneGraphFailure,
-} from "@putdotio/rokit";
+import { readNamedNodeAttribute, readSceneGraphFailure } from "@putdotio/rokit";
 import {
   appSceneGraphReadyTimeoutMs,
   authPrepareTimeoutMs,
@@ -18,9 +15,7 @@ import {
   querySceneGraph,
   waitForNamedNodeVisible,
 } from "./rokit-device.ts";
-import {
-  hasVisibleRouteScreen,
-} from "./scenegraph.ts";
+import { hasVisibleRouteScreen } from "./scenegraph.ts";
 import { sleep } from "./timing.ts";
 
 const execFile = promisify(execFileCallback);
@@ -42,10 +37,12 @@ export function readAuthCode(xml: string): string | undefined {
     return undefined;
   }
 
-  const tileCode = Array.from({ length: 6 }, (_, index) =>
-    readNamedNodeAttribute(xml, `codeChar${index}`, "text")?.trim() ?? "",
+  const tileCode = Array.from(
+    { length: 6 },
+    (_, index) => readNamedNodeAttribute(xml, `codeChar${index}`, "text")?.trim() ?? "",
   ).join("");
-  const code = tileCode.length === 6 ? tileCode : readNamedNodeAttribute(xml, "code", "text")?.trim();
+  const code =
+    tileCode.length === 6 ? tileCode : readNamedNodeAttribute(xml, "code", "text")?.trim();
 
   if (code === undefined || code === "" || code === "Loading..." || code === "Error!") {
     return undefined;
@@ -160,7 +157,8 @@ export async function waitForAuthReady(target: string, profile: string): Promise
       }
 
       const code = readAuthCode(xml);
-      lastState = code === undefined ? "auth code has not loaded yet" : "auth screen waiting for approval";
+      lastState =
+        code === undefined ? "auth code has not loaded yet" : "auth screen waiting for approval";
 
       if (code !== undefined && code !== approvedCode) {
         await approveAuthCodeWithHarness(code, profile);

@@ -59,64 +59,106 @@ export function liveTestPress(): void {
 }
 
 export function liveTestDeepLink(): void {
-  runRokuLive([
-    "launch-deeplink",
-    requireEnv("CONTENT_ID", "CONTENT_ID=<file-id> pnpm roku live-test-deeplink"),
-    envOr("MEDIA_TYPE", "movie"),
-  ], liveEnv());
+  runRokuLive(
+    [
+      "launch-deeplink",
+      requireEnv("CONTENT_ID", "CONTENT_ID=<file-id> pnpm roku live-test-deeplink"),
+      envOr("MEDIA_TYPE", "movie"),
+    ],
+    liveEnv(),
+  );
 }
 
 export function liveTestPlayback(): void {
-  runRokuLive(playbackArgs("launch-playback", "CONTENT_ID=<file-id> pnpm roku live-test-playback"), liveEnv());
+  runRokuLive(
+    playbackArgs("launch-playback", "CONTENT_ID=<file-id> pnpm roku live-test-playback"),
+    liveEnv(),
+  );
 }
 
 export function liveTestPlaybackRemote(): void {
-  runRokuLive(playbackArgs("launch-playback-remote", "CONTENT_ID=<file-id> pnpm roku live-test-playback-remote"), liveEnv());
+  runRokuLive(
+    playbackArgs(
+      "launch-playback-remote",
+      "CONTENT_ID=<file-id> pnpm roku live-test-playback-remote",
+    ),
+    liveEnv(),
+  );
 }
 
 export function liveTestPlaybackType(): void {
-  runRokuLive([
-    "set-playback-type",
-    requireEnv("TYPE", "TYPE=hls pnpm roku live-test-playback-type"),
-    putioProfile(),
-  ], putioAuthEnv(liveEnv()));
+  runRokuLive(
+    [
+      "set-playback-type",
+      requireEnv("TYPE", "TYPE=hls pnpm roku live-test-playback-type"),
+      putioProfile(),
+    ],
+    putioAuthEnv(liveEnv()),
+  );
 }
 
 export function liveTestPlaybackTypeSmoke(): void {
-  runRokuLive([
-    "playback-type-smoke",
-    requireEnv("TYPE", "TYPE=mp4 CONTENT_ID=<file-id> pnpm roku live-test-playback-type-smoke"),
-    requireEnv("CONTENT_ID", "TYPE=mp4 CONTENT_ID=<file-id> pnpm roku live-test-playback-type-smoke"),
-    envOr("MEDIA_TYPE", "movie"),
-    envOr("START_FROM", "continue"),
-  ], putioAuthEnv(liveEnv()));
+  runRokuLive(
+    [
+      "playback-type-smoke",
+      requireEnv("TYPE", "TYPE=mp4 CONTENT_ID=<file-id> pnpm roku live-test-playback-type-smoke"),
+      requireEnv(
+        "CONTENT_ID",
+        "TYPE=mp4 CONTENT_ID=<file-id> pnpm roku live-test-playback-type-smoke",
+      ),
+      envOr("MEDIA_TYPE", "movie"),
+      envOr("START_FROM", "continue"),
+    ],
+    putioAuthEnv(liveEnv()),
+  );
 }
 
 export function liveTestPlaybackErrorDialog(): void {
-  runRokuLive([
-    "playback-error-dialog-smoke",
-    requireEnv("CONTENT_ID", "CONTENT_ID=<bad-file-id> pnpm roku live-test-playback-error-dialog"),
-    envOr("MEDIA_TYPE", "movie"),
-    envOr("EXPECTED_TITLE", "Something went wrong"),
-    envOr("EXPECTED_MESSAGE", "File not found"),
-  ], liveEnv());
+  runRokuLive(
+    [
+      "playback-error-dialog-smoke",
+      requireEnv(
+        "CONTENT_ID",
+        "CONTENT_ID=<bad-file-id> pnpm roku live-test-playback-error-dialog",
+      ),
+      envOr("MEDIA_TYPE", "movie"),
+      envOr("EXPECTED_TITLE", "Something went wrong"),
+      envOr("EXPECTED_MESSAGE", "File not found"),
+    ],
+    liveEnv(),
+  );
 }
 
 export function liveTestPlayerUi(): void {
-  runRokuLive([
-    "player-ui-smoke",
-    requireEnv("AUDIO_CONTENT_ID", "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui"),
-    requireEnv("SUBTITLE_CONTENT_ID", "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui"),
-    envOr("MEDIA_TYPE", "movie"),
-    envOr("START_FROM", "continue"),
-  ], liveEnv());
+  runRokuLive(
+    [
+      "player-ui-smoke",
+      requireEnv(
+        "AUDIO_CONTENT_ID",
+        "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui",
+      ),
+      requireEnv(
+        "SUBTITLE_CONTENT_ID",
+        "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui",
+      ),
+      envOr("MEDIA_TYPE", "movie"),
+      envOr("START_FROM", "continue"),
+    ],
+    liveEnv(),
+  );
 }
 
 export function liveTestPlayerUiScreenshots(): void {
   const args = [
     "player-ui-screenshots",
-    requireEnv("AUDIO_CONTENT_ID", "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui-screenshots"),
-    requireEnv("SUBTITLE_CONTENT_ID", "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui-screenshots"),
+    requireEnv(
+      "AUDIO_CONTENT_ID",
+      "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui-screenshots",
+    ),
+    requireEnv(
+      "SUBTITLE_CONTENT_ID",
+      "AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-player-ui-screenshots",
+    ),
     envOr("MEDIA_TYPE", "movie"),
     envOr("START_FROM", "continue"),
   ];
@@ -141,7 +183,18 @@ export async function labLaunch(): Promise<void> {
     params.set("story", story);
   }
   await rokitLaunchApp(rokuContext(10_000), appEcpId(), params);
-  runPnpm(["exec", "rokit", "wait-node", story === undefined ? "listView" : "detailView", "visible", "--timeout-ms", "30000"], liveEnv());
+  runPnpm(
+    [
+      "exec",
+      "rokit",
+      "wait-node",
+      story === undefined ? "listView" : "detailView",
+      "visible",
+      "--timeout-ms",
+      "30000",
+    ],
+    liveEnv(),
+  );
   waitForStoryTitle(story);
 }
 
@@ -179,7 +232,10 @@ export function visualCapturePages(): void {
   if (optionalEnv("INCLUDE_AUTH") !== undefined) {
     args.push("--include-auth");
   }
-  runRokuLive(args, putioAuthEnv({ ...liveSecretEnv(), IMAGE_CONTENT_ID: process.env.IMAGE_CONTENT_ID ?? "" }));
+  runRokuLive(
+    args,
+    putioAuthEnv({ ...liveSecretEnv(), IMAGE_CONTENT_ID: process.env.IMAGE_CONTENT_ID ?? "" }),
+  );
 }
 
 export async function visualCaptureLab(): Promise<void> {
@@ -211,12 +267,16 @@ export function putioAuthPrepare(): void {
 }
 
 export function putioAuthApproveDevice(): void {
-  run("node", [
-    "scripts/putio-auth-harness.ts",
-    "auth-approve-device",
-    requireEnv("CODE", "CODE=<device-code> pnpm roku putio-auth-approve-device"),
-    putioProfile(),
-  ], putioAuthEnv());
+  run(
+    "node",
+    [
+      "scripts/putio-auth-harness.ts",
+      "auth-approve-device",
+      requireEnv("CODE", "CODE=<device-code> pnpm roku putio-auth-approve-device"),
+      putioProfile(),
+    ],
+    putioAuthEnv(),
+  );
 }
 
 export function liveTestAuthPrepare(): void {
@@ -257,10 +317,22 @@ export function liveTestFlowFull(): void {
   putioAuthPrepare();
   const args = [
     "flow-full",
-    requireEnv("PLAYBACK_CONTENT_ID", "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full"),
-    requireEnv("IMAGE_CONTENT_ID", "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full"),
-    requireEnv("AUDIO_CONTENT_ID", "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full"),
-    requireEnv("SUBTITLE_CONTENT_ID", "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full"),
+    requireEnv(
+      "PLAYBACK_CONTENT_ID",
+      "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full",
+    ),
+    requireEnv(
+      "IMAGE_CONTENT_ID",
+      "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full",
+    ),
+    requireEnv(
+      "AUDIO_CONTENT_ID",
+      "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full",
+    ),
+    requireEnv(
+      "SUBTITLE_CONTENT_ID",
+      "PLAYBACK_CONTENT_ID=<video-file-id> IMAGE_CONTENT_ID=<image-file-id> AUDIO_CONTENT_ID=<multi-audio-file-id> SUBTITLE_CONTENT_ID=<subtitle-file-id> pnpm roku live-test-flow-full",
+    ),
     envOr("MEDIA_TYPE", "movie"),
     envOr("START_FROM", "continue"),
   ];
@@ -300,7 +372,10 @@ function waitForStoryTitle(story: string | undefined): void {
 
   const expectedTitle = storyTitle(story);
   if (expectedTitle !== undefined) {
-    runPnpm(["exec", "rokit", "wait-node", "storyTitle", "text", expectedTitle, "--timeout-ms", "10000"], liveEnv());
+    runPnpm(
+      ["exec", "rokit", "wait-node", "storyTitle", "text", expectedTitle, "--timeout-ms", "10000"],
+      liveEnv(),
+    );
   }
 }
 

@@ -502,7 +502,13 @@ function readWebpDimensions(buffer: Buffer): { width: number; height: number } {
     };
   }
 
-  if (chunk === "VP8 " && hasBytes(10) && buffer[23] === 0x9d && buffer[24] === 0x01 && buffer[25] === 0x2a) {
+  if (
+    chunk === "VP8 " &&
+    hasBytes(10) &&
+    buffer[23] === 0x9d &&
+    buffer[24] === 0x01 &&
+    buffer[25] === 0x2a
+  ) {
     return {
       width: buffer.readUInt16LE(26) & 0x3fff,
       height: buffer.readUInt16LE(28) & 0x3fff,
@@ -524,11 +530,7 @@ function readJpegDimensions(buffer: Buffer): { width: number; height: number } {
     const marker = buffer[offset + 1];
     const segmentLength = buffer.readUInt16BE(offset + 2);
     const isStartOfFrame =
-      marker >= 0xc0 &&
-      marker <= 0xcf &&
-      marker !== 0xc4 &&
-      marker !== 0xc8 &&
-      marker !== 0xcc;
+      marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc;
 
     if (isStartOfFrame) {
       return {
