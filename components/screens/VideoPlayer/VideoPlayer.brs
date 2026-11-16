@@ -1469,6 +1469,7 @@ sub requestPositionWrite(write as object)
         return
     end if
 
+    m.queuedPositionWrite = invalid
     sendPositionWrite(write)
 end sub
 
