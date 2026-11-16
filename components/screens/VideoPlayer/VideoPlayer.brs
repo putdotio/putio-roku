@@ -131,10 +131,12 @@ function init()
     m.seekPressTimer = CreateObject("roTimespan")
     m.wasPlayingBeforeSeek = false
     m.resumeSaveIntervalMs = 10000
+    m.positionWriteTimeoutMs = 15000
     m.resumeSaveTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
     m.startFromClearState = "none"
-    m.deferredSaveTime = invalid
+    m.positionWriteTask = invalid
+    m.queuedPositionWrite = invalid
     m.audioTracks = []
     m.rokuSubtitleTracks = []
     m.externalSubtitleTracks = []
@@ -316,7 +318,8 @@ sub resetPlaybackState()
     m.playbackStarted = false
     m.lastSavedVideoTime = invalid
     m.startFromClearState = "none"
-    m.deferredSaveTime = invalid
+    m.positionWriteTask = invalid
+    m.queuedPositionWrite = invalid
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
 
@@ -1443,57 +1446,71 @@ sub saveVideoTime(time)
         return
     end if
 
-    if m.startFromClearState = "pending"
-        m.deferredSaveTime = time
-        m.lastSavedVideoTime = time
-        return
-    end if
-
-    m.setStartFromTask = createObject("roSGNode", "HttpTask")
-    m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
-    m.setStartFromTask.method = "POST"
-    m.setStartFromTask.body = { time: time }
-    m.setStartFromTask.control = "RUN"
     m.lastSavedVideoTime = time
     m.startFromClearState = "none"
     m.resumeSaveTimer = CreateObject("roTimespan")
+    requestPositionWrite({ kind: "set", time: time })
 end sub
 
 sub clearVideoTime()
-    m.deferredSaveTime = invalid
     if m.startFromClearState <> "none"
         return
     end if
 
     m.startFromClearState = "pending"
     m.lastSavedVideoTime = invalid
-    m.clearStartFromTask = createObject("roSGNode", "HttpTask")
-    m.clearStartFromTask.observeField("response", "onClearStartFromResponse")
-    m.clearStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/delete")
-    m.clearStartFromTask.method = "POST"
-    m.clearStartFromTask.control = "RUN"
+    requestPositionWrite({ kind: "clear" })
 end sub
 
-sub onClearStartFromResponse(obj)
-    task = obj.getRoSGNode()
-    task.unobserveField("response")
-    if m.clearStartFromTask = invalid or not task.isSameNode(m.clearStartFromTask) or m.startFromClearState <> "pending"
+' put.io applies start-from writes in arrival order, so only one runs at a time and the latest queued write wins.
+sub requestPositionWrite(write as object)
+    if m.positionWriteTask <> invalid and m.positionWriteTimer.TotalMilliseconds() < m.positionWriteTimeoutMs
+        m.queuedPositionWrite = write
         return
     end if
 
-    data = parseJSON(obj.getData())
-    if data <> invalid and data.status = "OK"
-        m.startFromClearState = "done"
+    sendPositionWrite(write)
+end sub
+
+sub sendPositionWrite(write as object)
+    fileUrl = "/files/" + m.top.params.file.id.toStr()
+    task = createObject("roSGNode", "HttpTask")
+    task.method = "POST"
+    if write.kind = "clear"
+        task.url = fileUrl + "/start-from/delete"
     else
-        m.startFromClearState = "none"
-        m.resumeSaveTimer = CreateObject("roTimespan")
+        task.url = fileUrl + "/start-from/set"
+        task.body = { time: write.time }
+    end if
+    task.observeField("response", "onPositionWriteResponse")
+    m.positionWriteTask = task
+    m.positionWriteKind = write.kind
+    m.positionWriteTimer = CreateObject("roTimespan")
+    task.control = "RUN"
+end sub
+
+sub onPositionWriteResponse(obj)
+    task = obj.getRoSGNode()
+    task.unobserveField("response")
+    if m.positionWriteTask = invalid or not task.isSameNode(m.positionWriteTask)
+        return
     end if
 
-    if m.deferredSaveTime <> invalid
-        deferredSaveTime = m.deferredSaveTime
-        m.deferredSaveTime = invalid
-        m.startFromClearState = "none"
-        saveVideoTime(deferredSaveTime)
+    m.positionWriteTask = invalid
+    if m.positionWriteKind = "clear" and m.startFromClearState = "pending"
+        data = parseJSON(obj.getData())
+        if data <> invalid and data.status = "OK"
+            m.startFromClearState = "done"
+        else
+            m.startFromClearState = "none"
+            m.resumeSaveTimer = CreateObject("roTimespan")
+        end if
+    end if
+
+    if m.queuedPositionWrite <> invalid
+        write = m.queuedPositionWrite
+        m.queuedPositionWrite = invalid
+        sendPositionWrite(write)
     end if
 end sub
 
