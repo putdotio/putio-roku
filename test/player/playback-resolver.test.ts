@@ -208,6 +208,12 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
     ctx: ctx(),
     expected: play("converted", mp4StreamUrl, "mp4", "video_unsupported"),
   },
+  same_source_audio_keeps_mp3: {
+    file: { id: 7, file_type: "AUDIO", stream_url: streamUrl },
+    sameSourceAs: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+    ctx: ctx(),
+    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+  },
   same_source_original_without_url_expires: {
     file: video({ need_convert: false, is_mp4_available: true, mp4_stream_url: mp4StreamUrl }),
     sameSourceAs: play("original", "https://s1.put.io/stream/7?expired", "mp4"),

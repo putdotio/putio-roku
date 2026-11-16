@@ -19,6 +19,10 @@ function resolveSameSourcePlaybackPlan(file as object, plan as object, ctx as ob
         return createUnplayablePlan("link_expired")
     end if
 
+    if file.file_type = "AUDIO"
+        return resolveAudioPlaybackPlan(file, ctx)
+    end if
+
     url = invalid
     if plan.source = "hls"
         if hasPlaybackApiAccess(file, ctx)
