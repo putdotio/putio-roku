@@ -134,6 +134,7 @@ function init()
     m.resumeSaveTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
     m.startFromClearState = "none"
+    m.deferredSaveTime = invalid
     m.audioTracks = []
     m.rokuSubtitleTracks = []
     m.externalSubtitleTracks = []
@@ -315,6 +316,7 @@ sub resetPlaybackState()
     m.playbackStarted = false
     m.lastSavedVideoTime = invalid
     m.startFromClearState = "none"
+    m.deferredSaveTime = invalid
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
 
@@ -1437,19 +1439,28 @@ sub maybeSaveVideoTime(time, force as boolean)
 end sub
 
 sub saveVideoTime(time)
-    if time <> invalid and time > 0
-        m.setStartFromTask = createObject("roSGNode", "HttpTask")
-        m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
-        m.setStartFromTask.method = "POST"
-        m.setStartFromTask.body = { time: time }
-        m.setStartFromTask.control = "RUN"
-        m.lastSavedVideoTime = time
-        m.startFromClearState = "none"
-        m.resumeSaveTimer = CreateObject("roTimespan")
+    if time = invalid or time <= 0
+        return
     end if
+
+    if m.startFromClearState = "pending"
+        m.deferredSaveTime = time
+        m.lastSavedVideoTime = time
+        return
+    end if
+
+    m.setStartFromTask = createObject("roSGNode", "HttpTask")
+    m.setStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/set")
+    m.setStartFromTask.method = "POST"
+    m.setStartFromTask.body = { time: time }
+    m.setStartFromTask.control = "RUN"
+    m.lastSavedVideoTime = time
+    m.startFromClearState = "none"
+    m.resumeSaveTimer = CreateObject("roTimespan")
 end sub
 
 sub clearVideoTime()
+    m.deferredSaveTime = invalid
     if m.startFromClearState <> "none"
         return
     end if
@@ -1464,8 +1475,9 @@ sub clearVideoTime()
 end sub
 
 sub onClearStartFromResponse(obj)
-    obj.getRoSGNode().unobserveField("response")
-    if m.startFromClearState <> "pending"
+    task = obj.getRoSGNode()
+    task.unobserveField("response")
+    if m.clearStartFromTask = invalid or not task.isSameNode(m.clearStartFromTask) or m.startFromClearState <> "pending"
         return
     end if
 
@@ -1475,6 +1487,13 @@ sub onClearStartFromResponse(obj)
     else
         m.startFromClearState = "none"
         m.resumeSaveTimer = CreateObject("roTimespan")
+    end if
+
+    if m.deferredSaveTime <> invalid
+        deferredSaveTime = m.deferredSaveTime
+        m.deferredSaveTime = invalid
+        m.startFromClearState = "none"
+        saveVideoTime(deferredSaveTime)
     end if
 end sub
 
