@@ -4,3 +4,5 @@ minimumReleaseAgeExclude:
   # First-party packages are trusted (we publish them), so exempt the whole
   # scope from the minimum-release-age policy that guards third-party publishes.
   - '@putdotio/*'
+patchedDependencies:
+  '@alchemy.run/aws@2.0.0-beta.87': patches/@alchemy.run__aws@2.0.0-beta.87.patch
