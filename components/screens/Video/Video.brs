@@ -300,10 +300,5 @@ function shouldResumeFrom(startFrom as integer) as boolean
         return false
     end if
 
-    duration = getVideoFileDurationSeconds(m.file)
-    if duration > 0 and startFrom >= int(duration * 0.95)
-        return false
-    end if
-
-    return true
+    return not isPlaybackFinishedAt(startFrom, getVideoFileDurationSeconds(m.file))
 end function

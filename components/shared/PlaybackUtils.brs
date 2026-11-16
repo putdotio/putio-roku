@@ -127,3 +127,7 @@ function getVideoFileDurationSeconds(file as object) as integer
 
     return 0
 end function
+
+function isPlaybackFinishedAt(position, duration) as boolean
+    return duration <> invalid and duration > 0 and position <> invalid and position >= int(duration * 0.95)
+end function

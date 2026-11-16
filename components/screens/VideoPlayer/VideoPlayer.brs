@@ -133,6 +133,7 @@ function init()
     m.resumeSaveIntervalMs = 10000
     m.resumeSaveTimer = CreateObject("roTimespan")
     m.lastSavedVideoTime = invalid
+    m.startFromCleared = false
     m.audioTracks = []
     m.rokuSubtitleTracks = []
     m.externalSubtitleTracks = []
@@ -313,6 +314,7 @@ sub resetPlaybackState()
     m.currentStreamInfo = invalid
     m.playbackStarted = false
     m.lastSavedVideoTime = invalid
+    m.startFromCleared = false
     m.resumeSaveTimer = CreateObject("roTimespan")
     resetSeekPressTimer()
 
@@ -425,6 +427,7 @@ sub onPlayerStateChanged(obj)
             handlePlaybackError()
         else if m.hasPlaybackError = false
             if isPlaybackFinishedNormally()
+                maybeSaveVideoTime(m.duration, true)
                 onGoBack()
             else
                 handlePlaybackError()
@@ -1415,6 +1418,11 @@ sub maybeSaveVideoTime(time, force as boolean)
         return
     end if
 
+    if isPlaybackFinishedAt(time, m.duration)
+        clearVideoTime()
+        return
+    end if
+
     if force = false and m.resumeSaveTimer <> invalid and m.resumeSaveTimer.TotalMilliseconds() < m.resumeSaveIntervalMs
         return
     end if
@@ -1434,8 +1442,22 @@ sub saveVideoTime(time)
         m.setStartFromTask.body = { time: time }
         m.setStartFromTask.control = "RUN"
         m.lastSavedVideoTime = time
+        m.startFromCleared = false
         m.resumeSaveTimer = CreateObject("roTimespan")
     end if
+end sub
+
+sub clearVideoTime()
+    if m.startFromCleared = true
+        return
+    end if
+
+    m.clearStartFromTask = createObject("roSGNode", "HttpTask")
+    m.clearStartFromTask.url = ("/files/" + m.top.params.file.id.toStr() + "/start-from/delete")
+    m.clearStartFromTask.method = "POST"
+    m.clearStartFromTask.control = "RUN"
+    m.lastSavedVideoTime = invalid
+    m.startFromCleared = true
 end sub
 
 sub onGoBack()
