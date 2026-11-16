@@ -1467,7 +1467,7 @@ async function main(): Promise<void> {
     const [
       contentId,
       mediaType = "movie",
-      expectedTitle = "Oops, an error occurred",
+      expectedTitle = "Something went wrong",
       expectedMessageFragment = "File not found",
     ] = args;
 

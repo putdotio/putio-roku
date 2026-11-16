@@ -1324,6 +1324,8 @@ sub handlePlaybackError()
     m.hasPlaybackError = true
     updateBufferingOverlay(false)
     m.osdTimer.control = "stop"
+    m.playbackFailureMode = classifyRokuPlaybackFailure(sentryVideoErrorCode(m.video), sentryVideoErrorInfo(m.video))
+    m.playbackFailureCode = getSafeVideoErrorCode()
     reportPlaybackFailure()
     m.video.control = "stop"
 
@@ -1362,7 +1364,7 @@ end function
 sub showPlaybackErrorDialog()
     m.errorDialogShown = true
     m.errorDialog = createObject("roSGNode", "AppDialog")
-    m.errorDialog.title = "Playback failed"
+    m.errorDialog.title = buildPlaybackErrorDialogTitle(m.playbackStarted = true)
     m.errorDialog.message = getPlaybackErrorDialogMessage()
     m.errorDialog.buttons = ["OK"]
     m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
@@ -1370,7 +1372,7 @@ sub showPlaybackErrorDialog()
 end sub
 
 function getPlaybackErrorDialogMessage() as string
-    return buildPlaybackErrorDialogMessage(getSafeVideoErrorMessage(), getCurrentPlaybackSourceLabel(), getSafeVideoErrorCode())
+    return buildPlaybackErrorDialogMessage(m.playbackFailureMode, getConfiguredPlaybackType(), m.playbackFailureCode)
 end function
 
 function getSafeVideoErrorMessage() as string
@@ -1389,34 +1391,6 @@ function getSafeVideoErrorCode() as string
     return ""
 end function
 
-function getCurrentPlaybackSourceLabel() as string
-    if m.currentStreamInfo = invalid
-        return ""
-    end if
-
-    format = ""
-    if m.currentStreamInfo.format <> invalid
-        format = LCase(m.currentStreamInfo.format.toStr())
-    end if
-
-    if m.currentStreamInfo.url <> invalid and Instr(1, LCase(m.currentStreamInfo.url.toStr()), "/stream/") > 0
-        if format <> ""
-            return "Direct stream (" + UCase(format) + ")"
-        end if
-
-        return "Direct stream"
-    end if
-
-    if format = "hls"
-        return "HLS"
-    else if format = "mp4"
-        return "MP4"
-    else if format <> ""
-        return UCase(format)
-    end if
-
-    return ""
-end function
 
 sub showPlaybackUnavailableDialog()
     m.errorDialog = createObject("roSGNode", "AppDialog")

@@ -63,8 +63,8 @@ end function
 function showFileNotSupportedDialog(callback = invalid)
     m.fileNotSupportedDialogCallback = callback
     m.fileNotSupportedDialog = createObject("roSGNode", "AppDialog")
-    m.fileNotSupportedDialog.title = "Oops :("
-    m.fileNotSupportedDialog.message = "We're unable to show this kind of file on this app (for now)"
+    m.fileNotSupportedDialog.title = "Can't open this file"
+    m.fileNotSupportedDialog.message = "The Roku app doesn't support this file type yet."
     m.fileNotSupportedDialog.buttons = ["OK"]
     m.fileNotSupportedDialog.observeField("wasClosed", "onFileNotSupportedDialogClosedBase")
     m.top.showDialog = m.fileNotSupportedDialog
