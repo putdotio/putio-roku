@@ -74,7 +74,132 @@ function buildUpdateDialogTitle() as string
 end function
 
 function buildUpdateDialogMessage(latest as string) as string
-    return "Version " + latest + " is out. Sideloaded apps can't update themselves, so reinstall it with the steps at roku.put.io"
+    return "Version " + latest + " is out. Installing it takes a few seconds, then the app restarts."
+end function
+
+function buildUpdateDialogButtons() as object
+    return ["Install now", "Later"]
+end function
+
+function getUpdatePackageUrl(version as string) as string
+    return "https://roku.put.io/releases/v2/" + version + ".zip"
+end function
+
+function getDevInstallerUrl() as string
+    return "http://127.0.0.1/plugin_install"
+end function
+
+function buildInstallerBodyHead(boundary as string) as string
+    crlf = chr(13) + chr(10)
+    quote = chr(34)
+    head = "--" + boundary + crlf
+    head = head + "Content-Disposition: form-data; name=" + quote + "mysubmit" + quote + crlf + crlf
+    head = head + "Install" + crlf
+    head = head + "--" + boundary + crlf
+    head = head + "Content-Disposition: form-data; name=" + quote + "archive" + quote + "; filename=" + quote + "putio.zip" + quote + crlf
+    head = head + "Content-Type: application/zip" + crlf + crlf
+    return head
+end function
+
+function buildInstallerBodyTail(boundary as string) as string
+    crlf = chr(13) + chr(10)
+    return crlf + "--" + boundary + "--" + crlf
+end function
+
+function parseDigestChallenge(header as dynamic) as dynamic
+    if GetInterface(header, "ifString") = invalid or lcase(left(header.trim(), 7)) <> "digest "
+        return invalid
+    end if
+
+    quote = chr(34)
+    challenge = {}
+    for each name in ["realm", "nonce", "qop", "opaque"]
+        match = CreateObject("roRegex", "[\s,]" + name + "=" + quote + "?([^" + quote + ",]*)", "i").match(" " + header.mid(7))
+        if match.count() > 1
+            challenge[name] = match[1]
+        end if
+    end for
+
+    if challenge.realm = invalid or challenge.nonce = invalid
+        return invalid
+    end if
+
+    return challenge
+end function
+
+function computeDigestResponse(md5 as function, username as string, password as string, method as string, uri as string, challenge as object, cnonce as string, nc as string) as string
+    ha1 = md5(username + ":" + challenge.realm + ":" + password)
+    ha2 = md5(method + ":" + uri)
+    if challenge.qop = invalid
+        return md5(ha1 + ":" + challenge.nonce + ":" + ha2)
+    end if
+
+    return md5(ha1 + ":" + challenge.nonce + ":" + nc + ":" + cnonce + ":auth:" + ha2)
+end function
+
+function buildDigestAuthorization(username as string, uri as string, challenge as object, response as string, cnonce as string, nc as string) as string
+    quote = chr(34)
+    header = "Digest username=" + quote + username + quote
+    header = header + ", realm=" + quote + challenge.realm + quote
+    header = header + ", nonce=" + quote + challenge.nonce + quote
+    header = header + ", uri=" + quote + uri + quote
+    header = header + ", response=" + quote + response + quote
+    if challenge.qop <> invalid
+        header = header + ", qop=auth, nc=" + nc + ", cnonce=" + quote + cnonce + quote
+    end if
+    if challenge.opaque <> invalid
+        header = header + ", opaque=" + quote + challenge.opaque + quote
+    end if
+
+    return header
+end function
+
+function isZipArchive(bytes as object) as boolean
+    if bytes.count() < 4
+        return false
+    end if
+
+    return bytes[0] = &h50 and bytes[1] = &h4B and bytes[2] = &h03 and bytes[3] = &h04
+end function
+
+function readInstallerStatus(responseCode as integer, body as dynamic) as string
+    if responseCode = 401
+        return "badPassword"
+    end if
+
+    if responseCode = 200 and GetInterface(body, "ifString") <> invalid and body.instr("Install Success") >= 0
+        return "installed"
+    end if
+
+    return "failed"
+end function
+
+function buildUpdatePasswordTitle() as string
+    return "Developer password"
+end function
+
+function buildUpdatePasswordMessage(retry as boolean) as object
+    if retry
+        return ["That password didn't work. Enter the one you set when you turned on developer mode."]
+    end if
+
+    return ["Enter the password you set when you turned on developer mode. This Roku keeps it for later updates."]
+end function
+
+function buildUpdateInstallingTitle() as string
+    return "Installing update"
+end function
+
+function buildUpdateInstallingMessage(latest as string) as string
+    return "Installing version " + latest + ". The app restarts when it's done."
+end function
+
+function buildUpdateFailedTitle() as string
+    return "Update failed"
+end function
+
+function buildUpdateFailedMessage(latest as string) as string
+    return "Version " + latest + " didn't install. Try again from Settings, or reinstall it with the steps at roku.put.io"
 end function
 
 function buildVersionDescription(current as string, latest as dynamic) as string

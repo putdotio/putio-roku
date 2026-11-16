@@ -22,6 +22,7 @@ sub Main(args as object)
         apiURL: "https://api.put.io/v2",
         latestAppVersion: "",
     })
+    m.global.addField("appUpdateRequested", "boolean", true)
 
     scene = screen.CreateScene("App")
     scene.backgroundColor = designTokenColor("appBackground")

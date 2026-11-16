@@ -72,6 +72,22 @@ sub init()
             component: "appDialog",
         },
         {
+            id: "app-dialog-update-installing",
+            title: "AppDialog / update installing",
+            listTitle: "App / update installing",
+            section: "Dialogs",
+            description: "Shown while the app downloads the new build and hands it to the Roku developer installer.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-update-failed",
+            title: "AppDialog / update failed",
+            listTitle: "App / update failed",
+            section: "Dialogs",
+            description: "Shown when the download or the developer installer fails; the old build stays installed.",
+            component: "appDialog",
+        },
+        {
             id: "delete-dialog-short",
             title: "DeleteFileDialog / short file",
             listTitle: "Delete / short",
@@ -483,7 +499,11 @@ sub renderStory(index as integer)
     else if story.id = "app-dialog-playback-error"
         renderAppDialogStory(buildPlaybackErrorDialogTitle(true), buildPlaybackErrorDialogMessage("unknown", "hls", "-3"), ["OK"], 0)
     else if story.id = "app-dialog-update"
-        renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.20.0"), ["OK"], 0)
+        renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.21.0"), buildUpdateDialogButtons(), 0)
+    else if story.id = "app-dialog-update-installing"
+        renderAppDialogStory(buildUpdateInstallingTitle(), buildUpdateInstallingMessage("2.21.0"), ["OK"], 0)
+    else if story.id = "app-dialog-update-failed"
+        renderAppDialogStory(buildUpdateFailedTitle(), buildUpdateFailedMessage("2.21.0"), ["OK"], 0)
     else if story.id = "delete-dialog-short"
         renderDeleteDialogStory("Sintel.mp4")
     else if story.id = "delete-dialog-long"
