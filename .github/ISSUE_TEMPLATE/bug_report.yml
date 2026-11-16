@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible put.io Roku app problem.
+title: ""
+labels:
+  - bug
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Screens and remote presses, in order. Include the file type or format if playback is involved.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: The Version and Device rows from the app's Settings screen.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Screenshots, recordings, or debug console output. Do not include device IPs, developer passwords, OAuth tokens, or private file IDs.
