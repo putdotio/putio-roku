@@ -1384,6 +1384,7 @@ sub showPlaybackErrorDialog()
     m.errorDialog = createObject("roSGNode", "AppDialog")
     m.errorDialog.title = buildPlaybackErrorDialogTitle(m.playbackStarted = true)
     m.errorDialog.message = getPlaybackErrorDialogMessage()
+    applyAccountNoticeToDialog(m.errorDialog, m.global.user)
     m.errorDialog.buttons = ["OK"]
     m.errorDialog.observeField("wasClosed", "onErrorDialogClosed")
     m.top.showDialog = m.errorDialog

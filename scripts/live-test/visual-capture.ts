@@ -44,6 +44,9 @@ export const visualLabStories = [
   ["list-item-file-watched-focused", "FileListItem / watched focused"],
   ["list-item-file-loading-focused", "FileListItem / loading focused"],
   ["list-item-history", "HistoryListItem"],
+  ["account-notice-owner", "AccountNotice / owner"],
+  ["account-notice-family", "AccountNotice / family member"],
+  ["app-dialog-account-inactive", "AppDialog / inactive account"],
 ] as const;
 
 export type VisualLabStory = (typeof visualLabStories)[number];

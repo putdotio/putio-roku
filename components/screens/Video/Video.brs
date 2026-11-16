@@ -182,6 +182,7 @@ end sub
 sub showFetchFileErrorDialog(data)
     m.fetchFileErrorDialog = createObject("roSGNode", "ErrorDialog")
     m.fetchFileErrorDialog.error = data
+    applyAccountNoticeToDialog(m.fetchFileErrorDialog, m.global.user)
     m.fetchFileErrorDialog.observeField("wasClosed", "onFetchFileErrorDialogClosed")
     m.top.showDialog = m.fetchFileErrorDialog
 end sub

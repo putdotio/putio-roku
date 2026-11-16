@@ -3,7 +3,9 @@ function init()
     m.top.observeField("routeShown", "onRouteShown")
     m.global.observeField("user", "modifyList")
 
+    m.accountNotice = m.top.findNode("accountNotice")
     m.list = m.top.findNode("list")
+    m.listTop = m.list.translation[1]
     setDialogNodeFieldColor(m.list, "focusBitmapBlendColor", "focus")
     m.list.observeField("itemSelected", "onListItemSelected")
 
@@ -61,7 +63,24 @@ sub modifyList()
         m.items[2].isEnabled = m.global.user.settings.history_enabled
     end if
 
+    renderAccountNotice()
     renderList()
+end sub
+
+sub renderAccountNotice()
+    noticeGap = 30
+    notice = getAccountNotice(m.global.user)
+    listTop = m.listTop
+
+    if notice <> invalid
+        m.accountNotice.noticeWidth = uiListRowWidth()
+        m.accountNotice.titleText = notice.title
+        m.accountNotice.messageText = notice.message
+        listTop = listTop + m.accountNotice.noticeHeight + noticeGap
+    end if
+
+    m.accountNotice.visible = notice <> invalid
+    m.list.translation = [m.list.translation[0], listTop]
 end sub
 
 sub renderList()

@@ -183,6 +183,30 @@ sub init()
             description: "History event rows with event-specific icon, title, metadata, and loading state.",
             component: "listItem",
         },
+        {
+            id: "account-notice-owner",
+            title: "AccountNotice / owner",
+            listTitle: "Notice / owner",
+            section: "Account",
+            description: "Home banner for a deactivated owner account with the file deletion countdown.",
+            component: "accountNotice",
+        },
+        {
+            id: "account-notice-family",
+            title: "AccountNotice / family member",
+            listTitle: "Notice / family",
+            section: "Account",
+            description: "Home banner for a family member whose plan owner has lapsed.",
+            component: "accountNotice",
+        },
+        {
+            id: "app-dialog-account-inactive",
+            title: "AppDialog / inactive account",
+            listTitle: "Notice / playback",
+            section: "Account",
+            description: "Playback failure on a deactivated owner account: the account state replaces the generic error.",
+            component: "appDialog",
+        },
     ]
 
     m.storyList.observeField("itemFocused", "onStoryFocused")
@@ -440,6 +464,13 @@ sub renderStory(index as integer)
         renderFocusedFileListItemStory("loading")
     else if story.id = "list-item-history"
         renderHistoryListItemStory()
+    else if story.id = "account-notice-owner"
+        renderAccountNoticeStory(getLabInactiveAccountNotice(false))
+    else if story.id = "account-notice-family"
+        renderAccountNoticeStory(getLabInactiveAccountNotice(true))
+    else if story.id = "app-dialog-account-inactive"
+        notice = getLabInactiveAccountNotice(false)
+        renderAppDialogStory(notice.title, notice.message, ["OK"], 0)
     end if
 
 end sub
@@ -520,6 +551,27 @@ sub renderConversionStatusStory(previewMode as string)
     conversionStatus.fileId = 1001
     conversionStatus.fileName = "Sintel.2010.1080p.BluRay.x264.mp4"
     conversionStatus.previewMode = previewMode
+end sub
+
+function getLabInactiveAccountNotice(isSubAccount as boolean) as object
+    labDeletionDays = 14
+    now = createObject("roDateTime")
+    deleteAt = createObject("roDateTime")
+    deleteAt.fromSeconds(now.asSeconds() + labDeletionDays * 86400)
+
+    return buildAccountNotice({
+        account_status: "inactive",
+        is_sub_account: isSubAccount,
+        files_will_be_deleted_at: deleteAt.toISOString(),
+    }, now.asSeconds())
+end function
+
+sub renderAccountNoticeStory(notice as object)
+    accountNotice = createObject("roSGNode", "AccountNotice")
+    accountNotice.noticeWidth = uiListRowWidth()
+    accountNotice.titleText = notice.title
+    accountNotice.messageText = notice.message
+    addPreviewNode(accountNotice, [uiPageMargin(), 189])
 end sub
 
 sub renderGenericListItemStory()

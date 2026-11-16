@@ -6,6 +6,7 @@
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/source/BuildConfig.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/AccountStatus.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/Audio/Audio.brs" />
 
 	<interface>

@@ -13,6 +13,7 @@
   <script type="text/brightscript" uri="pkg:/components/shared/Sentry/Sentry.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Sentry/PlaybackTelemetry.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Typography/Typography.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/AccountStatus.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayer.brs" />
 
 	<interface>
