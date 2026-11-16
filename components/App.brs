@@ -402,6 +402,14 @@ sub checkToken()
         m.token = ""
     end if
 
+    if m.token = ""
+        m.token = buildConfigHarnessToken()
+        if m.token <> ""
+            m.storage.Write("token", m.token)
+            m.storage.Flush()
+        end if
+    end if
+
     if (m.token = "") then
         goToAuthScreen()
     else

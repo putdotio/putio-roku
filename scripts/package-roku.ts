@@ -7,6 +7,8 @@ export type RokuVariant = "production" | "development" | "lab";
 
 export interface RokuPackageOptions {
   readonly appTitle?: string;
+  // put.io token for the harness test account; only non-production builds may carry one.
+  readonly harnessToken?: string;
   readonly outFile: string;
   readonly putioAppId?: string;
   readonly repoRoot: string;
@@ -54,6 +56,7 @@ export async function packageRokuApp(options: RokuPackageOptions): Promise<RokuP
           options.putioAppId ?? "3776",
           brandFontsBundled,
           options.sentryDsn ?? "",
+          options.harnessToken ?? "",
         ),
         path: "source/BuildConfig.brs",
       },
@@ -155,6 +158,7 @@ export function renderBuildConfig(
   putioAppId: string,
   brandFontsAvailable: boolean,
   sentryDsn = "",
+  harnessToken = "",
 ): string {
   return `function buildConfigVariant() as string
     return "${brightScriptString(variant)}"
@@ -175,7 +179,28 @@ end function
 function buildConfigSentryDsn() as string
     return "${brightScriptString(validatedSentryDsn(sentryDsn))}"
 end function
+
+function buildConfigHarnessToken() as string
+    return "${brightScriptString(validatedHarnessToken(variant, harnessToken))}"
+end function
 `;
+}
+
+export function validatedHarnessToken(variant: RokuVariant, value: string): string {
+  const token = value.trim();
+  if (token === "") {
+    return "";
+  }
+
+  if (variant === "production") {
+    throw new Error("Production builds must not carry a harness token");
+  }
+
+  if (!/^[A-Za-z0-9._-]+$/.test(token)) {
+    throw new Error("Harness token must be a put.io OAuth token");
+  }
+
+  return token;
 }
 
 // A DSN carries only the public key, so it is safe to ship, but a typo would make every

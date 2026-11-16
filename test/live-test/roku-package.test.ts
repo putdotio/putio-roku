@@ -82,6 +82,19 @@ describe("Roku package variants", () => {
     expect(() => validatedSentryDsn('https://a"b@host/1')).toThrow("PUTIO_ROKU_SENTRY_DSN");
   });
 
+  it("compiles a harness token only into non-production builds", () => {
+    expect(renderBuildConfig("development", "3776", false, "", "abc.DEF-123_x\n")).toContain(
+      'function buildConfigHarnessToken() as string\n    return "abc.DEF-123_x"',
+    );
+    expect(renderBuildConfig("production", "3776", false)).toContain(
+      'function buildConfigHarnessToken() as string\n    return ""',
+    );
+    expect(() => renderBuildConfig("production", "3776", false, "", "abc")).toThrow(
+      "Production builds must not carry a harness token",
+    );
+    expect(() => renderBuildConfig("development", "3776", false, "", 'a"b')).toThrow("Harness token");
+  });
+
   it("writes a variant package ZIP", async () => {
     rmSync(join(repoRoot, packageTestDir), { recursive: true, force: true });
 

@@ -41,6 +41,17 @@ Build and reinstall the app on the configured Roku:
 pnpm sideload
 ```
 
+Install this checkout as put.io Dev, already signed in to the test account:
+
+```bash
+pnpm roku harness-install
+```
+
+The first run on a host spends one device code and caches the app token in
+`~/.cache/putio-roku`; later installs and `live-test-flow-smoke` or
+`live-test-flow-full` reuse it. put.io limits device codes per IP. Signing out
+in the app keeps the cached token valid.
+
 `pnpm roku help --all` lists every task.
 
 ## Checks

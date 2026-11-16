@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createHmac } from "node:crypto";
+import { homedir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
@@ -56,6 +57,7 @@ type LoginResponse = {
 type ValidateTokenResponse = {
   result?: boolean;
   token_scope?: "default" | "two_factor" | string | null;
+  user_id?: number;
 };
 
 type VerifyTotpResponse = {
@@ -69,6 +71,8 @@ function usage(): never {
   node scripts/putio-auth-harness.ts auth-status [profile]
   node scripts/putio-auth-harness.ts auth-prepare [profile]
   node scripts/putio-auth-harness.ts auth-approve-device <device-code> [profile]
+  node scripts/putio-auth-harness.ts app-token [profile]
+  node scripts/putio-auth-harness.ts files-fixture [profile]
 
 environment:
   PUTIO_CLI_PROFILE="<profile-name>"
@@ -77,7 +81,9 @@ environment:
   PUTIO_TEST_PASSWORD="<secret>"
   PUTIO_TEST_TOTP_REFERENCE="<base32-secret>"
   PUTIO_CLIENT_ID_FIRST_PARTY="<oauth-client-id>"
-  PUTIO_CLIENT_SECRET_FIRST_PARTY="<oauth-client-secret>"`);
+  PUTIO_CLIENT_SECRET_FIRST_PARTY="<oauth-client-secret>"
+  PUTIO_ROKU_APP_ID="<roku-oauth-app-id>"
+  PUTIO_ROKU_TOKEN_CACHE="<directory>"`);
   process.exit(1);
 }
 
@@ -243,6 +249,7 @@ function parseValidateTokenResponse(value: unknown): ValidateTokenResponse {
   return {
     result: optionalBoolean(record, "result"),
     token_scope: optionalNullableString(record, "token_scope"),
+    user_id: typeof record.user_id === "number" ? record.user_id : undefined,
   };
 }
 
@@ -576,6 +583,151 @@ async function approveDeviceCode(profile: string, code: string): Promise<void> {
   }
 }
 
+const defaultRokuAppId = "3776";
+const filesFixtureName = "roku-files-fixture";
+const deviceTokenPollIntervalMs = 2_000;
+const deviceTokenPollAttempts = 15;
+
+function rokuAppId(): string {
+  return process.env.PUTIO_ROKU_APP_ID?.trim() || defaultRokuAppId;
+}
+
+function appTokenCachePath(userId: number): string {
+  const root =
+    process.env.PUTIO_ROKU_TOKEN_CACHE?.trim() ||
+    join(process.env.XDG_CACHE_HOME?.trim() || join(homedir(), ".cache"), "putio-roku");
+  return join(root, `${userId}-${rokuAppId()}.token`);
+}
+
+// Throws on 429, 5xx or a network failure so a transient outage never discards a good token.
+async function validateTokenStrict(token: string): Promise<ValidateTokenResponse> {
+  const url = new URL("/v2/oauth2/validate", apiBaseUrl());
+  url.searchParams.set("oauth_token", token);
+  const response = await fetch(url);
+
+  if (response.status === 400 || response.status === 401 || response.status === 403) {
+    return { result: false };
+  }
+  if (!response.ok) {
+    throw new Error(`token validation unavailable: HTTP ${response.status}`);
+  }
+
+  return parseValidateTokenResponse(await response.json());
+}
+
+async function preparedUserId(profile: string): Promise<number> {
+  const validation = await validateTokenStrict(await readPreparedToken(profile));
+  if (validation.result !== true || validation.user_id === undefined) {
+    throw new Error(`put.io CLI token for ${profile} is not valid. Run auth-prepare first.`);
+  }
+  return validation.user_id;
+}
+
+async function readCachedAppToken(path: string, userId: number): Promise<string | undefined> {
+  const token = await readFile(path, "utf8")
+    .then((text) => text.trim())
+    .catch(() => "");
+  if (token === "") {
+    return undefined;
+  }
+
+  const validation = await validateTokenStrict(token);
+  if (
+    validation.result === true &&
+    validation.token_scope !== "two_factor" &&
+    validation.user_id === userId
+  ) {
+    return token;
+  }
+
+  await rm(path, { force: true });
+  return undefined;
+}
+
+async function getJson(path: string, token?: string): Promise<Record<string, unknown>> {
+  const response = await fetch(new URL(path, apiBaseUrl()), {
+    headers: token === undefined ? {} : { Authorization: `token ${token}` },
+  });
+  const data = expectRecord(await response.json().catch(() => ({})), path);
+  if (!response.ok) {
+    throw new Error(
+      optionalString(data, "error_message") ?? `${path} failed with HTTP ${response.status}`,
+    );
+  }
+  return data;
+}
+
+// put.io limits device codes per IP, so one approval per host feeds every later install.
+async function requestAppToken(profile: string): Promise<string> {
+  const codeUrl = new URL("/v2/oauth2/oob/code", apiBaseUrl());
+  codeUrl.searchParams.set("app_id", rokuAppId());
+  codeUrl.searchParams.set("client_name", "putio-roku harness");
+  const codeData = await getJson(`${codeUrl.pathname}${codeUrl.search}`);
+  const code = requiredString(codeData, "code", "device code response");
+
+  await approveDeviceCode(profile, code);
+
+  for (let attempt = 0; attempt < deviceTokenPollAttempts; attempt += 1) {
+    const tokenData = await getJson(`/v2/oauth2/oob/code/${encodeURIComponent(code)}`);
+    const token = optionalNullableString(tokenData, "oauth_token");
+    if (token) {
+      return token;
+    }
+    await new Promise((resolve) => setTimeout(resolve, deviceTokenPollIntervalMs));
+  }
+
+  throw new Error("approved device code never returned a token");
+}
+
+async function appToken(profile: string): Promise<void> {
+  const userId = await preparedUserId(profile);
+  const path = appTokenCachePath(userId);
+  let source = "cache";
+
+  if ((await readCachedAppToken(path, userId)) === undefined) {
+    const token = await requestAppToken(profile);
+    await mkdir(dirname(path), { mode: 0o700, recursive: true });
+    await writeFile(path, `${token}\n`, { mode: 0o600 });
+    await chmod(path, 0o600);
+    source = "device-code";
+  }
+
+  console.log(JSON.stringify({ status: "ok", profile, source, tokenFile: path }, null, 2));
+}
+
+async function filesFixture(profile: string): Promise<void> {
+  const token = await readPreparedToken(profile);
+  const findFixture = async () => {
+    const data = await getJson("/v2/files/list?parent_id=0&per_page=1000", token);
+    const files = Array.isArray(data.files) ? data.files : [];
+    return files.findIndex(
+      (file) => isRecord(file) && file.name === filesFixtureName && file.file_type === "FOLDER",
+    );
+  };
+
+  let index = await findFixture();
+  if (index < 0) {
+    const response = await fetch(new URL("/v2/files/create-folder", apiBaseUrl()), {
+      body: new URLSearchParams({ name: filesFixtureName, parent_id: "0" }),
+      headers: {
+        Authorization: `token ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      method: "POST",
+    });
+    if (!response.ok) {
+      throw new Error(`files fixture folder creation failed with HTTP ${response.status}`);
+    }
+    index = await findFixture();
+  }
+
+  if (index < 0) {
+    throw new Error(`files fixture folder ${filesFixtureName} is missing from the root list`);
+  }
+
+  console.log(JSON.stringify({ status: "ok", name: filesFixtureName, index }, null, 2));
+}
+
 async function authStatus(profile: string): Promise<void> {
   const status = await readAuthStatus(profile);
   const token = await readPreparedToken(profile).catch(() => undefined);
@@ -677,6 +829,10 @@ async function main(): Promise<void> {
     await authStatus(profileFromArg(args[0]));
   } else if (command === "auth-prepare") {
     await authPrepare(profileFromArg(args[0]));
+  } else if (command === "app-token") {
+    await appToken(profileFromArg(args[0]));
+  } else if (command === "files-fixture") {
+    await filesFixture(profileFromArg(args[0]));
   } else if (command === "auth-approve-device") {
     const [code, rawProfile] = args;
 
