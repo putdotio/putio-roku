@@ -34,6 +34,7 @@
     { "asset": "audio-off", "name": "speaker-x", "weight": "regular" },
     { "asset": "captions-on", "name": "closed-captioning", "weight": "fill" },
     { "asset": "captions-off", "name": "closed-captioning", "weight": "regular" },
-    { "asset": "speed", "name": "gauge", "weight": "regular" }
+    { "asset": "speed", "name": "gauge", "weight": "regular" },
+    { "asset": "refresh", "name": "arrows-clockwise", "weight": "regular" }
   ]
 }
