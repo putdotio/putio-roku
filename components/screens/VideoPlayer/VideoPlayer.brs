@@ -1324,6 +1324,8 @@ sub handlePlaybackError()
     m.hasPlaybackError = true
     updateBufferingOverlay(false)
     m.osdTimer.control = "stop"
+    m.playbackFailureMode = classifyRokuPlaybackFailure(sentryVideoErrorCode(m.video), sentryVideoErrorInfo(m.video))
+    m.playbackFailureCode = getSafeVideoErrorCode()
     reportPlaybackFailure()
     m.video.control = "stop"
 
@@ -1370,8 +1372,7 @@ sub showPlaybackErrorDialog()
 end sub
 
 function getPlaybackErrorDialogMessage() as string
-    failureMode = classifyRokuPlaybackFailure(sentryVideoErrorCode(m.video), sentryVideoErrorInfo(m.video))
-    return buildPlaybackErrorDialogMessage(failureMode, getConfiguredPlaybackType(), getSafeVideoErrorCode())
+    return buildPlaybackErrorDialogMessage(m.playbackFailureMode, getConfiguredPlaybackType(), m.playbackFailureCode)
 end function
 
 function getSafeVideoErrorMessage() as string
