@@ -1291,7 +1291,7 @@ sub seekBy(seconds)
     maybeSaveVideoTime(nextPosition, true)
 
     if shouldResume
-        m.video.control = "resume"
+        resumePlayback()
     end if
 
     showOsd()
@@ -1329,6 +1329,7 @@ sub startPreviewSeek(seconds)
         resetSeekPressTimer()
 
         if m.wasPlayingBeforeSeek
+            m.startWatchdog.control = "stop"
             m.video.control = "pause"
         end if
     else if direction <> m.seekDirection
@@ -1400,7 +1401,7 @@ sub commitPreviewSeek()
     maybeSaveVideoTime(seekPosition, true)
 
     if shouldResume
-        m.video.control = "resume"
+        resumePlayback()
     end if
 
     showOsd()
@@ -1417,7 +1418,7 @@ sub cancelPreviewSeek()
     updateProgress(getDisplayedPosition())
 
     if shouldResume
-        m.video.control = "resume"
+        resumePlayback()
     end if
 
     showOsd()
@@ -1927,11 +1928,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 cancelPreviewSeek()
             end if
 
-            if m.playbackStarted = false
-                pausePlayback()
-            else
-                m.video.control = "pause"
-            end if
+            pausePlayback()
             showOsd()
             return true
         else if normalizedKey = "rewind" or normalizedKey = "rev"
