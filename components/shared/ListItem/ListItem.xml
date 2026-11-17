@@ -54,6 +54,13 @@
 			/>
 		</LayoutGroup>
 
+		<Poster
+			id="toggle"
+			width="81"
+			height="48"
+			visible="false"
+		/>
+
 		<Label
 			id="value"
 			translation="[1260,0]"

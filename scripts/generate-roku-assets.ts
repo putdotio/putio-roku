@@ -62,6 +62,12 @@ export async function generateRokuAssets(repoRoot: string): Promise<readonly str
   );
   outputs.push(overhangLogoPath);
 
+  for (const [fileName, svg] of renderSwitchSvgs(tokens)) {
+    const outputPath = resolve(repoRoot, "images/generated", fileName);
+    await renderSvgToPng(svg, outputPath);
+    outputs.push(outputPath);
+  }
+
   for (const variant of ["production", "development", "lab"]) {
     const assetVariant = parseAssetVariant(variant);
     const outputDir = resolve(repoRoot, `images/generated/${assetVariant}`);
@@ -87,6 +93,29 @@ export async function generateRokuAssets(repoRoot: string): Promise<readonly str
   }
 
   return outputs;
+}
+
+// The Android TV switch (Material 3 at 2x) on Roku's 3px grid; SceneGraph has no
+// border-radius, so each state is a rendered bitmap.
+const switchSize = { width: 81, height: 48, outline: 3, offKnob: 24, onKnob: 36 } as const;
+
+function renderSwitchSvgs(tokens: TokenMap): ReadonlyArray<readonly [string, string]> {
+  const { width, height, outline, offKnob, onKnob } = switchSize;
+  const radius = height / 2;
+  const svg = (body: string) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>`;
+  const off = svg(
+    `<rect x="${outline / 2}" y="${outline / 2}" width="${width - outline}" height="${height - outline}" rx="${radius - outline / 2}" fill="${toSvgPaint(readTokenValue(tokens, "color.neutral.dark.componentBg"))}" stroke="${toSvgPaint(readTokenValue(tokens, "color.neutral.dark.border"))}" stroke-width="${outline}"/>` +
+      `<circle cx="${radius}" cy="${radius}" r="${offKnob / 2}" fill="${toSvgPaint(readTokenValue(tokens, "color.neutral.dark.textSecondary"))}"/>`,
+  );
+  const on = svg(
+    `<rect width="${width}" height="${height}" rx="${radius}" fill="${toSvgPaint(readTokenValue(tokens, "color.brand.yellow"))}"/>` +
+      `<circle cx="${width - radius}" cy="${radius}" r="${onKnob / 2}" fill="${toSvgPaint(readTokenValue(tokens, "component.button.primary.foreground"))}"/>`,
+  );
+  return [
+    ["switch-off.png", off],
+    ["switch-on.png", on],
+  ];
 }
 
 async function renderSvgToPng(svg: string, outputPath: string): Promise<void> {
