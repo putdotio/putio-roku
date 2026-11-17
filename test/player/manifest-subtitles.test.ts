@@ -16,7 +16,7 @@ const sub = (key: string, language: string, language_code: string, format = "srt
   language_code,
 });
 
-const mrRobotTracks = [
+const episodeTracks = [
   track("English 1", "en", 1),
   track("English 2", "en", 2),
   track("English 3", "en", 3),
@@ -24,7 +24,7 @@ const mrRobotTracks = [
   track("Turkish 1", "tr", 5),
   track("Turkish 2", "tr", 6),
 ];
-const mrRobotSubtitles = [
+const episodeSubtitles = [
   sub("e1", "English", "eng"),
   sub("e2", "English", "eng"),
   sub("e3", "English", "eng"),
@@ -35,8 +35,8 @@ const mrRobotSubtitles = [
 
 const cases: Record<string, { tracks: Track[]; subtitles: Subtitle[]; expected: (string | null)[] }> = {
   numbered_languages_match_in_order: {
-    tracks: mrRobotTracks,
-    subtitles: mrRobotSubtitles,
+    tracks: episodeTracks,
+    subtitles: episodeSubtitles,
     expected: ["e1", "e2", "e3", "e4", "t1", "t2"],
   },
   single_track_languages_have_no_number: {
@@ -51,7 +51,7 @@ const cases: Record<string, { tracks: Track[]; subtitles: Subtitle[]; expected: 
   },
   language_missing_a_subtitle_keeps_manifest_names: {
     tracks: [track("English 1", "en", 1), track("English 2", "en", 2), track("Turkish", "tr", 3)],
-    subtitles: [...mrRobotSubtitles.slice(0, 3), sub("t1", "Turkish", "tur")],
+    subtitles: [...episodeSubtitles.slice(0, 3), sub("t1", "Turkish", "tur")],
     expected: [null, null, "t1"],
   },
   non_hls_formats_are_skipped: {
@@ -65,7 +65,7 @@ const cases: Record<string, { tracks: Track[]; subtitles: Subtitle[]; expected: 
     expected: ["u1"],
   },
   no_subtitles_keeps_manifest_names: {
-    tracks: mrRobotTracks.slice(0, 2),
+    tracks: episodeTracks.slice(0, 2),
     subtitles: [],
     expected: [null, null],
   },
