@@ -723,7 +723,7 @@ sub selectDefaultAudioTrack()
         return
     end if
 
-    defaultAudioTrack = readTrackValue(m.audioTracks[0], "Track")
+    defaultAudioTrack = readTrackValue(m.audioTracks[getDefaultAudioTrackIndex()], "Track")
     if defaultAudioTrack = invalid
         return
     end if
@@ -733,6 +733,21 @@ sub selectDefaultAudioTrack()
         m.video.audioTrack = defaultAudioTrack.toStr()
     end if
 end sub
+
+' Roku lists an original's audio tracks in file order but picks one by the device language, not
+' the default flag; put.io HLS manifests list the default first.
+function getDefaultAudioTrackIndex() as integer
+    if getCurrentPlaybackSource() <> "original" or m.playbackFile = invalid or m.playbackFile.media_info = invalid
+        return 0
+    end if
+
+    streams = m.playbackFile.media_info.streams
+    if getDirectPlayAudioStreams(streams).count() <> m.audioTracks.count()
+        return 0
+    end if
+
+    return getDefaultAudioStreamIndex(streams)
+end function
 
 sub syncSelectedAudioTrackFromPlayer()
     if m.audioTracks = invalid or m.audioTracks.count() = 0

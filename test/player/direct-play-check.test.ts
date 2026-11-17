@@ -222,6 +222,32 @@ const cases: Record<string, Case> = {
     expected: pass("mkv"),
     calls: [videoCall("hevc", "main 10", "5.1", "mkv"), aacMkv],
   },
+  hevc_main_10_flagged_sdr: {
+    mediaInfo: media([{ ...hevc, profile: "Main 10", hdr: false }, aac]),
+    expected: pass("mkv"),
+    calls: [videoCall("hevc", "main 10", "5.1", "mkv"), aacMkv],
+  },
+  hdr_flag_without_hdr10_display: {
+    mediaInfo: media([{ ...hevc, hdr: true }, aac]),
+    expected: reject("video_unsupported"),
+    calls: [],
+  },
+  hdr_flag_on_hdr10_display: {
+    mediaInfo: media([{ ...hevc, profile: "Main 10", hdr: true }, aac]),
+    probe: { ...probe1080, hdr10: true },
+    expected: pass("mkv"),
+    calls: [videoCall("hevc", "main 10", "5.1", "mkv"), aacMkv],
+  },
+  dolby_vision_profile_in_mkv: {
+    mediaInfo: media([{ ...hevc, profile: "Main 10", hdr: true, dolby_vision_profile: 5 }, aac]),
+    probe: { ...probe1080, hdr10: true },
+    expected: reject("video_unsupported"),
+    calls: [],
+  },
+  dolby_vision_profile_null_is_not_dolby_vision: {
+    mediaInfo: media([{ ...hevc, hdr: false, dolby_vision_profile: null }, aac]),
+    expected: pass("mkv"),
+  },
   dolby_vision_dvh1: {
     mediaInfo: media([{ ...hevc, rfc6381_codec: "dvh1.05.06" }, aac], {
       mime_type: "video/mp4",
@@ -330,6 +356,35 @@ const cases: Record<string, Case> = {
     mediaInfo: media([h264, { codec_type: "audio", codec_name: "truehd", channels: 8 }]),
     expected: reject("audio_unsupported"),
     calls: [avcHighMkv],
+  },
+  default_audio_stream_is_checked: {
+    mediaInfo: media([
+      h264,
+      { ...aac, default: false },
+      { codec_type: "audio", codec_name: "dts", channels: 6, default: true },
+    ]),
+    probe: { ...probe1080, audio: false },
+    expected: reject("audio_unsupported"),
+    calls: [avcHighMkv, audioCall("dts", 6, "mkv")],
+  },
+  default_audio_stream_after_unsupported_first: {
+    mediaInfo: media([
+      h264,
+      { codec_type: "audio", codec_name: "truehd", channels: 8, default: false },
+      { ...aac, default: true },
+    ]),
+    expected: pass("mkv"),
+    calls: [avcHighMkv, aacMkv],
+  },
+  first_of_several_default_audio_streams: {
+    mediaInfo: media([
+      h264,
+      { codec_type: "audio", codec_name: "truehd", channels: 8, default: false },
+      { ...aac, default: true },
+      { codec_type: "audio", codec_name: "dts", channels: 6, default: true },
+    ]),
+    expected: pass("mkv"),
+    calls: [avcHighMkv, aacMkv],
   },
   first_audio_stream_only: {
     mediaInfo: media([h264, aac, { codec_type: "audio", codec_name: "truehd", channels: 8 }]),
