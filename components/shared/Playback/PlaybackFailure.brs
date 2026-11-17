@@ -12,7 +12,12 @@ function classifyPlaybackFailure(input as object) as object
         httpStatus = parsePlaybackHttpStatus(input.errorStr)
     end if
 
-    if isExpiredLinkFailure(httpStatus, getPlaybackErrorCode(input.errorCode), getPlaybackErrorCategory(errorInfo))
+    expiredLink = isExpiredLinkFailure(httpStatus, getPlaybackErrorCode(input.errorCode), getPlaybackErrorCategory(errorInfo))
+    if expiredLink and input.started = true and isExpiredLinkHttpStatus(httpStatus) = false
+        return createPlaybackFailureVerdict("retry", "connection_lost", httpStatus)
+    end if
+
+    if expiredLink
         if input.reresolved = true
             return createPlaybackFailureVerdict("fail", "link_expired", httpStatus)
         end if
@@ -50,11 +55,9 @@ function isExpiredLinkFailure(httpStatus as dynamic, errorCode as integer, categ
             return false
         end if
 
-        for each expiredStatus in getExpiredLinkHttpStatuses()
-            if httpStatus = expiredStatus
-                return true
-            end if
-        end for
+        if isExpiredLinkHttpStatus(httpStatus)
+            return true
+        end if
     end if
 
     return errorCode = getNetworkErrorCode() or errorCode = getConnectionTimeoutErrorCode() or category = "http"
@@ -176,6 +179,20 @@ function hasPlaybackStatusLabel(text as string, statusIndex as integer) as boole
             end if
             position = Instr(position + 1, text, label)
         end while
+    end for
+
+    return false
+end function
+
+function isExpiredLinkHttpStatus(httpStatus as dynamic) as boolean
+    if httpStatus = invalid
+        return false
+    end if
+
+    for each expiredStatus in getExpiredLinkHttpStatuses()
+        if httpStatus = expiredStatus
+            return true
+        end if
     end for
 
     return false

@@ -72,6 +72,14 @@ const cases: Record<string, { input: Input; expected: Dialog }> = {
       buttons: ["Retry", "Back"],
     },
   },
+  connection_lost_retries: {
+    input: { reason: "connection_lost", method: "file", source: "original", errorCode: "-1" },
+    expected: {
+      title: "Playback stopped",
+      messageLines: ["Connection lost. Check your internet and try again.", "", "Error -1"],
+      buttons: ["Retry", "Back"],
+    },
+  },
 };
 
 describe("playback error dialog", () => {

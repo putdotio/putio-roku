@@ -64,6 +64,7 @@ function main() as string
         media_info: {
             format: { name: "matroska", filename: "/secret/Secret.Movie.2026.mkv", duration: 5400, bit_rate: 8000000 },
             streams: [
+                { codec_type: "video", codec_name: "mjpeg", width: 600, height: 900 },
                 { codec_type: "video", codec_name: "h264", profile: "High", level: 41, width: 1920, height: 1080, tags: { title: "Secret video title" } },
                 { codec_type: "audio", codec_name: "dts", channels: 6, tags: { title: "Secret commentary", language: "eng" } },
             ],

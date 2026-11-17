@@ -246,12 +246,21 @@ function sentryFileMediaStream(file as object, codecType as string) as object
     end if
 
     for each stream in mediaInfo.streams
-        if stream <> invalid and stream.codec_type <> invalid and stream.codec_type.toStr() = codecType
+        if stream <> invalid and stream.codec_type <> invalid and stream.codec_type.toStr() = codecType and sentryIsCoverArtStream(stream) = false
             return stream
         end if
     end for
 
     return invalid
+end function
+
+function sentryIsCoverArtStream(stream as object) as boolean
+    if stream.codec_name = invalid
+        return false
+    end if
+
+    codecName = LCase(stream.codec_name.toStr())
+    return codecName = "mjpeg" or codecName = "png" or codecName = "bmp" or codecName = "gif" or codecName = "webp"
 end function
 
 function sentryStreamField(stream as object, key as string) as string

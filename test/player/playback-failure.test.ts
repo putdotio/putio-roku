@@ -139,6 +139,26 @@ const cases: Record<string, { input: Input; expected: Verdict }> = {
     input: { ...original, started: true, errorCode: -3, errorInfo: http("HTTP status 403") },
     expected: verdict("reresolve", "link_expired", 403),
   },
+  network_error_after_first_frame_retries: {
+    input: { ...original, started: true, errorCode: -1, errorInfo: http("connection refused", "mediaplayer") },
+    expected: verdict("retry", "connection_lost"),
+  },
+  connection_timeout_after_first_frame_retries: {
+    input: { ...original, started: true, source: "hls", errorCode: "-2" },
+    expected: verdict("retry", "connection_lost"),
+  },
+  http_category_without_status_after_first_frame_retries: {
+    input: { ...original, started: true, errorCode: -3, errorInfo: http("download failed") },
+    expected: verdict("retry", "connection_lost"),
+  },
+  server_error_after_first_frame_retries: {
+    input: { ...original, started: true, errorCode: -3, errorInfo: http("HTTP status 503") },
+    expected: verdict("retry", "connection_lost", 503),
+  },
+  network_error_after_first_frame_ignores_reresolve_budget: {
+    input: { ...original, started: true, reresolved: true, errorCode: -1 },
+    expected: verdict("retry", "connection_lost"),
+  },
   second_expired_link_after_first_frame_fails: {
     input: { ...original, started: true, reresolved: true, errorCode: -3, errorInfo: http("HTTP status 403") },
     expected: verdict("fail", "link_expired", 403),

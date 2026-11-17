@@ -128,6 +128,14 @@ sub init()
             component: "appDialog",
         },
         {
+            id: "app-dialog-connection-lost",
+            title: "AppDialog / connection lost",
+            listTitle: "Connection lost",
+            section: "Dialogs",
+            description: "A network error after the first frame: Retry plays from the same position.",
+            component: "appDialog",
+        },
+        {
             id: "app-dialog-link-expired",
             title: "AppDialog / link expired",
             listTitle: "Link expired",
@@ -610,6 +618,8 @@ sub renderStory(index as integer)
         renderPlaybackErrorStory("container_unsupported", "hls", "hls", "")
     else if story.id = "app-dialog-cant-play-standard-decoder"
         renderPlaybackErrorStory("decoder_error", "hls", "hls", "-3")
+    else if story.id = "app-dialog-connection-lost"
+        renderPlaybackErrorStory("connection_lost", "file", "original", "-1")
     else if story.id = "app-dialog-link-expired"
         renderPlaybackErrorStory("link_expired", "file", "original", "")
     else if story.id = "app-dialog-update"

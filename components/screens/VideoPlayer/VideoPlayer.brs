@@ -168,6 +168,7 @@ function init()
     m.plan = invalid
     m.rescued = false
     m.reresolved = false
+    m.reresolvedPlayingClock = invalid
     m.playStartPosition = 0
     m.retryPosition = 0
     m.loadErrorSignature = ""
@@ -386,6 +387,7 @@ sub resetPlaybackState()
     m.playbackStarted = false
     m.rescued = false
     m.reresolved = false
+    m.reresolvedPlayingClock = invalid
     m.playStartPosition = 0
     m.retryPosition = 0
     m.loadErrorSignature = ""
@@ -504,6 +506,9 @@ sub onPlayerStateChanged(obj)
 
     if state = "playing"
         m.playbackStarted = true
+        if m.reresolved = true and m.reresolvedPlayingClock = invalid
+            m.reresolvedPlayingClock = CreateObject("roTimespan")
+        end if
         m.userPaused = false
         m.startWatchdog.control = "stop"
     end if
@@ -869,6 +874,20 @@ function hasSubtitleTrack(trackName) as boolean
     for each track in m.subtitleTracks
         existingTrackName = readTrackValue(track, "TrackName")
         if subtitleTrackNamesMatch(existingTrackName, trackName)
+            return true
+        end if
+    end for
+
+    return false
+end function
+
+function isExternalSubtitleTrackName(trackName) as boolean
+    if m.externalSubtitleTracks = invalid
+        return false
+    end if
+
+    for each track in m.externalSubtitleTracks
+        if subtitleTrackNamesMatch(readTrackValue(track, "TrackName"), trackName)
             return true
         end if
     end for
@@ -1480,7 +1499,7 @@ sub handlePlaybackError(useErrorFields as boolean)
         started: m.playbackStarted,
         source: getCurrentPlaybackSource(),
         rescued: m.rescued,
-        reresolved: m.reresolved
+        reresolved: isReresolveBudgetSpent()
     })
     errorCode = sentryVideoErrorCode(errorVideo)
     m.reresolveFailureEvent = invalid
@@ -1588,14 +1607,30 @@ end sub
 sub resetSourceTracks()
     m.audioTracks = []
     m.rokuSubtitleTracks = []
+    if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> "" and isExternalSubtitleTrackName(m.selectedSubtitleTrackName) = false
+        m.selectedSubtitleTrackName = invalid
+    end if
     m.selectedAudioTrack = invalid
     m.userSelectedAudioTrack = false
     syncSubtitleTracks()
     updateTrackSummary()
 end sub
 
+function isReresolveBudgetSpent() as boolean
+    if m.reresolved <> true
+        return false
+    end if
+
+    return m.reresolvedPlayingClock = invalid or m.reresolvedPlayingClock.TotalMilliseconds() < getReresolveWindowMs()
+end function
+
+function getReresolveWindowMs() as integer
+    return 5000
+end function
+
 sub reresolvePlayback(position)
     m.reresolved = true
+    m.reresolvedPlayingClock = invalid
     m.retryPosition = position
     cancelRefetchFile()
     hideOsd()
