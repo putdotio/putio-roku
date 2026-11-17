@@ -175,7 +175,6 @@ function init()
     m.startBufferingPercent = 0
     m.startWatchdogRearms = 0
     m.refetchFileTask = invalid
-    m.playbackFailureCode = ""
     m.failureReason = invalid
     m.errorDialogActions = []
     m.errorDialogAction = "back"
@@ -393,7 +392,6 @@ sub resetPlaybackState()
     m.loadErrorSignature = ""
     m.startBufferingPercent = 0
     m.startWatchdogRearms = 0
-    m.playbackFailureCode = ""
     m.failureReason = invalid
     m.errorDialogActions = []
     m.errorDialogAction = "back"
@@ -1479,12 +1477,10 @@ sub handlePlaybackError(useErrorFields as boolean)
     errorVideo = invalid
     rawErrorCode = 0
     errorStr = invalid
-    m.playbackFailureCode = ""
     if useErrorFields
         errorVideo = m.video
         rawErrorCode = m.video.errorCode
         errorStr = getVideoErrorStr()
-        m.playbackFailureCode = getSafeVideoErrorCode()
     end if
 
     position = getRecoveryPosition()
@@ -1745,9 +1741,9 @@ sub showPlaybackFailureDialog(reason as string, unplayable as boolean)
     m.errorDialog = createObject("roSGNode", "AppDialog")
     m.errorDialog.title = buildPlaybackErrorDialogTitle(reason)
     if unplayable
-        m.errorDialog.message = buildUnplayableDialogMessage(reason, m.method, m.playbackFailureCode)
+        m.errorDialog.message = buildUnplayableDialogMessage(reason, m.method)
     else
-        m.errorDialog.message = buildPlaybackErrorDialogMessage(reason, getCurrentPlaybackSource(), m.playbackFailureCode)
+        m.errorDialog.message = buildPlaybackErrorDialogMessage(reason, getCurrentPlaybackSource())
     end if
     applyAccountNoticeToDialog(m.errorDialog, m.global.user)
     m.errorDialog.buttons = getPlaybackErrorDialogButtons(m.errorDialogActions)

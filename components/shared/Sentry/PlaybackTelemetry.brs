@@ -93,6 +93,22 @@ end function
 
 ' Builds the event for a failed /files/list request behind the player. The API's
 ' error_message is free text that can quote the file name, so only codes are reported.
+function createConversionFailureEvent(status as dynamic, method as dynamic, file as object) as object
+    conversionStatus = sentryTagValue(status)
+    event = sentryCreateEvent("Roku conversion failed: " + conversionStatus, "error")
+    event.fingerprint = ["roku-conversion-failure", conversionStatus]
+    sentryAddTags(event, {
+        telemetry_event: "playback_conversion_failure",
+        schema_version: "1",
+        player: "roku",
+        conversion_status: conversionStatus,
+        streaming_method: method,
+        file_id: sentryFileId(file),
+    })
+
+    return event
+end function
+
 function createSourceRequestFailureEvent(fileId as dynamic, response as dynamic) as object
     errorType = "none"
     statusCode = invalid

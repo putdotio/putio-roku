@@ -6,6 +6,6 @@
     <field id="url" type="string" />
     <field id="method" type="string" value="GET" />
     <field id="body" type="assocarray" />
-    <field id="response" type="string" />
+    <field id="response" type="string" alwaysNotify="true" />
   </interface>
 </component>

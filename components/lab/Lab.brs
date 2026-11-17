@@ -60,7 +60,7 @@ sub init()
             title: "AppDialog / playback error",
             listTitle: "App / playback error",
             section: "Dialogs",
-            description: "Playback that stopped after the first frame: Retry resumes at the same position, with the support code.",
+            description: "Playback that stopped after the first frame: Retry resumes at the same position.",
             component: "appDialog",
         },
         {
@@ -124,7 +124,7 @@ sub init()
             title: "AppDialog / can't play Standard decoder error",
             listTitle: "Can't play / Standard decoder error",
             section: "Dialogs",
-            description: "The HLS stream failed before its first frame, with the support code: Back is the only action.",
+            description: "The HLS stream failed before its first frame: Back is the only action.",
             component: "appDialog",
         },
         {
@@ -133,6 +133,14 @@ sub init()
             listTitle: "Connection lost",
             section: "Dialogs",
             description: "A network error after the first frame: Retry plays from the same position.",
+            component: "appDialog",
+        },
+        {
+            id: "app-dialog-conversion-failed",
+            title: "AppDialog / conversion failed",
+            listTitle: "Conversion failed",
+            section: "Dialogs",
+            description: "The server conversion ended in ERROR or NOT_AVAILABLE: Retry starts it again.",
             component: "appDialog",
         },
         {
@@ -601,27 +609,29 @@ sub renderStory(index as integer)
     else if story.id = "app-dialog-message"
         renderAppDialogStory("Settings not saved", "Playback method could not be saved. Please try again.", ["OK"], 0)
     else if story.id = "app-dialog-playback-error"
-        renderPlaybackErrorStory("playback_stopped", "hls", "hls", "-3")
+        renderPlaybackErrorStory("playback_stopped", "hls", "hls")
     else if story.id = "app-dialog-cant-play-not-ready"
-        renderUnplayableStory("not_ready", "file", "")
+        renderUnplayableStory("not_ready", "file")
     else if story.id = "app-dialog-cant-play-playback-issue"
-        renderUnplayableStory("playback_issue", "file", "")
+        renderUnplayableStory("playback_issue", "file")
     else if story.id = "app-dialog-cant-play-container"
-        renderUnplayableStory("container_unsupported", "file", "")
+        renderUnplayableStory("container_unsupported", "file")
     else if story.id = "app-dialog-cant-play-video"
-        renderUnplayableStory("video_unsupported", "file", "")
+        renderUnplayableStory("video_unsupported", "file")
     else if story.id = "app-dialog-cant-play-audio"
-        renderUnplayableStory("audio_unsupported", "file", "")
+        renderUnplayableStory("audio_unsupported", "file")
     else if story.id = "app-dialog-cant-play-decoder-error"
-        renderUnplayableStory("decoder_error", "file", "-5")
+        renderUnplayableStory("decoder_error", "file")
     else if story.id = "app-dialog-cant-play-standard"
-        renderPlaybackErrorStory("container_unsupported", "hls", "hls", "")
+        renderPlaybackErrorStory("container_unsupported", "hls", "hls")
     else if story.id = "app-dialog-cant-play-standard-decoder"
-        renderPlaybackErrorStory("decoder_error", "hls", "hls", "-3")
+        renderPlaybackErrorStory("decoder_error", "hls", "hls")
     else if story.id = "app-dialog-connection-lost"
-        renderPlaybackErrorStory("connection_lost", "file", "original", "-1")
+        renderPlaybackErrorStory("connection_lost", "file", "original")
+    else if story.id = "app-dialog-conversion-failed"
+        renderUnplayableStory("conversion_failed", "file")
     else if story.id = "app-dialog-link-expired"
-        renderPlaybackErrorStory("link_expired", "file", "original", "")
+        renderPlaybackErrorStory("link_expired", "file", "original")
     else if story.id = "app-dialog-update"
         renderAppDialogStory(buildUpdateDialogTitle(), buildUpdateDialogMessage("2.21.0"), buildUpdateDialogButtons(), 0)
     else if story.id = "app-dialog-update-installing"
@@ -724,14 +734,14 @@ sub renderAppDialogStory(title as string, message as string, buttons as object, 
     addPreviewNode(dialog, m.dialogPreviewTranslation)
 end sub
 
-sub renderPlaybackErrorStory(reason as string, method as string, source as dynamic, errorCode as string)
+sub renderPlaybackErrorStory(reason as string, method as string, source as dynamic)
     buttons = getPlaybackErrorDialogButtons(getPlaybackErrorDialogActions(reason, method))
-    renderAppDialogStory(buildPlaybackErrorDialogTitle(reason), buildPlaybackErrorDialogMessage(reason, source, errorCode), buttons, 0)
+    renderAppDialogStory(buildPlaybackErrorDialogTitle(reason), buildPlaybackErrorDialogMessage(reason, source), buttons, 0)
 end sub
 
-sub renderUnplayableStory(reason as string, method as string, errorCode as string)
+sub renderUnplayableStory(reason as string, method as string)
     buttons = getPlaybackErrorDialogButtons(getPlaybackErrorDialogActions(reason, method))
-    renderAppDialogStory(buildPlaybackErrorDialogTitle(reason), buildUnplayableDialogMessage(reason, method, errorCode), buttons, 0)
+    renderAppDialogStory(buildPlaybackErrorDialogTitle(reason), buildUnplayableDialogMessage(reason, method), buttons, 0)
 end sub
 
 sub renderDeleteDialogStory(fileName as string, playWithLabel = "" as string)

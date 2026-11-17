@@ -82,7 +82,7 @@ sub onPreviewModeChange()
         m.hasError = true
         hideSpinner()
         m.actionLabel.text = "Retry"
-        setStatus("Conversion failed.")
+        setStatus("Conversion could not be started.")
     else
         setStatus("Starting conversion...")
     end if
@@ -155,10 +155,10 @@ sub onCheckConversionStatusResponse(obj)
         hideSpinner()
         setStatus("Conversion complete.")
         refetchConvertedFile()
-    else if status = "ERROR"
-        showError("Conversion failed.")
-    else if status = "NOT_AVAILABLE"
-        showError("This file cannot be converted.")
+    else if status = "ERROR" or status = "NOT_AVAILABLE"
+        stopTasks()
+        hideSpinner()
+        m.top.failedStatus = status
     else
         if status = "IN_QUEUE"
             setStatus("Waiting to convert...")
