@@ -1252,6 +1252,9 @@ sub resumePlayback()
     if m.playbackStarted = false and m.plan <> invalid and m.plan.source = "original" and m.rescued = false and m.hasPlaybackError = false
         m.startWatchdog.control = "start"
     end if
+    if m.video.state = "buffering"
+        updateBufferingOverlay(true)
+    end if
     updatePlayIcon()
     updatePositionPauseIcon()
 end sub
