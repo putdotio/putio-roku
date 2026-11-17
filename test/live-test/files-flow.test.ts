@@ -15,19 +15,25 @@ const device = vi.hoisted(() => ({
 function snapshot(): string {
   const focus = device.focusAttribute ? `${device.focusAttribute}="${device.focus}"` : "";
   return [
+    '<app-ui><status>OK</status><topscreen><screen><App bounds="{0, 0, 1920, 1080}">',
     ...(device.extraHiddenFilesScreen
-      ? ['<FilesScreen _psn="1" _sn="20" name="filesScreen" visible="false"/>', '<Label _psn="20" _sn="21" name="titleLabel" text="Stale"/>']
+      ? ['<FilesScreen name="filesScreen" visible="false">', '<Label name="titleLabel" text="Stale"/>', "</FilesScreen>"]
       : []),
-    '<SearchScreen _psn="1" _sn="2" name="searchScreen" visible="false"/>',
-    '<Label _psn="2" _sn="3" name="titleLabel" text="Fixture folder"/>',
-    '<FilesScreen _psn="1" _sn="4" name="filesScreen"/>',
-    '<ScreenHeader _psn="4" _sn="5" name="screenHeader"/>',
-    `<Label _psn="5" _sn="6" name="titleLabel" text="${device.folder}"/>`,
-    '<Rectangle _sn="99" visible="false"/>',
-    '<LoadingIndicator _psn="4" _sn="7" name="loading" visible="false"/>',
-    `<MarkupList _psn="4" _sn="8" name="fileList" ${focus} count="4"/>`,
-    '<HistoryScreen _psn="1" _sn="9" name="historyScreen" visible="false"/>',
-    '<Label _psn="9" _sn="10" name="titleLabel" text="History"/>',
+    '<SearchScreen name="searchScreen" visible="false">',
+    '<Label name="titleLabel" text="Fixture folder"/>',
+    "</SearchScreen>",
+    '<FilesScreen name="filesScreen">',
+    '<ScreenHeader name="screenHeader">',
+    `<Label name="titleLabel" text="${device.folder}"/>`,
+    "</ScreenHeader>",
+    '<Rectangle visible="false"/>',
+    '<LoadingIndicator name="loading" visible="false"/>',
+    `<MarkupList name="fileList" ${focus} count="4"/>`,
+    "</FilesScreen>",
+    '<HistoryScreen name="historyScreen" visible="false">',
+    '<Label name="titleLabel" text="History"/>',
+    "</HistoryScreen>",
+    "</App></screen></topscreen></app-ui>",
   ].join("\n");
 }
 

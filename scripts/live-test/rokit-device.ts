@@ -160,6 +160,30 @@ export async function querySceneGraph(target: string): Promise<string> {
     requireAppNode: true,
     requireComplete: true,
     retryDelayMs: 500,
+    source: "app-ui",
+  });
+}
+
+// The player's stream URL lives in a ContentNode that only sgnodes/all lists. Roku OS 11 can
+// reboot when that dump runs during a screen build, so take it only once media plays or pauses.
+export async function queryPlayingSceneGraph(
+  target: string,
+  timeoutMs = launchTimeoutMs,
+): Promise<string> {
+  const start = Date.now();
+  let state = await queryMediaPlayerStateSafe(target);
+  while (state !== "play" && state !== "pause") {
+    if (Date.now() - start >= timeoutMs) {
+      throw new Error(`expected media-player play or pause, got ${state ?? "unknown"}`);
+    }
+    await sleep(sceneGraphPollIntervalMs);
+    state = await queryMediaPlayerStateSafe(target);
+  }
+  return await rokitQuerySceneGraph(rokitContext(target, sceneGraphRequestTimeoutMs), {
+    attempts: 8,
+    requireAppNode: true,
+    requireComplete: true,
+    retryDelayMs: 500,
   });
 }
 
@@ -285,7 +309,7 @@ export async function waitForSceneGraphAssertion(
     rokitContext(target, sceneGraphRequestTimeoutMs),
     description,
     assertion,
-    { pollIntervalMs: 250, timeoutMs },
+    { pollIntervalMs: 250, source: "app-ui", timeoutMs },
   );
 }
 
