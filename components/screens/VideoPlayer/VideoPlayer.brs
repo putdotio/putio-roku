@@ -168,7 +168,7 @@ function init()
     m.plan = invalid
     m.rescued = false
     m.reresolved = false
-    m.reresolvedPlayingClock = invalid
+    m.reresolvedAtPosition = invalid
     m.playStartPosition = 0
     m.retryPosition = 0
     m.loadErrorSignature = ""
@@ -387,7 +387,7 @@ sub resetPlaybackState()
     m.playbackStarted = false
     m.rescued = false
     m.reresolved = false
-    m.reresolvedPlayingClock = invalid
+    m.reresolvedAtPosition = invalid
     m.playStartPosition = 0
     m.retryPosition = 0
     m.loadErrorSignature = ""
@@ -506,9 +506,6 @@ sub onPlayerStateChanged(obj)
 
     if state = "playing"
         m.playbackStarted = true
-        if m.reresolved = true and m.reresolvedPlayingClock = invalid
-            m.reresolvedPlayingClock = CreateObject("roTimespan")
-        end if
         m.userPaused = false
         m.startWatchdog.control = "stop"
     end if
@@ -1621,16 +1618,20 @@ function isReresolveBudgetSpent() as boolean
         return false
     end if
 
-    return m.reresolvedPlayingClock = invalid or m.reresolvedPlayingClock.TotalMilliseconds() < getReresolveWindowMs()
+    if m.reresolvedAtPosition = invalid or m.video.position = invalid
+        return true
+    end if
+
+    return m.video.position - m.reresolvedAtPosition < getReresolvePlaybackSeconds()
 end function
 
-function getReresolveWindowMs() as integer
-    return 5000
+function getReresolvePlaybackSeconds() as integer
+    return 5
 end function
 
 sub reresolvePlayback(position)
     m.reresolved = true
-    m.reresolvedPlayingClock = invalid
+    m.reresolvedAtPosition = position
     m.retryPosition = position
     cancelRefetchFile()
     hideOsd()
