@@ -24,6 +24,7 @@ import {
   queryActiveAppSafe,
   queryMediaPlayerStateSafe,
   queryMediaPlayerXmlSafe,
+  queryPlayingSceneGraph,
   querySceneGraph,
   waitForMediaPlayerState,
   waitForSceneGraphAssertion,
@@ -59,7 +60,7 @@ export async function assertHlsPlaybackSurfaceOnDevice(
   target: string,
   contentId: string,
 ): Promise<void> {
-  const xml = await querySceneGraph(target);
+  const xml = await queryPlayingSceneGraph(target);
 
   try {
     assertHlsPlaybackSurface(xml, contentId);
@@ -85,7 +86,7 @@ export async function assertDirectPlaybackSurfaceOnDevice(
   target: string,
   contentId: string,
 ): Promise<void> {
-  const xml = await querySceneGraph(target);
+  const xml = await queryPlayingSceneGraph(target);
   assertDirectPlaybackSurface(xml, contentId);
 }
 
@@ -98,7 +99,7 @@ export async function assertPlaybackMethodSurfaceOnDevice(
     await assertHlsPlaybackSurfaceOnDevice(target, contentId);
     await assertMediaPlayerContainer(target, "hls");
   } else {
-    assertFileStreamPlaybackSurface(await querySceneGraph(target), contentId);
+    assertFileStreamPlaybackSurface(await queryPlayingSceneGraph(target), contentId);
     await assertMediaPlayerContainerIsFileStream(target);
   }
 }
@@ -176,6 +177,8 @@ function assertHlsPlaybackSurface(xml: string, contentId: string): void {
   }
 }
 
+const playingSurfaceTimeoutMs = 10_000;
+
 function readVisiblePlaybackContentId(xml: string): string | undefined {
   const match = /\/(?:files|stream)\/(\d+)(?:\/|\.|[?&]|$)/.exec(xml);
   return match ? match[1] : undefined;
@@ -252,11 +255,13 @@ export async function launchPlayback(
         await chooseStartFrom(target, startFromChoice);
       }
     } else if (hasVisibleRouteScreen(xml, "videoPlayerScreen")) {
+      let playingXml = "";
       try {
-        assertDirectPlaybackSurface(xml, contentId);
+        playingXml = await queryPlayingSceneGraph(target, playingSurfaceTimeoutMs);
+        assertDirectPlaybackSurface(playingXml, contentId);
         return retry.app;
       } catch (error) {
-        const visibleContentId = readVisiblePlaybackContentId(xml);
+        const visibleContentId = readVisiblePlaybackContentId(playingXml);
         let didRetry = false;
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
           didRetry = await retry.maybeRetry(`stale content ${visibleContentId}`);
@@ -279,7 +284,7 @@ export async function launchPlayback(
   }
 
   try {
-    const xml = await querySceneGraph(target);
+    const xml = await queryPlayingSceneGraph(target, playingSurfaceTimeoutMs);
     assertDirectPlaybackSurface(xml, contentId);
     return retry.app;
   } catch {
@@ -367,11 +372,13 @@ export async function launchPlaybackWithRemoteStart(
         await sleep(playbackLaunchPostPromptSettleMs);
       }
     } else if (hasVisibleRouteScreen(xml, "videoPlayerScreen")) {
+      let playingXml = "";
       try {
-        assertDirectPlaybackSurface(xml, contentId);
+        playingXml = await queryPlayingSceneGraph(target, playingSurfaceTimeoutMs);
+        assertDirectPlaybackSurface(playingXml, contentId);
         return retry.app;
       } catch (error) {
-        const visibleContentId = readVisiblePlaybackContentId(xml);
+        const visibleContentId = readVisiblePlaybackContentId(playingXml);
         let didRetry = false;
         if (visibleContentId !== undefined && visibleContentId !== contentId) {
           didRetry = await retry.maybeRetry(`stale content ${visibleContentId}`);
@@ -396,7 +403,7 @@ export async function launchPlaybackWithRemoteStart(
   }
 
   try {
-    const xml = await querySceneGraph(target);
+    const xml = await queryPlayingSceneGraph(target, playingSurfaceTimeoutMs);
     assertDirectPlaybackSurface(xml, contentId);
     return retry.app;
   } catch (error) {
@@ -409,7 +416,7 @@ export async function launchPlaybackWithRemoteStart(
       readMediaPlayerContainer(mediaPlayerXml) !== undefined
     ) {
       await sleep(5_000);
-      const xml = await querySceneGraph(target);
+      const xml = await queryPlayingSceneGraph(target, playingSurfaceTimeoutMs);
       assertDirectPlaybackSurface(xml, contentId);
       return retry.app;
     }
@@ -437,7 +444,10 @@ async function findExistingPlaybackSurface(
       return undefined;
     }
 
-    assertDirectPlaybackSurface(xml, contentId);
+    assertDirectPlaybackSurface(
+      await queryPlayingSceneGraph(target, playingSurfaceTimeoutMs),
+      contentId,
+    );
     return activeApp;
   } catch {
     return undefined;

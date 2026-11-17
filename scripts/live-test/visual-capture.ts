@@ -1,7 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import {
-  assertNamedNodeState,
   assertNamedNodeText,
   launchApp as rokitLaunchApp,
   readNamedNodeAttribute,
@@ -11,6 +10,11 @@ import { exitAppDialogTitle, sceneGraphRequestTimeoutMs } from "./constants.ts";
 import { rokuDesignColor } from "./design-colors.ts";
 import { formatErrorMessage } from "./errors.ts";
 import { imageRenderSmoke } from "./image.ts";
+import {
+  assertNamedNodeHidden,
+  assertNamedNodeVisible,
+  namedNodeSubtreeXml,
+} from "./scenegraph.ts";
 import {
   captureDeveloperScreenshot,
   configuredAppId,
@@ -328,8 +332,7 @@ async function captureExitDialog(
     target,
     "expected exit app dialog",
     (xml) => {
-      assertNamedNodeVisible(xml, "appDialog");
-      assertNamedNodeText(xml, "titleLabel", exitAppDialogTitle);
+      assertNamedNodeText(namedNodeSubtreeXml(xml, "appDialog"), "titleLabel", exitAppDialogTitle);
     },
     10_000,
   );
@@ -516,12 +519,4 @@ async function openFocusedLabStory(
     },
     15_000,
   );
-}
-
-function assertNamedNodeVisible(xml: string, nodeName: string): void {
-  assertNamedNodeState(xml, nodeName, "visible");
-}
-
-function assertNamedNodeHidden(xml: string, nodeName: string): void {
-  assertNamedNodeState(xml, nodeName, "hidden");
 }

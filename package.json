@@ -19,7 +19,7 @@
     "@effect/platform-node": "4.1.4",
     "@phosphor-icons/core": "2.1.1",
     "@putdotio/design": "^3.0.0",
-    "@putdotio/rokit": "2.4.7",
+    "@putdotio/rokit": "2.5.0",
     "@resvg/resvg-js": "^2.6.2",
     "@rokucommunity/brs": "0.47.6",
     "@rokucommunity/bslint": "0.8.47",

@@ -16,14 +16,46 @@ export function assertNamedNodeVisible(xml: string, nodeName: string): void {
   assertNamedNodeState(xml, nodeName, "visible");
 }
 
+// app-ui leaves out hidden screens and dialogs, so hidden also accepts absent.
 export function assertNamedNodeHidden(xml: string, nodeName: string): void {
-  assertNamedNodeState(xml, nodeName, "hidden");
+  assertNamedNodeHiddenOrAbsent(xml, nodeName);
 }
 
 export function assertNamedNodeHiddenOrAbsent(xml: string, nodeName: string): void {
   if (isNamedNodeVisible(xml, nodeName)) {
     throw new Error(`expected SceneGraph node "${nodeName}" to be hidden or absent`);
   }
+}
+
+// app-ui nests each node inside its parent; the last visible match is the topmost one.
+export function nodeSubtreeXml(
+  xml: string,
+  matches: (tag: string) => boolean,
+  label: string,
+): string {
+  const tags = xml.match(/<\/?[A-Za-z_][^>]*>/gu) ?? [];
+  let start = -1;
+  for (const [index, tag] of tags.entries()) {
+    if (!tag.startsWith("</") && matches(tag) && !tag.includes('visible="false"')) start = index;
+  }
+  if (start === -1) throw new Error(`expected visible ${label}`);
+  const scoped: string[] = [];
+  let depth = 0;
+  for (const tag of tags.slice(start)) {
+    scoped.push(tag);
+    if (tag.startsWith("</")) depth -= 1;
+    else if (!tag.endsWith("/>")) depth += 1;
+    if (depth === 0) break;
+  }
+  return scoped.join("\n");
+}
+
+export function namedNodeSubtreeXml(xml: string, nodeName: string): string {
+  return nodeSubtreeXml(
+    xml,
+    (tag) => tag.includes(` name="${nodeName}"`),
+    `SceneGraph node "${nodeName}"`,
+  );
 }
 
 export function assertNamedNodeAbsent(xml: string, nodeName: string): void {
