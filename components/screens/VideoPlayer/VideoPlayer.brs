@@ -457,20 +457,6 @@ function getSubtitleLabel(subtitle) as string
     return language.toStr()
 end function
 
-function getCleanSubtitleName(name) as string
-    cleanName = name.toStr()
-    cleanName = cleanName.replace(".srt", "")
-    cleanName = cleanName.replace(".SRT", "")
-    cleanName = cleanName.replace(".vtt", "")
-    cleanName = cleanName.replace(".VTT", "")
-    cleanName = cleanName.replace(".ass", "")
-    cleanName = cleanName.replace(".ASS", "")
-    cleanName = cleanName.replace(".ssa", "")
-    cleanName = cleanName.replace(".SSA", "")
-
-    return cleanName
-end function
-
 function getSubtitleLanguageCode(subtitle) as string
     languageCode = readTrackValue(subtitle, "language_code")
     if languageCode <> invalid and languageCode <> ""
@@ -962,21 +948,6 @@ function getAvailableSubtitleTrackName(trackName)
     end for
 
     return trackName
-end function
-
-function subtitleTrackNamesMatch(leftTrackName, rightTrackName) as boolean
-    if leftTrackName = invalid or rightTrackName = invalid
-        return false
-    end if
-
-    leftValue = leftTrackName.toStr()
-    rightValue = rightTrackName.toStr()
-
-    if leftValue = "" or rightValue = ""
-        return false
-    end if
-
-    return leftValue = rightValue or Right(leftValue, Len(rightValue)) = rightValue or Right(rightValue, Len(leftValue)) = leftValue
 end function
 
 sub updateTrackSummary()
