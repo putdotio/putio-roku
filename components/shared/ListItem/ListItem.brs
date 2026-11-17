@@ -68,12 +68,21 @@ end function
 sub configureHint()
     ensureListItemNodes()
 
+    ' A LayoutGroup still sizes a hidden empty Label, which lifts a hint-less title off
+    ' the row's center, so the hint joins the text group only when there is one.
+    textContent = m.top.findNode("textContent")
     if hasListItemHint()
         m.hint.text = m.top.itemContent.hint
         m.hint.visible = true
+        if textContent.getChildCount() < 2
+            textContent.appendChild(m.hint)
+        end if
     else
         m.hint.text = ""
         m.hint.visible = false
+        if textContent.getChildCount() > 1
+            textContent.removeChild(m.hint)
+        end if
     end if
 end sub
 
