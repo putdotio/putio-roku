@@ -37,6 +37,7 @@ export const visualLabStories = [
   ["app-dialog-cant-play-decoder-error", "AppDialog / can't play decoder error"],
   ["app-dialog-cant-play-standard", "AppDialog / can't play on Standard"],
   ["app-dialog-cant-play-standard-decoder", "AppDialog / can't play Standard decoder error"],
+  ["app-dialog-connection-lost", "AppDialog / connection lost"],
   ["app-dialog-link-expired", "AppDialog / link expired"],
   ["app-dialog-update", "AppDialog / update available"],
   ["app-dialog-update-installing", "AppDialog / update installing"],

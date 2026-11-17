@@ -7,7 +7,7 @@ function isPlaybackErrorFromServedCopy(source as dynamic) as boolean
 end function
 
 function buildPlaybackErrorDialogTitle(reason as string) as string
-    if reason = "playback_stopped"
+    if reason = "playback_stopped" or reason = "connection_lost"
         return "Playback stopped"
     else if reason = "link_expired"
         return "Playback link expired"
@@ -61,13 +61,15 @@ function getPlaybackErrorReasonMessage(reason as string, source as dynamic) as s
         return "The original file failed to play."
     else if reason = "link_expired"
         return "Try again to get a fresh link."
+    else if reason = "connection_lost"
+        return "Connection lost. Check your internet and try again."
     end if
 
     return "Something went wrong while playing."
 end function
 
 function getPlaybackErrorDialogActions(reason as string, method as dynamic) as object
-    if reason = "playback_stopped" or reason = "link_expired"
+    if reason = "playback_stopped" or reason = "connection_lost" or reason = "link_expired"
         return ["retry", "back"]
     end if
 
