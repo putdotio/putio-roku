@@ -8,7 +8,7 @@ function getHlsManifestUrl(file as object, apiUrl, downloadToken) as string
         normalizedApiUrl = Left(normalizedApiUrl, Len(normalizedApiUrl) - 1)
     end if
 
-    return normalizedApiUrl + "/files/" + file.id.toStr() + "/hls/media.m3u8?oauth_token=" + downloadToken.toStr()
+    return normalizedApiUrl + "/files/" + file.id.toStr() + "/hls/media.m3u8?oauth_token=" + downloadToken.toStr() + "&max_subtitle_count=0"
 end function
 
 function getVideoFileDurationSeconds(file as object) as integer

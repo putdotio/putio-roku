@@ -13,7 +13,7 @@ type Probe = { video: boolean; audio: boolean; videoMode: string; stb: boolean; 
 
 const api = "https://api.put.io/v2/";
 const token = "download-token";
-const hlsUrl = `https://api.put.io/v2/files/7/hls/media.m3u8?oauth_token=${token}`;
+const hlsUrl = `https://api.put.io/v2/files/7/hls/media.m3u8?oauth_token=${token}&max_subtitle_count=0`;
 const audioUrl = `https://api.put.io/v2/files/7/stream.mp3?oauth_token=${token}`;
 const streamUrl = "https://s1.put.io/stream/7?u=path&stream=1&oauth_token=download-token";
 const mp4StreamUrl = "https://s1.put.io/stream/7.mp4?u=path&stream=1&oauth_token=download-token";
