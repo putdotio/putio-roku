@@ -119,6 +119,8 @@ function main() as string
         status_code: 404,
     })))
 
+    result.conversion_failure = parseJSON(formatJSON(createConversionFailureEvent("NOT_AVAILABLE", "hls", file)))
+
     return formatJSON(result)
 end function
 

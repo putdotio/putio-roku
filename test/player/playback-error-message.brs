@@ -5,9 +5,9 @@ function main() as string
     for each name in cases
         input = cases[name]
         if input.unplayable <> invalid and input.unplayable = true
-            message = buildUnplayableDialogMessage(input.reason, input.method, input.errorCode)
+            message = buildUnplayableDialogMessage(input.reason, input.method)
         else
-            message = buildPlaybackErrorDialogMessage(input.reason, input.source, input.errorCode)
+            message = buildPlaybackErrorDialogMessage(input.reason, input.source)
         end if
         results[name] = {
             title: buildPlaybackErrorDialogTitle(input.reason),

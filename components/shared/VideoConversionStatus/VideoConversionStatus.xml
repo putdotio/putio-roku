@@ -8,6 +8,7 @@
     <field id="completedFile" type="assocarray" />
     <field id="completed" type="bool" alwaysNotify="true" />
     <field id="dismissed" type="bool" alwaysNotify="true" />
+    <field id="failedStatus" type="string" alwaysNotify="true" />
     <field id="previewMode" type="string" onChange="onPreviewModeChange" />
   </interface>
 

@@ -20,6 +20,7 @@ function init()
     m.conversionStatus = m.top.findNode("conversionStatus")
     m.conversionStatus.observeField("completed", "onVideoConversionCompleted")
     m.conversionStatus.observeField("dismissed", "onVideoConversionDismissed")
+    m.conversionStatus.observeField("failedStatus", "onVideoConversionFailed")
 end function
 
 sub onVisibleChange()
@@ -244,7 +245,7 @@ sub showPlaybackUnavailableDialog(reason as dynamic)
     m.unavailableAction = "back"
     m.playbackUnavailableDialog = createObject("roSGNode", "AppDialog")
     m.playbackUnavailableDialog.title = buildPlaybackErrorDialogTitle(reason)
-    m.playbackUnavailableDialog.message = buildUnplayableDialogMessage(reason, m.method, "")
+    m.playbackUnavailableDialog.message = buildUnplayableDialogMessage(reason, m.method)
     m.playbackUnavailableDialog.buttons = getPlaybackErrorDialogButtons(m.unavailableActions)
     m.playbackUnavailableDialog.observeField("buttonSelected", "onPlaybackUnavailableDialogButtonSelected")
     m.playbackUnavailableDialog.observeField("wasClosed", "onPlaybackUnavailableDialogClosed")
@@ -266,6 +267,8 @@ sub onPlaybackUnavailableDialogClosed()
         m.method = "hls"
         showLoading()
         resolvePlayback(false, invalid)
+    else if m.unavailableAction = "retry"
+        showVideoConversionStatus()
     else
         m.top.navigateBack = true
     end if
@@ -286,6 +289,16 @@ sub onVideoConversionDismissed()
         m.conversionStatus.visible = false
         m.top.navigateBack = true
     end if
+end sub
+
+sub onVideoConversionFailed(obj)
+    if m.phase <> "conversion"
+        return
+    end if
+
+    m.conversionStatus.visible = false
+    sentryCaptureEvent(createConversionFailureEvent(obj.getData(), m.method, m.file))
+    showPlaybackUnavailableDialog("conversion_failed")
 end sub
 
 sub onVideoConversionCompleted()

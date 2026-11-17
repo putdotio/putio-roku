@@ -18,6 +18,7 @@ type DriverResult = {
   playback_rescue_watchdog: SentryEvent;
   playback_rescue_preflight: SentryEvent;
   source_request_failure: SentryEvent;
+  conversion_failure: SentryEvent;
 };
 
 const deviceTags = ["connection_type", "roku_model", "roku_os", "video_mode"];
@@ -69,6 +70,15 @@ const allowedTags = {
     "video_level",
     "audio_channels",
     "audio_output_channel",
+  ],
+  conversion_failure: [
+    ...deviceTags,
+    "telemetry_event",
+    "schema_version",
+    "player",
+    "conversion_status",
+    "streaming_method",
+    "file_id",
   ],
   source_request_failure: [
     ...deviceTags,
@@ -123,6 +133,7 @@ describe("Sentry reporting", () => {
     "playback_rescue_watchdog",
     "playback_rescue_preflight",
     "source_request_failure",
+    "conversion_failure",
   ] as const)("keeps account data, filenames, titles, URLs and tokens out of %s", (name) => {
     expect(JSON.stringify(result[name]).toLowerCase()).not.toContain("secret");
   });
@@ -133,6 +144,7 @@ describe("Sentry reporting", () => {
     ["playback_rescue_watchdog", allowedTags.playback_rescue],
     ["playback_rescue_preflight", allowedTags.playback_rescue],
     ["source_request_failure", allowedTags.source_request_failure],
+    ["conversion_failure", allowedTags.conversion_failure],
   ] as const)("sends only allowlisted tags on %s", (name, tags) => {
     expect(Object.keys(result[name].tags).sort()).toEqual([...tags].sort());
   });
@@ -204,6 +216,19 @@ describe("Sentry reporting", () => {
       roku_error_code: "none",
       roku_error_category: "none",
       roku_error_info_code: "none",
+    });
+  });
+
+  it("reports a failed conversion with its status and method", () => {
+    const { message, fingerprint, tags } = result.conversion_failure;
+
+    expect(message).toBe("Roku conversion failed: NOT_AVAILABLE");
+    expect(fingerprint).toEqual(["roku-conversion-failure", "NOT_AVAILABLE"]);
+    expect(tags).toMatchObject({
+      telemetry_event: "playback_conversion_failure",
+      conversion_status: "NOT_AVAILABLE",
+      streaming_method: "hls",
+      file_id: "9001",
     });
   });
 

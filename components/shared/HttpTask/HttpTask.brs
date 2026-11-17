@@ -63,5 +63,4 @@ sub onResponse(msg)
     end if
 
     m.http.asynccancel()
-    m.top.response = ""
 end sub

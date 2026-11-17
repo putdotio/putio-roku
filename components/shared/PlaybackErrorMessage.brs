@@ -16,23 +16,15 @@ function buildPlaybackErrorDialogTitle(reason as string) as string
     return "Can't play this file"
 end function
 
-' Roku's own errorMsg is developer text and stays out of the dialog.
-function buildPlaybackErrorDialogMessage(reason as string, source as dynamic, errorCode as string) as string
-    return appendPlaybackErrorCode(getPlaybackErrorReasonMessage(reason, source), errorCode)
+' Roku error codes and errorMsg go to Sentry only; the dialog shows the reason.
+function buildPlaybackErrorDialogMessage(reason as string, source as dynamic) as string
+    return getPlaybackErrorReasonMessage(reason, source)
 end function
 
-function buildUnplayableDialogMessage(reason as string, method as dynamic, errorCode as string) as string
+function buildUnplayableDialogMessage(reason as string, method as dynamic) as string
     message = getPlaybackErrorReasonMessage(reason, invalid)
-    if normalizePlaybackMethod(method) = "file" and reason <> "not_ready"
+    if normalizePlaybackMethod(method) = "file" and reason <> "not_ready" and reason <> "conversion_failed"
         message = message + chr(10) + "This file has no converted version."
-    end if
-
-    return appendPlaybackErrorCode(message, errorCode)
-end function
-
-function appendPlaybackErrorCode(message as string, errorCode as string) as string
-    if errorCode <> "" and errorCode <> "none"
-        return message + chr(10) + chr(10) + "Error " + errorCode
     end if
 
     return message
@@ -63,13 +55,15 @@ function getPlaybackErrorReasonMessage(reason as string, source as dynamic) as s
         return "Try again to get a fresh link."
     else if reason = "connection_lost"
         return "Connection lost. Check your internet and try again."
+    else if reason = "conversion_failed"
+        return "The conversion failed."
     end if
 
     return "Something went wrong while playing."
 end function
 
 function getPlaybackErrorDialogActions(reason as string, method as dynamic) as object
-    if reason = "playback_stopped" or reason = "connection_lost" or reason = "link_expired"
+    if reason = "playback_stopped" or reason = "connection_lost" or reason = "link_expired" or reason = "conversion_failed"
         return ["retry", "back"]
     end if
 
