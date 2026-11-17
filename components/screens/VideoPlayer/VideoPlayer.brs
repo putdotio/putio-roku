@@ -844,18 +844,13 @@ sub addManifestSubtitleTracks()
         end if
     end for
 
-    matches = matchManifestSubtitles(manifestTracks, m.top.params.subtitles)
-    for i = 0 to manifestTracks.count() - 1
-        track = manifestTracks[i]
+    for each track in manifestTracks
         name = readTrackValue(track, "Description")
-        if matches[i] <> invalid
-            name = getSubtitleLabel(matches[i])
-        end if
         addUniqueSubtitleTrack({
             Language: readTrackValue(track, "Language"),
             Name: name,
             TrackName: readTrackValue(track, "TrackName"),
-            Description: readTrackValue(track, "Description")
+            Description: name
         })
     end for
 end sub
