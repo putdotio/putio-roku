@@ -141,9 +141,9 @@ end sub
 sub updateShowHistory()
     m.showHistory = m.items.show_history.node
     if m.global.user.settings.history_enabled
-        m.showHistory.description = "Enabled"
+        m.showHistory.toggle = "on"
     else
-        m.showHistory.description = "Disabled"
+        m.showHistory.toggle = "off"
     end if
 end sub
 
@@ -233,9 +233,9 @@ end sub
 sub updateShowOnlyMediaValue()
     m.showOnlyMediaListItem = m.items.show_only_media_files.node
     if toBool(m.storage.read("show_only_media_files"))
-        m.showOnlyMediaListItem.description = "Enabled"
+        m.showOnlyMediaListItem.toggle = "on"
     else
-        m.showOnlyMediaListItem.description = "Disabled"
+        m.showOnlyMediaListItem.toggle = "off"
     end if
 end sub
 

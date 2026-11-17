@@ -10,6 +10,7 @@ sub ensureListItemNodes()
         m.description = m.top.findNode("description")
         m.hint = m.top.findNode("hint")
         m.value = m.top.findNode("value")
+        m.toggle = m.top.findNode("toggle")
         applyListItemFocusBackground(m.focusBackground)
         setDialogNodeColor(m.title, "text")
         setDialogNodeColor(m.description, "textMuted")
@@ -34,6 +35,21 @@ sub itemContentChanged()
     configureDescription()
     configureHint()
     fitValueToTitle()
+    configureToggle()
+end sub
+
+sub configureToggle()
+    toggle = m.top.itemContent.toggle
+    if toggle <> "on" and toggle <> "off"
+        m.toggle.visible = false
+        return
+    end if
+
+    rowWidth = normalizeListItemRowWidth(m.top.itemContent.rowWidth)
+    m.toggle.translation = [rowWidth - 48 - m.toggle.width, m.toggle.translation[1]]
+    m.toggle.uri = "pkg:/images/generated/switch-" + toggle + ".png"
+    m.value.visible = false
+    m.toggle.visible = true
 end sub
 
 sub configureLayout()

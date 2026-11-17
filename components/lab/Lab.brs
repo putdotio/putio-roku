@@ -815,8 +815,10 @@ end sub
 
 sub renderSettingsPlaybackMethodStory(method as string)
     content = createObject("roSGNode", "ContentNode")
-    addSettingsListItem(content, "media-filter", "Only Show Media Files", "Disabled", "")
-    addSettingsListItem(content, "history", "Keep populating the history page with your activities", "Enabled", "")
+    mediaFilter = addSettingsListItem(content, "media-filter", "Only Show Media Files", "", "")
+    mediaFilter.toggle = "off"
+    history = addSettingsListItem(content, "history", "Keep populating the history page with your activities", "", "")
+    history.toggle = "on"
     addSettingsListItem(content, "file-video", "Playback method", getPlaybackMethodLabel(method), getPlaybackMethodHint(method))
     addSettingsListItem(content, "info", "Version", "2.22.0", "")
 
@@ -829,14 +831,15 @@ sub renderSettingsPlaybackMethodStory(method as string)
     addPreviewNode(list, invalid, true)
 end sub
 
-sub addSettingsListItem(content as object, iconName as string, title as string, value as string, hint as string)
+function addSettingsListItem(content as object, iconName as string, title as string, value as string, hint as string) as object
     item = content.createChild("ListItemData")
     item.iconName = iconName
     item.title = title
     item.description = value
     item.hint = hint
     item.valueAlign = "right"
-end sub
+    return item
+end function
 
 sub renderFileListItemStory()
     content = createObject("roSGNode", "ContentNode")
