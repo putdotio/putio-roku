@@ -33,6 +33,7 @@ sub itemContentChanged()
     configureTitle()
     configureDescription()
     configureHint()
+    fitValueToTitle()
 end sub
 
 sub configureLayout()
@@ -58,6 +59,20 @@ sub configureLayout()
     textX = Int(inlineContent.translation[0] + m.icon.width + inlineContent.itemSpacings[0])
     hintGap = 36
     m.hint.width = valueX - textX - hintGap
+end sub
+
+sub fitValueToTitle()
+    if hasListItemHint()
+        return
+    end if
+
+    rowWidth = normalizeListItemRowWidth(m.top.itemContent.rowWidth)
+    inlineContent = m.top.findNode("inlineContent")
+    textX = Int(inlineContent.translation[0] + m.icon.width + inlineContent.itemSpacings[0])
+    valueGap = 36
+    valueX = textX + Int(m.title.boundingRect().width) + valueGap
+    m.value.translation = [valueX, 0]
+    m.value.width = rowWidth - valueX - 48
 end sub
 
 function hasListItemHint() as boolean
