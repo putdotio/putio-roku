@@ -46,7 +46,8 @@ sub configureToggle()
     end if
 
     rowWidth = normalizeListItemRowWidth(m.top.itemContent.rowWidth)
-    m.toggle.translation = [rowWidth - 48 - m.toggle.width, m.toggle.translation[1]]
+    toggleY = uiSnap(Int((uiListRowHeight() - m.toggle.height) / 2))
+    m.toggle.translation = [rowWidth - 48 - m.toggle.width, toggleY]
     m.toggle.uri = "pkg:/images/generated/switch-" + toggle + ".png"
     m.value.visible = false
     m.toggle.visible = true
