@@ -82,12 +82,17 @@ function isDirectPlayVideoDecodable(mediaInfo as object, container as string, pr
         return false
     end if
 
-    if profile = "main 10" and probe.hdr10() <> true
+    ' media_info flags PQ and HLG video as hdr; files probed before that field count as HDR when 10-bit.
+    hdr = stream.hdr
+    if GetInterface(hdr, "ifBoolean") = invalid
+        hdr = profile = "main 10"
+    end if
+    if hdr and probe.hdr10() <> true
         return false
     end if
 
     rfc6381Codec = lowerDirectPlayField(stream, "rfc6381_codec")
-    if Left(rfc6381Codec, 4) = "dvh1" or Left(rfc6381Codec, 4) = "dvhe"
+    if stream.dolby_vision_profile <> invalid or Left(rfc6381Codec, 4) = "dvh1" or Left(rfc6381Codec, 4) = "dvhe"
         return false
     end if
 
@@ -101,7 +106,7 @@ function isDirectPlayVideoDecodable(mediaInfo as object, container as string, pr
 end function
 
 function getDirectPlayAudioReason(mediaInfo as object, container as string, probe as object) as dynamic
-    stream = getDirectPlayStream(mediaInfo.streams, "audio")
+    stream = getDirectPlayAudioStream(mediaInfo.streams)
     if stream = invalid
         return invalid
     end if
@@ -140,14 +145,41 @@ function isDirectPlayCoverArt(stream as object) as boolean
     return codecName = "mjpeg" or codecName = "png" or codecName = "bmp" or codecName = "gif" or codecName = "webp"
 end function
 
-function getDirectPlayStream(streams as object, codecType as string) as object
-    for each stream in streams
-        if stream <> invalid and lowerDirectPlayField(stream, "codec_type") = codecType
-            return stream
+function getDirectPlayAudioStream(streams as object) as object
+    audioStreams = getDirectPlayAudioStreams(streams)
+    if audioStreams.count() = 0
+        return invalid
+    end if
+
+    return audioStreams[getDefaultAudioStreamIndex(streams)]
+end function
+
+' Several audio streams can carry the default flag (MP4 enables every track, Matroska defaults a
+' missing FlagDefault to 1), so the first flagged one wins, else the first audio stream.
+function getDefaultAudioStreamIndex(streams as object) as integer
+    audioStreams = getDirectPlayAudioStreams(streams)
+    for index = 0 to audioStreams.count() - 1
+        if audioStreams[index]["default"] = true
+            return index
         end if
     end for
 
-    return invalid
+    return 0
+end function
+
+function getDirectPlayAudioStreams(streams as object) as object
+    audioStreams = []
+    if streams = invalid
+        return audioStreams
+    end if
+
+    for each stream in streams
+        if stream <> invalid and lowerDirectPlayField(stream, "codec_type") = "audio"
+            audioStreams.push(stream)
+        end if
+    end for
+
+    return audioStreams
 end function
 
 function getDirectPlayAvcProfile(profileName as string) as dynamic
