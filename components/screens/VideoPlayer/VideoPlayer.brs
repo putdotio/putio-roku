@@ -320,7 +320,7 @@ sub loadPlaybackPlan(plan as object, startFrom)
     resetPreviewSeek()
     m.pendingSeekPosition = invalid
     m.seekValue = 0
-    m.pausedBeforeStart = false
+    m.userPaused = false
 
     videoContent = createObject("RoSGNode", "ContentNode")
     videoContent.url = plan.url
@@ -504,7 +504,7 @@ sub onPlayerStateChanged(obj)
 
     if state = "playing"
         m.playbackStarted = true
-        m.pausedBeforeStart = false
+        m.userPaused = false
         m.startWatchdog.control = "stop"
     end if
 
@@ -526,7 +526,7 @@ sub onPlayerStateChanged(obj)
             end if
         end if
     else if state = "buffering"
-        updateBufferingOverlay(true)
+        updateBufferingOverlay(m.userPaused <> true)
         showOsd()
     else
         updateBufferingOverlay(false)
@@ -561,6 +561,11 @@ sub onPlayerPositionChanged(obj)
         return
     end if
 
+    ' A pause while the Video node re-buffers after a seek reports position 0.
+    if m.userPaused = true and m.video.state <> "playing"
+        return
+    end if
+
     if position <> invalid
         displayedPosition = position
 
@@ -568,7 +573,7 @@ sub onPlayerPositionChanged(obj)
             if Abs(position - m.pendingSeekPosition) <= 2
                 displayedPosition = m.pendingSeekPosition
                 m.pendingSeekPosition = invalid
-            else if m.video.state = "playing"
+            else
                 return
             end if
         end if
@@ -658,9 +663,9 @@ sub updatePositionPauseIcon()
     m.positionPauseIcon.translation = [getPositionPauseIconX(), 56]
 end sub
 
-' Before the first frame the Video node keeps reporting "buffering" after control = "pause".
+' The Video node keeps reporting "buffering" after control = "pause" while it waits for data, before the first frame and after a seek.
 function isVideoPaused() as boolean
-    return m.pausedBeforeStart = true or m.video.state = "paused" or m.video.state = "pause"
+    return m.userPaused = true or m.video.state = "paused" or m.video.state = "pause"
 end function
 
 function getPositionPauseIconX() as integer
@@ -1130,7 +1135,7 @@ function getFirstAvailableControlIndex()
 end function
 
 sub updatePlayIcon()
-    if m.pausedBeforeStart <> true and (m.video.state = "playing" or m.video.state = "buffering")
+    if m.userPaused <> true and (m.video.state = "playing" or m.video.state = "buffering")
         m.controls[1].icon.uri = "pkg:/images/icons/pause.png"
     else
         m.controls[1].icon.uri = "pkg:/images/icons/play.png"
@@ -1221,35 +1226,30 @@ sub playOrPause()
         return
     end if
 
-    if m.playbackStarted = false
-        if m.pausedBeforeStart = true
-            resumeBeforeStart()
-        else
-            pauseBeforeStart()
-        end if
-    else if m.video.state = "playing" or m.video.state = "buffering"
-        m.video.control = "pause"
+    if isVideoPaused()
+        resumePlayback()
     else
-        m.video.control = "resume"
+        pausePlayback()
     end if
 
     showOsd()
 end sub
 
-sub pauseBeforeStart()
-    m.pausedBeforeStart = true
+sub pausePlayback()
+    m.userPaused = true
     m.startWatchdog.control = "stop"
     m.video.control = "pause"
+    updateBufferingOverlay(false)
     updatePlayIcon()
     updatePositionPauseIcon()
 end sub
 
-sub resumeBeforeStart()
-    m.pausedBeforeStart = false
+sub resumePlayback()
+    m.userPaused = false
     m.video.control = "resume"
     m.startBufferingPercent = 0
     m.startWatchdogRearms = 0
-    if m.plan <> invalid and m.plan.source = "original" and m.rescued = false and m.hasPlaybackError = false
+    if m.playbackStarted = false and m.plan <> invalid and m.plan.source = "original" and m.rescued = false and m.hasPlaybackError = false
         m.startWatchdog.control = "start"
     end if
     updatePlayIcon()
@@ -1323,7 +1323,7 @@ sub startPreviewSeek(seconds)
         m.seekValue = getDisplayedPosition()
         m.seekInProgress = true
         restartPlaybackSpeedCheckWindow()
-        m.wasPlayingBeforeSeek = m.video.state = "playing" or m.video.state = "buffering"
+        m.wasPlayingBeforeSeek = isVideoPaused() = false and (m.video.state = "playing" or m.video.state = "buffering")
         m.seekPressCount = 0
         m.seekDirection = direction
         resetSeekPressTimer()
@@ -1502,7 +1502,7 @@ sub onStartWatchdogFire()
         return
     end if
 
-    if m.pausedBeforeStart = true
+    if m.userPaused = true
         return
     end if
 
@@ -1928,7 +1928,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             end if
 
             if m.playbackStarted = false
-                pauseBeforeStart()
+                pausePlayback()
             else
                 m.video.control = "pause"
             end if
