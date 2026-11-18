@@ -145,6 +145,7 @@ function init()
     m.audioTracks = []
     m.rokuSubtitleTracks = []
     m.externalSubtitleTracks = []
+    m.usesManifestSubtitles = false
     m.subtitleTracks = []
     m.trackMenuItems = []
     m.trackMenuMode = ""
@@ -297,6 +298,7 @@ sub setupPlayer()
     end if
 
     m.externalSubtitleTracks = createSubtitleTracks(m.top.params.subtitles)
+    m.usesManifestSubtitles = m.plan.streamFormat = "hls"
     syncSubtitleTracks()
     ensureDefaultSubtitleSelection()
     updateTrackSummary()
@@ -310,6 +312,8 @@ sub loadPlaybackPlan(plan as object, startFrom)
     end if
 
     m.plan = plan
+    m.usesManifestSubtitles = plan.streamFormat = "hls"
+    syncSubtitleTracks()
     m.currentStreamInfo = { url: plan.url, format: plan.streamFormat }
     m.playStartPosition = startFrom
     m.hasPlaybackError = false
@@ -326,7 +330,7 @@ sub loadPlaybackPlan(plan as object, startFrom)
     videoContent.url = plan.url
     videoContent.title = m.playbackFile.name
     videoContent.streamFormat = plan.streamFormat
-    if m.externalSubtitleTracks.count() > 0
+    if m.usesManifestSubtitles = false and m.externalSubtitleTracks.count() > 0
         videoContent.SubtitleTracks = m.externalSubtitleTracks
     end if
 
@@ -451,20 +455,6 @@ function getSubtitleLabel(subtitle) as string
     end if
 
     return language.toStr()
-end function
-
-function getCleanSubtitleName(name) as string
-    cleanName = name.toStr()
-    cleanName = cleanName.replace(".srt", "")
-    cleanName = cleanName.replace(".SRT", "")
-    cleanName = cleanName.replace(".vtt", "")
-    cleanName = cleanName.replace(".VTT", "")
-    cleanName = cleanName.replace(".ass", "")
-    cleanName = cleanName.replace(".ASS", "")
-    cleanName = cleanName.replace(".ssa", "")
-    cleanName = cleanName.replace(".SSA", "")
-
-    return cleanName
 end function
 
 function getSubtitleLanguageCode(subtitle) as string
@@ -821,6 +811,12 @@ end sub
 sub syncSubtitleTracks()
     m.subtitleTracks = []
 
+    if m.usesManifestSubtitles = true
+        addManifestSubtitleTracks()
+        dropUnavailableSubtitleSelection()
+        return
+    end if
+
     if m.externalSubtitleTracks <> invalid
         for each track in m.externalSubtitleTracks
             addUniqueSubtitleTrack(createSelectableSubtitleTrack(track))
@@ -839,6 +835,31 @@ function createSelectableSubtitleTrack(track)
         Description: readTrackValue(track, "Description")
     }
 end function
+
+sub addManifestSubtitleTracks()
+    manifestTracks = []
+    for each track in m.rokuSubtitleTracks
+        if isExternalSubtitleTrackName(readTrackValue(track, "TrackName")) = false
+            manifestTracks.push(track)
+        end if
+    end for
+
+    for each track in manifestTracks
+        name = readTrackValue(track, "Description")
+        addUniqueSubtitleTrack({
+            Language: readTrackValue(track, "Language"),
+            Name: name,
+            TrackName: readTrackValue(track, "TrackName"),
+            Description: name
+        })
+    end for
+end sub
+
+sub dropUnavailableSubtitleSelection()
+    if m.selectedSubtitleTrackName <> invalid and m.selectedSubtitleTrackName <> "" and hasSubtitleTrack(m.selectedSubtitleTrackName) = false
+        m.selectedSubtitleTrackName = invalid
+    end if
+end sub
 
 sub ensureDefaultSubtitleSelection()
     if m.selectedSubtitleTrackName <> invalid
@@ -922,21 +943,6 @@ function getAvailableSubtitleTrackName(trackName)
     end for
 
     return trackName
-end function
-
-function subtitleTrackNamesMatch(leftTrackName, rightTrackName) as boolean
-    if leftTrackName = invalid or rightTrackName = invalid
-        return false
-    end if
-
-    leftValue = leftTrackName.toStr()
-    rightValue = rightTrackName.toStr()
-
-    if leftValue = "" or rightValue = ""
-        return false
-    end if
-
-    return leftValue = rightValue or Instr(1, leftValue, rightValue) > 0 or Instr(1, rightValue, leftValue) > 0
 end function
 
 sub updateTrackSummary()

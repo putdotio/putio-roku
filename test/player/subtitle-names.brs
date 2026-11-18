@@ -1,0 +1,15 @@
+' Driver for the subtitle name cases in manifest-subtitles.test.ts, run by the @rokucommunity/brs interpreter.
+function main() as string
+    results = {}
+    cases = driverCases()
+    for each name in cases
+        input = cases[name]
+        if input.kind = "label"
+            results[name] = getCleanSubtitleName(input.name)
+        else
+            results[name] = subtitleTrackNamesMatch(input.left, input.right)
+        end if
+    end for
+
+    return formatJson(results)
+end function

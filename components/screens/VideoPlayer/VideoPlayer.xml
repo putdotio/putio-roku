@@ -9,6 +9,7 @@
   <script type="text/brightscript" uri="pkg:/components/shared/Playback/DirectPlayCheck.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Playback/RokuDecoderProbe.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Playback/PlaybackResolver.brs" />
+  <script type="text/brightscript" uri="pkg:/components/shared/Playback/ManifestSubtitles.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/Playback/PlaybackFailure.brs" />
   <script type="text/brightscript" uri="pkg:/components/shared/KeyUtils.brs" />
   <script type="text/brightscript" uri="pkg:/components/screens/VideoPlayer/VideoPlayerTrackMenu.brs" />
