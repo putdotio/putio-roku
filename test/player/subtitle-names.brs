@@ -12,14 +12,20 @@ function main() as string
             m.trackMenuMode = "captions"
             m.trackMenuItems = []
             m.selectedSubtitleTrackName = ""
+            if input.selectedTrackName <> invalid then m.selectedSubtitleTrackName = input.selectedTrackName
             tracks = input.tracks
             if input.kind = "menu" then tracks = createSubtitleTracks(input.subtitles)
             addTrackMenuItems(tracks, true)
-            labels = []
-            for each item in getTrackMenuPresentationItems()
-                labels.push(item.label)
-            end for
-            results[name] = labels
+            items = getTrackMenuPresentationItems()
+            if input.kind = "manifestMenu"
+                results[name] = items
+            else
+                labels = []
+                for each item in items
+                    labels.push(item.label)
+                end for
+                results[name] = labels
+            end if
         else
             results[name] = subtitleTrackNamesMatch(input.left, input.right)
         end if

@@ -168,21 +168,26 @@ function getTrackMenuPresentationItems() as object
 
     if m.trackMenuMode = "captions"
         for each item in m.trackMenuItems
-            reservedLabels[getMenuSafeTrackLabel(item.label)] = true
+            label = getMenuSafeTrackLabel(item.label)
+            reservedLabels[getCaptionMenuLabelKey(label)] = true
         end for
     end if
 
     for each item in m.trackMenuItems
         label = getMenuSafeTrackLabel(item.label)
-        if m.trackMenuMode = "captions" and usedLabels.doesExist(label)
-            number = 2
-            while usedLabels.doesExist(label) or reservedLabels.doesExist(label)
-                suffix = " (" + number.toStr() + ")"
-                label = getMenuSafeTrackLabel(item.label, Len(suffix)) + suffix
-                number = number + 1
-            end while
+        if m.trackMenuMode = "captions"
+            labelKey = getCaptionMenuLabelKey(label)
+            if usedLabels.doesExist(labelKey)
+                number = 2
+                while usedLabels.doesExist(labelKey) or reservedLabels.doesExist(labelKey)
+                    prefix = "(" + number.toStr() + ") "
+                    label = prefix + getMenuSafeTrackLabel(item.label, Len(prefix))
+                    labelKey = getCaptionMenuLabelKey(label)
+                    number = number + 1
+                end while
+            end if
+            usedLabels[labelKey] = true
         end if
-        usedLabels[label] = true
         items.push({
             label: label,
             selected: isTrackMenuItemSelected(item)
@@ -355,7 +360,14 @@ function getTrackLabel(track) as string
     return "Unknown"
 end function
 
-function getMenuSafeTrackLabel(label, suffixLength = 0 as integer) as string
+function getCaptionMenuLabelKey(label as string) as string
+    if Len(label) >= 32
+        return Left(label, 15)
+    end if
+    return label
+end function
+
+function getMenuSafeTrackLabel(label, prefixLength = 0 as integer) as string
     if label = invalid or label = ""
         return "Unknown"
     end if
@@ -368,10 +380,10 @@ function getMenuSafeTrackLabel(label, suffixLength = 0 as integer) as string
         maxLength = 12
     end if
 
-    maxLength = maxLength - suffixLength
+    maxLength = maxLength - prefixLength
     if Len(safeLabel) > maxLength
         visibleLength = maxLength - 3
-        if m.trackMenuMode = "captions"
+        if m.trackMenuMode = "captions" and prefixLength = 0
             tailLength = Int(visibleLength / 2)
             return Left(safeLabel, visibleLength - tailLength) + "..." + Right(safeLabel, tailLength)
         end if

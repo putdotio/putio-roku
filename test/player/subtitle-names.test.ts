@@ -3,10 +3,15 @@ import { runBrsCases } from "./brs-cases.ts";
 
 type Subtitle = { language?: string; language_code?: string; name?: string; url?: string };
 
+type MenuItem = { label: string; selected: boolean };
+
 type NameCase =
   | { input: { kind: "label"; name: string }; expected: string }
   | { input: { kind: "labels" | "menu"; subtitles: Subtitle[] }; expected: string[] }
-  | { input: { kind: "manifestMenu"; tracks: { Name: string; TrackName: string }[] }; expected: string[] }
+  | {
+      input: { kind: "manifestMenu"; tracks: { Name: string; TrackName: string }[]; selectedTrackName: string };
+      expected: MenuItem[];
+    }
   | { input: { kind: "match"; left: string; right: string }; expected: boolean };
 
 const sidecarUrl = "https://api.put.io/v2/files/7/subtitles/abc?oauth_token=t";
@@ -74,8 +79,8 @@ const nameCases: Record<string, NameCase> = {
     expected: [
       "Turkish",
       "Unknown - abcde...jklmnopqrstuvx",
-      "Unknown - abcde...jklmnopqrstuvy",
-      "Unknown - abcde...nopqrstuvy (2)",
+      "(2) Unknown - abcdefghijklmno...",
+      "(3) Unknown - abcdefghijklmno...",
     ],
   },
   sidecar_menu_disambiguates_truncated_names: {
@@ -86,7 +91,7 @@ const nameCases: Record<string, NameCase> = {
         { language: "English", name: "Movie Director Commentary Cut.srt", url: sidecarUrl + "2" },
       ],
     },
-    expected: ["English - Movie...Commentary Cut", "English - Mov...mmentary Cut (2)"],
+    expected: ["English - Movie...Commentary Cut", "(2) English - Movie Director ..."],
   },
   manifest_menu_disambiguates_truncated_names: {
     input: {
@@ -95,8 +100,27 @@ const nameCases: Record<string, NameCase> = {
         { Name: "English - Movie Theater Commentary Cut", TrackName: "webvtt/1" },
         { Name: "English - Movie Director Commentary Cut", TrackName: "webvtt/2" },
       ],
+      selectedTrackName: "webvtt/2",
     },
-    expected: ["English - Movie...Commentary Cut", "English - Mov...mmentary Cut (2)"],
+    expected: [
+      { label: "English - Movie...Commentary Cut", selected: false },
+      { label: "(2) English - Movie Director ...", selected: true },
+    ],
+  },
+  wide_manifest_labels_keep_their_numbers_at_the_start_of_the_row: {
+    input: {
+      kind: "manifestMenu",
+      tracks: ["i", "j", "l"].map((letter, index) => ({
+        Name: "English - WWWWW" + letter + "W".repeat(25),
+        TrackName: "webvtt/" + (index + 1),
+      })),
+      selectedTrackName: "webvtt/3",
+    },
+    expected: [
+      { label: "English - WWWWW...WWWWWWWWWWWWWW", selected: false },
+      { label: "(2) English - WWWWWjWWWWWWWWW...", selected: false },
+      { label: "(3) English - WWWWWlWWWWWWWWW...", selected: true },
+    ],
   },
   roku_prefixed_sidecar_matches: {
     input: { kind: "match", left: `<dev_9b1_1a>${sidecarUrl}`, right: sidecarUrl },
@@ -110,7 +134,7 @@ const nameCases: Record<string, NameCase> = {
 };
 
 describe("subtitle names", () => {
-  let results: Record<string, string | string[] | boolean>;
+  let results: Record<string, NameCase["expected"]>;
 
   beforeAll(async () => {
     results = await runBrsCases(
