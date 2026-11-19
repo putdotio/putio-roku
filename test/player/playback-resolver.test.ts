@@ -7,6 +7,7 @@ type Plan = {
   url: string | null;
   streamFormat: string | null;
   reason: string | null;
+  deviceCheck: "pass" | "fail" | "skipped";
 };
 
 type Probe = { video: boolean; audio: boolean; videoMode: string; stb: boolean; hdcp22: boolean; hdr10: boolean };
@@ -31,34 +32,39 @@ const webmInfo = { ...mkvInfo, mime_type: "video/webm" };
 const video = (fields: Record<string, unknown>) => ({ id: 7, file_type: "VIDEO", media_info: mkvInfo, ...fields });
 const ctx = (fields: Record<string, unknown> = {}) => ({ apiUrl: api, downloadToken: token, ...fields });
 
-const play = (source: Plan["source"], url: string, streamFormat: string, reason: string | null = null): Plan => ({
-  action: "play",
-  source,
-  url,
-  streamFormat,
-  reason,
-});
-const convert = (source: "hls" | "converted", reason: string | null = null): Plan => ({
-  action: "convert",
-  source,
+const play = (
+  source: Plan["source"],
+  url: string,
+  streamFormat: string,
+  reason: string | null = null,
+  deviceCheck: Plan["deviceCheck"] = "skipped",
+): Plan => ({ action: "play", source, url, streamFormat, reason, deviceCheck });
+const convert = (
+  source: "hls" | "converted",
+  reason: string | null = null,
+  deviceCheck: Plan["deviceCheck"] = "skipped",
+): Plan => ({ action: "convert", source, url: null, streamFormat: null, reason, deviceCheck });
+const unplayable = (reason: string, deviceCheck: Plan["deviceCheck"] = "skipped"): Plan => ({
+  action: "unplayable",
+  source: null,
   url: null,
   streamFormat: null,
   reason,
+  deviceCheck,
 });
-const unplayable = (reason: string): Plan => ({ action: "unplayable", source: null, url: null, streamFormat: null, reason });
 
 const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Plan; ctx: unknown; expected: Plan }> = {
   audio_standard: {
     file: { id: 7, file_type: "AUDIO", stream_url: streamUrl },
     method: "hls",
     ctx: ctx(),
-    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null, deviceCheck: "skipped" },
   },
   audio_direct_play: {
     file: { id: 7, file_type: "AUDIO", stream_url: streamUrl, need_convert: true },
     method: "file",
     ctx: ctx({ probe: noAudio }),
-    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null, deviceCheck: "skipped" },
   },
   audio_without_token: {
     file: { id: 7, file_type: "AUDIO", stream_url: streamUrl },
@@ -104,7 +110,7 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
     file: video({ need_convert: true, is_mp4_available: false, stream_url: streamUrl }),
     method: "file",
     ctx: ctx({ probe: playable }),
-    expected: play("original", streamUrl, "mkv"),
+    expected: play("original", streamUrl, "mkv", null, "pass"),
   },
   d1_original_mp4_over_copy: {
     file: video({
@@ -116,19 +122,19 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
     }),
     method: "file",
     ctx: ctx({ probe: playable }),
-    expected: play("original", streamUrl, "mp4"),
+    expected: play("original", streamUrl, "mp4", null, "pass"),
   },
   d2_check_failed: {
     file: video({ need_convert: false, is_mp4_available: true, stream_url: streamUrl, mp4_stream_url: mp4StreamUrl }),
     method: "file",
     ctx: ctx({ probe: noVideo }),
-    expected: play("converted", mp4StreamUrl, "mp4", "video_unsupported"),
+    expected: play("converted", mp4StreamUrl, "mp4", "video_unsupported", "fail"),
   },
   d2_no_stream_url: {
     file: video({ need_convert: false, is_mp4_available: true, mp4_stream_url: mp4StreamUrl }),
     method: "file",
     ctx: ctx({ probe: playable }),
-    expected: play("converted", mp4StreamUrl, "mp4", "not_ready"),
+    expected: play("converted", mp4StreamUrl, "mp4", "not_ready", "pass"),
   },
   d2_no_media_info: {
     file: video({
@@ -140,7 +146,7 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
     }),
     method: "file",
     ctx: ctx({ probe: playable }),
-    expected: play("converted", mp4StreamUrl, "mp4", "not_ready"),
+    expected: play("converted", mp4StreamUrl, "mp4", "not_ready", "fail"),
   },
   d2_rescue: {
     file: video({ need_convert: false, is_mp4_available: true, stream_url: streamUrl, mp4_stream_url: mp4StreamUrl }),
@@ -164,13 +170,13 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
     file: video({ need_convert: true, is_mp4_available: false, stream_url: streamUrl }),
     method: "file",
     ctx: ctx({ probe: noAudio }),
-    expected: convert("converted", "audio_unsupported"),
+    expected: convert("converted", "audio_unsupported", "fail"),
   },
   d3_need_convert_missing: {
     file: video({ is_mp4_available: false, stream_url: streamUrl }),
     method: "file",
     ctx: ctx({ probe: noVideo }),
-    expected: convert("converted", "video_unsupported"),
+    expected: convert("converted", "video_unsupported", "fail"),
   },
   d3_rescue_convert: {
     file: video({ need_convert: true, is_mp4_available: false, stream_url: streamUrl }),
@@ -182,13 +188,13 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
     file: video({ media_info: webmInfo, need_convert: false, is_mp4_available: false, stream_url: streamUrl }),
     method: "file",
     ctx: ctx({ probe: playable }),
-    expected: unplayable("container_unsupported"),
+    expected: unplayable("container_unsupported", "fail"),
   },
   d4_no_urls: {
     file: video({ media_info: mp4Info, need_convert: false, is_mp4_available: false }),
     method: "file",
     ctx: ctx({ probe: playable }),
-    expected: unplayable("not_ready"),
+    expected: unplayable("not_ready", "pass"),
   },
   same_source_hls_keeps_manifest: {
     file: video({ need_convert: false }),
@@ -198,9 +204,9 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
   },
   same_source_original_takes_fresh_stream_url: {
     file: video({ need_convert: false, is_mp4_available: true, stream_url: streamUrl, mp4_stream_url: mp4StreamUrl }),
-    sameSourceAs: play("original", "https://s1.put.io/stream/7?expired", "mkv"),
+    sameSourceAs: play("original", "https://s1.put.io/stream/7?expired", "mkv", null, "pass"),
     ctx: ctx(),
-    expected: play("original", streamUrl, "mkv"),
+    expected: play("original", streamUrl, "mkv", null, "pass"),
   },
   same_source_converted_keeps_reason: {
     file: video({ need_convert: false, is_mp4_available: true, stream_url: streamUrl, mp4_stream_url: mp4StreamUrl }),
@@ -210,9 +216,9 @@ const cases: Record<string, { file: unknown; method?: string; sameSourceAs?: Pla
   },
   same_source_audio_keeps_mp3: {
     file: { id: 7, file_type: "AUDIO", stream_url: streamUrl },
-    sameSourceAs: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+    sameSourceAs: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null, deviceCheck: "skipped" },
     ctx: ctx(),
-    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null },
+    expected: { action: "play", source: "original", url: audioUrl, streamFormat: null, reason: null, deviceCheck: "skipped" },
   },
   same_source_original_without_url_expires: {
     file: video({ need_convert: false, is_mp4_available: true, mp4_stream_url: mp4StreamUrl }),

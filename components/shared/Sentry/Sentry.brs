@@ -55,6 +55,24 @@ sub sentryRetainTask(task as object)
 end sub
 
 function sentryCreateEvent(message as string, level as string) as object
+    event = sentryCreateAnonymousEvent(message, level)
+    deviceInfo = CreateObject("roDeviceInfo")
+    sentryAddTags(event, {
+        roku_model: event.contexts.device.model,
+        roku_os: event.contexts.os.version,
+        connection_type: deviceInfo.getConnectionType(),
+        video_mode: deviceInfo.getVideoMode(),
+    })
+
+    if m.global.user.user_id <> invalid
+        event.user = { id: m.global.user.user_id.toStr() }
+    end if
+
+    return event
+end function
+
+' Device model, OS and app version ride in contexts only; no user and no tags.
+function sentryCreateAnonymousEvent(message as string, level as string) as object
     deviceInfo = CreateObject("roDeviceInfo")
     appInfo = CreateObject("roAppInfo")
     appVersion = appInfo.getVersion()
@@ -65,7 +83,7 @@ function sentryCreateEvent(message as string, level as string) as object
         modelName = model
     end if
 
-    event = {
+    return {
         event_id: sentryEventId(deviceInfo),
         timestamp: CreateObject("roDateTime").asSeconds(),
         platform: "other",
@@ -96,19 +114,8 @@ function sentryCreateEvent(message as string, level as string) as object
                 version: osVersion,
             },
         },
-        tags: {
-            roku_model: model,
-            roku_os: osVersion,
-            connection_type: deviceInfo.getConnectionType(),
-            video_mode: deviceInfo.getVideoMode(),
-        },
+        tags: {},
     }
-
-    if m.global.user.user_id <> invalid
-        event.user = { id: m.global.user.user_id.toStr() }
-    end if
-
-    return event
 end function
 
 sub sentryAddTags(event as object, tags as object)

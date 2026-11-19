@@ -129,14 +129,7 @@ sub resolvePlayback(originalFailed as boolean, failureReason as dynamic)
     end if
 
     if originalFailed = false and isPreflightRescue(m.plan)
-        sentryCaptureEvent(createPlaybackRescueEvent({
-            reason: m.plan.reason,
-            trigger: "preflight",
-            method: m.method,
-            fromSource: "original",
-            plan: m.plan,
-            file: m.file,
-        }))
+        sentryCaptureEvent(createPreflightPlaybackEvent(m.plan))
     end if
 
     if m.plan.action = "convert"
@@ -153,6 +146,26 @@ end sub
 
 function isPreflightRescue(plan as object) as boolean
     return m.method = "file" and plan.source <> "original" and isNonEmptyString(plan.reason)
+end function
+
+function createPreflightPlaybackEvent(plan as object) as object
+    input = {
+        outcome: "rescued",
+        failureMode: "none",
+        rescueReason: plan.reason,
+        rescueTo: plan.source,
+        method: m.method,
+        sourceKind: "original",
+        deviceCheck: plan.deviceCheck,
+        started: false,
+        file: m.file,
+    }
+    if plan.action = "unplayable"
+        input.outcome = "failed"
+        input.failureMode = "unsupported_source"
+    end if
+
+    return createPlaybackFailureEvent(input)
 end function
 
 sub fetchSubtitles()

@@ -38,7 +38,12 @@ function resolveSameSourcePlaybackPlan(file as object, plan as object, ctx as ob
         return createUnplayablePlan("link_expired")
     end if
 
-    return createPlaybackPlan("play", plan.source, url.toStr(), plan.streamFormat, plan.reason)
+    sameSource = createPlaybackPlan("play", plan.source, url.toStr(), plan.streamFormat, plan.reason)
+    if isNonEmptyString(plan.deviceCheck)
+        sameSource["deviceCheck"] = plan.deviceCheck
+    end if
+
+    return sameSource
 end function
 
 function resolveAudioPlaybackPlan(file as object, ctx as object) as object
@@ -69,31 +74,34 @@ function resolveDirectPlayPlan(file as object, ctx as object) as object
             reason = ctx.failureReason.toStr()
         end if
 
-        return resolveDirectPlayFallbackPlan(file, reason)
+        return resolveDirectPlayFallbackPlan(file, reason, "skipped")
     end if
 
     check = checkDirectPlay(file.media_info, ctx.probe)
     if check.ok <> true
-        return resolveDirectPlayFallbackPlan(file, check.reason)
+        return resolveDirectPlayFallbackPlan(file, check.reason, "fail")
     end if
 
     if isNonEmptyString(file.stream_url) = false
-        return resolveDirectPlayFallbackPlan(file, "not_ready")
+        return resolveDirectPlayFallbackPlan(file, "not_ready", "pass")
     end if
 
-    return createPlaybackPlan("play", "original", file.stream_url.toStr(), check.streamFormat, invalid)
+    plan = createPlaybackPlan("play", "original", file.stream_url.toStr(), check.streamFormat, invalid)
+    plan["deviceCheck"] = "pass"
+    return plan
 end function
 
-function resolveDirectPlayFallbackPlan(file as object, reason as string) as object
+function resolveDirectPlayFallbackPlan(file as object, reason as string, deviceCheck as string) as object
     if file.is_mp4_available = true and isNonEmptyString(file.mp4_stream_url)
-        return createPlaybackPlan("play", "converted", file.mp4_stream_url.toStr(), "mp4", reason)
+        plan = createPlaybackPlan("play", "converted", file.mp4_stream_url.toStr(), "mp4", reason)
+    else if file.need_convert <> false
+        plan = createPlaybackPlan("convert", "converted", invalid, invalid, reason)
+    else
+        plan = createUnplayablePlan(reason)
     end if
 
-    if file.need_convert <> false
-        return createPlaybackPlan("convert", "converted", invalid, invalid, reason)
-    end if
-
-    return createUnplayablePlan(reason)
+    plan["deviceCheck"] = deviceCheck
+    return plan
 end function
 
 function hasPlaybackApiAccess(file as object, ctx as object) as boolean
@@ -118,6 +126,7 @@ function createPlaybackPlan(action as string, source as dynamic, url as dynamic,
         source: source,
         url: url,
         streamFormat: streamFormat,
-        reason: reason
+        reason: reason,
+        deviceCheck: "skipped"
     }
 end function

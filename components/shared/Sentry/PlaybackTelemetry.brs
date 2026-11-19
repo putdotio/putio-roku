@@ -1,91 +1,82 @@
-' Builds the Sentry event for a terminal Roku playback failure. Mirrors the tags of the
-' putio-web `playback_failure` telemetry contract (schema_version 1) so one Sentry search
-' covers every put.io player.
+' The put.io "Playback failure reports" event, schema 2: one event per terminal failure
+' (error) or rescue (warning), anonymous, with only the contract's tags. Roku has no
+' beforeSend, so this builder is the allowlist that sentry-privacy.test.ts pins.
 function createPlaybackFailureEvent(input as object) as object
-    video = input.video
-    errorCode = sentryVideoErrorCode(video)
-    errorInfo = sentryVideoErrorInfo(video)
-    failureMode = classifyRokuPlaybackFailure(errorCode, errorInfo)
-    streamInfo = input.streamInfo
-    file = input.file
-    sourceKind = sentryPlaybackSourceKind(streamInfo)
-    videoStream = sentryFileMediaStream(file, "video")
-    audioStream = sentryFileMediaStream(file, "audio")
-
-    event = sentryCreateEvent("Roku playback failed: " + failureMode, "error")
-    event.fingerprint = ["roku-playback-error", "failure:" + failureMode, "roku-code:" + errorCode]
-
-    sentryAddTags(event, {
-        telemetry_event: "playback_failure",
-        schema_version: "1",
-        player: "roku",
-        playback_outcome: "failed",
-        playback_terminal: "true",
-        playback_failure_mode: failureMode,
-        playback_started: input.playbackStarted,
-        streaming_method: input.method,
-        playback_source: input.source,
-        roku_error_code: errorCode,
-        roku_error_category: sentryErrorInfoField(errorInfo, "category"),
-        roku_error_source: sentryErrorInfoField(errorInfo, "source"),
-        roku_error_info_code: sentryErrorInfoField(errorInfo, "errcode"),
-        source_kind: sourceKind,
-        stream_format: sentryStreamFormat(streamInfo),
-        file_id: sentryFileId(file),
-        container_family: sentryContainerFamily(file),
-        video_codec: sentryStreamField(videoStream, "codec_name"),
-        video_profile: sentryStreamField(videoStream, "profile"),
-        video_resolution: sentryVideoResolution(videoStream),
-        audio_codec: sentryStreamField(audioStream, "codec_name"),
-    })
-
-    return event
-end function
-
-' Only enumerated media and device facts go in; raw media_info, names, URLs and Roku debug
-' text stay out.
-function createPlaybackRescueEvent(input as object) as object
-    reason = sentryTagValue(input.reason)
-    file = input.file
-    videoStream = sentryFileMediaStream(file, "video")
-    audioStream = sentryFileMediaStream(file, "audio")
-    plan = input.plan
-    toSource = invalid
-    outcome = invalid
-    if plan <> invalid
-        toSource = plan.source
-        outcome = plan.action
+    outcome = "failed"
+    level = "error"
+    if sentryTagValue(input.outcome) = "rescued"
+        outcome = "rescued"
+        level = "warning"
     end if
+
+    errorCode = sentryTagValue(input.errorCode)
     errorInfo = input.errorInfo
     if type(errorInfo) <> "roAssociativeArray"
         errorInfo = invalid
     end if
 
-    event = sentryCreateEvent("Roku playback rescued: " + reason, "warning")
-    event.fingerprint = ["roku-rescue", reason]
+    failureMode = input.failureMode
+    if failureMode = invalid
+        failureMode = classifyRokuPlaybackFailure(errorCode, errorInfo, input.httpStatus)
+    end if
+    rescueReason = "none"
+    rescueTo = "none"
+    summary = failureMode
+    if outcome = "rescued"
+        rescueReason = sentryTagValue(input.rescueReason)
+        rescueTo = sentryTagValue(input.rescueTo)
+        summary = rescueReason
+    end if
+
+    sourceKind = "unknown"
+    if input.sourceKind <> invalid
+        sourceKind = sentryTagValue(input.sourceKind)
+    end if
+    deviceCheck = "skipped"
+    if sourceKind = "original" and input.deviceCheck <> invalid
+        deviceCheck = sentryTagValue(input.deviceCheck)
+    end if
+
+    file = input.file
+    mediaInfo = sentryFileField(file, "media_info")
+    videoStream = invalid
+    audioStream = invalid
+    if mediaInfo <> invalid and mediaInfo.streams <> invalid
+        videoStream = getDirectPlayVideoStream(mediaInfo.streams)
+        audioStream = getDirectPlayAudioStream(mediaInfo.streams)
+    end if
+
+    event = sentryCreateAnonymousEvent("playback " + outcome + ": " + summary, level)
+    event.fingerprint = ["roku", outcome, summary, errorCode]
 
     sentryAddTags(event, {
-        telemetry_event: "playback_rescue",
-        schema_version: "1",
+        telemetry_event: "playback_failure",
+        schema_version: "2",
+        platform: "roku",
         player: "roku",
+        playback_outcome: outcome,
+        playback_terminal: outcome = "failed",
+        playback_started: input.started,
+        failure_mode: failureMode,
         streaming_method: input.method,
-        rescue_reason: reason,
-        rescue_trigger: input.trigger,
-        rescue_from_source: input.fromSource,
-        rescue_to_source: toSource,
-        rescue_outcome: outcome,
-        roku_error_code: input.errorCode,
-        roku_error_category: sentryErrorInfoField(errorInfo, "category"),
-        roku_error_info_code: sentryErrorInfoField(errorInfo, "errcode"),
+        source_kind: sourceKind,
+        device_check: deviceCheck,
+        rescue_reason: rescueReason,
+        rescue_to: rescueTo,
+        engine_error_domain: LCase(sentryErrorInfoField(errorInfo, "category")),
+        engine_error_category: "none",
+        engine_error_code: errorCode,
+        source_request_status: input.httpStatus,
         file_id: sentryFileId(file),
-        container_family: sentryContainerFamily(file),
+        container_family: sentryContainerFamily(mediaInfo),
         video_codec: sentryStreamField(videoStream, "codec_name"),
         video_profile: sentryStreamField(videoStream, "profile"),
         video_level: sentryStreamField(videoStream, "level"),
+        video_bit_depth: sentryStreamField(videoStream, "bit_depth"),
         video_resolution: sentryVideoResolution(videoStream),
+        video_hdr: sentryStreamField(videoStream, "hdr"),
         audio_codec: sentryStreamField(audioStream, "codec_name"),
         audio_channels: sentryStreamField(audioStream, "channels"),
-        audio_output_channel: CreateObject("roDeviceInfo").GetAudioOutputChannel(),
     })
 
     return event
@@ -129,11 +120,23 @@ function createSourceRequestFailureEvent(fileId as dynamic, response as dynamic)
     return event
 end function
 
-' Roku Video.errorCode: -1 network, -2 connection timed out, -3 unknown, -4 empty
-' playlist, -5 media/format error, -6 DRM. errorInfo.category refines it on OS 9+.
-function classifyRokuPlaybackFailure(errorCode as string, errorInfo as object) as string
-    category = LCase(sentryErrorInfoField(errorInfo, "category"))
+' A definitive stream status outranks the engine code. Roku Video.errorCode: -1 network,
+' -2 connection timed out, -3 unknown, -4 empty playlist, -5 media/format error, -6 DRM.
+' errorInfo.category refines it on OS 9+.
+function classifyRokuPlaybackFailure(errorCode as string, errorInfo as object, httpStatus as dynamic) as string
+    if httpStatus <> invalid
+        if httpStatus = 404 or httpStatus = 410
+            return "source_gone"
+        else if httpStatus = 402
+            return "entitlement"
+        else if httpStatus = 429
+            return "throttled"
+        else if httpStatus = 408 or (httpStatus >= 500 and httpStatus <= 599)
+            return "server_transient"
+        end if
+    end if
 
+    category = LCase(sentryErrorInfoField(errorInfo, "category"))
     if category = "http"
         return "network"
     else if category = "drm"
@@ -179,31 +182,6 @@ function sentryErrorInfoField(errorInfo as object, key as string) as string
     return "none"
 end function
 
-function sentryPlaybackSourceKind(streamInfo as object) as string
-    if streamInfo = invalid or streamInfo.url = invalid
-        return "unknown"
-    end if
-
-    url = LCase(streamInfo.url.toStr())
-    if Instr(1, url, "/hls/") > 0 or Instr(1, url, ".m3u8") > 0
-        return "hls"
-    else if Instr(1, url, ".mp4") > 0
-        return "mp4"
-    else if Instr(1, url, "/stream/") > 0
-        return "direct"
-    end if
-
-    return "mp4"
-end function
-
-function sentryStreamFormat(streamInfo as object) as string
-    if streamInfo <> invalid and streamInfo.format <> invalid
-        return LCase(streamInfo.format.toStr())
-    end if
-
-    return "unknown"
-end function
-
 function sentryFileField(file as object, key as string) as dynamic
     if file <> invalid and file[key] <> invalid
         return file[key]
@@ -221,62 +199,35 @@ function sentryFileId(file as object) as string
     return id.toStr()
 end function
 
-function sentryContainerFamily(file as object) as string
-    candidates = []
-    contentType = sentryFileField(file, "content_type")
-    if contentType <> invalid
-        candidates.push(LCase(contentType.toStr()))
-    end if
-    mediaInfo = sentryFileField(file, "media_info")
-    if mediaInfo <> invalid and mediaInfo.format <> invalid and mediaInfo.format.name <> invalid
-        candidates.push(LCase(mediaInfo.format.name.toStr()))
-    end if
-    extension = sentryFileField(file, "extension")
-    if extension <> invalid
-        candidates.push(LCase(extension.toStr()))
+' The backend reports WebM as format.name "matroska"; only mime_type tells them apart.
+function sentryContainerFamily(mediaInfo as object) as string
+    if mediaInfo = invalid or mediaInfo.format = invalid
+        return "unknown"
     end if
 
-    for each candidate in candidates
-        if Instr(1, candidate, "matroska") > 0 or candidate = "mkv"
+    mimeType = lowerDirectPlayField(mediaInfo, "mime_type")
+    if mimeType = "video/webm" or mimeType = "audio/webm"
+        return "webm"
+    end if
+
+    for each formatName in lowerDirectPlayField(mediaInfo.format, "name").split(",")
+        formatName = formatName.trim()
+        if formatName = "matroska"
             return "matroska"
-        else if Instr(1, candidate, "webm") > 0
-            return "webm"
-        else if Instr(1, candidate, "mp4") > 0 or Instr(1, candidate, "m4v") > 0
+        else if formatName = "mp4" or formatName = "mov" or formatName = "m4v"
             return "mp4"
-        else if Instr(1, candidate, "quicktime") > 0 or candidate = "mov"
-            return "quicktime"
-        else if Instr(1, candidate, "mpegts") > 0 or Instr(1, candidate, "mp2t") > 0 or candidate = "ts"
-            return "mpeg-ts"
-        else if Instr(1, candidate, "avi") > 0
+        else if formatName = "avi"
             return "avi"
+        else if formatName = "mpegts"
+            return "mpeg-ts"
+        else if formatName = "webm"
+            return "webm"
+        else if formatName = "ogg"
+            return "ogg"
         end if
     end for
 
-    return "unknown"
-end function
-
-function sentryFileMediaStream(file as object, codecType as string) as object
-    mediaInfo = sentryFileField(file, "media_info")
-    if mediaInfo = invalid or mediaInfo.streams = invalid
-        return invalid
-    end if
-
-    for each stream in mediaInfo.streams
-        if stream <> invalid and stream.codec_type <> invalid and stream.codec_type.toStr() = codecType and sentryIsCoverArtStream(stream) = false
-            return stream
-        end if
-    end for
-
-    return invalid
-end function
-
-function sentryIsCoverArtStream(stream as object) as boolean
-    if stream.codec_name = invalid
-        return false
-    end if
-
-    codecName = LCase(stream.codec_name.toStr())
-    return codecName = "mjpeg" or codecName = "png" or codecName = "bmp" or codecName = "gif" or codecName = "webp"
+    return "other"
 end function
 
 function sentryStreamField(stream as object, key as string) as string
