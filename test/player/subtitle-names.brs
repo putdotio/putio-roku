@@ -6,6 +6,8 @@ function main() as string
         input = cases[name]
         if input.kind = "label"
             results[name] = getCleanSubtitleName(input.name)
+        else if input.kind = "labels"
+            results[name] = getPutioSubtitleLabels(input.subtitles)
         else
             results[name] = subtitleTrackNamesMatch(input.left, input.right)
         end if

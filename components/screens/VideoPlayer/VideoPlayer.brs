@@ -419,39 +419,25 @@ function createSubtitleTracks(subtitles) as object
         return tracks
     end if
 
+    playable = []
     for each subtitle in subtitles
         if subtitle <> invalid and subtitle.url <> invalid and subtitle.url <> ""
-            tracks.push({
-                Language: getSubtitleLanguageCode(subtitle),
-                Name: getSubtitleLabel(subtitle),
-                TrackName: subtitle.url,
-                Description: subtitle.name
-            })
+            playable.push(subtitle)
         end if
     end for
 
+    labels = getPutioSubtitleLabels(playable)
+    for index = 0 to playable.count() - 1
+        subtitle = playable[index]
+        tracks.push({
+            Language: getSubtitleLanguageCode(subtitle),
+            Name: labels[index],
+            TrackName: subtitle.url,
+            Description: subtitle.name
+        })
+    end for
+
     return tracks
-end function
-
-function getSubtitleLabel(subtitle) as string
-    language = readTrackValue(subtitle, "language")
-    name = readTrackValue(subtitle, "name")
-
-    if language = invalid or language = ""
-        language = readTrackValue(subtitle, "language_code")
-    end if
-
-    if language = invalid or language = ""
-        language = "Custom"
-    else
-        language = language.toStr().replace("Undetermined", "Custom")
-    end if
-
-    if name <> invalid and name <> ""
-        return language.toStr() + " - " + getCleanSubtitleName(name)
-    end if
-
-    return language.toStr()
 end function
 
 function getSubtitleLanguageCode(subtitle) as string
