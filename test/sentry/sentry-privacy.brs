@@ -74,43 +74,76 @@ function main() as string
     ' On a device every read of m.global.user is a fresh copy; brs shares one, which
     ' formatJSON rejects when two events hold it, so each event is serialized alone.
     result.playback_failure = parseJSON(formatJSON(createPlaybackFailureEvent({
-        video: video,
+        outcome: "failed",
+        method: "hls",
+        sourceKind: "hls",
+        deviceCheck: "skipped",
+        started: true,
+        errorCode: sentryVideoErrorCode(video),
+        errorInfo: sentryVideoErrorInfo(video),
+        httpStatus: 404,
         file: file,
-        streamInfo: { url: streamUrl, format: "hls" },
-        method: "file",
-        source: "original",
-        playbackStarted: true,
     })))
 
-    result.playback_rescue_engine = parseJSON(formatJSON(createPlaybackRescueEvent({
-        reason: "container_unsupported",
-        trigger: "engine",
+    result.playback_rescue_engine = parseJSON(formatJSON(createPlaybackFailureEvent({
+        outcome: "rescued",
+        rescueReason: "container_unsupported",
+        rescueTo: "converted",
         method: "file",
-        fromSource: "original",
-        plan: { action: "play", source: "converted", url: streamUrl, streamFormat: "mp4", reason: "container_unsupported" },
-        file: file,
+        sourceKind: "original",
+        deviceCheck: "pass",
+        started: false,
         errorCode: "-5",
-        errorInfo: video.errorInfo,
+        errorInfo: { category: "mediaerror", source: "buffer:loop", errcode: -5, dbgmsg: "demux failed for " + streamUrl },
+        file: file,
     })))
 
-    result.playback_rescue_watchdog = parseJSON(formatJSON(createPlaybackRescueEvent({
-        reason: "decoder_error",
-        trigger: "watchdog",
+    result.playback_rescue_watchdog = parseJSON(formatJSON(createPlaybackFailureEvent({
+        outcome: "rescued",
+        rescueReason: "decoder_error",
+        rescueTo: "converted",
         method: "file",
-        fromSource: "original",
-        plan: { action: "play", source: "converted", url: streamUrl, streamFormat: "mp4", reason: "decoder_error" },
+        sourceKind: "original",
+        deviceCheck: "pass",
+        started: false,
+        errorCode: "none",
         file: file,
-        errorCode: invalid,
-        errorInfo: invalid,
     })))
 
-    result.playback_rescue_preflight = parseJSON(formatJSON(createPlaybackRescueEvent({
-        reason: "audio_unsupported",
-        trigger: "preflight",
+    result.playback_rescue_preflight = parseJSON(formatJSON(createPlaybackFailureEvent({
+        outcome: "rescued",
+        failureMode: "none",
+        rescueReason: "audio_unsupported",
+        rescueTo: "converted",
         method: "file",
-        fromSource: "original",
-        plan: { action: "convert", source: "converted", url: invalid, streamFormat: invalid, reason: "audio_unsupported" },
+        sourceKind: "original",
+        deviceCheck: "fail",
+        started: false,
         file: file,
+    })))
+
+    hevcFile = {
+        id: 9002,
+        name: "Secret.Show.S01E01.mkv",
+        media_info: {
+            mime_type: "video/x-matroska",
+            format: { name: "matroska,webm", filename: "/secret/Secret.Show.S01E01.mkv" },
+            streams: [
+                { codec_type: "video", codec_name: "hevc", profile: "Main 10", level: 153, bit_depth: 10, width: 3840, height: 2160, hdr: true },
+                { codec_type: "audio", codec_name: "aac", channels: 2, "default": false },
+                { codec_type: "audio", codec_name: "eac3", channels: 6, "default": true, tags: { title: "Secret mix" } },
+            ],
+        },
+    }
+    result.playback_failure_hevc_original = parseJSON(formatJSON(createPlaybackFailureEvent({
+        outcome: "failed",
+        method: "file",
+        sourceKind: "original",
+        deviceCheck: "pass",
+        started: false,
+        errorCode: "-5",
+        errorInfo: { category: "mediaerror", errcode: -5, message: "Secret.Show.S01E01.mkv failed" },
+        file: hevcFile,
     })))
 
     result.source_request_failure = parseJSON(formatJSON(createSourceRequestFailureEvent(9001, {

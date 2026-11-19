@@ -162,7 +162,6 @@ function init()
     m.hasPlaybackError = false
     m.errorDialog = invalid
     m.errorDialogShown = false
-    m.currentStreamInfo = invalid
     m.playbackStarted = false
     m.playbackFile = invalid
     m.method = getDefaultPlaybackMethod()
@@ -314,7 +313,6 @@ sub loadPlaybackPlan(plan as object, startFrom)
     m.plan = plan
     m.usesManifestSubtitles = plan.streamFormat = "hls"
     syncSubtitleTracks()
-    m.currentStreamInfo = { url: plan.url, format: plan.streamFormat }
     m.playStartPosition = startFrom
     m.hasPlaybackError = false
     m.errorDialogShown = false
@@ -386,7 +384,6 @@ sub resetPlaybackState()
     m.hasPlaybackError = false
     m.errorDialog = invalid
     m.errorDialogShown = false
-    m.currentStreamInfo = invalid
     m.playbackStarted = false
     m.rescued = false
     m.reresolved = false
@@ -1515,17 +1512,22 @@ sub handlePlaybackError(useErrorFields as boolean)
         rescued: m.rescued,
         reresolved: isReresolveBudgetSpent()
     })
-    errorCode = sentryVideoErrorCode(errorVideo)
+    ' control = "stop" below clears errorInfo, so the event reads it first.
+    engineError = {
+        code: sentryVideoErrorCode(errorVideo),
+        info: errorInfo,
+        httpStatus: verdict.httpStatus
+    }
     m.reresolveFailureEvent = invalid
     if verdict.action = "retry" or verdict.action = "fail"
-        reportPlaybackFailure(errorVideo)
+        reportPlaybackFailure(engineError)
     else if verdict.action = "reresolve"
-        m.reresolveFailureEvent = createPlaybackFailureEventFor(errorVideo)
+        m.reresolveFailureEvent = createPlaybackFailureEventFor(engineError)
     end if
     m.video.control = "stop"
 
     if verdict.action = "rescue"
-        rescuePlayback(verdict.reason, "engine", errorCode, errorInfo)
+        rescuePlayback(verdict.reason, engineError)
     else if verdict.action = "reresolve"
         reresolvePlayback(position)
     else
@@ -1551,7 +1553,7 @@ sub onStartWatchdogFire()
     m.hasPlaybackError = true
     updateBufferingOverlay(false)
     m.video.control = "stop"
-    rescuePlayback("decoder_error", "watchdog", invalid, invalid)
+    rescuePlayback("decoder_error", { code: "none", info: invalid, httpStatus: invalid })
 end sub
 
 ' A 4K or high-bitrate original, or an MKV resume seek without front Cues, can still be filling
@@ -1592,20 +1594,14 @@ function getVideoErrorStr() as dynamic
     return invalid
 end function
 
-sub rescuePlayback(reason as string, trigger as string, errorCode as dynamic, errorInfo as dynamic)
+sub rescuePlayback(reason as string, engineError as object)
     m.rescued = true
-    fromSource = m.plan.source
     plan = resolvePlaybackPlan(m.playbackFile, m.method, createPlaybackResolveContext(true, reason))
-    sentryCaptureEvent(createPlaybackRescueEvent({
-        reason: reason,
-        trigger: trigger,
-        method: m.method,
-        fromSource: fromSource,
-        plan: plan,
-        file: m.playbackFile,
-        errorCode: errorCode,
-        errorInfo: errorInfo,
-    }))
+    outcome = { outcome: "rescued", rescueReason: reason, rescueTo: plan.source }
+    if plan.action = "unplayable"
+        outcome = { outcome: "failed" }
+    end if
+    sentryCaptureEvent(createPlaybackFailureEvent(createPlaybackFailureInput(engineError, outcome)))
 
     if plan.action = "play"
         resetSourceTracks()
@@ -1704,24 +1700,36 @@ sub openVideoScreen(params as object)
     }
 end sub
 
-' Reads the Video node before control = "stop" clears errorInfo, then hands off to a task.
-sub reportPlaybackFailure(errorVideo as dynamic)
+sub reportPlaybackFailure(engineError as object)
     if m.errorDialogShown
         return
     end if
 
-    sentryCaptureEvent(createPlaybackFailureEventFor(errorVideo))
+    sentryCaptureEvent(createPlaybackFailureEventFor(engineError))
 end sub
 
-function createPlaybackFailureEventFor(errorVideo as dynamic) as object
-    return createPlaybackFailureEvent({
-        video: errorVideo,
+function createPlaybackFailureEventFor(engineError as object) as object
+    return createPlaybackFailureEvent(createPlaybackFailureInput(engineError, { outcome: "failed" }))
+end function
+
+function createPlaybackFailureInput(engineError as object, fields as object) as object
+    deviceCheck = invalid
+    if m.plan <> invalid
+        deviceCheck = m.plan.deviceCheck
+    end if
+
+    input = {
         file: m.playbackFile,
-        streamInfo: m.currentStreamInfo,
         method: m.method,
-        source: getCurrentPlaybackSource(),
-        playbackStarted: m.playbackStarted,
-    })
+        sourceKind: getCurrentPlaybackSource(),
+        deviceCheck: deviceCheck,
+        started: m.playbackStarted,
+        errorCode: engineError.code,
+        errorInfo: engineError.info,
+        httpStatus: engineError.httpStatus,
+    }
+    input.append(fields)
+    return input
 end function
 
 function getCurrentPlaybackSource() as dynamic
