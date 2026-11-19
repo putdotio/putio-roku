@@ -3,18 +3,27 @@ import { runBrsCases } from "./brs-cases.ts";
 
 type Subtitle = { language?: string; language_code?: string; name?: string; url?: string };
 
-type MenuItem = { label: string; selected: boolean };
+type MenuItem = { label: string; selected: boolean; captionnumber?: number };
+type LabelFields = { text: string; leadingEllipsis: boolean; ellipsisText: string };
 
 type NameCase =
   | { input: { kind: "label"; name: string }; expected: string }
-  | { input: { kind: "labels" | "menu"; subtitles: Subtitle[] }; expected: string[] }
+  | { input: { kind: "labels"; subtitles: Subtitle[] }; expected: string[] }
+  | { input: { kind: "menu"; subtitles: Subtitle[]; selectedTrackName?: string }; expected: MenuItem[] }
   | {
-      input: { kind: "manifestMenu"; tracks: { Name: string; TrackName: string }[]; selectedTrackName: string };
+      input: { kind: "manifestMenu"; tracks: { Description: string; TrackName: string }[]; selectedTrackName: string };
       expected: MenuItem[];
     }
   | { input: { kind: "match"; left: string; right: string }; expected: boolean };
 
 const sidecarUrl = "https://api.put.io/v2/files/7/subtitles/abc?oauth_token=t";
+
+function expectedCaptions(labels: string[], selected = 0): MenuItem[] {
+  return [
+    { label: "Off", selected: selected === 0 },
+    ...labels.map((label, index) => ({ label, captionnumber: index + 1, selected: selected === index + 1 })),
+  ];
+}
 
 const nameCases: Record<string, NameCase> = {
   label_drops_srt: { input: { kind: "label", name: "Sample.Show.S01E01.en.srt" }, expected: "Sample.Show.S01E01.en" },
@@ -76,51 +85,65 @@ const nameCases: Record<string, NameCase> = {
         { name: "abcdefghijklmnopqrstuvy.vtt", url: sidecarUrl },
       ],
     },
-    expected: [
+    expected: expectedCaptions([
       "Turkish",
-      "Unknown - abcde...jklmnopqrstuvx",
-      "(2) Unknown - abcdefghijklmno...",
-      "(3) Unknown - abcdefghijklmno...",
-    ],
+      "Unknown - abcdefghijklmnopqrstuvx",
+      "Unknown - abcdefghijklmnopqrstuvy",
+      "Unknown - abcdefghijklmnopqrstuvy (2)",
+    ]),
   },
-  sidecar_menu_disambiguates_truncated_names: {
+  wide_sidecars_keep_short_labels_and_literal_ordinals: {
     input: {
       kind: "menu",
       subtitles: [
-        { language: "English", name: "Movie Theater Commentary Cut.srt", url: sidecarUrl + "1" },
-        { language: "English", name: "Movie Director Commentary Cut.srt", url: sidecarUrl + "2" },
+        { language: "English", name: "W".repeat(17) + ".srt", url: sidecarUrl + "1" },
+        { language: "English", name: "W".repeat(17) + ".vtt", url: sidecarUrl + "2" },
+        { language: "English", name: "W".repeat(17) + " (2).srt", url: sidecarUrl + "3" },
+      ],
+      selectedTrackName: sidecarUrl + "2",
+    },
+    expected: expectedCaptions([
+      "English - " + "W".repeat(17),
+      "English - " + "W".repeat(17) + " (3)",
+      "English - " + "W".repeat(17) + " (2)",
+    ], 2),
+  },
+  captions_preserve_forced_and_normal_tails: {
+    input: {
+      kind: "menu",
+      subtitles: [
+        { language: "English", name: "Lily.S01E01.Forced.SDH.srt", url: sidecarUrl + "1" },
+        { language: "English", name: "Lily.S01E01.Normal.SDH.srt", url: sidecarUrl + "2" },
       ],
     },
-    expected: ["English - Movie...Commentary Cut", "(2) English - Movie Director ..."],
+    expected: expectedCaptions(["English - Lily.S01E01.Forced.SDH", "English - Lily.S01E01.Normal.SDH"]),
   },
-  manifest_menu_disambiguates_truncated_names: {
+  manifest_menu_disambiguates_identical_names: {
     input: {
       kind: "manifestMenu",
       tracks: [
-        { Name: "English - Movie Theater Commentary Cut", TrackName: "webvtt/1" },
-        { Name: "English - Movie Director Commentary Cut", TrackName: "webvtt/2" },
+        { Description: "English", TrackName: "webvtt/1" },
+        { Description: "English", TrackName: "webvtt/2" },
+        { Description: "English (2)", TrackName: "webvtt/3" },
       ],
       selectedTrackName: "webvtt/2",
     },
-    expected: [
-      { label: "English - Movie...Commentary Cut", selected: false },
-      { label: "(2) English - Movie Director ...", selected: true },
-    ],
+    expected: expectedCaptions(["English", "English (3)", "English (2)"], 2),
   },
-  wide_manifest_labels_keep_their_numbers_at_the_start_of_the_row: {
+  wide_manifest_labels_keep_full_names_for_native_clipping: {
     input: {
       kind: "manifestMenu",
       tracks: ["i", "j", "l"].map((letter, index) => ({
-        Name: "English - WWWWW" + letter + "W".repeat(25),
+        Description: "English - WWWWW" + letter + "W".repeat(25),
         TrackName: "webvtt/" + (index + 1),
       })),
       selectedTrackName: "webvtt/3",
     },
-    expected: [
-      { label: "English - WWWWW...WWWWWWWWWWWWWW", selected: false },
-      { label: "(2) English - WWWWWjWWWWWWWWW...", selected: false },
-      { label: "(3) English - WWWWWlWWWWWWWWW...", selected: true },
-    ],
+    expected: expectedCaptions([
+      "English - WWWWWi" + "W".repeat(25),
+      "English - WWWWWj" + "W".repeat(25),
+      "English - WWWWWl" + "W".repeat(25),
+    ], 3),
   },
   roku_prefixed_sidecar_matches: {
     input: { kind: "match", left: `<dev_9b1_1a>${sidecarUrl}`, right: sidecarUrl },
@@ -151,4 +174,27 @@ describe("subtitle names", () => {
   it.each(Object.entries(nameCases))("%s", (name, { expected }) => {
     expect(results[name]).toEqual(expected);
   });
+});
+
+it("sets native ellipsis for captions and resets the reused Label for other menus", async () => {
+  const wideName = "English - " + "W".repeat(17);
+  const { render } = await runBrsCases<LabelFields[]>(
+    ["components/shared/TrackMenu/TrackMenu.brs"],
+    "test/player/subtitle-names.brs",
+    {
+      render: {
+        kind: "render",
+        items: [
+          { label: wideName, captionNumber: 1 },
+          { label: wideName + " (3)", captionNumber: 2 },
+          { label: "1.25x" },
+        ],
+      },
+    },
+  );
+  expect(render).toEqual([
+    { text: wideName, leadingEllipsis: true, ellipsisText: "[1] ..." },
+    { text: wideName + " (3)", leadingEllipsis: true, ellipsisText: "[2] ..." },
+    { text: "1.25x", leadingEllipsis: false, ellipsisText: "..." },
+  ]);
 });

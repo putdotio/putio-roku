@@ -85,7 +85,7 @@ sub renderTrackMenu()
             selected = item.selected = true
 
             row.node.visible = true
-            row.label.text = getTrackMenuItemLabel(item)
+            applyTrackMenuItemLabel(row.label, item)
             row.check.visible = selected
 
             ' The selected-track check is a Phosphor Poster tinted once in
@@ -173,6 +173,21 @@ function getTrackMenuScrollOffset(itemCount as integer, focusedIndex as integer,
 
     return offset
 end function
+
+sub applyTrackMenuItemLabel(label as object, item as object)
+    captionNumber = item.captionNumber
+    if label.hasField("leadingEllipsis")
+        label.leadingEllipsis = captionNumber <> invalid
+    end if
+    if label.hasField("ellipsisText")
+        ellipsis = "..."
+        if captionNumber <> invalid
+            ellipsis = "[" + captionNumber.toStr() + "] ..."
+        end if
+        label.ellipsisText = ellipsis
+    end if
+    label.text = getTrackMenuItemLabel(item)
+end sub
 
 function getTrackMenuItemLabel(item as object) as string
     if item = invalid or item.label = invalid or item.label = ""

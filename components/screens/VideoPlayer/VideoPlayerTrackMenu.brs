@@ -161,37 +161,28 @@ end function
 
 function getTrackMenuPresentationItems() as object
     items = []
-    reservedLabels = {}
-    reservedLabels.setModeCaseSensitive()
-    usedLabels = {}
-    usedLabels.setModeCaseSensitive()
-
+    captionLabels = []
+    captionNumber = 0
     if m.trackMenuMode = "captions"
         for each item in m.trackMenuItems
-            label = getMenuSafeTrackLabel(item.label)
-            reservedLabels[getCaptionMenuLabelKey(label)] = true
+            captionLabels.push(item.label)
         end for
+        captionLabels = getUniqueSubtitleLabels(captionLabels)
     end if
 
-    for each item in m.trackMenuItems
-        label = getMenuSafeTrackLabel(item.label)
+    for index = 0 to m.trackMenuItems.count() - 1
+        item = m.trackMenuItems[index]
+        presentation = { selected: isTrackMenuItemSelected(item) }
         if m.trackMenuMode = "captions"
-            labelKey = getCaptionMenuLabelKey(label)
-            if usedLabels.doesExist(labelKey)
-                number = 2
-                while usedLabels.doesExist(labelKey) or reservedLabels.doesExist(labelKey)
-                    prefix = "(" + number.toStr() + ") "
-                    label = prefix + getMenuSafeTrackLabel(item.label, Len(prefix))
-                    labelKey = getCaptionMenuLabelKey(label)
-                    number = number + 1
-                end while
+            presentation.label = captionLabels[index]
+            if item.type = "subtitle"
+                captionNumber += 1
+                presentation.captionNumber = captionNumber
             end if
-            usedLabels[labelKey] = true
+        else
+            presentation.label = getMenuSafeTrackLabel(item.label)
         end if
-        items.push({
-            label: label,
-            selected: isTrackMenuItemSelected(item)
-        })
+        items.push(presentation)
     end for
 
     return items
@@ -360,34 +351,19 @@ function getTrackLabel(track) as string
     return "Unknown"
 end function
 
-function getCaptionMenuLabelKey(label as string) as string
-    if Len(label) >= 32
-        return Left(label, 15)
-    end if
-    return label
-end function
-
-function getMenuSafeTrackLabel(label, prefixLength = 0 as integer) as string
+function getMenuSafeTrackLabel(label) as string
     if label = invalid or label = ""
         return "Unknown"
     end if
 
     safeLabel = label.toStr()
     maxLength = 28
-    if m.trackMenuMode = "captions"
-        maxLength = 32
-    else if m.trackMenuMode = "speed"
+    if m.trackMenuMode = "speed"
         maxLength = 12
     end if
 
-    maxLength = maxLength - prefixLength
     if Len(safeLabel) > maxLength
-        visibleLength = maxLength - 3
-        if m.trackMenuMode = "captions" and prefixLength = 0
-            tailLength = Int(visibleLength / 2)
-            return Left(safeLabel, visibleLength - tailLength) + "..." + Right(safeLabel, tailLength)
-        end if
-        return Left(safeLabel, visibleLength) + "..."
+        return Left(safeLabel, maxLength - 3) + "..."
     end if
 
     return safeLabel
