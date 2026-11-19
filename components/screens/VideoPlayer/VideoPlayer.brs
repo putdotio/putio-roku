@@ -419,24 +419,18 @@ function createSubtitleTracks(subtitles) as object
         return tracks
     end if
 
-    playable = []
     for each subtitle in subtitles
         if subtitle <> invalid and subtitle.url <> invalid and subtitle.url <> ""
-            playable.push(subtitle)
+            label = getPutioSubtitleLabel(subtitle)
+            description = subtitle.lookupCI("name")
+            if description = invalid or description = "" then description = label
+            tracks.push({
+                Language: getSubtitleLanguageCode(subtitle),
+                Name: label,
+                TrackName: subtitle.url,
+                Description: description
+            })
         end if
-    end for
-
-    labels = getPutioSubtitleLabels(playable)
-    for index = 0 to playable.count() - 1
-        subtitle = playable[index]
-        description = subtitle.lookupCI("name")
-        if description = invalid or description = "" then description = labels[index]
-        tracks.push({
-            Language: getSubtitleLanguageCode(subtitle),
-            Name: labels[index],
-            TrackName: subtitle.url,
-            Description: description
-        })
     end for
 
     return tracks

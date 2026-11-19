@@ -14,6 +14,15 @@ type NameCase =
       input: { kind: "manifestMenu"; tracks: { Description: string; TrackName: string }[]; selectedTrackName: string };
       expected: MenuItem[];
     }
+  | {
+      input: {
+        kind: "mixedMenu";
+        subtitles: Subtitle[];
+        tracks: { Name: string; TrackName: string }[];
+        selectedTrackName: string;
+      };
+      expected: MenuItem[];
+    }
   | { input: { kind: "match"; left: string; right: string }; expected: boolean };
 
 const sidecarUrl = "https://api.put.io/v2/files/7/subtitles/abc?oauth_token=t";
@@ -107,6 +116,18 @@ const nameCases: Record<string, NameCase> = {
       "English - " + "W".repeat(17) + " (3)",
       "English - " + "W".repeat(17) + " (2)",
     ], 2),
+  },
+  sidecar_and_embedded_tracks_reserve_names_together: {
+    input: {
+      kind: "mixedMenu",
+      subtitles: [
+        { language: "English", name: "Sample.srt", url: sidecarUrl + "1" },
+        { language: "English", name: "Sample.vtt", url: sidecarUrl + "2" },
+      ],
+      tracks: [{ Name: "English - Sample (2)", TrackName: "embedded/3" }],
+      selectedTrackName: "embedded/3",
+    },
+    expected: expectedCaptions(["English - Sample", "English - Sample (3)", "English - Sample (2)"], 3),
   },
   captions_preserve_forced_and_normal_tails: {
     input: {

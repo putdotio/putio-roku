@@ -6,8 +6,12 @@ function main() as string
         if input.kind = "label"
             results[name] = getCleanSubtitleName(input.name)
         else if input.kind = "labels"
-            results[name] = getPutioSubtitleLabels(input.subtitles)
-        else if input.kind = "menu" or input.kind = "manifestMenu"
+            labels = []
+            for each subtitle in input.subtitles
+                labels.push(getPutioSubtitleLabel(subtitle))
+            end for
+            results[name] = getUniqueSubtitleLabels(labels)
+        else if input.kind = "menu" or input.kind = "manifestMenu" or input.kind = "mixedMenu"
             m.trackMenuMode = "captions"
             m.trackMenuItems = []
             m.selectedSubtitleTrackName = input.selectedTrackName
@@ -15,6 +19,12 @@ function main() as string
             addSubtitleOffItem()
             if input.kind = "menu"
                 tracks = createSubtitleTracks(input.subtitles)
+            else if input.kind = "mixedMenu"
+                m.usesManifestSubtitles = false
+                m.rokuSubtitleTracks = input.tracks
+                m.externalSubtitleTracks = createSubtitleTracks(input.subtitles)
+                syncSubtitleTracks()
+                tracks = m.subtitleTracks
             else
                 m.rokuSubtitleTracks = input.tracks
                 m.externalSubtitleTracks = []

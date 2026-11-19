@@ -1,11 +1,3 @@
-function getPutioSubtitleLabels(subtitles as object) as object
-    baseLabels = []
-    for each subtitle in subtitles
-        baseLabels.push(getPutioSubtitleLabel(subtitle))
-    end for
-    return getUniqueSubtitleLabels(baseLabels)
-end function
-
 function getUniqueSubtitleLabels(baseLabels as object) as object
     reserved = CreateObject("roAssociativeArray")
     reserved.SetModeCaseSensitive()
