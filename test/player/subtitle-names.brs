@@ -8,11 +8,16 @@ function main() as string
             results[name] = getCleanSubtitleName(input.name)
         else if input.kind = "labels"
             results[name] = getPutioSubtitleLabels(input.subtitles)
-        else if input.kind = "menu"
+        else if input.kind = "menu" or input.kind = "manifestMenu"
             m.trackMenuMode = "captions"
+            m.trackMenuItems = []
+            m.selectedSubtitleTrackName = ""
+            tracks = input.tracks
+            if input.kind = "menu" then tracks = createSubtitleTracks(input.subtitles)
+            addTrackMenuItems(tracks, true)
             labels = []
-            for each track in createSubtitleTracks(input.subtitles)
-                labels.push(getMenuSafeTrackLabel(getTrackLabel(track)))
+            for each item in getTrackMenuPresentationItems()
+                labels.push(item.label)
             end for
             results[name] = labels
         else

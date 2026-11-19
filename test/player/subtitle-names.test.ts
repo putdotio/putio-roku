@@ -6,6 +6,7 @@ type Subtitle = { language?: string; language_code?: string; name?: string; url?
 type NameCase =
   | { input: { kind: "label"; name: string }; expected: string }
   | { input: { kind: "labels" | "menu"; subtitles: Subtitle[] }; expected: string[] }
+  | { input: { kind: "manifestMenu"; tracks: { Name: string; TrackName: string }[] }; expected: string[] }
   | { input: { kind: "match"; left: string; right: string }; expected: boolean };
 
 const sidecarUrl = "https://api.put.io/v2/files/7/subtitles/abc?oauth_token=t";
@@ -76,6 +77,26 @@ const nameCases: Record<string, NameCase> = {
       "Unknown - abcde...jklmnopqrstuvy",
       "Unknown - abcde...nopqrstuvy (2)",
     ],
+  },
+  sidecar_menu_disambiguates_truncated_names: {
+    input: {
+      kind: "menu",
+      subtitles: [
+        { language: "English", name: "Movie Theater Commentary Cut.srt", url: sidecarUrl + "1" },
+        { language: "English", name: "Movie Director Commentary Cut.srt", url: sidecarUrl + "2" },
+      ],
+    },
+    expected: ["English - Movie...Commentary Cut", "English - Mov...mmentary Cut (2)"],
+  },
+  manifest_menu_disambiguates_truncated_names: {
+    input: {
+      kind: "manifestMenu",
+      tracks: [
+        { Name: "English - Movie Theater Commentary Cut", TrackName: "webvtt/1" },
+        { Name: "English - Movie Director Commentary Cut", TrackName: "webvtt/2" },
+      ],
+    },
+    expected: ["English - Movie...Commentary Cut", "English - Mov...mmentary Cut (2)"],
   },
   roku_prefixed_sidecar_matches: {
     input: { kind: "match", left: `<dev_9b1_1a>${sidecarUrl}`, right: sidecarUrl },

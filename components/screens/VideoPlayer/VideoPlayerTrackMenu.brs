@@ -161,10 +161,30 @@ end function
 
 function getTrackMenuPresentationItems() as object
     items = []
+    reservedLabels = {}
+    reservedLabels.setModeCaseSensitive()
+    usedLabels = {}
+    usedLabels.setModeCaseSensitive()
+
+    if m.trackMenuMode = "captions"
+        for each item in m.trackMenuItems
+            reservedLabels[getMenuSafeTrackLabel(item.label)] = true
+        end for
+    end if
 
     for each item in m.trackMenuItems
+        label = getMenuSafeTrackLabel(item.label)
+        if m.trackMenuMode = "captions" and usedLabels.doesExist(label)
+            number = 2
+            while usedLabels.doesExist(label) or reservedLabels.doesExist(label)
+                suffix = " (" + number.toStr() + ")"
+                label = getMenuSafeTrackLabel(item.label, Len(suffix)) + suffix
+                number = number + 1
+            end while
+        end if
+        usedLabels[label] = true
         items.push({
-            label: getMenuSafeTrackLabel(item.label),
+            label: label,
             selected: isTrackMenuItemSelected(item)
         })
     end for
@@ -335,7 +355,7 @@ function getTrackLabel(track) as string
     return "Unknown"
 end function
 
-function getMenuSafeTrackLabel(label) as string
+function getMenuSafeTrackLabel(label, suffixLength = 0 as integer) as string
     if label = invalid or label = ""
         return "Unknown"
     end if
@@ -348,6 +368,7 @@ function getMenuSafeTrackLabel(label) as string
         maxLength = 12
     end if
 
+    maxLength = maxLength - suffixLength
     if Len(safeLabel) > maxLength
         visibleLength = maxLength - 3
         if m.trackMenuMode = "captions"
