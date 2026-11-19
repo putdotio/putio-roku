@@ -429,11 +429,13 @@ function createSubtitleTracks(subtitles) as object
     labels = getPutioSubtitleLabels(playable)
     for index = 0 to playable.count() - 1
         subtitle = playable[index]
+        description = subtitle.lookupCI("name")
+        if description = invalid or description = "" then description = labels[index]
         tracks.push({
             Language: getSubtitleLanguageCode(subtitle),
             Name: labels[index],
             TrackName: subtitle.url,
-            Description: subtitle.name
+            Description: description
         })
     end for
 

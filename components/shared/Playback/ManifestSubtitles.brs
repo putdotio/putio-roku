@@ -1,19 +1,28 @@
-' put.io names each HLS subtitle rendition this way (putdotio/putio pull 5125); Direct play sidecars use the same labels.
 function getPutioSubtitleLabels(subtitles as object) as object
-    labels = []
-    counts = CreateObject("roAssociativeArray")
-    counts.SetModeCaseSensitive()
+    baseLabels = []
+    reserved = CreateObject("roAssociativeArray")
+    reserved.SetModeCaseSensitive()
     for each subtitle in subtitles
         label = getPutioSubtitleLabel(subtitle)
-        count = 1
-        if counts.DoesExist(label)
-            count = counts[label] + 1
+        reserved[label] = true
+        baseLabels.push(label)
+    end for
+
+    labels = []
+    used = CreateObject("roAssociativeArray")
+    used.SetModeCaseSensitive()
+    for each label in baseLabels
+        candidate = label
+        if used.DoesExist(candidate)
+            count = 2
+            candidate = label + " (" + count.toStr() + ")"
+            while reserved.DoesExist(candidate) or used.DoesExist(candidate)
+                count += 1
+                candidate = label + " (" + count.toStr() + ")"
+            end while
         end if
-        counts[label] = count
-        if count > 1
-            label = label + " (" + count.toStr() + ")"
-        end if
-        labels.push(label)
+        used[candidate] = true
+        labels.push(candidate)
     end for
 
     return labels
@@ -23,8 +32,13 @@ function getPutioSubtitleLabel(subtitle as object) as string
     language = "Unknown"
     languageName = subtitle.lookupCI("language")
     languageCode = subtitle.lookupCI("language_code")
-    if languageName <> invalid and languageName.toStr() <> "" and (languageCode = invalid or languageCode.toStr() <> "und")
-        language = languageName.toStr()
+    if languageCode = invalid then languageCode = ""
+    if LCase(languageCode.toStr()) <> "und"
+        if languageName <> invalid and languageName.toStr() <> "" and LCase(languageName.toStr()) <> "undetermined"
+            language = languageName.toStr()
+        else if languageCode <> ""
+            language = languageCode.toStr()
+        end if
     end if
 
     name = subtitle.lookupCI("name")

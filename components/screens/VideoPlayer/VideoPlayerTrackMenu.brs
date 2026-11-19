@@ -349,7 +349,12 @@ function getMenuSafeTrackLabel(label) as string
     end if
 
     if Len(safeLabel) > maxLength
-        return Left(safeLabel, maxLength - 3) + "..."
+        visibleLength = maxLength - 3
+        if m.trackMenuMode = "captions"
+            tailLength = Int(visibleLength / 2)
+            return Left(safeLabel, visibleLength - tailLength) + "..." + Right(safeLabel, tailLength)
+        end if
+        return Left(safeLabel, visibleLength) + "..."
     end if
 
     return safeLabel

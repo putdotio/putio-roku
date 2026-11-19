@@ -8,6 +8,13 @@ function main() as string
             results[name] = getCleanSubtitleName(input.name)
         else if input.kind = "labels"
             results[name] = getPutioSubtitleLabels(input.subtitles)
+        else if input.kind = "menu"
+            m.trackMenuMode = "captions"
+            labels = []
+            for each track in createSubtitleTracks(input.subtitles)
+                labels.push(getMenuSafeTrackLabel(getTrackLabel(track)))
+            end for
+            results[name] = labels
         else
             results[name] = subtitleTrackNamesMatch(input.left, input.right)
         end if
