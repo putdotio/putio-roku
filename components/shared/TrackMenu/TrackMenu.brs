@@ -175,6 +175,7 @@ function getTrackMenuScrollOffset(itemCount as integer, focusedIndex as integer,
 end function
 
 sub applyTrackMenuItemLabel(label as object, item as object)
+    text = getTrackMenuItemLabel(item)
     captionNumber = item.captionNumber
     if label.hasField("leadingEllipsis")
         label.leadingEllipsis = captionNumber <> invalid
@@ -183,10 +184,14 @@ sub applyTrackMenuItemLabel(label as object, item as object)
         ellipsis = "..."
         if captionNumber <> invalid
             ellipsis = "[" + captionNumber.toStr() + "] ..."
+            separator = Instr(1, text, " - ")
+            if separator > 1
+                ellipsis = Left(text, separator - 1) + " " + ellipsis
+            end if
         end if
         label.ellipsisText = ellipsis
     end if
-    label.text = getTrackMenuItemLabel(item)
+    label.text = text
 end sub
 
 function getTrackMenuItemLabel(item as object) as string

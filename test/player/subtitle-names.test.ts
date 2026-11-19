@@ -199,6 +199,7 @@ describe("subtitle names", () => {
 
 it("sets native ellipsis for captions and resets the reused Label for other menus", async () => {
   const wideName = "English - " + "W".repeat(17);
+  const turkishName = "Turkish - " + "W".repeat(17);
   const { render } = await runBrsCases<LabelFields[]>(
     ["components/shared/TrackMenu/TrackMenu.brs"],
     "test/player/subtitle-names.brs",
@@ -208,14 +209,16 @@ it("sets native ellipsis for captions and resets the reused Label for other menu
         items: [
           { label: wideName, captionNumber: 1 },
           { label: wideName + " (3)", captionNumber: 2 },
+          { label: turkishName, captionNumber: 3 },
           { label: "1.25x" },
         ],
       },
     },
   );
   expect(render).toEqual([
-    { text: wideName, leadingEllipsis: true, ellipsisText: "[1] ..." },
-    { text: wideName + " (3)", leadingEllipsis: true, ellipsisText: "[2] ..." },
+    { text: wideName, leadingEllipsis: true, ellipsisText: "English [1] ..." },
+    { text: wideName + " (3)", leadingEllipsis: true, ellipsisText: "English [2] ..." },
+    { text: turkishName, leadingEllipsis: true, ellipsisText: "Turkish [3] ..." },
     { text: "1.25x", leadingEllipsis: false, ellipsisText: "..." },
   ]);
 });
