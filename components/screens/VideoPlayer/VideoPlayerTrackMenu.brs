@@ -76,9 +76,12 @@ sub addTrackMenuItems(tracks, isSubtitle)
         title = getTrackLabel(track)
 
         if isSubtitle
+            captionLanguage = readTrackValue(track, "CaptionLanguage")
+            if captionLanguage = invalid then captionLanguage = readTrackValue(track, "Language")
             m.trackMenuItems.push({
                 type: "subtitle",
                 label: title,
+                captionLanguage: captionLanguage,
                 trackName: readTrackValue(track, "TrackName"),
             })
         else
@@ -178,6 +181,7 @@ function getTrackMenuPresentationItems() as object
             if item.type = "subtitle"
                 captionNumber += 1
                 presentation.captionNumber = captionNumber
+                presentation.captionLanguage = item.captionLanguage
             end if
         else
             presentation.label = getMenuSafeTrackLabel(item.label)

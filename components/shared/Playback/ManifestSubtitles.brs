@@ -25,7 +25,7 @@ function getUniqueSubtitleLabels(baseLabels as object) as object
     return labels
 end function
 
-function getPutioSubtitleLabel(subtitle as object) as string
+function getPutioSubtitleLanguage(subtitle as object) as string
     language = "Unknown"
     languageName = subtitle.lookupCI("language")
     languageCode = subtitle.lookupCI("language_code")
@@ -38,6 +38,10 @@ function getPutioSubtitleLabel(subtitle as object) as string
         end if
     end if
 
+    return language
+end function
+
+function getPutioSubtitleLabel(subtitle as object, language as string) as string
     name = subtitle.lookupCI("name")
     if name = invalid or name.toStr() = ""
         return language

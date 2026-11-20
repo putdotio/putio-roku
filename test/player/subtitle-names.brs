@@ -8,7 +8,7 @@ function main() as string
         else if input.kind = "labels"
             labels = []
             for each subtitle in input.subtitles
-                labels.push(getPutioSubtitleLabel(subtitle))
+                labels.push(getPutioSubtitleLabel(subtitle, getPutioSubtitleLanguage(subtitle)))
             end for
             results[name] = getUniqueSubtitleLabels(labels)
         else if input.kind = "menu" or input.kind = "manifestMenu" or input.kind = "mixedMenu"
@@ -33,24 +33,34 @@ function main() as string
                 tracks = m.subtitleTracks
             end if
             addTrackMenuItems(tracks, true)
-            results[name] = getTrackMenuPresentationItems()
+            items = getTrackMenuPresentationItems()
+            if input.keepLanguage <> true
+                for each item in items
+                    item.delete("captionLanguage")
+                end for
+            end if
+            results[name] = items
         else if input.kind = "render"
-            label = createObject("roSGNode", "Label")
-            if not label.hasField("leadingEllipsis") then label.addField("leadingEllipsis", "boolean", false)
-            rows = []
-            for each item in input.items
-                applyTrackMenuItemLabel(label, item)
-                rows.push({
-                    text: label.text,
-                    leadingEllipsis: label.leadingEllipsis,
-                    ellipsisText: label.ellipsisText
-                })
-            end for
-            results[name] = rows
+            results[name] = renderMenuLabels(input.items)
         else
             results[name] = subtitleTrackNamesMatch(input.left, input.right)
         end if
     end for
 
     return formatJson(results)
+end function
+
+function renderMenuLabels(items as object) as object
+    label = createObject("roSGNode", "Label")
+    if not label.hasField("leadingEllipsis") then label.addField("leadingEllipsis", "boolean", false)
+    rows = []
+    for each item in items
+        applyTrackMenuItemLabel(label, item)
+        rows.push({
+            text: label.text,
+            leadingEllipsis: label.leadingEllipsis,
+            ellipsisText: label.ellipsisText
+        })
+    end for
+    return rows
 end function

@@ -184,9 +184,10 @@ sub applyTrackMenuItemLabel(label as object, item as object)
         ellipsis = "..."
         if captionNumber <> invalid
             ellipsis = "[" + captionNumber.toStr() + "] ..."
-            separator = Instr(1, text, " - ")
-            if separator > 1
-                ellipsis = Left(text, separator - 1) + " " + ellipsis
+            captionLanguage = item.captionLanguage
+            if captionLanguage <> invalid and captionLanguage <> "" and LCase(captionLanguage) <> "und"
+                maxLanguageLength = 12
+                ellipsis = Left(captionLanguage.trim(), maxLanguageLength) + " " + ellipsis
             end if
         end if
         label.ellipsisText = ellipsis

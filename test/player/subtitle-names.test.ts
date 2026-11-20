@@ -177,16 +177,18 @@ const nameCases: Record<string, NameCase> = {
   },
 };
 
+const playerSources = [
+  "components/shared/Playback/ManifestSubtitles.brs",
+  "components/screens/VideoPlayer/VideoPlayer.brs",
+  "components/screens/VideoPlayer/VideoPlayerTrackMenu.brs",
+];
+
 describe("subtitle names", () => {
   let results: Record<string, NameCase["expected"]>;
 
   beforeAll(async () => {
     results = await runBrsCases(
-      [
-        "components/shared/Playback/ManifestSubtitles.brs",
-        "components/screens/VideoPlayer/VideoPlayer.brs",
-        "components/screens/VideoPlayer/VideoPlayerTrackMenu.brs",
-      ],
+      playerSources,
       "test/player/subtitle-names.brs",
       Object.fromEntries(Object.entries(nameCases).map(([name, c]) => [name, c.input])),
     );
@@ -197,28 +199,40 @@ describe("subtitle names", () => {
   });
 });
 
-it("sets native ellipsis for captions and resets the reused Label for other menus", async () => {
-  const wideName = "English - " + "W".repeat(17);
-  const turkishName = "Turkish - " + "W".repeat(17);
-  const { render } = await runBrsCases<LabelFields[]>(
-    ["components/shared/TrackMenu/TrackMenu.brs"],
+it("uses language metadata for clipped captions and resets the reused Label for speed", async () => {
+  const wideStem = "W".repeat(34);
+  const embeddedTitle = wideStem + " - Commentary";
+  const { menu } = await runBrsCases<MenuItem[]>(
+    playerSources,
     "test/player/subtitle-names.brs",
     {
-      render: {
-        kind: "render",
-        items: [
-          { label: wideName, captionNumber: 1 },
-          { label: wideName + " (3)", captionNumber: 2 },
-          { label: turkishName, captionNumber: 3 },
-          { label: "1.25x" },
+      menu: {
+        kind: "mixedMenu",
+        keepLanguage: true,
+        subtitles: [
+          { language: "English", language_code: "eng", name: wideStem + ".srt", url: sidecarUrl + "1" },
+          { language: "Turkish", language_code: "tur", name: wideStem + ".srt", url: sidecarUrl + "2" },
+        ],
+        tracks: [
+          { Name: embeddedTitle, TrackName: "embedded/3" },
+          { Name: embeddedTitle, Description: embeddedTitle, Language: "fra", TrackName: "embedded/4" },
+          { Name: "SDH", Description: "SDH", Language: wideStem, TrackName: "embedded/5" },
         ],
       },
     },
   );
+  const { render } = await runBrsCases<LabelFields[]>(
+    ["components/shared/TrackMenu/TrackMenu.brs"],
+    "test/player/subtitle-names.brs",
+    { render: { kind: "render", items: [...menu, { label: "1.25x", selected: false }] } },
+  );
   expect(render).toEqual([
-    { text: wideName, leadingEllipsis: true, ellipsisText: "English [1] ..." },
-    { text: wideName + " (3)", leadingEllipsis: true, ellipsisText: "English [2] ..." },
-    { text: turkishName, leadingEllipsis: true, ellipsisText: "Turkish [3] ..." },
+    { text: "Off", leadingEllipsis: false, ellipsisText: "..." },
+    { text: "English - " + wideStem, leadingEllipsis: true, ellipsisText: "English [1] ..." },
+    { text: "Turkish - " + wideStem, leadingEllipsis: true, ellipsisText: "Turkish [2] ..." },
+    { text: embeddedTitle, leadingEllipsis: true, ellipsisText: "[3] ..." },
+    { text: embeddedTitle + " (2)", leadingEllipsis: true, ellipsisText: "fra [4] ..." },
+    { text: "SDH", leadingEllipsis: true, ellipsisText: "WWWWWWWWWWWW [5] ..." },
     { text: "1.25x", leadingEllipsis: false, ellipsisText: "..." },
   ]);
 });
