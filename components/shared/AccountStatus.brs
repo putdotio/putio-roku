@@ -41,8 +41,8 @@ function buildAccountNotice(user as dynamic, nowSeconds as integer) as dynamic
 
     if user.is_sub_account = true
         return {
-            title: "Your account has been deactivated",
-            message: "Your family plan's owner needs to update their payment details to keep your plan active.",
+            title: "Your family plan is no longer active.",
+            message: "",
         }
     end if
 

@@ -10,7 +10,7 @@ function sink(): NodeJS.WriteStream {
 
 const deactivated = "Your account has been deactivated";
 
-it("shows the web app's inactive-account notice and nothing for active accounts", async () => {
+it("shows the canonical inactive-account notice and nothing for active accounts", async () => {
   const files = ["components/shared/AccountStatus.brs", "test/account/account-notice.brs"].map(
     (file) => join(repoRoot, file),
   );
@@ -39,10 +39,6 @@ it("shows the web app's inactive-account notice and nothing for active accounts"
     },
     ownerNoDate: { title: deactivated, message: "" },
     legacyInactive: { title: deactivated, message: "" },
-    familyMember: {
-      title: deactivated,
-      message:
-        "Your family plan's owner needs to update their payment details to keep your plan active.",
-    },
+    familyMember: { title: "Your family plan is no longer active.", message: "" },
   });
 });
