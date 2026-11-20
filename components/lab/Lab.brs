@@ -332,7 +332,7 @@ sub init()
             title: "AccountNotice / family member",
             listTitle: "Notice / family",
             section: "Account",
-            description: "Home banner for a family member whose plan owner has lapsed.",
+            description: "Home banner for a family member whose family plan is no longer active.",
             component: "accountNotice",
         },
         {
