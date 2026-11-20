@@ -76,9 +76,12 @@ sub addTrackMenuItems(tracks, isSubtitle)
         title = getTrackLabel(track)
 
         if isSubtitle
+            captionLanguage = readTrackValue(track, "CaptionLanguage")
+            if captionLanguage = invalid then captionLanguage = readTrackValue(track, "Language")
             m.trackMenuItems.push({
                 type: "subtitle",
                 label: title,
+                captionLanguage: captionLanguage,
                 trackName: readTrackValue(track, "TrackName"),
             })
         else
@@ -161,12 +164,29 @@ end function
 
 function getTrackMenuPresentationItems() as object
     items = []
+    captionLabels = []
+    captionNumber = 0
+    if m.trackMenuMode = "captions"
+        for each item in m.trackMenuItems
+            captionLabels.push(item.label)
+        end for
+        captionLabels = getUniqueSubtitleLabels(captionLabels)
+    end if
 
-    for each item in m.trackMenuItems
-        items.push({
-            label: getMenuSafeTrackLabel(item.label),
-            selected: isTrackMenuItemSelected(item)
-        })
+    for index = 0 to m.trackMenuItems.count() - 1
+        item = m.trackMenuItems[index]
+        presentation = { selected: isTrackMenuItemSelected(item) }
+        if m.trackMenuMode = "captions"
+            presentation.label = captionLabels[index]
+            if item.type = "subtitle"
+                captionNumber += 1
+                presentation.captionNumber = captionNumber
+                presentation.captionLanguage = item.captionLanguage
+            end if
+        else
+            presentation.label = getMenuSafeTrackLabel(item.label)
+        end if
+        items.push(presentation)
     end for
 
     return items
@@ -342,9 +362,7 @@ function getMenuSafeTrackLabel(label) as string
 
     safeLabel = label.toStr()
     maxLength = 28
-    if m.trackMenuMode = "captions"
-        maxLength = 32
-    else if m.trackMenuMode = "speed"
+    if m.trackMenuMode = "speed"
         maxLength = 12
     end if
 

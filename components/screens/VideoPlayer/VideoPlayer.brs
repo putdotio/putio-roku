@@ -421,37 +421,21 @@ function createSubtitleTracks(subtitles) as object
 
     for each subtitle in subtitles
         if subtitle <> invalid and subtitle.url <> invalid and subtitle.url <> ""
+            captionLanguage = getPutioSubtitleLanguage(subtitle)
+            label = getPutioSubtitleLabel(subtitle, captionLanguage)
+            description = subtitle.lookupCI("name")
+            if description = invalid or description = "" then description = label
             tracks.push({
                 Language: getSubtitleLanguageCode(subtitle),
-                Name: getSubtitleLabel(subtitle),
+                Name: label,
+                CaptionLanguage: captionLanguage,
                 TrackName: subtitle.url,
-                Description: subtitle.name
+                Description: description
             })
         end if
     end for
 
     return tracks
-end function
-
-function getSubtitleLabel(subtitle) as string
-    language = readTrackValue(subtitle, "language")
-    name = readTrackValue(subtitle, "name")
-
-    if language = invalid or language = ""
-        language = readTrackValue(subtitle, "language_code")
-    end if
-
-    if language = invalid or language = ""
-        language = "Custom"
-    else
-        language = language.toStr().replace("Undetermined", "Custom")
-    end if
-
-    if name <> invalid and name <> ""
-        return language.toStr() + " - " + getCleanSubtitleName(name)
-    end if
-
-    return language.toStr()
 end function
 
 function getSubtitleLanguageCode(subtitle) as string
@@ -828,6 +812,7 @@ function createSelectableSubtitleTrack(track)
     return {
         Language: readTrackValue(track, "Language"),
         Name: readTrackValue(track, "Name"),
+        CaptionLanguage: readTrackValue(track, "CaptionLanguage"),
         TrackName: getAvailableSubtitleTrackName(trackName),
         Description: readTrackValue(track, "Description")
     }

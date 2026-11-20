@@ -85,7 +85,7 @@ sub renderTrackMenu()
             selected = item.selected = true
 
             row.node.visible = true
-            row.label.text = getTrackMenuItemLabel(item)
+            applyTrackMenuItemLabel(row.label, item)
             row.check.visible = selected
 
             ' The selected-track check is a Phosphor Poster tinted once in
@@ -172,6 +172,43 @@ function getTrackMenuScrollOffset(itemCount as integer, focusedIndex as integer,
     end if
 
     return offset
+end function
+
+sub applyTrackMenuItemLabel(label as object, item as object)
+    text = getTrackMenuItemLabel(item)
+    captionNumber = item.captionNumber
+    if label.hasField("leadingEllipsis")
+        label.leadingEllipsis = captionNumber <> invalid
+    end if
+    if label.hasField("ellipsisText")
+        ellipsis = "..."
+        if captionNumber <> invalid
+            ellipsis = "[" + captionNumber.toStr() + "] ..."
+            captionLanguage = getCaptionMarkerLanguage(item.captionLanguage)
+            if captionLanguage <> "" then ellipsis = captionLanguage + " " + ellipsis
+        end if
+        label.ellipsisText = ellipsis
+    end if
+    label.text = text
+end sub
+
+function getCaptionMarkerLanguage(value) as string
+    if GetInterface(value, "ifString") = invalid then return ""
+    language = value.trim()
+    if LCase(language) = "und" then return ""
+
+    maxLanguageLength = 12
+    language = Left(language, maxLanguageLength)
+    for index = 1 to Len(language)
+        code = Asc(Mid(language, index, 1))
+        isControl = code < &h20 or (code >= &h7F and code <= &h9F)
+        isDirectionMark = code = &h61C or code = &h200E or code = &h200F
+        isLineOrDirectionControl = code >= &h2028 and code <= &h202E
+        isIsolateControl = code >= &h2066 and code <= &h2069
+        if isControl or isDirectionMark or isLineOrDirectionControl or isIsolateControl then return ""
+    end for
+
+    return language
 end function
 
 function getTrackMenuItemLabel(item as object) as string
