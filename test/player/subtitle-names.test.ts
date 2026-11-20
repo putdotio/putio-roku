@@ -224,7 +224,19 @@ it("uses language metadata for clipped captions and resets the reused Label for 
   const { render } = await runBrsCases<LabelFields[]>(
     ["components/shared/TrackMenu/TrackMenu.brs"],
     "test/player/subtitle-names.brs",
-    { render: { kind: "render", items: [...menu, { label: "1.25x", selected: false }] } },
+    {
+      render: {
+        kind: "render",
+        items: [
+          ...menu,
+          { label: "Line break", captionLanguage: "English\nFrench", captionNumber: 6 },
+          { label: "Non-text", captionLanguage: 7, captionNumber: 7 },
+          { label: "Unknown", captionLanguage: "  und  ", captionNumber: 8 },
+          { label: "Bidi", captionLanguage: "\u202eEnglish", captionNumber: 9 },
+          { label: "1.25x", selected: false },
+        ],
+      },
+    },
   );
   expect(render).toEqual([
     { text: "Off", leadingEllipsis: false, ellipsisText: "..." },
@@ -233,6 +245,10 @@ it("uses language metadata for clipped captions and resets the reused Label for 
     { text: embeddedTitle, leadingEllipsis: true, ellipsisText: "[3] ..." },
     { text: embeddedTitle + " (2)", leadingEllipsis: true, ellipsisText: "fra [4] ..." },
     { text: "SDH", leadingEllipsis: true, ellipsisText: "WWWWWWWWWWWW [5] ..." },
+    { text: "Line break", leadingEllipsis: true, ellipsisText: "[6] ..." },
+    { text: "Non-text", leadingEllipsis: true, ellipsisText: "[7] ..." },
+    { text: "Unknown", leadingEllipsis: true, ellipsisText: "[8] ..." },
+    { text: "Bidi", leadingEllipsis: true, ellipsisText: "[9] ..." },
     { text: "1.25x", leadingEllipsis: false, ellipsisText: "..." },
   ]);
 });

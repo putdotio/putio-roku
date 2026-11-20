@@ -184,16 +184,32 @@ sub applyTrackMenuItemLabel(label as object, item as object)
         ellipsis = "..."
         if captionNumber <> invalid
             ellipsis = "[" + captionNumber.toStr() + "] ..."
-            captionLanguage = item.captionLanguage
-            if captionLanguage <> invalid and captionLanguage <> "" and LCase(captionLanguage) <> "und"
-                maxLanguageLength = 12
-                ellipsis = Left(captionLanguage.trim(), maxLanguageLength) + " " + ellipsis
-            end if
+            captionLanguage = getCaptionMarkerLanguage(item.captionLanguage)
+            if captionLanguage <> "" then ellipsis = captionLanguage + " " + ellipsis
         end if
         label.ellipsisText = ellipsis
     end if
     label.text = text
 end sub
+
+function getCaptionMarkerLanguage(value) as string
+    if GetInterface(value, "ifString") = invalid then return ""
+    language = value.trim()
+    if LCase(language) = "und" then return ""
+
+    maxLanguageLength = 12
+    language = Left(language, maxLanguageLength)
+    for index = 1 to Len(language)
+        code = Asc(Mid(language, index, 1))
+        isControl = code < &h20 or (code >= &h7F and code <= &h9F)
+        isDirectionMark = code = &h61C or code = &h200E or code = &h200F
+        isLineOrDirectionControl = code >= &h2028 and code <= &h202E
+        isIsolateControl = code >= &h2066 and code <= &h2069
+        if isControl or isDirectionMark or isLineOrDirectionControl or isIsolateControl then return ""
+    end for
+
+    return language
+end function
 
 function getTrackMenuItemLabel(item as object) as string
     if item = invalid or item.label = invalid or item.label = ""
