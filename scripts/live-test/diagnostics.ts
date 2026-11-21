@@ -49,11 +49,15 @@ export async function captureRokuDebugSnapshot(target: string, outputDir: string
   });
 }
 
+export function redactMediaTokens(text: string): string {
+  return text.replace(/(oauth_token=)[^&"'\s<>\\]+/gi, "$1[redacted]");
+}
+
 async function writeText(path: string, read: () => Promise<string>): Promise<void> {
   try {
-    await writeFile(path, await read());
+    await writeFile(path, redactMediaTokens(await read()));
   } catch (error) {
-    await writeFile(`${path}.error`, `${formatErrorMessage(error)}\n`);
+    await writeFile(`${path}.error`, `${redactMediaTokens(formatErrorMessage(error))}\n`);
   }
 }
 
