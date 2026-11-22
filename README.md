@@ -17,7 +17,7 @@
 
 ## Install
 
-Roku no longer supports private channels, so you sideload the [published Roku ZIP](https://roku.put.io/v2.zip). [Enable Developer Mode](./CONTRIBUTING.md#enable-developer-mode) on the Roku, then upload the ZIP through its web installer.
+Sideload the [published Roku ZIP](https://roku.put.io/v2.zip): [enable Developer Mode](./CONTRIBUTING.md#enable-developer-mode) on the Roku, then upload the ZIP through its web installer. Roku has no private channels.
 
 ## Use
 
