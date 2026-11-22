@@ -49,8 +49,17 @@ export async function captureRokuDebugSnapshot(target: string, outputDir: string
   });
 }
 
+const tokenRedactions: ReadonlyArray<RegExp> = [
+  /((?:oauth|download|access)_token(?:=|%3D))[^&"'\s<>\\%]+/gi,
+  /(\b(?:oauth_?|download_?|access_?)?token\\?["']?\s*[:=]\s*\\?["'])[^"'\\]+/gi,
+  /(authorization\\?["']?\s*[:=]\s*\\?["']?(?:token|bearer)\s+)[^\s"'\\,]+/gi,
+];
+
 export function redactMediaTokens(text: string): string {
-  return text.replace(/(oauth_token=)[^&"'\s<>\\]+/gi, "$1[redacted]");
+  return tokenRedactions.reduce(
+    (redacted, pattern) => redacted.replace(pattern, "$1[redacted]"),
+    text,
+  );
 }
 
 async function writeText(path: string, read: () => Promise<string>): Promise<void> {
