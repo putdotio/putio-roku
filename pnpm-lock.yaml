@@ -180,13 +180,13 @@ importers:
     devDependencies:
       '@alchemy.run/aws':
         specifier: 2.0.0-beta.87
-        version: 2.0.0-beta.87(patch_hash=9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232)(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
+        version: 2.0.0-beta.87(patch_hash=9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232)(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)
       '@distilled.cloud/aws':
         specifier: 1.0.0-rc.20
-        version: 1.0.0-rc.20(effect@4.1.4)
+        version: 1.0.0-rc.20(effect@4.1.5)
       '@effect/platform-node':
-        specifier: 4.1.4
-        version: 4.1.4(effect@4.1.4)(redis@6.3.1)
+        specifier: 4.1.5
+        version: 4.1.5(effect@4.1.5)(redis@6.3.1)
       '@phosphor-icons/core':
         specifier: 2.1.1
         version: 2.1.1
@@ -210,7 +210,7 @@ importers:
         version: 26.6.6
       alchemy:
         specifier: 2.0.0-beta.87
-        version: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
+        version: 2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
       brighterscript:
         specifier: 0.73.8
         version: 0.73.8
@@ -218,8 +218,8 @@ importers:
         specifier: 1.8.4
         version: 1.8.4
       effect:
-        specifier: 4.1.4
-        version: 4.1.4
+        specifier: 4.1.5
+        version: 4.1.5
       oxfmt:
         specifier: 0.79.0
         version: 0.79.0
@@ -337,11 +337,24 @@ packages:
     peerDependencies:
       effect: ^4.1.4
 
+  '@effect/platform-node-shared@4.1.5':
+    resolution: {integrity: sha512-JzlrYe4uKaBFTWihBRXo2pDjkUVB39kQpKdGfXdbp7Co5sKT8hbcjOmdB5pg/WOYESdGTddd3fxD4lwlZELbZQ==}
+    engines: {node: '>=22.19.0'}
+    peerDependencies:
+      effect: ^4.1.5
+
   '@effect/platform-node@4.1.4':
     resolution: {integrity: sha512-h7QExTPq/RfYtHP/8tMlgfBvqYsuJKhxfkU6w0+NaF/ihqQ8Y3GH9t28ltupQjoqMM7P6W5gy8rOji7F0qVrmg==}
     engines: {node: '>=22.19.0'}
     peerDependencies:
       effect: ^4.1.4
+      redis: '>=5.1.0 <7.0.0'
+
+  '@effect/platform-node@4.1.5':
+    resolution: {integrity: sha512-tFnRvxF9EKc3oU17sDHj1JeLP+TL/IkaOEl3IUk2EjgMS0x7AWs0ioUXjdNKLb3Z1LdjVfMf/DxsNh9PW5FFAg==}
+    engines: {node: '>=22.19.0'}
+    peerDependencies:
+      effect: ^4.1.5
       redis: '>=5.1.0 <7.0.0'
 
   '@emnapi/core@1.10.0':
@@ -1242,6 +1255,9 @@ packages:
   effect@4.1.4:
     resolution: {integrity: sha512-Tgrv/9FN+TZYyOn8XSli+fVqAfwDrDAkiX5Uu9vztINb675VTQdhD0gWI5Kzvhlh9QqzjZvw72iugqw5pwoghQ==}
 
+  effect@4.1.5:
+    resolution: {integrity: sha512-xyR20KhQI0vg2gD8ILUSQRTTESEYJ0JKdP+QD8J37xbwPTqXRxFM/l0+vUVD9fuSvoYruoTqyt33C4FZv1s4TQ==}
+
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
 
@@ -2122,6 +2138,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.23.0:
+    resolution: {integrity: sha512-wCkmX8QMOrKjgO8HW2WyDbTSGeqkocxgDzS9iR79rEAexty6/2qzilx3Ag8Tqf9ykop3irLKle0MtVn5qjVnoQ==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xml2js@0.5.0:
     resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
     engines: {node: '>=4.0.0'}
@@ -2175,36 +2203,36 @@ packages:
 
 snapshots:
 
-  '@alchemy.run/aws@2.0.0-beta.87(patch_hash=9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232)(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)':
+  '@alchemy.run/aws@2.0.0-beta.87(patch_hash=9739ef88f89481b47f3cdbbbf7ff585ae364b582ec179448304816160949e232)(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)':
     dependencies:
-      '@alchemy.run/docker': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
-      '@alchemy.run/kubernetes': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
-      '@alchemy.run/sql': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
-      '@distilled.cloud/aws': 1.0.0-rc.20(effect@4.1.4)
-      '@distilled.cloud/s3': 1.0.0-rc.20(effect@4.1.4)
+      '@alchemy.run/docker': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)
+      '@alchemy.run/kubernetes': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)
+      '@alchemy.run/sql': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)
+      '@distilled.cloud/aws': 1.0.0-rc.20(effect@4.1.5)
+      '@distilled.cloud/s3': 1.0.0-rc.20(effect@4.1.5)
       '@types/aws-lambda': 8.10.164
-      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
-      effect: 4.1.4
+      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
+      effect: 4.1.5
       rolldown: 1.2.16
     optionalDependencies:
-      '@effect/platform-node': 4.1.4(effect@4.1.4)(redis@6.3.1)
+      '@effect/platform-node': 4.1.5(effect@4.1.5)(redis@6.3.1)
     transitivePeerDependencies:
       - '@effect/sql-libsql'
       - '@effect/sql-mysql2'
       - '@effect/sql-pg'
       - mysql2
 
-  '@alchemy.run/docker@2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)':
+  '@alchemy.run/docker@2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)':
     dependencies:
-      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
-      effect: 4.1.4
+      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
+      effect: 4.1.5
       rolldown: 1.2.16
 
-  '@alchemy.run/kubernetes@2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)':
+  '@alchemy.run/kubernetes@2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)':
     dependencies:
-      '@alchemy.run/docker': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)
-      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
-      effect: 4.1.4
+      '@alchemy.run/docker': 2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)
+      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
+      effect: 4.1.5
       yaml: 2.9.1
 
   '@alchemy.run/node-utils@2.0.0-beta.87':
@@ -2214,31 +2242,31 @@ snapshots:
 
   '@alchemy.run/sigil@0.1.0-alpha.4': {}
 
-  '@alchemy.run/sql@2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.4)':
+  '@alchemy.run/sql@2.0.0-beta.87(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1))(effect@4.1.5)':
     dependencies:
-      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
-      effect: 4.1.4
+      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1)
+      effect: 4.1.5
 
-  '@distilled.cloud/aws4signer@1.0.0-rc.20(effect@4.1.4)':
+  '@distilled.cloud/aws4signer@1.0.0-rc.20(effect@4.1.5)':
     dependencies:
-      '@distilled.cloud/core': 1.0.0-rc.20(effect@4.1.4)
-      effect: 4.1.4
+      '@distilled.cloud/core': 1.0.0-rc.20(effect@4.1.5)
+      effect: 4.1.5
 
-  '@distilled.cloud/aws@1.0.0-rc.20(effect@4.1.4)':
+  '@distilled.cloud/aws@1.0.0-rc.20(effect@4.1.5)':
     dependencies:
-      '@distilled.cloud/core': 1.0.0-rc.20(effect@4.1.4)
-      '@distilled.cloud/s3': 1.0.0-rc.20(effect@4.1.4)
-      effect: 4.1.4
+      '@distilled.cloud/core': 1.0.0-rc.20(effect@4.1.5)
+      '@distilled.cloud/s3': 1.0.0-rc.20(effect@4.1.5)
+      effect: 4.1.5
 
-  '@distilled.cloud/core@1.0.0-rc.20(effect@4.1.4)':
+  '@distilled.cloud/core@1.0.0-rc.20(effect@4.1.5)':
     dependencies:
-      effect: 4.1.4
+      effect: 4.1.5
 
-  '@distilled.cloud/s3@1.0.0-rc.20(effect@4.1.4)':
+  '@distilled.cloud/s3@1.0.0-rc.20(effect@4.1.5)':
     dependencies:
-      '@distilled.cloud/aws4signer': 1.0.0-rc.20(effect@4.1.4)
-      '@distilled.cloud/core': 1.0.0-rc.20(effect@4.1.4)
-      effect: 4.1.4
+      '@distilled.cloud/aws4signer': 1.0.0-rc.20(effect@4.1.5)
+      '@distilled.cloud/core': 1.0.0-rc.20(effect@4.1.5)
+      effect: 4.1.5
 
   '@effect/platform-node-shared@4.1.4(effect@4.1.4)':
     dependencies:
@@ -2249,10 +2277,29 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@effect/platform-node-shared@4.1.5(effect@4.1.5)':
+    dependencies:
+      '@types/ws': 8.18.2
+      effect: 4.1.5
+      ws: 8.23.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1)':
     dependencies:
       '@effect/platform-node-shared': 4.1.4(effect@4.1.4)
       effect: 4.1.4
+      redis: 6.3.1
+      undici: 8.12.4
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1)':
+    dependencies:
+      '@effect/platform-node-shared': 4.1.5(effect@4.1.5)
+      effect: 4.1.5
       redis: 6.3.1
       undici: 8.12.4
     transitivePeerDependencies:
@@ -2703,12 +2750,12 @@ snapshots:
     dependencies:
       chevrotain: 7.1.1
 
-  alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1))(effect@4.1.4)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1):
+  alchemy@2.0.0-beta.87(@effect/platform-node@4.1.5(effect@4.1.5)(redis@6.3.1))(effect@4.1.5)(vite@8.0.13(@types/node@26.6.6)(yaml@2.9.1))(ws@8.22.1):
     dependencies:
       '@alchemy.run/node-utils': 2.0.0-beta.87
       '@alchemy.run/sigil': 0.1.0-alpha.4
       capnweb: 0.12.0
-      effect: 4.1.4
+      effect: 4.1.5
       fflate: 0.8.3
       pathe: 2.0.3
       picomatch: 4.0.7
@@ -2716,7 +2763,7 @@ snapshots:
       tinyglobby: 0.2.17
       yaml: 2.9.1
     optionalDependencies:
-      '@effect/platform-node': 4.1.4(effect@4.1.4)(redis@6.3.1)
+      '@effect/platform-node': 4.1.5(effect@4.1.5)(redis@6.3.1)
       vite: 8.0.13(@types/node@26.6.6)(yaml@2.9.1)
       ws: 8.22.1
     transitivePeerDependencies:
@@ -2959,6 +3006,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   effect@4.1.4: {}
+
+  effect@4.1.5: {}
 
   emoji-regex@8.0.0: {}
 
@@ -3774,6 +3823,8 @@ snapshots:
       strip-ansi: 6.0.1
 
   ws@8.22.1: {}
+
+  ws@8.23.0: {}
 
   xml2js@0.5.0:
     dependencies:
