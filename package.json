@@ -28,7 +28,7 @@
     "brighterscript": "0.73.8",
     "brighterscript-formatter": "1.8.4",
     "effect": "4.1.5",
-    "oxfmt": "0.79.0",
+    "oxfmt": "0.80.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
