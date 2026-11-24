@@ -40,19 +40,6 @@ export default Alchemy.Stack(
       tags,
     });
 
-    const { distribution } = site;
-    if (!distribution) return yield* Effect.die("roku.put.io needs its own distribution.");
-
-    yield* AWS.Route53.Record("AliasRecordAAAA", {
-      hostedZoneId,
-      name: domain,
-      type: "AAAA",
-      aliasTarget: {
-        hostedZoneId: distribution.hostedZoneId,
-        dnsName: distribution.domainName,
-      },
-    });
-
     return { url: site.url };
   }),
 );
