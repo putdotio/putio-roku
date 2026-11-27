@@ -24,4 +24,35 @@ describe("redactMediaTokens", () => {
 
     expect(redactMediaTokens(body)).not.toContain("ABC123");
   });
+
+  it("redacts a URL-encoded token inside another URL", () => {
+    expect(
+      redactMediaTokens(
+        "next=https%3A%2F%2Fapi.put.io%2Fv2%2Ffiles%2F42%2Fdownload%3Foauth_token%3DABC123%26x%3D1",
+      ),
+    ).toBe(
+      "next=https%3A%2F%2Fapi.put.io%2Fv2%2Ffiles%2F42%2Fdownload%3Foauth_token%3D[redacted]%26x%3D1",
+    );
+  });
+
+  it("redacts token fields in SceneGraph attributes and JSON", () => {
+    const text = [
+      '<Auth name="auth" token="OAUTH123" />',
+      JSON.stringify({ user: { download_token: "DL123" }, downloadToken: "DL456" }),
+      JSON.stringify({ body: JSON.stringify({ oauth_token: "OAUTH456" }) }),
+    ].join("\n");
+
+    const redacted = redactMediaTokens(text);
+
+    for (const secret of ["OAUTH123", "DL123", "DL456", "OAUTH456"]) {
+      expect(redacted).not.toContain(secret);
+    }
+    expect(redacted).toContain('token="[redacted]"');
+  });
+
+  it("redacts the Authorization header token", () => {
+    expect(redactMediaTokens("Authorization: token OAUTH123")).toBe(
+      "Authorization: token [redacted]",
+    );
+  });
 });
