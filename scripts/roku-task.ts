@@ -58,7 +58,6 @@ import {
   visualCapturePages,
 } from "./roku-task/live.ts";
 import { loadEnvFiles, selectedVariantConfig, variantConfig } from "./roku-task/runtime.ts";
-import { secretsClean, secretsSetup } from "./roku-task/secrets.ts";
 
 type Task = () => Promise<void> | void;
 
@@ -115,8 +114,6 @@ const tasks: Record<string, Task> = {
   "putio-auth-status": putioAuthStatus,
   remove,
   run: reinstall,
-  "secrets-clean": secretsClean,
-  "secrets-setup": secretsSetup,
   smoke: verify,
   "test-live": testLive,
   verify,
@@ -162,9 +159,8 @@ Assets:
   icons fonts-setup fonts-check
 
 Auth:
-  secrets-setup secrets-clean putio-auth-status putio-auth-prepare
-  putio-auth-approve-device live-test-auth-prepare live-test-auth-reset
-  live-test-auth-refresh
+  putio-auth-status putio-auth-prepare putio-auth-approve-device
+  live-test-auth-prepare live-test-auth-reset live-test-auth-refresh
 
 Run pnpm roku help --all for every task.`);
 

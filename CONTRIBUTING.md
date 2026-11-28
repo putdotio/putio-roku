@@ -15,10 +15,9 @@ copy the sample and set your Roku target and Developer Mode password:
 cp .env.example .env
 ```
 
-Maintainers with the shared encrypted test payload render the test account and
-fixtures into `.env.local` with `pnpm roku secrets-setup`; use that account for
-device checks so screenshots, navigation, playback, and track selection run
-against stable fixtures.
+For live harness and device tests, export the test account and fixture variables
+in your shell or place them in the gitignored `.env.local` so screenshots,
+navigation, playback, and track selection run against stable fixtures.
 
 ### Enable Developer Mode
 
