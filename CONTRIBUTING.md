@@ -2,7 +2,7 @@
 
 ## Setup
 
-Prerequisites: Node.js from `.node-version` and `pnpm`.
+Prerequisites: Node.js from `.node-version`, `pnpm`, and (for live harness tasks) the `putio` CLI on `PATH`.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -47,8 +47,8 @@ pnpm roku harness-install
 ```
 
 The first run on a host spends one device code and caches the app token in
-`~/.cache/putio-roku`; later installs and `live-test-flow-smoke` or
-`live-test-flow-full` reuse it. put.io limits device codes per IP. Signing out
+`~/.cache/putio-roku`; later installs and `pnpm roku live-test-flow-smoke` or
+`pnpm roku live-test-flow-full` reuse it. put.io limits device codes per IP. Signing out
 in the app keeps the cached token valid.
 
 `pnpm roku help --all` lists every task.
@@ -61,7 +61,7 @@ Run before opening or updating a pull request:
 pnpm verify
 ```
 
-`pnpm exec oxfmt "**/*.md" "scripts/**/*.ts"` fixes Markdown and scripts formatting failures.
+Fix formatting failures with `pnpm exec oxfmt "**/*.md" "scripts/**/*.ts"` (Markdown and scripts) or `pnpm exec bsfmt "source/**/*.{brs,bs}" "components/**/*.{brs,bs}"` (BrightScript).
 
 Build the production release ZIP at `dist/apps/putio-roku-v2.zip`:
 
