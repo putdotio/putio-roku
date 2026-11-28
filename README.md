@@ -23,12 +23,9 @@ Sideload the [published Roku ZIP](https://roku.put.io/v2.zip): [enable Developer
 
 Sign in with your put.io account to browse and search your files, review playback history, change settings, and stream supported media.
 
-Long file lists wrap around: press Up on the first item to reach the last,
-or Down on the last item to return to the first.
+## Security
 
-## Docs
-
-- [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md): private vulnerability reporting
+Report vulnerabilities privately under [Security](https://github.com/putdotio/.github/blob/main/SECURITY.md).
 
 ## Contributing
 

@@ -28,7 +28,7 @@ type DriverResult = {
 
 const deviceTags = ["connection_type", "roku_model", "roku_os", "video_mode"];
 
-// Playback failure reports, schema 2: https://app.notion.com/p/41dd546ba2f5812a8688d64d3aa3df21
+// Playback failure reports (schema 2).
 const playbackTags = [
   "telemetry_event",
   "schema_version",
